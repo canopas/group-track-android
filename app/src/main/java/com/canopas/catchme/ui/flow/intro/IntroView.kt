@@ -27,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.catchme.R
 import com.canopas.catchme.ui.component.PagerIndicator
 import com.canopas.catchme.ui.theme.AppTheme.colorScheme
@@ -42,7 +43,7 @@ fun IntroView() {
 }
 
 @Composable
-fun IntroBackground(){
+fun IntroBackground() {
     Image(
         painter = painterResource(id = R.drawable.bg_intro),
         contentScale = ContentScale.Crop,
@@ -110,8 +111,9 @@ fun IntroContent() {
 
 @Composable
 fun GetStartedButton() {
+    val viewModel = hiltViewModel<IntroViewModel>()
     Button(
-        onClick = { },
+        onClick = { viewModel.completeIntroScreen() },
         modifier = Modifier
             .fillMaxWidth(fraction = 0.7f)
             .padding(horizontal = 40.dp),

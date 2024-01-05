@@ -15,3 +15,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "CatchMe"
 include(":app")
+include(":data")
