@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">CatchMe</string>
+
+    <string name="intro_content_one">Share your location seamlessly, connecting with just a click.</string>
+    <string name="intro_content_two">Stay in the know with instant alerts – whether loved ones enter or leave.</string>
+    <string name="intro_content_three">Simplify your connections and insights – explore drive reports, location history effortlessly.</string>
+    <string name="get_started">Get started</string>
+
+</resources>
