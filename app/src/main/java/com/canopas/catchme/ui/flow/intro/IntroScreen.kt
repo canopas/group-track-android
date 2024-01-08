@@ -8,13 +8,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Text
 
 import androidx.compose.runtime.Composable
@@ -27,15 +29,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.catchme.R
+import com.canopas.catchme.ui.component.AppLogo
 import com.canopas.catchme.ui.component.PagerIndicator
+import com.canopas.catchme.ui.theme.AppTheme
 import com.canopas.catchme.ui.theme.AppTheme.colorScheme
-import com.canopas.catchme.ui.theme.AppTypography
-import com.canopas.catchme.ui.theme.KalamBoldFont
+
 
 @Composable
-fun IntroView() {
+fun IntroScreen() {
     Box(modifier = Modifier.fillMaxSize()) {
         IntroBackground()
         IntroContent()
@@ -43,7 +47,7 @@ fun IntroView() {
 }
 
 @Composable
-fun IntroBackground() {
+private fun IntroBackground() {
     Image(
         painter = painterResource(id = R.drawable.bg_intro),
         contentScale = ContentScale.Crop,
@@ -60,7 +64,7 @@ fun IntroBackground() {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun IntroContent() {
+private fun IntroContent() {
     val pagerState = rememberPagerState {
         introList.size
     }
@@ -68,22 +72,9 @@ fun IntroContent() {
     Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
 
         Spacer(modifier = Modifier.padding(top = 80.dp))
+        AppLogo()
 
-        Image(
-            painter = painterResource(id = R.drawable.app_logo_white_outlined),
-            contentDescription = "app_log",
-            modifier = Modifier.size(50.dp)
-        )
-
-        Text(
-            text = "CatchMe",
-            textAlign = TextAlign.Center,
-            style = AppTypography.headlineLarge
-                .copy(
-                    color = colorScheme.surface,
-                    fontFamily = KalamBoldFont
-                ),
-        )
+        TagLine()
 
         HorizontalPager(state = pagerState, modifier = Modifier.weight(1f)) { page ->
             IntroItem(stringResource(id = introList[page]))
@@ -110,10 +101,29 @@ fun IntroContent() {
 }
 
 @Composable
+fun TagLine() {
+    Divider(
+        modifier = Modifier
+            .width(20.dp)
+            .background(colorScheme.outline.copy(alpha = 0.5f))
+    )
+    Spacer(modifier = Modifier.height(6.dp))
+    Text(
+        text = "Stay Close, Anywhere!",
+        textAlign = TextAlign.Center,
+        style = AppTheme.appTypography.subTitle2
+            .copy(
+                color = colorScheme.surface,
+                letterSpacing = -(0.56).sp
+            ),
+    )
+}
+
+@Composable
 fun GetStartedButton() {
     val viewModel = hiltViewModel<IntroViewModel>()
     Button(
-        onClick = { viewModel.completeIntroScreen() },
+        onClick = { viewModel.completedIntro() },
         modifier = Modifier
             .fillMaxWidth(fraction = 0.7f)
             .padding(horizontal = 40.dp),
@@ -124,7 +134,7 @@ fun GetStartedButton() {
     ) {
         Text(
             text = stringResource(id = R.string.get_started),
-            style = AppTypography.labelMedium,
+            style = AppTheme.appTypography.label1.copy(color = colorScheme.onPrimary),
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(vertical = 6.dp)
         )
@@ -141,7 +151,7 @@ fun IntroItem(content: String) {
         Text(
             text = content,
             textAlign = TextAlign.Center,
-            style = AppTypography.headlineMedium.copy(color = colorScheme.surface),
+            style = AppTheme.appTypography.header3.copy(color = colorScheme.surface),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 40.dp)
@@ -153,11 +163,11 @@ fun IntroItem(content: String) {
 
 @Preview
 @Composable
-fun IntroPreview() {
-    IntroView()
+private fun IntroPreview() {
+    IntroScreen()
 }
 
-val introList = listOf(
+private val introList = listOf(
     R.string.intro_content_one,
     R.string.intro_content_two,
     R.string.intro_content_three
