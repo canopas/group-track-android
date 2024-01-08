@@ -10,6 +10,7 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import com.canopas.catchme.ui.theme.AppTheme.appTypography
 
 @Composable
 fun CatchMeTheme(
@@ -35,7 +36,6 @@ fun CatchMeTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = AppTypography,
         content = content
     )
 }
@@ -46,4 +46,10 @@ object AppTheme {
         @ReadOnlyComposable
         get() = LocalAppColorScheme.current
 
+    val appTypography: AppTypography
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalAppTypography.current
+
 }
+

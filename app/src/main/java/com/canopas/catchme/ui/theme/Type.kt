@@ -1,72 +1,104 @@
 package com.canopas.catchme.ui.theme
 
 import androidx.compose.material3.Typography
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
 // Set of Material typography styles to start with
-val AppTypography = Typography(
-    bodyLarge = TextStyle(
+internal val LocalAppTypography = staticCompositionLocalOf { AppTypography() }
+
+class AppTypography {
+    val logo: TextStyle = TextStyle(
+        fontFamily = KalamBoldFont,
+        fontWeight = FontWeight.W400,
+        fontSize = 28.sp,
+        letterSpacing = (-1.68).sp
+    )
+
+    val header1: TextStyle = TextStyle(
         fontFamily = InterFontFamily,
-        fontWeight = FontWeight.SemiBold,
+        fontWeight = FontWeight.W600,
+        fontSize = 24.sp,
+        letterSpacing = (-0.96).sp
+
+    )
+
+    val header2: TextStyle = TextStyle(
+        fontFamily = InterFontFamily,
+        fontWeight = FontWeight.W600,
+        fontSize = 22.sp,
+        letterSpacing = (-0.88).sp
+    )
+
+    val header3: TextStyle = TextStyle(
+        fontFamily = InterFontFamily,
+        fontWeight = FontWeight.W600,
+        fontSize = 18.sp,
+        letterSpacing = (-0.72).sp
+    )
+
+    val header4: TextStyle = TextStyle(
+        fontFamily = InterFontFamily,
+        fontWeight = FontWeight.W600,
+        fontSize = 18.sp,
+        letterSpacing = (-0.72).sp
+    )
+
+    val subTitle1: TextStyle = TextStyle(
+        fontFamily = InterFontFamily,
+        fontWeight = FontWeight.W500,
+        fontSize = 18.sp,
+    )
+
+    val subTitle2: TextStyle = TextStyle(
+        fontFamily = InterFontFamily,
+        fontWeight = FontWeight.W500,
+        fontSize = 16.sp,
+    )
+
+
+
+    val body1 = TextStyle(
+        fontFamily = InterFontFamily,
+        fontWeight = FontWeight.W400,
         fontSize = 16.sp,
         lineHeight = 24.sp,
-    ),
-    bodyMedium = TextStyle(
+    )
+
+    val body2 = TextStyle(
         fontFamily = InterFontFamily,
-        fontWeight = FontWeight.Medium,
+        fontWeight = FontWeight.W400,
         fontSize = 14.sp,
         lineHeight = 20.sp,
-    ),
-    bodySmall = TextStyle(
+    )
+
+    val body3 = TextStyle(
         fontFamily = InterFontFamily,
-        fontWeight = FontWeight.Normal,
+        fontWeight = FontWeight.W400,
         fontSize = 12.sp,
         lineHeight = 16.sp,
-    ),
-    labelLarge = TextStyle(
+    )
+
+    val label1 = TextStyle(
         fontFamily = InterFontFamily,
-        fontWeight = FontWeight.Medium,
-        fontSize = 18.sp,
-        lineHeight = 27.sp,
-    ),
-    labelMedium = TextStyle(
+        fontWeight = FontWeight.W500,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+    )
+
+    val label2 = TextStyle(
         fontFamily = InterFontFamily,
-        fontWeight = FontWeight.Medium,
-        fontSize = 16.sp,
-        lineHeight = 21.sp,
-    ),
-    labelSmall = TextStyle(
+        fontWeight = FontWeight.W500,
+        fontSize = 12.sp,
+        lineHeight = 16.sp,
+    )
+
+    val label3 = TextStyle(
         fontFamily = InterFontFamily,
-        fontWeight = FontWeight.Light,
+        fontWeight = FontWeight.W500,
         fontSize = 11.sp,
         lineHeight = 16.sp,
-    ),
-    headlineLarge = TextStyle(
-        fontFamily = InterFontFamily,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 24.sp,
-        letterSpacing = -(0.96).sp
-    ),
-    headlineMedium = TextStyle(
-        fontFamily = InterFontFamily,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 22.sp,
-        letterSpacing = -(0.8).sp
-    ),
-    headlineSmall = TextStyle(
-        fontFamily = InterFontFamily,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 18.sp,
-        letterSpacing = -(0.72).sp
-    ),
-    titleLarge = TextStyle(
-        fontFamily = InterFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 22.sp,
-        lineHeight = 28.sp,
-        letterSpacing = 0.sp
-    ),
-
-)
+    )
+}
