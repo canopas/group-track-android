@@ -63,7 +63,7 @@ private fun SignInAppBar(){
                     text = stringResource(
                         id = R.string.sign_in_skip
                     ),
-                    style = AppTheme.appTypography.label2.copy(color = AppTheme.colorScheme.textPrimary)
+                    style = AppTheme.appTypography.label1.copy(color = AppTheme.colorScheme.textPrimary)
                 )
             }
         })
@@ -112,7 +112,7 @@ private fun PhoneLoginBtn(onClick: () -> Unit) {
     ) {
         Text(
             text = stringResource(id = R.string.sign_in_btn_continue_with_phone),
-            style = AppTheme.appTypography.label2.copy(color = AppTheme.colorScheme.onPrimary),
+            style = AppTheme.appTypography.label1.copy(color = AppTheme.colorScheme.onPrimary),
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(vertical = 6.dp)
         )
@@ -138,7 +138,7 @@ private fun GoogleSignInBtn(onClick: () -> Unit) {
         )
         Text(
             text = stringResource(id = R.string.sign_in_btn_continue_with_google),
-            style = AppTheme.appTypography.label2.copy(color = AppTheme.colorScheme.textPrimary),
+            style = AppTheme.appTypography.label1.copy(color = AppTheme.colorScheme.textPrimary),
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(vertical = 6.dp, horizontal = 6.dp)
         )
