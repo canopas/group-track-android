@@ -17,5 +17,6 @@
     <string name="phone_sign_in_otp_btn_verify">Verify</string>
     <string name="phone_sign_in_otp_hint_verification_code">Enter code</string>
     <string name="phone_sign_in_otp_label_resend_code">Resend code</string>
+    <string name="phone_sign_in_screen_select_country_text">Select Country</string>
 
 </resources>

@@ -1,4 +1,4 @@
-package com.canopas.catchme.ui.flow.auth
+package com.canopas.catchme.ui.flow.auth.methods
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -31,13 +31,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.catchme.R
 import com.canopas.catchme.ui.component.AppLogo
 import com.canopas.catchme.ui.theme.AppTheme
 import com.canopas.catchme.ui.theme.CatchMeTheme
 
 @Composable
-fun SignInScreen() {
+fun SignInMethodsScreen() {
     Scaffold(
         topBar = {
             SignInAppBar()
@@ -52,8 +53,9 @@ fun SignInScreen() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SignInAppBar(){
-    TopAppBar(title = { },
+private fun SignInAppBar() {
+    TopAppBar(
+        title = { },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color.Transparent
         ),
@@ -71,6 +73,7 @@ private fun SignInAppBar(){
 
 @Composable
 private fun SignInContent(modifier: Modifier) {
+    val viewModel = hiltViewModel<SignInMethodViewModel>()
     val scrollState = rememberScrollState()
 
     Column(
@@ -92,9 +95,9 @@ private fun SignInContent(modifier: Modifier) {
         Spacer(modifier = Modifier.height(40.dp))
         AppLogo(colorTint = AppTheme.colorScheme.primary)
         Spacer(modifier = Modifier.weight(1f))
-        GoogleSignInBtn(onClick = {})
+        GoogleSignInBtn(onClick = { viewModel.signInWithGoogle() })
         Spacer(modifier = Modifier.height(20.dp))
-        PhoneLoginBtn(onClick = {})
+        PhoneLoginBtn(onClick = { viewModel.signInWithPhone() })
         Spacer(modifier = Modifier.weight(1f))
     }
 }
@@ -149,6 +152,6 @@ private fun GoogleSignInBtn(onClick: () -> Unit) {
 @Composable
 fun PreviewSignInView() {
     CatchMeTheme {
-        SignInScreen()
+        SignInMethodsScreen()
     }
 }

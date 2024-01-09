@@ -1,18 +1,14 @@
-package com.canopas.catchme.ui.flow.auth.phone
+package com.canopas.catchme.ui.flow.auth.verification
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,6 +31,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -43,8 +40,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -57,37 +54,42 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.catchme.R
 import com.canopas.catchme.ui.component.AppLogo
+import com.canopas.catchme.ui.component.AppProgressIndicator
+import com.canopas.catchme.ui.flow.auth.phone.textFieldColors
 import com.canopas.catchme.ui.theme.AppTheme
 import com.canopas.catchme.ui.theme.InterFontFamily
 import kotlinx.coroutines.delay
 
-private  const val CODE_TIME_COUNTDOWN: Int = 30
+private const val CODE_TIME_COUNTDOWN: Int = 30
 private const val CODE_TIMER_NOTIFIER_INTERVAL = 1000L
 
 @Composable
-fun OtpVerificationScreen() {
+fun PhoneVerificationScreen() {
     Scaffold(
         topBar = {
-            OtpVerificationAppBar()
+            VerificationAppBar()
         }
     ) {
-        OtpVerificationViewContent(modifier = Modifier.padding(it))
+        PhoneVerificationViewContent(modifier = Modifier.padding(it))
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun OtpVerificationAppBar(){
-    TopAppBar(colors = TopAppBarDefaults.topAppBarColors(
-        containerColor = AppTheme.colorScheme.surface
-    ),
+private fun VerificationAppBar() {
+    val viewModel = hiltViewModel<PhoneVerificationViewModel>()
+    TopAppBar(
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = AppTheme.colorScheme.surface
+        ),
         title = { },
         navigationIcon = {
             IconButton(
                 onClick = {
-
+                    viewModel.popBack()
                 },
                 modifier = Modifier
             ) {
@@ -103,8 +105,7 @@ private fun OtpVerificationAppBar(){
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-private fun OtpVerificationViewContent(modifier: Modifier) {
-
+private fun PhoneVerificationViewContent(modifier: Modifier) {
     val scrollState = rememberScrollState()
 
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -125,16 +126,13 @@ private fun OtpVerificationViewContent(modifier: Modifier) {
         AppLogo(colorTint = AppTheme.colorScheme.primary)
         Spacer(modifier = Modifier.height(80.dp))
         TitleContent()
-        Spacer(modifier = Modifier.height(20.dp))
-        EditPhonePlaceHolder()
         Spacer(modifier = Modifier.height(40.dp))
         VerificationCodeTextField()
         Spacer(modifier = Modifier.height(40.dp))
-        NextBtn() {}
+        NextBtn()
         Spacer(modifier = Modifier.height(10.dp))
         ResendCodeView()
     }
-
 
 }
 
@@ -161,16 +159,23 @@ private fun TitleContent() {
 }
 
 @Composable
-private fun NextBtn(onClick: () -> Unit) {
+private fun NextBtn() {
+    val viewModel = hiltViewModel<PhoneVerificationViewModel>()
+    val state by viewModel.state.collectAsState()
+
     Button(
-        onClick = onClick,
+        onClick = { viewModel.verifyOTP() },
         modifier = Modifier
             .fillMaxWidth(fraction = 0.9f),
         shape = RoundedCornerShape(50),
         colors = ButtonDefaults.buttonColors(
             containerColor = AppTheme.colorScheme.primary,
-        )
+        ), enabled = state.enableVerify
     ) {
+
+        if (state.verifying) {
+            AppProgressIndicator(color = AppTheme.colorScheme.onPrimary)
+        }
 
         Text(
             text = stringResource(R.string.phone_sign_in_otp_btn_verify),
@@ -183,35 +188,9 @@ private fun NextBtn(onClick: () -> Unit) {
 }
 
 @Composable
-private fun EditPhonePlaceHolder() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 16.dp, start = 40.dp, end = 40.dp),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = "+91 4545956565",
-            color = AppTheme.colorScheme.textPrimary,
-            style = AppTheme.appTypography.body2,
-        )
-        Icon(
-            painter = painterResource(id = R.drawable.ic_edit),
-            contentDescription = null,
-            tint = AppTheme.colorScheme.primary,
-            modifier = Modifier
-                .padding(start = 12.dp)
-                .clickable {
-
-                }
-                .size(18.dp)
-        )
-    }
-}
-
-@Composable
 private fun ResendCodeView() {
+    val viewModel = hiltViewModel<PhoneVerificationViewModel>()
+    val context = LocalContext.current
     var currentTime by remember { mutableIntStateOf(CODE_TIME_COUNTDOWN) }
     val runTimer by remember {
         mutableStateOf(true)
@@ -224,6 +203,7 @@ private fun ResendCodeView() {
             TextButton(
                 onClick = {
                     currentTime = CODE_TIME_COUNTDOWN
+                    viewModel.resendCode(context)
                 },
                 enabled = currentTime <= 0
             ) {
@@ -241,16 +221,16 @@ private fun ResendCodeView() {
                             withStyle(
                                 style = SpanStyle(
                                     color = AppTheme.colorScheme.textPrimary,
-                                    fontSize = 16.sp,
+                                    fontSize = 14.sp,
                                     fontFamily = InterFontFamily,
-                                    fontWeight = FontWeight.SemiBold
+                                    fontWeight = FontWeight.Medium
                                 )
                             ) {
                                 append(" 00:${if (currentTime >= 10) currentTime else "0$currentTime"}")
                             }
                         }
                     },
-                    style = AppTheme.appTypography.body2,
+                    style = AppTheme.appTypography.label2,
                     color = if (currentTime > 0) {
                         AppTheme.colorScheme.primary.copy(
                             0.6f
@@ -266,12 +246,12 @@ private fun ResendCodeView() {
 
 @Composable
 private fun VerificationCodeTextField() {
-    var enteredOtp by remember {
-        mutableStateOf("")
-    }
+    val viewModel = hiltViewModel<PhoneVerificationViewModel>()
+    val state by viewModel.state.collectAsState()
+
     Box(contentAlignment = Alignment.Center) {
         TextField(
-            value = enteredOtp,
+            value = state.otp,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 40.dp),
@@ -284,7 +264,7 @@ private fun VerificationCodeTextField() {
                 textAlign = TextAlign.Center
             ),
             onValueChange = { otp ->
-                enteredOtp = otp
+                viewModel.updateOTP(otp)
             },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Number,
@@ -309,5 +289,5 @@ private fun VerificationCodeTextField() {
 @Preview
 @Composable
 fun PreviewOtpVerificationView() {
-    OtpVerificationScreen()
+    PhoneVerificationScreen()
 }

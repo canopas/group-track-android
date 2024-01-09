@@ -1,9 +1,12 @@
 package com.canopas.catchme.ui.flow.auth.phone
 
+import android.content.Context
+import android.telephony.TelephonyManager
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -35,13 +38,14 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -49,6 +53,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -58,15 +63,21 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.canopas.campose.countrypicker.CountryPickerBottomSheet
+import com.canopas.campose.countrypicker.countryList
 import com.canopas.catchme.R
 import com.canopas.catchme.ui.component.AppLogo
+import com.canopas.catchme.ui.component.AppProgressIndicator
 import com.canopas.catchme.ui.theme.AppTheme
 
 @Composable
-fun PhoneSignInScreen() {
+fun SignInWithPhoneScreen() {
+    val viewModel = hiltViewModel<SignInWithPhoneViewModel>()
+    val state = viewModel.state.collectAsState()
     Scaffold(
         topBar = {
-            PhoneSignInAppBar()
+            PhoneSignInAppBar { viewModel.popBack() }
         }
     ) {
         PhoneLoginContent(modifier = Modifier.padding(it))
@@ -75,16 +86,15 @@ fun PhoneSignInScreen() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun PhoneSignInAppBar() {
-    TopAppBar(colors = TopAppBarDefaults.topAppBarColors(
-        containerColor = AppTheme.colorScheme.surface
-    ),
+private fun PhoneSignInAppBar(onBackPressed: () -> Unit = {}) {
+    TopAppBar(
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = AppTheme.colorScheme.surface
+        ),
         title = { },
         navigationIcon = {
             IconButton(
-                onClick = {
-
-                },
+                onClick = onBackPressed,
                 modifier = Modifier
             ) {
                 Icon(
@@ -97,11 +107,24 @@ private fun PhoneSignInAppBar() {
     )
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun PhoneLoginContent(
     modifier: Modifier,
 ) {
+    val context = LocalContext.current
+    val manager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+
+    val viewModel = hiltViewModel<SignInWithPhoneViewModel>()
+    val state by viewModel.state.collectAsState()
+
+    val countryLanCode = manager.networkCountryIso.uppercase()
+    LaunchedEffect(key1 = Unit) {
+        val countryCode =
+            if (countryLanCode.isNotEmpty()) countryList(context).single { it.code == countryLanCode }.dial_code else
+                countryList(context).first().dial_code
+        viewModel.onCodeChange(countryCode)
+    }
 
     val scrollState = rememberScrollState()
 
@@ -126,20 +149,42 @@ private fun PhoneLoginContent(
         Spacer(modifier = Modifier.height(40.dp))
         PhoneTextField()
         Spacer(modifier = Modifier.height(40.dp))
-        NextBtn() {}
+        NextBtn(enable = state.enableNext, isVerifying = state.verifying) {
+            viewModel.verifyPhoneNumber(context)
+        }
+    }
+
+
+    if (state.showCountryPicker) {
+        val modalBottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+
+        CountryPickerBottomSheet(
+            bottomSheetTitle = {
+            },
+            onItemSelected = {
+                viewModel.onCodeChange(it.dial_code)
+                viewModel.showCountryPicker(false)
+            },
+            sheetState = modalBottomSheetState,
+            containerColor = AppTheme.colorScheme.surface,
+            contentColor = AppTheme.colorScheme.textPrimary,
+            onDismissRequest = {
+                viewModel.showCountryPicker(false)
+            }
+        )
     }
 }
 
 @Composable
 private fun PhoneTextField() {
+    val viewModel = hiltViewModel<SignInWithPhoneViewModel>()
+    val state by viewModel.state.collectAsState()
+
     val focusManager = LocalFocusManager.current
     val configuration = LocalConfiguration.current
 
     val phoneFocusRequester = remember { FocusRequester() }
 
-    var phoneNumber by remember {
-        mutableStateOf("")
-    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -156,13 +201,15 @@ private fun PhoneTextField() {
     ) {
         Row(
             modifier = Modifier
-                .clickable {
-
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }) {
+                    viewModel.showCountryPicker()
                 },
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "+44",
+                text = state.code,
                 color = AppTheme.colorScheme.textSecondary,
                 textAlign = TextAlign.Center,
                 style = AppTheme.appTypography.body2,
@@ -194,11 +241,11 @@ private fun PhoneTextField() {
             )
         ) {
             TextField(
-                value = phoneNumber,
+                value = state.phone,
                 modifier = Modifier
                     .focusRequester(phoneFocusRequester),
                 onValueChange = { phoneNo ->
-                    phoneNumber = phoneNo
+                    viewModel.onPhoneChange(phoneNo)
                 },
                 textStyle = AppTheme.appTypography.body2,
                 placeholder = {
@@ -244,7 +291,8 @@ private fun TitleContent() {
 }
 
 @Composable
-private fun NextBtn(onClick: () -> Unit) {
+private fun NextBtn(enable: Boolean, isVerifying: Boolean, onClick: () -> Unit) {
+
     Button(
         onClick = onClick,
         modifier = Modifier
@@ -252,8 +300,11 @@ private fun NextBtn(onClick: () -> Unit) {
         shape = RoundedCornerShape(50),
         colors = ButtonDefaults.buttonColors(
             containerColor = AppTheme.colorScheme.primary,
-        )
+        ),
+        enabled = enable,
     ) {
+        if (isVerifying)
+            AppProgressIndicator(color = AppTheme.colorScheme.onPrimary)
 
         Text(
             text = stringResource(R.string.phone_sign_in_btn_next),
@@ -262,7 +313,6 @@ private fun NextBtn(onClick: () -> Unit) {
             modifier = Modifier.padding(vertical = 6.dp, horizontal = 6.dp)
         )
     }
-
 }
 
 @Composable
@@ -283,5 +333,5 @@ fun textFieldColors(): TextFieldColors {
 @Preview
 @Composable
 fun PreviewPhoneSignInView() {
-    PhoneSignInScreen()
+    SignInWithPhoneScreen()
 }

@@ -35,19 +35,23 @@ object AppDestinations {
     }
 
     object OtpVerificationNavigation {
-        private const val KEY_PHONE_NO = "phone_no"
+        const val KEY_PHONE_NO = "phone_no"
+        const val KEY_VERIFICATION_ID = "verification_id"
+
         private const val PATH = "otp-verification"
-        val path = "$PATH/{$KEY_PHONE_NO}"
+        val path = "$PATH/{$KEY_PHONE_NO}/{$KEY_VERIFICATION_ID}"
 
         fun otpVerification(
-            userId: String? = null
+            verificationId: String,
+            phoneNo: String,
         ) = object : AppRoute {
 
             override val arguments = listOf(
-                navArgument(KEY_PHONE_NO) { type = NavType.StringType }
+                navArgument(KEY_PHONE_NO) { type = NavType.StringType },
+                navArgument(KEY_VERIFICATION_ID) { type = NavType.StringType }
             )
 
-            override val path = "$PATH/$userId"
+            override val path = "$PATH/$phoneNo/$verificationId"
         }
     }
 }

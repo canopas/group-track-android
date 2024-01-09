@@ -1,7 +1,6 @@
 package com.canopas.catchme.data.storage
 
 import android.content.Context
-import android.preference.PreferenceDataStore
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
@@ -17,7 +16,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-class PreferencesModule {
+class PreferencesProvider {
 
     @Provides
     @Singleton
@@ -26,5 +25,5 @@ class PreferencesModule {
         PreferenceDataStoreFactory.create(
             produceFile = {
                 context.preferencesDataStoreFile(PREF_USER_PREFERENCES)
-            });
+            })
 }

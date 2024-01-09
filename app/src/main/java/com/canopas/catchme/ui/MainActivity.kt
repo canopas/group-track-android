@@ -14,9 +14,9 @@ import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
-import com.canopas.catchme.ui.flow.auth.SignInScreen
-import com.canopas.catchme.ui.flow.auth.phone.OtpVerificationScreen
-import com.canopas.catchme.ui.flow.auth.phone.PhoneSignInScreen
+import com.canopas.catchme.ui.flow.auth.methods.SignInMethodsScreen
+import com.canopas.catchme.ui.flow.auth.phone.SignInWithPhoneScreen
+import com.canopas.catchme.ui.flow.auth.verification.PhoneVerificationScreen
 import com.canopas.catchme.ui.flow.intro.IntroScreen
 import com.canopas.catchme.ui.navigation.AppDestinations
 import com.canopas.catchme.ui.navigation.NavAction
@@ -74,20 +74,20 @@ fun MainApp() {
 
     }
 
-    NavHost(navController = navController, startDestination = AppDestinations.home.path) {
+    NavHost(navController = navController, startDestination = AppDestinations.signIn.path) {
         slideComposable(AppDestinations.intro.path) {
             IntroScreen()
         }
         slideComposable(AppDestinations.signIn.path) {
-            SignInScreen()
+            SignInMethodsScreen()
         }
 
         slideComposable(AppDestinations.phoneSignIn.path) {
-            PhoneSignInScreen()
+            SignInWithPhoneScreen()
         }
 
         slideComposable(AppDestinations.OtpVerificationNavigation.path) {
-            OtpVerificationScreen()
+            PhoneVerificationScreen()
         }
 
         slideComposable(AppDestinations.home.path) {
