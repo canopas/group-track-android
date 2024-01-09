@@ -15,6 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -36,19 +37,23 @@ class SignInWithPhoneViewModel @Inject constructor(
         _state.value = _state.value.copy(code = code)
     }
 
-    fun verifyPhoneNumber(context: Context) = viewModelScope.launch(Dispatchers.IO) {
-        _state.emit(_state.value.copy(verifying = true))
+    fun verifyPhoneNumber(context: Context) {
+        _state.value = _state.value.copy(verifying = true)
 
         val phone = _state.value.code + _state.value.phone
-        fbAuthService.verifyPhoneNumber(context,
+        fbAuthService.verifyPhoneNumber(
+            context,
             phone,
             object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
                 override fun onVerificationCompleted(credential: PhoneAuthCredential) {
-                    val userCredential =
-                        fbAuthService.signInWithPhoneAuthCredential(credential).result
-                    val firebaseIdToken = userCredential.user?.getIdToken(true)?.result?.token ?: ""
-                    verifiedLogin(firebaseIdToken)
-                    _state.tryEmit(_state.value.copy(verifying = false))
+                    viewModelScope.launch(Dispatchers.IO) {
+                        val userCredential =
+                            fbAuthService.signInWithPhoneAuthCredential(credential).await()
+                        val firebaseIdToken =
+                            userCredential.user?.getIdToken(true)?.result?.token ?: ""
+                        verifiedLogin(firebaseIdToken)
+                        _state.tryEmit(_state.value.copy(verifying = false))
+                    }
                 }
 
                 override fun onVerificationFailed(e: FirebaseException) {

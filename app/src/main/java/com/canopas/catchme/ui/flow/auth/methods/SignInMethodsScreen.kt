@@ -1,5 +1,8 @@
 package com.canopas.catchme.ui.flow.auth.methods
 
+import android.app.Activity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -22,10 +25,13 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -34,8 +40,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.catchme.R
 import com.canopas.catchme.ui.component.AppLogo
+import com.canopas.catchme.ui.component.AppProgressIndicator
 import com.canopas.catchme.ui.theme.AppTheme
 import com.canopas.catchme.ui.theme.CatchMeTheme
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
+import timber.log.Timber
 
 @Composable
 fun SignInMethodsScreen() {
@@ -95,7 +106,7 @@ private fun SignInContent(modifier: Modifier) {
         Spacer(modifier = Modifier.height(40.dp))
         AppLogo(colorTint = AppTheme.colorScheme.primary)
         Spacer(modifier = Modifier.weight(1f))
-        GoogleSignInBtn(onClick = { viewModel.signInWithGoogle() })
+        GoogleSignInBtn()
         Spacer(modifier = Modifier.height(20.dp))
         PhoneLoginBtn(onClick = { viewModel.signInWithPhone() })
         Spacer(modifier = Modifier.weight(1f))
@@ -124,9 +135,37 @@ private fun PhoneLoginBtn(onClick: () -> Unit) {
 }
 
 @Composable
-private fun GoogleSignInBtn(onClick: () -> Unit) {
+private fun GoogleSignInBtn() {
+    val context = LocalContext.current
+    val viewModel = hiltViewModel<SignInMethodViewModel>()
+    val state by viewModel.state.collectAsState()
+
+    val signInClientLauncher =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                try {
+                    Timber.d("XXX Google sign in result %s", result.data)
+                    val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+                    val account = task.getResult(ApiException::class.java)
+
+                    viewModel.proceedGoogleSignIn(account.idToken, account.email)
+                } catch (e: ApiException) {
+                    Timber.e(e, "Unable to sign in with google")
+                }
+            }
+        }
+
     Button(
-        onClick = onClick,
+        onClick = {
+            val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(context.getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build()
+
+            val googleSignInClient = GoogleSignIn.getClient(context, gso)
+            googleSignInClient.signOut()
+            signInClientLauncher.launch(googleSignInClient.signInIntent)
+        },
         modifier = Modifier
             .fillMaxWidth(fraction = 0.8f),
         shape = RoundedCornerShape(50),
@@ -134,17 +173,21 @@ private fun GoogleSignInBtn(onClick: () -> Unit) {
             containerColor = Color.White,
         )
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.ic_sign_in_google_logo),
-            contentDescription = null,
-            modifier = Modifier.size(18.dp)
-        )
-        Text(
-            text = stringResource(id = R.string.sign_in_btn_continue_with_google),
-            style = AppTheme.appTypography.label1.copy(color = AppTheme.colorScheme.textPrimary),
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(vertical = 6.dp, horizontal = 6.dp)
-        )
+        if (state.showGoogleLoading) {
+            AppProgressIndicator()
+        } else {
+            Image(
+                painter = painterResource(id = R.drawable.ic_sign_in_google_logo),
+                contentDescription = null,
+                modifier = Modifier.size(18.dp)
+            )
+            Text(
+                text = stringResource(id = R.string.sign_in_btn_continue_with_google),
+                style = AppTheme.appTypography.label1.copy(color = AppTheme.colorScheme.textPrimary),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(vertical = 6.dp, horizontal = 6.dp)
+            )
+        }
     }
 }
 

@@ -9,7 +9,7 @@ class AuthService @Inject constructor(
 
 ) {
 
-    fun verifiedLogin(firebaseToken: String, phoneNumber: String) {
+    fun verifiedLogin(firebaseToken: String?, phoneNumber: String? = null, email: String? = null) {
         Timber.d("verifiedLogin")
     }
 

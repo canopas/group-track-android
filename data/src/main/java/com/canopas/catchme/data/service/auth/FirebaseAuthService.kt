@@ -6,6 +6,7 @@ import com.google.android.gms.tasks.Task
 import com.google.firebase.BuildConfig
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthOptions
 import com.google.firebase.auth.PhoneAuthProvider
@@ -13,7 +14,7 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 class FirebaseAuthService @Inject constructor(
-    private val firebaseAuth: FirebaseAuth
+    private val firebaseAuth: FirebaseAuth,
 ) {
 
     fun verifyPhoneNumber(
@@ -45,6 +46,14 @@ class FirebaseAuthService @Inject constructor(
         smsCode: String
     ): Task<AuthResult> {
         val credential = PhoneAuthProvider.getCredential(verificationId, smsCode)
+        return firebaseAuth.signInWithCredential(credential)
+    }
+
+
+    fun signInWithGoogleAuthCredential(
+        idToken: String?,
+    ): Task<AuthResult> {
+        val credential = GoogleAuthProvider.getCredential(idToken, null)
         return firebaseAuth.signInWithCredential(credential)
     }
 
