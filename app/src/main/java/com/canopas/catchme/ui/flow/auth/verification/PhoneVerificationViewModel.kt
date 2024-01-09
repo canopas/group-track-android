@@ -74,7 +74,7 @@ class PhoneVerificationViewModel @Inject constructor(
     }
 
     private fun verifiedLogin(firebaseIdToken: String) {
-        authService.verifiedLogin(firebaseIdToken, _state.value.phone)
+        authService.processLogin(firebaseIdToken, _state.value.phone)
     }
 
     fun resendCode(context: Context) {

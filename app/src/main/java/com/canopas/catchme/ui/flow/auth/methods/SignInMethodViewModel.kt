@@ -6,6 +6,7 @@ import com.canopas.catchme.data.service.auth.AuthService
 import com.canopas.catchme.data.service.auth.FirebaseAuthService
 import com.canopas.catchme.ui.navigation.AppDestinations
 import com.canopas.catchme.ui.navigation.AppNavigator
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,13 +30,13 @@ class SignInMethodViewModel @Inject constructor(
         navigator.navigateTo(AppDestinations.phoneSignIn.path)
     }
 
-    fun proceedGoogleSignIn(idToken: String?, userEmail: String?) =
+    fun proceedGoogleSignIn(account: GoogleSignInAccount) =
         viewModelScope.launch(Dispatchers.IO) {
             _state.emit(_state.value.copy(showGoogleLoading = true))
             try {
-                val result = firebaseAuth.signInWithGoogleAuthCredential(idToken).await()
+                val result = firebaseAuth.signInWithGoogleAuthCredential(account.idToken).await()
                 val firebaseToken = result.user?.getIdToken(true)?.await()?.token ?: ""
-                authService.verifiedLogin(firebaseToken = firebaseToken, email = userEmail)
+                authService.processLogin(firebaseToken, account)
                 _state.emit(_state.value.copy(socialSignInCompleted = false))
             } catch (e: Exception) {
                 Timber.e(e, "Failed to sign in with google")

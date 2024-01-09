@@ -144,11 +144,10 @@ private fun GoogleSignInBtn() {
         rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
                 try {
-                    Timber.d("XXX Google sign in result %s", result.data)
                     val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
                     val account = task.getResult(ApiException::class.java)
 
-                    viewModel.proceedGoogleSignIn(account.idToken, account.email)
+                    viewModel.proceedGoogleSignIn(account)
                 } catch (e: ApiException) {
                     Timber.e(e, "Unable to sign in with google")
                 }

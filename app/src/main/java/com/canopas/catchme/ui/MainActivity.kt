@@ -74,7 +74,7 @@ fun MainApp() {
 
     }
 
-    NavHost(navController = navController, startDestination = AppDestinations.signIn.path) {
+    NavHost(navController = navController, startDestination = AppDestinations.home.path) {
         slideComposable(AppDestinations.intro.path) {
             IntroScreen()
         }
