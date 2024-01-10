@@ -67,6 +67,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.campose.countrypicker.CountryPickerBottomSheet
 import com.canopas.campose.countrypicker.countryList
 import com.canopas.catchme.R
+import com.canopas.catchme.ui.component.AppBanner
 import com.canopas.catchme.ui.component.AppLogo
 import com.canopas.catchme.ui.component.AppProgressIndicator
 import com.canopas.catchme.ui.theme.AppTheme
@@ -74,13 +75,17 @@ import com.canopas.catchme.ui.theme.AppTheme
 @Composable
 fun SignInWithPhoneScreen() {
     val viewModel = hiltViewModel<SignInWithPhoneViewModel>()
-    val state = viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsState()
     Scaffold(
         topBar = {
             PhoneSignInAppBar { viewModel.popBack() }
         }
     ) {
         PhoneLoginContent(modifier = Modifier.padding(it))
+    }
+
+    if (state.error != null) {
+        AppBanner(state.error!!) { viewModel.resetErrorState() }
     }
 }
 
@@ -289,7 +294,7 @@ private fun TitleContent() {
         text = stringResource(R.string.phone_sign_in_subtitle_verification_message),
         color = AppTheme.colorScheme.textDisabled,
         textAlign = TextAlign.Center,
-        style = AppTheme.appTypography.body1,
+        style = AppTheme.appTypography.label1,
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 10.dp, start = 40.dp, end = 40.dp)

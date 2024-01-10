@@ -38,10 +38,15 @@ class SignInMethodViewModel @Inject constructor(
                 val firebaseToken = result.user?.getIdToken(true)?.await()?.token ?: ""
                 authService.verifiedGoogleLogin(firebaseToken, account)
                 navigateToHome()
-                _state.emit(_state.value.copy(socialSignInCompleted = false))
+                _state.emit(_state.value.copy(showGoogleLoading = false))
             } catch (e: Exception) {
                 Timber.e(e, "Failed to sign in with google")
-                _state.emit(_state.value.copy(showGoogleLoading = false, error = e.message))
+                _state.emit(
+                    _state.value.copy(
+                        showGoogleLoading = false,
+                        error = "Failed to sign in with google"
+                    )
+                )
             }
         }
 
@@ -52,11 +57,14 @@ class SignInMethodViewModel @Inject constructor(
             inclusive = true
         )
     }
+
+    fun resetErrorState() {
+        _state.value = _state.value.copy(error = null)
+    }
 }
 
 data class SignInMethodScreenState(
     val showGoogleLoading: Boolean = false,
-    val socialSignInCompleted: Boolean = false,
     val error: String? = null
 )
 

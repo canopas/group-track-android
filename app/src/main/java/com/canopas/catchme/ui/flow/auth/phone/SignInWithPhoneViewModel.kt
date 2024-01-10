@@ -95,6 +95,10 @@ class SignInWithPhoneViewModel @Inject constructor(
     fun showCountryPicker(show: Boolean = true) {
         _state.value = _state.value.copy(showCountryPicker = show)
     }
+
+    fun resetErrorState() {
+        _state.value = _state.value.copy(error = null)
+    }
 }
 
 

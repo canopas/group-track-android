@@ -39,6 +39,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.catchme.R
+import com.canopas.catchme.ui.component.AppBanner
 import com.canopas.catchme.ui.component.AppLogo
 import com.canopas.catchme.ui.component.AppProgressIndicator
 import com.canopas.catchme.ui.theme.AppTheme
@@ -88,6 +89,7 @@ private fun SignInAppBar() {
 private fun SignInContent(modifier: Modifier) {
     val viewModel = hiltViewModel<SignInMethodViewModel>()
     val scrollState = rememberScrollState()
+    val state by viewModel.state.collectAsState()
 
     Column(
         modifier = modifier
@@ -112,6 +114,10 @@ private fun SignInContent(modifier: Modifier) {
         Spacer(modifier = Modifier.height(20.dp))
         PhoneLoginBtn(onClick = { viewModel.signInWithPhone() })
         Spacer(modifier = Modifier.weight(1f))
+    }
+
+    if (state.error != null) {
+        AppBanner(state.error!!) { viewModel.resetErrorState() }
     }
 }
 

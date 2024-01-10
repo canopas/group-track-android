@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.catchme.R
+import com.canopas.catchme.ui.component.AppBanner
 import com.canopas.catchme.ui.component.AppLogo
 import com.canopas.catchme.ui.component.AppProgressIndicator
 import com.canopas.catchme.ui.flow.auth.phone.textFieldColors
@@ -81,6 +82,9 @@ fun PhoneVerificationScreen() {
 @Composable
 private fun VerificationAppBar() {
     val viewModel = hiltViewModel<PhoneVerificationViewModel>()
+    val state by viewModel.state.collectAsState()
+
+
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = AppTheme.colorScheme.surface
@@ -101,6 +105,12 @@ private fun VerificationAppBar() {
             }
         }
     )
+
+    if (state.error != null) {
+        AppBanner(state.error!!) {
+            viewModel.resetErrorState()
+        }
+    }
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -151,7 +161,7 @@ private fun TitleContent() {
         text = stringResource(R.string.phone_sign_in_otp_subtitle_verification_message),
         color = AppTheme.colorScheme.textDisabled,
         textAlign = TextAlign.Center,
-        style = AppTheme.appTypography.body1,
+        style = AppTheme.appTypography.label1,
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 10.dp, start = 40.dp, end = 40.dp)

@@ -112,17 +112,12 @@ class PhoneVerificationViewModel @Inject constructor(
                     _state.tryEmit(
                         _state.value.copy(verifying = false, verificationId = verificationId)
                     )
-
-                    viewModelScope.launch {
-                        appNavigator.navigateTo(
-                            AppDestinations.OtpVerificationNavigation.otpVerification(
-                                verificationId = verificationId,
-                                phoneNo = phone
-                            ).path
-                        )
-                    }
                 }
             })
+    }
+
+    fun resetErrorState() {
+        _state.value = _state.value.copy(error = null)
     }
 }
 
