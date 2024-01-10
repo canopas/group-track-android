@@ -10,6 +10,7 @@ import androidx.navigation.compose.rememberNavController
 import com.canopas.catchme.ui.flow.auth.methods.SignInMethodsScreen
 import com.canopas.catchme.ui.flow.auth.phone.SignInWithPhoneScreen
 import com.canopas.catchme.ui.flow.auth.verification.PhoneVerificationScreen
+import com.canopas.catchme.ui.flow.home.HomeScreen
 import com.canopas.catchme.ui.flow.intro.IntroScreen
 import com.canopas.catchme.ui.navigation.AppDestinations
 import com.canopas.catchme.ui.navigation.KEY_RESULT
@@ -58,7 +59,7 @@ fun MainApp() {
         }
 
         slideComposable(AppDestinations.home.path) {
-
+            HomeScreen()
         }
     }
 }
