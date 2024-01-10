@@ -10,6 +10,8 @@ import com.canopas.catchme.ui.navigation.AppDestinations
 import com.canopas.catchme.ui.navigation.AppDestinations.OtpVerificationNavigation.KEY_PHONE_NO
 import com.canopas.catchme.ui.navigation.AppDestinations.OtpVerificationNavigation.KEY_VERIFICATION_ID
 import com.canopas.catchme.ui.navigation.AppNavigator
+import com.canopas.catchme.ui.navigation.KEY_RESULT
+import com.canopas.catchme.ui.navigation.RESULT_OKAY
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthProvider
@@ -25,7 +27,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PhoneVerificationViewModel @Inject constructor(
-    private val savedStateHandle: SavedStateHandle,
+    savedStateHandle: SavedStateHandle,
     private val appNavigator: AppNavigator,
     private val firebaseAuth: FirebaseAuthService,
     private val authService: AuthService
@@ -42,7 +44,7 @@ class PhoneVerificationViewModel @Inject constructor(
         _state.value = _state.value.copy(phone = phone, verificationId = verificationId)
     }
 
-    fun popBack() = viewModelScope.launch {
+    fun popBack() {
         appNavigator.navigateBack()
     }
 
@@ -67,7 +69,11 @@ class PhoneVerificationViewModel @Inject constructor(
             ).await()
             val firebaseIdToken = credential.user?.getIdToken(true)?.await()?.token ?: ""
             authService.verifiedPhoneLogin(firebaseIdToken, _state.value.phone)
-            _state.tryEmit(_state.value.copy(verificationComplete = true))
+            appNavigator.navigateBack(
+                route = AppDestinations.signIn.path,
+                result = mapOf(KEY_RESULT to RESULT_OKAY)
+            )
+            _state.tryEmit(_state.value.copy(verifying = false))
         } catch (e: Exception) {
             Timber.e(e, "OTP Verification: Error while verifying OTP.")
             _state.tryEmit(_state.value.copy(verifying = false, error = e.message))
@@ -86,7 +92,11 @@ class PhoneVerificationViewModel @Inject constructor(
                         val firebaseIdToken =
                             userCredential.user?.getIdToken(true)?.await()?.token ?: ""
                         authService.verifiedPhoneLogin(firebaseIdToken, _state.value.phone)
-                        _state.tryEmit(_state.value.copy(verificationComplete = true))
+                        appNavigator.navigateBack(
+                            route = AppDestinations.signIn.path,
+                            result = mapOf(KEY_RESULT to RESULT_OKAY)
+                        )
+                        _state.tryEmit(_state.value.copy(verifying = false))
                     }
                 }
 
@@ -122,7 +132,6 @@ data class PhoneVerificationState(
     val otp: String = "",
     val verifying: Boolean = false,
     val enableVerify: Boolean = false,
-    val verificationComplete: Boolean = false,
     val verificationId: String = "",
     val error: String? = null
 )

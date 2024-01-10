@@ -3,7 +3,8 @@ package com.canopas.catchme.ui.navigation
 import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -39,7 +40,7 @@ object AppDestinations {
         const val KEY_VERIFICATION_ID = "verification_id"
 
         private const val PATH = "otp-verification"
-        val path = "$PATH/{$KEY_PHONE_NO}/{$KEY_VERIFICATION_ID}"
+        const val path = "$PATH/{$KEY_PHONE_NO}/{$KEY_VERIFICATION_ID}"
 
         fun otpVerification(
             verificationId: String,
@@ -56,26 +57,37 @@ object AppDestinations {
     }
 }
 
+const val KEY_RESULT = "result_code"
+const val RESULT_OKAY = 1
+const val RESULT_CANCEL = 0
+
 @Singleton
 class AppNavigator @Inject constructor() {
-    val navigationChannel = MutableStateFlow<NavAction?>(null)
 
-    suspend fun navigateBack(route: String? = null, inclusive: Boolean = false) {
-        navigationChannel.emit(
+    private val _navigationChannel =
+        MutableSharedFlow<NavAction>(extraBufferCapacity = 1)
+    val navigationChannel = _navigationChannel.asSharedFlow()
+
+    fun navigateBack(
+        route: String? = null,
+        inclusive: Boolean = false,
+        result: Map<String, Any>? = null
+    ) {
+        _navigationChannel.tryEmit(
             NavAction.NavigateBack(
                 route = route,
-                inclusive = inclusive
+                inclusive = inclusive, result = result
             )
         )
     }
 
-    suspend fun navigateTo(
+    fun navigateTo(
         route: String,
         popUpToRoute: String? = null,
         inclusive: Boolean = false,
         isSingleTop: Boolean = false
     ) {
-        navigationChannel.emit(
+        _navigationChannel.tryEmit(
             NavAction.NavigateTo(
                 route = route,
                 popUpToRoute = popUpToRoute,
@@ -91,6 +103,7 @@ sealed class NavAction {
     data class NavigateBack(
         val route: String? = null,
         val inclusive: Boolean = false,
+        val result: Map<String, Any?>? = null,
     ) : NavAction()
 
     data class NavigateTo(

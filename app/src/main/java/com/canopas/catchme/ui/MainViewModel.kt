@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.canopas.catchme.data.storage.UserPreferences
 import com.canopas.catchme.ui.navigation.AppDestinations
 import com.canopas.catchme.ui.navigation.AppNavigator
-import com.canopas.catchme.ui.navigation.NavAction
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,18 +17,21 @@ class MainViewModel @Inject constructor(
     appNavigator: AppNavigator
 ) : ViewModel() {
 
-    val navActions: StateFlow<NavAction?> = appNavigator.navigationChannel
-    val _appState = MutableStateFlow(AppState())
+    val navActions = appNavigator.navigationChannel
+    private val _appState = MutableStateFlow(AppState())
     val appState: StateFlow<AppState> = _appState
 
     init {
         viewModelScope.launch {
             if (!userPreferences.isIntroShown()) {
-                appNavigator.navigateTo(AppDestinations.intro.path)
+                appNavigator.navigateTo(
+                    AppDestinations.intro.path,
+                    popUpToRoute = AppDestinations.home.path,
+                    inclusive = true
+                )
             }
         }
     }
 }
 
-data class AppState(
-    val showIntro: Boolean = false, )
+data class AppState(val showIntro: Boolean = false)

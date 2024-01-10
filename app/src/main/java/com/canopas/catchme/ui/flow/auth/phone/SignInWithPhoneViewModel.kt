@@ -5,8 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.canopas.catchme.data.service.auth.AuthService
 import com.canopas.catchme.data.service.auth.FirebaseAuthService
+import com.canopas.catchme.ui.navigation.AppDestinations
 import com.canopas.catchme.ui.navigation.AppDestinations.OtpVerificationNavigation
 import com.canopas.catchme.ui.navigation.AppNavigator
+import com.canopas.catchme.ui.navigation.KEY_RESULT
+import com.canopas.catchme.ui.navigation.RESULT_OKAY
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthProvider
@@ -52,6 +55,10 @@ class SignInWithPhoneViewModel @Inject constructor(
                         val firebaseIdToken =
                             userCredential.user?.getIdToken(true)?.await()?.token ?: ""
                         authService.verifiedPhoneLogin(firebaseIdToken, _state.value.phone)
+                        appNavigator.navigateBack(
+                            route = AppDestinations.signIn.path,
+                            result = mapOf(KEY_RESULT to RESULT_OKAY)
+                        )
                         _state.tryEmit(_state.value.copy(verifying = false))
                     }
                 }
