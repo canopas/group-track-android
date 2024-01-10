@@ -41,7 +41,7 @@ fun MainApp() {
                 LaunchedEffect(key1 = result) {
                     if (result == RESULT_OKAY) {
                         navController.navigate(AppDestinations.home.path) {
-                            popUpTo(AppDestinations.intro.path) { inclusive = true }
+                            popUpTo(AppDestinations.signIn.path) { inclusive = true }
                         }
                     }
                 }

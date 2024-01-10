@@ -151,6 +151,7 @@ private fun PhoneLoginContent(
         Spacer(modifier = Modifier.height(40.dp))
         NextBtn(enable = state.enableNext, isVerifying = state.verifying) {
             viewModel.verifyPhoneNumber(context)
+            keyboardController?.hide()
         }
     }
 
@@ -177,6 +178,8 @@ private fun PhoneLoginContent(
 
 @Composable
 private fun PhoneTextField() {
+    val context = LocalContext.current
+
     val viewModel = hiltViewModel<SignInWithPhoneViewModel>()
     val state by viewModel.state.collectAsState()
 
@@ -260,7 +263,10 @@ private fun PhoneTextField() {
                     keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Done
                 ),
-                keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+                keyboardActions = KeyboardActions(onDone = {
+                    focusManager.clearFocus()
+                    viewModel.verifyPhoneNumber(context)
+                }),
                 singleLine = true
             )
         }

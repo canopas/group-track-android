@@ -184,7 +184,7 @@ private fun GoogleSignInBtn() {
             )
             Text(
                 text = stringResource(id = R.string.sign_in_btn_continue_with_google),
-                style = AppTheme.appTypography.label1.copy(color = AppTheme.colorScheme.textInversePrimary),
+                style = AppTheme.appTypography.label1.copy(color = Color.Black),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(vertical = 6.dp, horizontal = 6.dp)
             )

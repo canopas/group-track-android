@@ -158,13 +158,24 @@ private fun TitleContent() {
     )
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun NextBtn() {
+    val keyboardController = LocalSoftwareKeyboardController.current
+
     val viewModel = hiltViewModel<PhoneVerificationViewModel>()
     val state by viewModel.state.collectAsState()
 
+    LaunchedEffect(state.verifying) {
+        if (state.verifying) {
+            keyboardController?.hide()
+        }
+    }
+
     Button(
-        onClick = { viewModel.verifyOTP() },
+        onClick = {
+            viewModel.verifyOTP()
+        },
         modifier = Modifier
             .fillMaxWidth(fraction = 0.9f),
         shape = RoundedCornerShape(50),

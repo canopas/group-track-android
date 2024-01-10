@@ -7,7 +7,7 @@ const val LOGIN_DEVICE_TYPE_ANDROID = 1
 data class ApiUser(
     val phone: String? = null,
     val email: String? = null,
-    val auth_type: Int,
+    val auth_type: Int? = null,
     val first_name: String? = null,
     val last_name: String? = null,
     val profile_image: String? = null,
