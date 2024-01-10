@@ -16,7 +16,11 @@ class IntroViewModel @Inject constructor(
 ) : ViewModel() {
 
     fun completedIntro() = viewModelScope.launch {
-        userPreferences.setIntroShown(true)
-        navigator.navigateTo(AppDestinations.signIn.path)
+        // userPreferences.setIntroShown(true)
+        navigator.navigateTo(
+            AppDestinations.signIn.path,
+            popUpToRoute = AppDestinations.intro.path,
+            inclusive = true
+        )
     }
 }

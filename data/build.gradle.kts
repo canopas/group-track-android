@@ -57,6 +57,9 @@ dependencies {
     implementation("com.google.android.gms:play-services-auth:20.7.0")
     implementation("com.google.firebase:firebase-firestore")
 
+    //Moshi
+    implementation("com.squareup.moshi:moshi-kotlin:1.15.0")
+
     //Timber
     implementation("com.jakewharton.timber:timber:5.0.1")
 }

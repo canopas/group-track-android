@@ -65,13 +65,15 @@ fun SignInMethodsScreen() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SignInAppBar() {
+    val viewModel = hiltViewModel<SignInMethodViewModel>()
+
     TopAppBar(
         title = { },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color.Transparent
         ),
         actions = {
-            TextButton(onClick = {}) {
+            TextButton(onClick = { viewModel.navigateToHome() }) {
                 Text(
                     text = stringResource(
                         id = R.string.sign_in_skip
@@ -182,7 +184,7 @@ private fun GoogleSignInBtn() {
             )
             Text(
                 text = stringResource(id = R.string.sign_in_btn_continue_with_google),
-                style = AppTheme.appTypography.label1.copy(color = AppTheme.colorScheme.textPrimary),
+                style = AppTheme.appTypography.label1.copy(color = AppTheme.colorScheme.textInversePrimary),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(vertical = 6.dp, horizontal = 6.dp)
             )

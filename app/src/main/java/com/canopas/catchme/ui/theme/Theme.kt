@@ -10,7 +10,6 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
-import com.canopas.catchme.ui.theme.AppTheme.appTypography
 
 @Composable
 fun CatchMeTheme(
@@ -19,12 +18,16 @@ fun CatchMeTheme(
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val colorScheme =if (darkTheme) themeDarkColorScheme else themeLightColorScheme
-    CompositionLocalProvider(
-        LocalDarkMode provides darkTheme,
-        LocalAppColorScheme provides if (darkTheme) appDarkColorScheme else appLightColorScheme,
-        content = content
-    )
+
+    val colorScheme = if (darkTheme) themeDarkColorScheme else themeLightColorScheme
+
+    MaterialTheme(colorScheme = if (darkTheme) themeDarkColorScheme else themeLightColorScheme) {
+        CompositionLocalProvider(
+            LocalAppColorScheme provides if (darkTheme) appDarkColorScheme else appLightColorScheme,
+            content = content
+        )
+    }
+
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
@@ -34,10 +37,6 @@ fun CatchMeTheme(
         }
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        content = content
-    )
 }
 
 object AppTheme {

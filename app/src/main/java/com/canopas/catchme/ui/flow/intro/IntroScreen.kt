@@ -72,7 +72,7 @@ private fun IntroContent() {
     Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
 
         Spacer(modifier = Modifier.padding(top = 80.dp))
-        AppLogo()
+        AppLogo(colorTint = colorScheme.onPrimary)
 
         TagLine()
 
@@ -87,7 +87,7 @@ private fun IntroContent() {
             pagerState = pagerState,
             count = introList.size,
             activeColor = colorScheme.primary,
-            inactiveColor = colorScheme.containerInverseHigh,
+            inactiveColor = colorScheme.onPrimary.copy(alpha = 0.4f),
             activeIndicatorWidth = 16.dp,
             spacing = 6.dp,
         )
@@ -104,16 +104,16 @@ private fun IntroContent() {
 fun TagLine() {
     Divider(
         modifier = Modifier
-            .width(20.dp)
-            .background(colorScheme.outline.copy(alpha = 0.5f))
+            .width(20.dp),
+        color = colorScheme.onPrimary.copy(alpha = 0.8f)
     )
     Spacer(modifier = Modifier.height(6.dp))
     Text(
         text = "Stay Close, Anywhere!",
         textAlign = TextAlign.Center,
-        style = AppTheme.appTypography.subTitle2
+        style = AppTheme.appTypography.label1
             .copy(
-                color = colorScheme.surface,
+                color = colorScheme.onPrimary,
                 letterSpacing = -(0.56).sp
             ),
     )
@@ -151,7 +151,7 @@ fun IntroItem(content: String) {
         Text(
             text = content,
             textAlign = TextAlign.Center,
-            style = AppTheme.appTypography.header3.copy(color = colorScheme.surface),
+            style = AppTheme.appTypography.header3.copy(color = colorScheme.onPrimary),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 40.dp)

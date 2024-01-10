@@ -4,22 +4,40 @@ import com.canopas.catchme.data.models.auth.ApiUser
 import com.canopas.catchme.data.models.auth.ApiUserSession
 import com.canopas.catchme.data.models.auth.LOGIN_TYPE_GOOGLE
 import com.canopas.catchme.data.models.auth.LOGIN_TYPE_PHONE
+import com.canopas.catchme.data.storage.UserPreferences
 import com.canopas.catchme.data.utils.Device
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QueryDocumentSnapshot
 import kotlinx.coroutines.tasks.await
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class AuthService @Inject constructor(
     private val db: FirebaseFirestore,
-    private val device: Device
+    private val device: Device,
+    private val userPreferences: UserPreferences
 ) {
-    val userRef = db.collection("users")
-    val sessionRef = db.collection("user-sessions")
+    private val userRef = db.collection("users")
+    private val sessionRef = db.collection("user-sessions")
+
+    var currentUser: ApiUser?
+        get() {
+            return userPreferences.currentUser
+        }
+        set(newUser) {
+            userPreferences.currentUser = newUser
+        }
+
+    var currentUserSession: ApiUserSession?
+        get() {
+            return userPreferences.currentUserSession
+        }
+        set(newSession) {
+            userPreferences.currentUserSession = newSession
+        }
+
 
     suspend fun verifiedPhoneLogin(firebaseToken: String?, phoneNumber: String) {
         val snapshot = userRef.whereEqualTo("phone", phoneNumber).get().await().firstOrNull()
@@ -37,7 +55,6 @@ class AuthService @Inject constructor(
         phoneNumber: String? = null,
         snapshot: QueryDocumentSnapshot?
     ) {
-        Timber.d("verifiedLogin")
         val isNewUser = snapshot?.data == null
         if (isNewUser) {
             val user = ApiUser(
@@ -61,6 +78,8 @@ class AuthService @Inject constructor(
 
             userRef.document(docId).set(user).await()
             sessionRef.document().set(session).await()
+            currentUser = user
+            currentUserSession = session
         } else {
             val docId = snapshot!!.id
             val session = ApiUserSession(
@@ -72,6 +91,9 @@ class AuthService @Inject constructor(
                 battery_status = null,
             )
             sessionRef.document().set(session).await()
+
+            currentUser = snapshot.toObject(ApiUser::class.java)
+            currentUserSession = session
         }
     }
 }

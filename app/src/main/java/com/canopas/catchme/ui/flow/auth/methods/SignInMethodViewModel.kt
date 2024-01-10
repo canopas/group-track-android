@@ -37,12 +37,21 @@ class SignInMethodViewModel @Inject constructor(
                 val result = firebaseAuth.signInWithGoogleAuthCredential(account.idToken).await()
                 val firebaseToken = result.user?.getIdToken(true)?.await()?.token ?: ""
                 authService.verifiedGoogleLogin(firebaseToken, account)
+                navigateToHome()
                 _state.emit(_state.value.copy(socialSignInCompleted = false))
             } catch (e: Exception) {
                 Timber.e(e, "Failed to sign in with google")
                 _state.emit(_state.value.copy(showGoogleLoading = false, error = e.message))
             }
         }
+
+    fun navigateToHome() {
+        navigator.navigateTo(
+            AppDestinations.home.path,
+            popUpToRoute = AppDestinations.intro.path,
+            inclusive = true
+        )
+    }
 }
 
 data class SignInMethodScreenState(
