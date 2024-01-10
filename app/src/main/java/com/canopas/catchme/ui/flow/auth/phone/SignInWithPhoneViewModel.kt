@@ -50,8 +50,8 @@ class SignInWithPhoneViewModel @Inject constructor(
                         val userCredential =
                             fbAuthService.signInWithPhoneAuthCredential(credential).await()
                         val firebaseIdToken =
-                            userCredential.user?.getIdToken(true)?.result?.token ?: ""
-                        verifiedLogin(firebaseIdToken)
+                            userCredential.user?.getIdToken(true)?.await()?.token ?: ""
+                        authService.verifiedPhoneLogin(firebaseIdToken, _state.value.phone)
                         _state.tryEmit(_state.value.copy(verifying = false))
                     }
                 }
@@ -79,10 +79,6 @@ class SignInWithPhoneViewModel @Inject constructor(
                     }
                 }
             })
-    }
-
-    private fun verifiedLogin(firebaseIdToken: String) {
-        authService.processLogin(firebaseIdToken, _state.value.phone)
     }
 
     fun popBack() = viewModelScope.launch {

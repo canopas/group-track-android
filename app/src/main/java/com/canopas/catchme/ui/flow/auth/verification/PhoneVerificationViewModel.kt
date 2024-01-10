@@ -33,6 +33,7 @@ class PhoneVerificationViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(PhoneVerificationState())
     val state: StateFlow<PhoneVerificationState> = _state
+
     private var firstAutoVerificationComplete: Boolean = false
 
     init {
@@ -64,17 +65,13 @@ class PhoneVerificationViewModel @Inject constructor(
                 _state.value.verificationId,
                 _state.value.otp
             ).await()
-            val firebaseIdToken = credential.user?.getIdToken(true)?.result?.token ?: ""
-            verifiedLogin(firebaseIdToken)
+            val firebaseIdToken = credential.user?.getIdToken(true)?.await()?.token ?: ""
+            authService.verifiedPhoneLogin(firebaseIdToken, _state.value.phone)
             _state.tryEmit(_state.value.copy(verificationComplete = true))
         } catch (e: Exception) {
             Timber.e(e, "OTP Verification: Error while verifying OTP.")
             _state.tryEmit(_state.value.copy(verifying = false, error = e.message))
         }
-    }
-
-    private fun verifiedLogin(firebaseIdToken: String) {
-        authService.processLogin(firebaseIdToken, _state.value.phone)
     }
 
     fun resendCode(context: Context) {
@@ -87,8 +84,8 @@ class PhoneVerificationViewModel @Inject constructor(
                         val userCredential =
                             firebaseAuth.signInWithPhoneAuthCredential(credential).await()
                         val firebaseIdToken =
-                            userCredential.user?.getIdToken(true)?.result?.token ?: ""
-                        verifiedLogin(firebaseIdToken)
+                            userCredential.user?.getIdToken(true)?.await()?.token ?: ""
+                        authService.verifiedPhoneLogin(firebaseIdToken, _state.value.phone)
                         _state.tryEmit(_state.value.copy(verificationComplete = true))
                     }
                 }

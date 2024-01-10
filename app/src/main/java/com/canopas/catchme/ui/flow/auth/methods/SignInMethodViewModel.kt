@@ -36,7 +36,7 @@ class SignInMethodViewModel @Inject constructor(
             try {
                 val result = firebaseAuth.signInWithGoogleAuthCredential(account.idToken).await()
                 val firebaseToken = result.user?.getIdToken(true)?.await()?.token ?: ""
-                authService.processLogin(firebaseToken, account)
+                authService.verifiedGoogleLogin(firebaseToken, account)
                 _state.emit(_state.value.copy(socialSignInCompleted = false))
             } catch (e: Exception) {
                 Timber.e(e, "Failed to sign in with google")
