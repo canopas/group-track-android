@@ -18,12 +18,15 @@ fun CatchMeTheme(
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val colorScheme =if (darkTheme) themeDarkColorScheme else themeLightColorScheme
-    CompositionLocalProvider(
-        LocalDarkMode provides darkTheme,
-        LocalAppColorScheme provides if (darkTheme) appDarkColorScheme else appLightColorScheme,
-        content = content
-    )
+    val colorScheme = if (darkTheme) themeDarkColorScheme else themeLightColorScheme
+
+    MaterialTheme(colorScheme = if (darkTheme) themeDarkColorScheme else themeLightColorScheme) {
+        CompositionLocalProvider(
+            LocalAppColorScheme provides if (darkTheme) appDarkColorScheme else appLightColorScheme,
+            content = content
+        )
+    }
+
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
@@ -32,12 +35,6 @@ fun CatchMeTheme(
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
         }
     }
-
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = AppTypography,
-        content = content
-    )
 }
 
 object AppTheme {
@@ -46,4 +43,8 @@ object AppTheme {
         @ReadOnlyComposable
         get() = LocalAppColorScheme.current
 
+    val appTypography: AppTypography
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalAppTypography.current
 }
