@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.canopas.catchme.data.service.auth.AuthService
 import com.canopas.catchme.data.service.auth.FirebaseAuthService
+import com.canopas.catchme.data.utils.AppDispatcher
 import com.canopas.catchme.ui.navigation.AppDestinations
 import com.canopas.catchme.ui.navigation.AppNavigator
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
@@ -20,7 +21,8 @@ import javax.inject.Inject
 class SignInMethodViewModel @Inject constructor(
     private val navigator: AppNavigator,
     private val firebaseAuth: FirebaseAuthService,
-    private val authService: AuthService
+    private val authService: AuthService,
+    private val appDispatcher: AppDispatcher
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SignInMethodScreenState())
@@ -31,11 +33,10 @@ class SignInMethodViewModel @Inject constructor(
     }
 
     fun proceedGoogleSignIn(account: GoogleSignInAccount) =
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(appDispatcher.IO) {
             _state.emit(_state.value.copy(showGoogleLoading = true))
             try {
-                val result = firebaseAuth.signInWithGoogleAuthCredential(account.idToken).await()
-                val firebaseToken = result.user?.getIdToken(true)?.await()?.token ?: ""
+                val firebaseToken = firebaseAuth.signInWithGoogleAuthCredential(account.idToken)
                 authService.verifiedGoogleLogin(firebaseToken, account)
                 navigateToHome()
                 _state.emit(_state.value.copy(showGoogleLoading = false))

@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.canopas.catchme.data.service.auth.AuthService
 import com.canopas.catchme.data.service.auth.FirebaseAuthService
+import com.canopas.catchme.data.service.auth.PhoneAuthState
+import com.canopas.catchme.data.utils.AppDispatcher
 import com.canopas.catchme.ui.navigation.AppDestinations
 import com.canopas.catchme.ui.navigation.AppDestinations.OtpVerificationNavigation
 import com.canopas.catchme.ui.navigation.AppNavigator
@@ -17,6 +19,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
@@ -26,7 +30,8 @@ import javax.inject.Inject
 class SignInWithPhoneViewModel @Inject constructor(
     private val appNavigator: AppNavigator,
     private val fbAuthService: FirebaseAuthService,
-    private val authService: AuthService
+    private val authService: AuthService,
+    private val dispatcher: AppDispatcher
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SignInWithPhoneState())
@@ -40,55 +45,56 @@ class SignInWithPhoneViewModel @Inject constructor(
         _state.value = _state.value.copy(code = code)
     }
 
-    fun verifyPhoneNumber(context: Context) {
-        _state.value = _state.value.copy(verifying = true)
+    fun verifyPhoneNumber(context: Context) = viewModelScope.launch(dispatcher.IO) {
+        _state.emit(_state.value.copy(verifying = true))
 
         val phone = _state.value.code + _state.value.phone
-        fbAuthService.verifyPhoneNumber(
-            context,
-            phone,
-            object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
-                override fun onVerificationCompleted(credential: PhoneAuthCredential) {
-                    viewModelScope.launch(Dispatchers.IO) {
-                        val userCredential =
-                            fbAuthService.signInWithPhoneAuthCredential(credential).await()
+
+        fbAuthService.verifyPhoneNumber(context, phone)
+            .collect { result ->
+                when (result) {
+                    is PhoneAuthState.VerificationCompleted -> {
                         val firebaseIdToken =
-                            userCredential.user?.getIdToken(true)?.await()?.token ?: ""
+                            fbAuthService.signInWithPhoneAuthCredential(result.credential)
                         authService.verifiedPhoneLogin(firebaseIdToken, _state.value.phone)
                         appNavigator.navigateBack(
                             route = AppDestinations.signIn.path,
                             result = mapOf(KEY_RESULT to RESULT_OKAY)
                         )
-                        _state.tryEmit(_state.value.copy(verifying = false))
+                        _state.emit(_state.value.copy(verifying = false))
                     }
-                }
 
-                override fun onVerificationFailed(e: FirebaseException) {
-                    Timber.e(e, "Unable to send OTP verification failed")
-                    _state.tryEmit(_state.value.copy(verifying = false, error = e.message))
-                }
+                    is PhoneAuthState.VerificationFailed -> {
+                        Timber.e(result.e, "Unable to send OTP, verification failed")
+                        _state.emit(
+                            _state.value.copy(
+                                verifying = false,
+                                error = result.e.message
+                            )
+                        )
+                    }
 
-                override fun onCodeSent(
-                    verificationId: String,
-                    token: PhoneAuthProvider.ForceResendingToken
-                ) {
-                    _state.tryEmit(
-                        _state.value.copy(verifying = false, verificationId = verificationId)
-                    )
+                    is PhoneAuthState.CodeSent -> {
+                        _state.emit(
+                            _state.value.copy(
+                                verifying = false,
+                                verificationId = result.verificationId
+                            )
+                        )
 
-                    viewModelScope.launch {
                         appNavigator.navigateTo(
                             OtpVerificationNavigation.otpVerification(
-                                verificationId = verificationId,
+                                verificationId = result.verificationId,
                                 phoneNo = phone
                             ).path
                         )
                     }
                 }
-            })
+
+            }
     }
 
-    fun popBack() = viewModelScope.launch {
+    fun popBack() {
         appNavigator.navigateBack()
     }
 

@@ -1,6 +1,7 @@
 package com.canopas.catchme.di
 
 import com.canopas.catchme.BuildConfig
+import com.canopas.catchme.data.utils.AppDispatcher
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -18,4 +19,10 @@ class AppDataProvider {
     fun provideAppVersionCode(): Long {
         return BuildConfig.VERSION_CODE.toLong()
     }
+
+    @Provides
+    @Singleton
+    fun provideAppDispatcher() = AppDispatcher()
+
+
 }

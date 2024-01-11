@@ -18,8 +18,6 @@ class MainViewModel @Inject constructor(
 ) : ViewModel() {
 
     val navActions = appNavigator.navigationChannel
-    private val _appState = MutableStateFlow(AppState())
-    val appState: StateFlow<AppState> = _appState
 
     init {
         viewModelScope.launch {
@@ -34,4 +32,3 @@ class MainViewModel @Inject constructor(
     }
 }
 
-data class AppState(val showIntro: Boolean = false)

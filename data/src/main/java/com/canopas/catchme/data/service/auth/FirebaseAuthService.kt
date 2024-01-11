@@ -4,12 +4,17 @@ import android.app.Activity
 import android.content.Context
 import com.google.android.gms.tasks.Task
 import com.google.firebase.BuildConfig
+import com.google.firebase.FirebaseException
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthOptions
 import com.google.firebase.auth.PhoneAuthProvider
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.tasks.await
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -20,8 +25,24 @@ class FirebaseAuthService @Inject constructor(
     fun verifyPhoneNumber(
         context: Context,
         phoneNumber: String,
-        callbacks: PhoneAuthProvider.OnVerificationStateChangedCallbacks
-    ) {
+    ): Flow<PhoneAuthState> = callbackFlow {
+
+        val callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
+            override fun onVerificationCompleted(credential: PhoneAuthCredential) {
+                trySend(PhoneAuthState.VerificationCompleted(credential))
+            }
+
+            override fun onVerificationFailed(e: FirebaseException) {
+                trySend(PhoneAuthState.VerificationFailed(e))
+            }
+
+            override fun onCodeSent(
+                verificationId: String,
+                token: PhoneAuthProvider.ForceResendingToken
+            ) {
+                trySend(PhoneAuthState.CodeSent(verificationId))
+            }
+        }
         if (BuildConfig.DEBUG) {
             firebaseAuth.firebaseAuthSettings.forceRecaptchaFlowForTesting(true)
         }
@@ -33,28 +54,37 @@ class FirebaseAuthService @Inject constructor(
             .setCallbacks(callbacks) // OnVerificationStateChangedCallbacks
             .build()
         PhoneAuthProvider.verifyPhoneNumber(options)
+        awaitClose { channel.close() }
     }
 
-    fun signInWithPhoneAuthCredential(
+    suspend fun signInWithPhoneAuthCredential(
         credential: PhoneAuthCredential
-    ): Task<AuthResult> {
-        return firebaseAuth.signInWithCredential(credential)
+    ): String {
+        val userCredential = firebaseAuth.signInWithCredential(credential).await()
+        return userCredential.user?.getIdToken(true)?.await()?.token ?: ""
     }
 
-    fun signInWithPhoneAuthCredential(
+    suspend fun signInWithPhoneAuthCredential(
         verificationId: String,
         smsCode: String
-    ): Task<AuthResult> {
+    ): String {
         val credential = PhoneAuthProvider.getCredential(verificationId, smsCode)
-        return firebaseAuth.signInWithCredential(credential)
+        val userCredential = firebaseAuth.signInWithCredential(credential).await()
+        return userCredential.user?.getIdToken(true)?.await()?.token ?: ""
     }
 
-
-    fun signInWithGoogleAuthCredential(
+    suspend fun signInWithGoogleAuthCredential(
         idToken: String?,
-    ): Task<AuthResult> {
+    ): String {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
-        return firebaseAuth.signInWithCredential(credential)
+        val result = firebaseAuth.signInWithCredential(credential).await()
+        return result.user?.getIdToken(true)?.await()?.token ?: ""
     }
 
+}
+
+sealed class PhoneAuthState {
+    data class VerificationCompleted(val credential: PhoneAuthCredential) : PhoneAuthState()
+    data class VerificationFailed(val e: Exception) : PhoneAuthState()
+    data class CodeSent(val verificationId: String) : PhoneAuthState()
 }

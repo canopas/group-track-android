@@ -6,6 +6,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.canopas.catchme.data.service.auth.AuthService
 import com.canopas.catchme.data.service.auth.FirebaseAuthService
+import com.canopas.catchme.data.service.auth.PhoneAuthState
+import com.canopas.catchme.data.utils.AppDispatcher
 import com.canopas.catchme.ui.navigation.AppDestinations
 import com.canopas.catchme.ui.navigation.AppDestinations.OtpVerificationNavigation.KEY_PHONE_NO
 import com.canopas.catchme.ui.navigation.AppDestinations.OtpVerificationNavigation.KEY_VERIFICATION_ID
@@ -30,7 +32,8 @@ class PhoneVerificationViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val appNavigator: AppNavigator,
     private val firebaseAuth: FirebaseAuthService,
-    private val authService: AuthService
+    private val authService: AuthService,
+    private val dispatcher: AppDispatcher
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(PhoneVerificationState())
@@ -60,14 +63,14 @@ class PhoneVerificationViewModel @Inject constructor(
         }
     }
 
-    fun verifyOTP() = viewModelScope.launch(Dispatchers.IO) {
+    fun verifyOTP() = viewModelScope.launch(dispatcher.IO) {
         try {
             _state.tryEmit(_state.value.copy(verifying = true))
-            val credential = firebaseAuth.signInWithPhoneAuthCredential(
+            val firebaseIdToken = firebaseAuth.signInWithPhoneAuthCredential(
                 _state.value.verificationId,
                 _state.value.otp
-            ).await()
-            val firebaseIdToken = credential.user?.getIdToken(true)?.await()?.token ?: ""
+            )
+
             authService.verifiedPhoneLogin(firebaseIdToken, _state.value.phone)
             appNavigator.navigateBack(
                 route = AppDestinations.signIn.path,
@@ -80,40 +83,41 @@ class PhoneVerificationViewModel @Inject constructor(
         }
     }
 
-    fun resendCode(context: Context) {
+    fun resendCode(context: Context) = viewModelScope.launch(dispatcher.IO) {
         val phone = state.value.phone
-        firebaseAuth.verifyPhoneNumber(context,
-            phone,
-            object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
-                override fun onVerificationCompleted(credential: PhoneAuthCredential) {
-                    viewModelScope.launch(Dispatchers.IO) {
-                        val userCredential =
-                            firebaseAuth.signInWithPhoneAuthCredential(credential).await()
+        firebaseAuth.verifyPhoneNumber(context, phone)
+            .collect { result ->
+                when (result) {
+                    is PhoneAuthState.VerificationCompleted -> {
                         val firebaseIdToken =
-                            userCredential.user?.getIdToken(true)?.await()?.token ?: ""
+                            firebaseAuth.signInWithPhoneAuthCredential(result.credential)
                         authService.verifiedPhoneLogin(firebaseIdToken, _state.value.phone)
                         appNavigator.navigateBack(
                             route = AppDestinations.signIn.path,
                             result = mapOf(KEY_RESULT to RESULT_OKAY)
                         )
-                        _state.tryEmit(_state.value.copy(verifying = false))
+                    }
+
+                    is PhoneAuthState.VerificationFailed -> {
+                        Timber.e(result.e, "Unable to resend OTP")
+                        _state.tryEmit(
+                            _state.value.copy(
+                                verifying = false,
+                                error = result.e.message
+                            )
+                        )
+                    }
+
+                    is PhoneAuthState.CodeSent -> {
+                        _state.tryEmit(
+                            _state.value.copy(
+                                verifying = false,
+                                verificationId = result.verificationId
+                            )
+                        )
                     }
                 }
-
-                override fun onVerificationFailed(e: FirebaseException) {
-                    Timber.e(e, "Unable to resend OTP")
-                    _state.tryEmit(_state.value.copy(verifying = false, error = e.message))
-                }
-
-                override fun onCodeSent(
-                    verificationId: String,
-                    token: PhoneAuthProvider.ForceResendingToken
-                ) {
-                    _state.tryEmit(
-                        _state.value.copy(verifying = false, verificationId = verificationId)
-                    )
-                }
-            })
+            }
     }
 
     fun resetErrorState() {
