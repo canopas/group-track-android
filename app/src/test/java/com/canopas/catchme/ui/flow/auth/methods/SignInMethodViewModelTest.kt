@@ -6,13 +6,9 @@ import com.canopas.catchme.data.service.auth.FirebaseAuthService
 import com.canopas.catchme.data.utils.AppDispatcher
 import com.canopas.catchme.ui.navigation.AppNavigator
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
-import com.google.android.gms.tasks.Task
-import com.google.firebase.auth.AuthResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
@@ -40,8 +36,10 @@ class SignInMethodViewModelTest {
     @Before
     fun setup() {
         viewModel = SignInMethodViewModel(
-            navigator, firebaseAuth,
-            authService, testDispatcher
+            navigator,
+            firebaseAuth,
+            authService,
+            testDispatcher
         )
     }
 

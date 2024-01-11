@@ -2,10 +2,8 @@ package com.canopas.catchme.data.service.auth
 
 import android.app.Activity
 import android.content.Context
-import com.google.android.gms.tasks.Task
 import com.google.firebase.BuildConfig
 import com.google.firebase.FirebaseException
-import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.PhoneAuthCredential
@@ -19,14 +17,13 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 class FirebaseAuthService @Inject constructor(
-    private val firebaseAuth: FirebaseAuth,
+    private val firebaseAuth: FirebaseAuth
 ) {
 
     fun verifyPhoneNumber(
         context: Context,
-        phoneNumber: String,
+        phoneNumber: String
     ): Flow<PhoneAuthState> = callbackFlow {
-
         val callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
             override fun onVerificationCompleted(credential: PhoneAuthCredential) {
                 trySend(PhoneAuthState.VerificationCompleted(credential))
@@ -74,13 +71,12 @@ class FirebaseAuthService @Inject constructor(
     }
 
     suspend fun signInWithGoogleAuthCredential(
-        idToken: String?,
+        idToken: String?
     ): String {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         val result = firebaseAuth.signInWithCredential(credential).await()
         return result.user?.getIdToken(true)?.await()?.token ?: ""
     }
-
 }
 
 sealed class PhoneAuthState {

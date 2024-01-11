@@ -29,7 +29,7 @@ fun AppLogo(colorTint: Color = colorScheme.primary) {
         style = AppTheme.appTypography.logo
             .copy(
                 color = colorTint,
-                fontFamily = KalamBoldFont,
-            ),
+                fontFamily = KalamBoldFont
+            )
     )
 }

@@ -19,6 +19,7 @@ import javax.inject.Named
 import javax.inject.Singleton
 
 const val PREF_USER_PREFERENCES = "catch_me_user_preferences"
+
 @Singleton
 class UserPreferences @Inject constructor(
     @Named(PREF_USER_PREFERENCES) private val preferencesDataStore: DataStore<Preferences>
@@ -30,12 +31,10 @@ class UserPreferences @Inject constructor(
         Moshi.Builder().addLast(KotlinJsonAdapterFactory()).build()
             .adapter(ApiUserSession::class.java)
 
-
     object PreferencesKey {
         val INTRO_SHOWN = booleanPreferencesKey("intro_shown")
         val KEY_USER_JSON = stringPreferencesKey("current_user")
         val KEY_USER_SESSION_JSON = stringPreferencesKey("user_session")
-
     }
 
     suspend fun isIntroShown(): Boolean {

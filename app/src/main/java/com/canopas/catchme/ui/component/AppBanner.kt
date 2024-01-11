@@ -42,14 +42,15 @@ fun AppBanner(msg: String, onDismiss: (() -> Unit)? = {}) {
         properties = PopupProperties(
             dismissOnBackPress = false,
             dismissOnClickOutside = false
-        ), onDismissRequest = { onDismiss?.invoke() }
+        ),
+        onDismissRequest = { onDismiss?.invoke() }
     ) {
-
         AnimatedVisibility(
             visible = show,
             enter = fadeIn() + slideInVertically(
-                initialOffsetY = { -it }),
-            exit = slideOutVertically(targetOffsetY = { -it }),
+                initialOffsetY = { -it }
+            ),
+            exit = slideOutVertically(targetOffsetY = { -it })
         ) {
             Box(
                 modifier = Modifier
@@ -58,12 +59,14 @@ fun AppBanner(msg: String, onDismiss: (() -> Unit)? = {}) {
                     .background(
                         color = AppTheme.colorScheme.primary
                     )
-                    .padding(16.dp), contentAlignment = Alignment.CenterStart
+                    .padding(16.dp),
+                contentAlignment = Alignment.CenterStart
             ) {
                 Text(
                     text = msg,
                     style = AppTheme.appTypography.label1.copy(color = AppTheme.colorScheme.onPrimary),
-                    maxLines = 4, overflow = TextOverflow.Ellipsis
+                    maxLines = 4,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }

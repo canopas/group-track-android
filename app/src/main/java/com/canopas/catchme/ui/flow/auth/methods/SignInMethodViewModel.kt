@@ -9,11 +9,9 @@ import com.canopas.catchme.ui.navigation.AppDestinations
 import com.canopas.catchme.ui.navigation.AppNavigator
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -68,4 +66,3 @@ data class SignInMethodScreenState(
     val showGoogleLoading: Boolean = false,
     val error: String? = null
 )
-

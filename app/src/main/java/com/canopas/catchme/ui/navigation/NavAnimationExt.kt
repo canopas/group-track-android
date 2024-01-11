@@ -19,7 +19,7 @@ import androidx.navigation.compose.composable
 fun NavGraphBuilder.slideComposable(
     route: String,
     arguments: List<NamedNavArgument> = emptyList(),
-    content: @Composable() (AnimatedContentScope.(NavBackStackEntry) -> Unit)
+    content: @Composable (AnimatedContentScope.(NavBackStackEntry) -> Unit)
 ) {
     composable(
         route,
@@ -36,7 +36,7 @@ fun NavGraphBuilder.slideComposable(
 fun NavGraphBuilder.tabComposable(
     route: String,
     arguments: List<NamedNavArgument> = emptyList(),
-    content: @Composable() (AnimatedContentScope.(NavBackStackEntry) -> Unit)
+    content: @Composable (AnimatedContentScope.(NavBackStackEntry) -> Unit)
 ) {
     composable(
         route,
@@ -46,7 +46,6 @@ fun NavGraphBuilder.tabComposable(
         content = content
     )
 }
-
 
 private const val TIME_DURATION = 300
 

@@ -11,12 +11,10 @@ import com.canopas.catchme.ui.theme.AppTheme
 
 @Composable
 fun AppProgressIndicator(color: Color = AppTheme.colorScheme.primary) {
-
     CircularProgressIndicator(
         color = color,
         modifier = Modifier
             .height(20.dp)
             .width(20.dp)
     )
-
 }

@@ -23,6 +23,4 @@ class AppDataProvider {
     @Provides
     @Singleton
     fun provideAppDispatcher() = AppDispatcher()
-
-
 }

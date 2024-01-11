@@ -115,7 +115,7 @@ private fun PhoneSignInAppBar(onBackPressed: () -> Unit = {}) {
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun PhoneLoginContent(
-    modifier: Modifier,
+    modifier: Modifier
 ) {
     val context = LocalContext.current
     val manager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
@@ -126,8 +126,11 @@ private fun PhoneLoginContent(
     val countryLanCode = manager.networkCountryIso.uppercase()
     LaunchedEffect(key1 = Unit) {
         val countryCode =
-            if (countryLanCode.isNotEmpty()) countryList(context).single { it.code == countryLanCode }.dial_code else
+            if (countryLanCode.isNotEmpty()) {
+                countryList(context).single { it.code == countryLanCode }.dial_code
+            } else {
                 countryList(context).first().dial_code
+            }
         viewModel.onCodeChange(countryCode)
     }
 
@@ -159,7 +162,6 @@ private fun PhoneLoginContent(
             keyboardController?.hide()
         }
     }
-
 
     if (state.showCountryPicker) {
         val modalBottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
@@ -211,7 +213,8 @@ private fun PhoneTextField() {
             modifier = Modifier
                 .clickable(
                     indication = null,
-                    interactionSource = remember { MutableInteractionSource() }) {
+                    interactionSource = remember { MutableInteractionSource() }
+                ) {
                     viewModel.showCountryPicker()
                 },
             verticalAlignment = Alignment.CenterVertically
@@ -276,7 +279,6 @@ private fun PhoneTextField() {
             )
         }
     }
-
 }
 
 @Composable
@@ -303,19 +305,19 @@ private fun TitleContent() {
 
 @Composable
 private fun NextBtn(enable: Boolean, isVerifying: Boolean, onClick: () -> Unit) {
-
     Button(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth(fraction = 0.9f),
         shape = RoundedCornerShape(50),
         colors = ButtonDefaults.buttonColors(
-            containerColor = AppTheme.colorScheme.primary,
+            containerColor = AppTheme.colorScheme.primary
         ),
-        enabled = enable,
+        enabled = enable
     ) {
-        if (isVerifying)
+        if (isVerifying) {
             AppProgressIndicator(color = AppTheme.colorScheme.onPrimary)
+        }
 
         Text(
             text = stringResource(R.string.phone_sign_in_btn_next),

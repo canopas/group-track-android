@@ -20,10 +20,13 @@ jobs:
 
         run: |
           echo $GOOGLE_SERVICES_JSON_BASE64 | base64 -di > app/google-services.json
-          echo DEBUG_KEYSTORE_BASE64 | base64 -di > app/debug.keystore
+          echo $DEBUG_KEYSTORE_BASE64 | base64 -di > app/debug.keystore
 
       - name: Build with Gradle
         run: ./gradlew build
 
       - name: Run Tests with Gradle
         run: ./gradlew test
+
+      - name: Run Lint check
+        run: ./gradlew ktlintCheck

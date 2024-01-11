@@ -16,5 +16,4 @@ class AppDataProvider {
     @Singleton
     fun provideFirebaseDb(): FirebaseFirestore =
         Firebase.firestore
-
 }

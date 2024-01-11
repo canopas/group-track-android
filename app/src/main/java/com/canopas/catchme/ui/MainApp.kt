@@ -33,7 +33,6 @@ fun MainApp() {
             IntroScreen()
         }
         slideComposable(AppDestinations.signIn.path) {
-
             val result = navController.currentBackStackEntry
                 ?.savedStateHandle?.get<Int>(KEY_RESULT)
             result?.let {
@@ -102,7 +101,6 @@ fun AppRouter(navController: NavHostController, navActions: SharedFlow<NavAction
                     }
                 }
             }
-
         }
     }
 }

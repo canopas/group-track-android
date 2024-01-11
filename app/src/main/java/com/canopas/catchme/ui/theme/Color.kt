@@ -67,7 +67,7 @@ internal val appLightColorScheme = AppColorScheme(
     secondaryInverseVariant = secondaryVariantDarkColor,
     containerHigh = containerHighLightColor,
     containerNormal = containerNormalLightColor,
-    containerLow = containerLowLightColor,
+    containerLow = containerLowLightColor
 )
 
 internal val themeDarkColorScheme = darkColorScheme().copy(
@@ -98,7 +98,7 @@ internal val appDarkColorScheme = AppColorScheme(
     secondaryInverseVariant = secondaryVariantLightColor,
     containerHigh = containerHighDarkColor,
     containerNormal = containerNormalDarkColor,
-    containerLow = containerLowDarkColor,
+    containerLow = containerLowDarkColor
 )
 
 val LocalDarkMode = staticCompositionLocalOf {
@@ -133,7 +133,7 @@ data class AppColorScheme(
     val onPrimary: Color = textPrimaryDarkColor,
     val onPrimaryVariant: Color = textPrimaryLightColor,
     val onSecondary: Color = textSecondaryDarkColor,
-    val onDisabled: Color = textDisabledLightColor,
+    val onDisabled: Color = textDisabledLightColor
 ) {
     val containerNormalOnSurface: Color
         get() {

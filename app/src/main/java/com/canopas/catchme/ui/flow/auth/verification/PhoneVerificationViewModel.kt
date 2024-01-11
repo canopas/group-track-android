@@ -14,18 +14,12 @@ import com.canopas.catchme.ui.navigation.AppDestinations.OtpVerificationNavigati
 import com.canopas.catchme.ui.navigation.AppNavigator
 import com.canopas.catchme.ui.navigation.KEY_RESULT
 import com.canopas.catchme.ui.navigation.RESULT_OKAY
-import com.google.firebase.FirebaseException
-import com.google.firebase.auth.PhoneAuthCredential
-import com.google.firebase.auth.PhoneAuthProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 import javax.inject.Inject
-
 
 @HiltViewModel
 class PhoneVerificationViewModel @Inject constructor(
@@ -54,7 +48,7 @@ class PhoneVerificationViewModel @Inject constructor(
     fun updateOTP(otp: String) {
         _state.value = state.value.copy(
             otp = otp,
-            enableVerify = otp.length == 6,
+            enableVerify = otp.length == 6
         )
 
         if (!firstAutoVerificationComplete && otp.length == 6) {
@@ -124,7 +118,6 @@ class PhoneVerificationViewModel @Inject constructor(
         _state.value = _state.value.copy(error = null)
     }
 }
-
 
 data class PhoneVerificationState(
     val phone: String = "",

@@ -38,7 +38,6 @@ class AuthService @Inject constructor(
             userPreferences.currentUserSession = newSession
         }
 
-
     suspend fun verifiedPhoneLogin(firebaseToken: String?, phoneNumber: String) {
         val snapshot = userRef.whereEqualTo("phone", phoneNumber).get().await().firstOrNull()
         processLogin(firebaseToken, null, phoneNumber, snapshot)
@@ -64,7 +63,7 @@ class AuthService @Inject constructor(
                 first_name = account?.givenName,
                 last_name = account?.familyName,
                 provider_firebase_id_token = firebaseToken,
-                profile_image = account?.photoUrl?.toString(),
+                profile_image = account?.photoUrl?.toString()
             )
             val docId = userRef.document().id
             val session = ApiUserSession(
@@ -73,7 +72,7 @@ class AuthService @Inject constructor(
                 device_name = device.deviceName(),
                 session_active = true,
                 app_version = device.versionCode,
-                battery_status = null,
+                battery_status = null
             )
 
             userRef.document(docId).set(user).await()
@@ -88,7 +87,7 @@ class AuthService @Inject constructor(
                 device_name = device.deviceName(),
                 session_active = true,
                 app_version = device.versionCode,
-                battery_status = null,
+                battery_status = null
             )
             sessionRef.document().set(session).await()
 
