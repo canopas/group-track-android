@@ -1,6 +1,5 @@
 package com.canopas.catchme.ui.theme
 
-import androidx.compose.material3.Typography
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -49,56 +48,54 @@ class AppTypography {
     val subTitle1: TextStyle = TextStyle(
         fontFamily = InterFontFamily,
         fontWeight = FontWeight.W500,
-        fontSize = 18.sp,
+        fontSize = 18.sp
     )
 
     val subTitle2: TextStyle = TextStyle(
         fontFamily = InterFontFamily,
         fontWeight = FontWeight.W500,
-        fontSize = 16.sp,
+        fontSize = 16.sp
     )
-
-
 
     val body1 = TextStyle(
         fontFamily = InterFontFamily,
         fontWeight = FontWeight.W400,
         fontSize = 16.sp,
-        lineHeight = 24.sp,
+        lineHeight = 24.sp
     )
 
     val body2 = TextStyle(
         fontFamily = InterFontFamily,
         fontWeight = FontWeight.W400,
         fontSize = 14.sp,
-        lineHeight = 20.sp,
+        lineHeight = 20.sp
     )
 
     val body3 = TextStyle(
         fontFamily = InterFontFamily,
         fontWeight = FontWeight.W400,
         fontSize = 12.sp,
-        lineHeight = 16.sp,
+        lineHeight = 16.sp
     )
 
     val label1 = TextStyle(
         fontFamily = InterFontFamily,
         fontWeight = FontWeight.W500,
         fontSize = 14.sp,
-        lineHeight = 20.sp,
+        lineHeight = 20.sp
     )
 
     val label2 = TextStyle(
         fontFamily = InterFontFamily,
         fontWeight = FontWeight.W500,
         fontSize = 12.sp,
-        lineHeight = 16.sp,
+        lineHeight = 16.sp
     )
 
     val label3 = TextStyle(
         fontFamily = InterFontFamily,
         fontWeight = FontWeight.W500,
         fontSize = 11.sp,
-        lineHeight = 16.sp,
+        lineHeight = 16.sp
     )
 }

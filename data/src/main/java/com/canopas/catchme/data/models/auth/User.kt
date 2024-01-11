@@ -13,7 +13,7 @@ data class ApiUser(
     val profile_image: String? = null,
     val location_enabled: Boolean = true,
     val provider_firebase_id_token: String? = null,
-    val created_at: Long? = System.currentTimeMillis(),
+    val created_at: Long? = System.currentTimeMillis()
 )
 
 data class ApiUserSession(
@@ -25,5 +25,5 @@ data class ApiUserSession(
     val session_active: Boolean = true,
     val app_version: Long? = null,
     val battery_status: String? = null,
-    val created_at: Long? = System.currentTimeMillis(),
+    val created_at: Long? = System.currentTimeMillis()
 )

@@ -12,17 +12,11 @@ import com.canopas.catchme.ui.navigation.AppDestinations.OtpVerificationNavigati
 import com.canopas.catchme.ui.navigation.AppNavigator
 import com.canopas.catchme.ui.navigation.KEY_RESULT
 import com.canopas.catchme.ui.navigation.RESULT_OKAY
-import com.google.firebase.FirebaseException
-import com.google.firebase.auth.PhoneAuthCredential
-import com.google.firebase.auth.PhoneAuthProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -90,7 +84,6 @@ class SignInWithPhoneViewModel @Inject constructor(
                         )
                     }
                 }
-
             }
     }
 
@@ -106,7 +99,6 @@ class SignInWithPhoneViewModel @Inject constructor(
         _state.value = _state.value.copy(error = null)
     }
 }
-
 
 data class SignInWithPhoneState(
     val code: String = "",

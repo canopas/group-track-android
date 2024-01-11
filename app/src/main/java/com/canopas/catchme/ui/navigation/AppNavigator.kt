@@ -44,7 +44,7 @@ object AppDestinations {
 
         fun otpVerification(
             verificationId: String,
-            phoneNo: String,
+            phoneNo: String
         ) = object : AppRoute {
 
             override val arguments = listOf(
@@ -76,7 +76,8 @@ class AppNavigator @Inject constructor() {
         _navigationChannel.tryEmit(
             NavAction.NavigateBack(
                 route = route,
-                inclusive = inclusive, result = result
+                inclusive = inclusive,
+                result = result
             )
         )
     }
@@ -92,7 +93,7 @@ class AppNavigator @Inject constructor() {
                 route = route,
                 popUpToRoute = popUpToRoute,
                 inclusive = inclusive,
-                isSingleTop = isSingleTop,
+                isSingleTop = isSingleTop
             )
         )
     }
@@ -103,13 +104,13 @@ sealed class NavAction {
     data class NavigateBack(
         val route: String? = null,
         val inclusive: Boolean = false,
-        val result: Map<String, Any?>? = null,
+        val result: Map<String, Any?>? = null
     ) : NavAction()
 
     data class NavigateTo(
         val route: String,
         val popUpToRoute: String? = null,
         val inclusive: Boolean = false,
-        val isSingleTop: Boolean = false,
+        val isSingleTop: Boolean = false
     ) : NavAction()
 }

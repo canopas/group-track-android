@@ -41,8 +41,10 @@ class SignInWithPhoneViewModelTest {
     @Before
     fun setup() {
         viewModel = SignInWithPhoneViewModel(
-            navigator, firebaseAuth,
-            authService, testDispatcher
+            navigator,
+            firebaseAuth,
+            authService,
+            testDispatcher
         )
     }
 

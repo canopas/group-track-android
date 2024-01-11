@@ -82,7 +82,8 @@ private fun SignInAppBar() {
                     style = AppTheme.appTypography.label1.copy(color = AppTheme.colorScheme.textPrimary)
                 )
             }
-        })
+        }
+    )
 }
 
 @Composable
@@ -129,7 +130,7 @@ private fun PhoneLoginBtn(onClick: () -> Unit) {
             .fillMaxWidth(fraction = 0.8f),
         shape = RoundedCornerShape(50),
         colors = ButtonDefaults.buttonColors(
-            containerColor = AppTheme.colorScheme.primary,
+            containerColor = AppTheme.colorScheme.primary
         )
     ) {
         Text(
@@ -138,7 +139,6 @@ private fun PhoneLoginBtn(onClick: () -> Unit) {
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(vertical = 6.dp)
         )
-
     }
 }
 
@@ -177,7 +177,7 @@ private fun GoogleSignInBtn() {
             .fillMaxWidth(fraction = 0.8f),
         shape = RoundedCornerShape(50),
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color.White,
+            containerColor = Color.White
         )
     ) {
         if (state.showGoogleLoading) {

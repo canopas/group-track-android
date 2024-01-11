@@ -5,6 +5,7 @@ plugins {
     id("com.android.library") version "8.2.0" apply false
     id("com.google.dagger.hilt.android") version "2.50" apply false
     id("com.google.gms.google-services") version "4.4.0" apply false
+    id("org.jlleitschuh.gradle.ktlint") version "11.4.2"
 }
 
 object Versions {

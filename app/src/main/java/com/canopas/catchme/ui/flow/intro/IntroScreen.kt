@@ -18,7 +18,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Text
-
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,7 +35,6 @@ import com.canopas.catchme.ui.component.AppLogo
 import com.canopas.catchme.ui.component.PagerIndicator
 import com.canopas.catchme.ui.theme.AppTheme
 import com.canopas.catchme.ui.theme.AppTheme.colorScheme
-
 
 @Composable
 fun IntroScreen() {
@@ -70,7 +68,6 @@ private fun IntroContent() {
     }
 
     Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-
         Spacer(modifier = Modifier.padding(top = 80.dp))
         AppLogo(colorTint = colorScheme.onPrimary)
 
@@ -82,14 +79,13 @@ private fun IntroContent() {
 
         Spacer(modifier = Modifier.padding(top = 28.dp))
 
-
         PagerIndicator(
             pagerState = pagerState,
             count = introList.size,
             activeColor = colorScheme.primary,
             inactiveColor = colorScheme.onPrimary.copy(alpha = 0.4f),
             activeIndicatorWidth = 16.dp,
-            spacing = 6.dp,
+            spacing = 6.dp
         )
 
         Spacer(modifier = Modifier.padding(top = 28.dp))
@@ -115,7 +111,7 @@ fun TagLine() {
             .copy(
                 color = colorScheme.onPrimary,
                 letterSpacing = -(0.56).sp
-            ),
+            )
     )
 }
 
@@ -129,7 +125,7 @@ fun GetStartedButton() {
             .padding(horizontal = 40.dp),
         shape = RoundedCornerShape(50),
         colors = ButtonDefaults.buttonColors(
-            containerColor = colorScheme.primary,
+            containerColor = colorScheme.primary
         )
     ) {
         Text(
@@ -138,7 +134,6 @@ fun GetStartedButton() {
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(vertical = 6.dp)
         )
-
     }
 }
 
@@ -157,8 +152,6 @@ fun IntroItem(content: String) {
                 .padding(horizontal = 40.dp)
         )
     }
-
-
 }
 
 @Preview

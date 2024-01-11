@@ -6,8 +6,6 @@ import com.canopas.catchme.data.storage.UserPreferences
 import com.canopas.catchme.ui.navigation.AppDestinations
 import com.canopas.catchme.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -31,4 +29,3 @@ class MainViewModel @Inject constructor(
         }
     }
 }
-

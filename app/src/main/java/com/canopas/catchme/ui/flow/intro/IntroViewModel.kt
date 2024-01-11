@@ -11,7 +11,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class IntroViewModel @Inject constructor(
-    private val userPreferences: UserPreferences, private val navigator: AppNavigator
+    private val userPreferences: UserPreferences,
+    private val navigator: AppNavigator
 ) : ViewModel() {
 
     fun completedIntro() = viewModelScope.launch {

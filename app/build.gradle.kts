@@ -4,6 +4,7 @@ plugins {
     id("com.google.dagger.hilt.android")
     id("kotlin-kapt")
     id("com.google.gms.google-services")
+    id("org.jlleitschuh.gradle.ktlint")
 }
 
 android {
@@ -31,7 +32,6 @@ android {
             storePassword = "catchme"
         }
     }
-
 
     buildTypes {
         release {
@@ -69,6 +69,9 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+    ktlint {
+        debug = true
+    }
 }
 
 dependencies {
@@ -84,7 +87,7 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.7.6")
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
 
-    //Test
+    // Test
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
@@ -102,7 +105,7 @@ dependencies {
     implementation("com.google.dagger:hilt-android:$hilt")
     kapt("com.google.dagger:hilt-compiler:$hilt")
 
-    //DataStore
+    // DataStore
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 
     // Firebase
@@ -110,11 +113,10 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.android.gms:play-services-auth:20.7.0")
 
-
-    //Timber
+    // Timber
     implementation("com.jakewharton.timber:timber:5.0.1")
 
-    //country-picker
+    // country-picker
     implementation("com.canopas.jetcountrypicker:jetcountrypicker:1.0.9")
 
     implementation(project(":data"))

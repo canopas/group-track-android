@@ -84,7 +84,6 @@ private fun VerificationAppBar() {
     val viewModel = hiltViewModel<PhoneVerificationViewModel>()
     val state by viewModel.state.collectAsState()
 
-
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = AppTheme.colorScheme.surface
@@ -143,7 +142,6 @@ private fun PhoneVerificationViewContent(modifier: Modifier) {
         Spacer(modifier = Modifier.height(10.dp))
         ResendCodeView()
     }
-
 }
 
 @Composable
@@ -190,10 +188,10 @@ private fun NextBtn() {
             .fillMaxWidth(fraction = 0.9f),
         shape = RoundedCornerShape(50),
         colors = ButtonDefaults.buttonColors(
-            containerColor = AppTheme.colorScheme.primary,
-        ), enabled = state.enableVerify
+            containerColor = AppTheme.colorScheme.primary
+        ),
+        enabled = state.enableVerify
     ) {
-
         if (state.verifying) {
             AppProgressIndicator(color = AppTheme.colorScheme.onPrimary)
         }
@@ -205,7 +203,6 @@ private fun NextBtn() {
             modifier = Modifier.padding(vertical = 6.dp, horizontal = 6.dp)
         )
     }
-
 }
 
 @Composable
@@ -303,9 +300,7 @@ private fun VerificationCodeTextField() {
             color = AppTheme.colorScheme.outline
         )
     }
-
 }
-
 
 @Preview
 @Composable

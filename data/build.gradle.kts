@@ -3,6 +3,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("com.google.dagger.hilt.android")
     id("kotlin-kapt")
+    id("org.jlleitschuh.gradle.ktlint")
 }
 
 android {
@@ -32,6 +33,9 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+    ktlint {
+        debug = true
+    }
 }
 
 dependencies {
@@ -48,7 +52,7 @@ dependencies {
     implementation("com.google.dagger:hilt-android:$hilt")
     kapt("com.google.dagger:hilt-compiler:$hilt")
 
-    //DataStore
+    // DataStore
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 
     // Firebase
@@ -57,9 +61,9 @@ dependencies {
     implementation("com.google.android.gms:play-services-auth:20.7.0")
     implementation("com.google.firebase:firebase-firestore")
 
-    //Moshi
+    // Moshi
     implementation("com.squareup.moshi:moshi-kotlin:1.15.0")
 
-    //Timber
+    // Timber
     implementation("com.jakewharton.timber:timber:5.0.1")
 }

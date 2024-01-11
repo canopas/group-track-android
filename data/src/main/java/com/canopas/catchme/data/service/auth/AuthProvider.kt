@@ -14,5 +14,4 @@ class AuthProvider {
     @Singleton
     fun provideFirebaseAuth(): FirebaseAuth =
         FirebaseAuth.getInstance()
-
 }

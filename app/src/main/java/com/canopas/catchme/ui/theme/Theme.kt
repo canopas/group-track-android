@@ -18,7 +18,6 @@ fun CatchMeTheme(
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-
     val colorScheme = if (darkTheme) themeDarkColorScheme else themeLightColorScheme
 
     MaterialTheme(colorScheme = if (darkTheme) themeDarkColorScheme else themeLightColorScheme) {
@@ -36,7 +35,6 @@ fun CatchMeTheme(
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
         }
     }
-
 }
 
 object AppTheme {
@@ -49,6 +47,4 @@ object AppTheme {
         @Composable
         @ReadOnlyComposable
         get() = LocalAppTypography.current
-
 }
-

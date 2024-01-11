@@ -43,7 +43,6 @@ class PhoneVerificationViewModelTest {
     private val authService = mock<AuthService>()
     private val savedStateHandle = mock<SavedStateHandle>()
 
-
     @Before
     fun setup() {
         whenever(savedStateHandle.get<String>(KEY_VERIFICATION_ID)).thenReturn("verificationId")
@@ -51,8 +50,10 @@ class PhoneVerificationViewModelTest {
 
         viewModel = PhoneVerificationViewModel(
             savedStateHandle,
-            navigator, firebaseAuth,
-            authService, testDispatcher
+            navigator,
+            firebaseAuth,
+            authService,
+            testDispatcher
         )
     }
 
@@ -110,7 +111,7 @@ class PhoneVerificationViewModelTest {
                 return@doSuspendableAnswer "firebaseIdToken"
             }
 
-            viewModel.updateOTP("123456") //make firstAutoVerificationComplete true
+            viewModel.updateOTP("123456") // make firstAutoVerificationComplete true
             clearInvocations(firebaseAuth)
 
             viewModel.updateOTP("123456")
