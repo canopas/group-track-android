@@ -320,7 +320,7 @@ private fun NextBtn(enable: Boolean, isVerifying: Boolean, onClick: () -> Unit) 
         }
 
         Text(
-            text = stringResource(R.string.phone_sign_in_btn_next),
+            text = stringResource(R.string.common_btn_next),
             style = AppTheme.appTypography.label1.copy(color = AppTheme.colorScheme.onPrimary),
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(vertical = 6.dp, horizontal = 6.dp)

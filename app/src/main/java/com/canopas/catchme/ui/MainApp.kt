@@ -12,6 +12,8 @@ import com.canopas.catchme.ui.flow.auth.phone.SignInWithPhoneScreen
 import com.canopas.catchme.ui.flow.auth.verification.PhoneVerificationScreen
 import com.canopas.catchme.ui.flow.home.HomeScreen
 import com.canopas.catchme.ui.flow.intro.IntroScreen
+import com.canopas.catchme.ui.flow.onboard.OnboardScreen
+
 import com.canopas.catchme.ui.navigation.AppDestinations
 import com.canopas.catchme.ui.navigation.KEY_RESULT
 import com.canopas.catchme.ui.navigation.NavAction
@@ -30,7 +32,7 @@ fun MainApp() {
 
     NavHost(navController = navController, startDestination = AppDestinations.home.path) {
         slideComposable(AppDestinations.intro.path) {
-            IntroScreen()
+            OnboardScreen()
         }
         slideComposable(AppDestinations.signIn.path) {
             val result = navController.currentBackStackEntry
