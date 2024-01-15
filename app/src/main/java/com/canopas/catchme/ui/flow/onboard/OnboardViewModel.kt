@@ -58,9 +58,11 @@ class OnboardViewModel @Inject constructor(
             )
             user?.let { userService.updateUser(it) }
         }
-        _state.value = _state.value.copy(
-            updatingUserName = false,
-            currentStep = OnboardItems.SpaceIntro
+        _state.emit(
+            _state.value.copy(
+                updatingUserName = false,
+                currentStep = OnboardItems.SpaceIntro
+            )
         )
     }
 
@@ -99,7 +101,7 @@ class OnboardViewModel @Inject constructor(
             )
         } catch (e: Exception) {
             Timber.e(e, "Unable to create space")
-            _state.value = _state.value.copy(error = e.localizedMessage)
+            _state.emit(_state.value.copy(error = e.localizedMessage))
         }
     }
 
