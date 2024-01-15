@@ -17,6 +17,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,20 +30,20 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.canopas.catchme.R
 import com.canopas.catchme.data.models.auth.ApiUser
 import com.canopas.catchme.ui.component.PrimaryButton
 import com.canopas.catchme.ui.component.PrimaryTextButton
+import com.canopas.catchme.ui.flow.onboard.OnboardViewModel
 import com.canopas.catchme.ui.theme.AppTheme
 
 @Composable
-fun JoinSpaceOnboard(
-    spaceName: String,
-    onJoin: () -> Unit,
-    onSkip: () -> Unit
-) {
+fun JoinSpaceOnboard() {
+    val viewModel = hiltViewModel<OnboardViewModel>()
+    val state by viewModel.state.collectAsState()
     Column(
         Modifier
             .fillMaxSize()
@@ -52,7 +54,7 @@ fun JoinSpaceOnboard(
     ) {
         Spacer(modifier = Modifier.height(40.dp))
         Text(
-            text = stringResource(R.string.onboard_join_space_title, spaceName),
+            text = stringResource(R.string.onboard_join_space_title),
             style = AppTheme.appTypography.header1,
             textAlign = TextAlign.Center,
             modifier = Modifier
@@ -60,7 +62,10 @@ fun JoinSpaceOnboard(
                 .padding(horizontal = 20.dp)
         )
         Text(
-            text = stringResource(R.string.onboard_join_space_joining_space_label),
+            text = stringResource(
+                R.string.onboard_join_space_joining_space_label,
+                state.spaceName ?: ""
+            ),
             style = AppTheme.appTypography.header4.copy(fontWeight = FontWeight.W500),
             textAlign = TextAlign.Center,
             modifier = Modifier
@@ -82,12 +87,12 @@ fun JoinSpaceOnboard(
         Spacer(modifier = Modifier.weight(1f))
         PrimaryButton(
             label = stringResource(R.string.common_btn_join),
-            onClick = onJoin
+            onClick = { viewModel.joinSpace() }, showLoader = state.joiningSpace
         )
         Spacer(modifier = Modifier.height(10.dp))
         PrimaryTextButton(
             label = stringResource(R.string.common_btn_skip),
-            onClick = onSkip
+            onClick = { viewModel.navigateToPermission() },
         )
     }
 }

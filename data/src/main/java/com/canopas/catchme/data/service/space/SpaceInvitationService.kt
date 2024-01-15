@@ -4,6 +4,7 @@ import com.canopas.catchme.data.models.space.ApiSpaceInvitation
 import com.canopas.catchme.data.utils.FirestoreConst
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -30,4 +31,12 @@ class SpaceInvitationService @Inject constructor(
             .map { characters.random() }
             .joinToString("")
     }
+
+    suspend fun getInvitation(inviteCode: String): ApiSpaceInvitation? {
+        val query = spaceInvitationRef.whereEqualTo("code", inviteCode.uppercase())
+        val result = query.get().await()
+        val invitation = result.documents.firstOrNull()?.toObject(ApiSpaceInvitation::class.java)
+        return invitation?.takeIf { !it.isExpired }
+    }
+
 }

@@ -14,10 +14,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -25,6 +23,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.catchme.R
+import com.canopas.catchme.ui.component.AppBanner
 import com.canopas.catchme.ui.component.OtpInputField
 import com.canopas.catchme.ui.component.PrimaryButton
 import com.canopas.catchme.ui.flow.onboard.OnboardViewModel
@@ -33,6 +32,7 @@ import com.canopas.catchme.ui.theme.AppTheme
 @Composable
 fun JoinOrCreateSpaceOnboard() {
     val viewModel = hiltViewModel<OnboardViewModel>()
+    val state by viewModel.state.collectAsState()
 
     Column(
         Modifier
@@ -40,19 +40,38 @@ fun JoinOrCreateSpaceOnboard() {
             .background(AppTheme.colorScheme.surface),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        JoinSpaceComponent {
-            viewModel.navigateToJoinSpace(it)
+        JoinSpaceComponent(state.spaceCode ?: "", state.verifyingInviteCode, onCodeChanged = {
+            viewModel.onInviteCodeChanged(it)
+        }) {
+            viewModel.submitInviteCode()
         }
         Spacer(modifier = Modifier.weight(1f))
         CreateSpaceComponent {
             viewModel.navigateToCreateSpace()
         }
     }
+
+    if (state.errorInvalidInviteCode) {
+        AppBanner(msg = stringResource(id = R.string.onboard_space_invalid_invite_code)) {
+            viewModel.resetErrorState()
+        }
+    }
+
+    if (state.error != null) {
+        AppBanner(msg = state.error!!) {
+            viewModel.resetErrorState()
+        }
+    }
 }
 
 @Composable
-private fun JoinSpaceComponent(onJoin: (String) -> Unit) {
-    var code by remember { mutableStateOf("") }
+private fun JoinSpaceComponent(
+    code: String,
+    verifyingInviteCode: Boolean,
+    onCodeChanged: (String) -> Unit,
+    onJoin: () -> Unit
+) {
+
     Column(
         Modifier
             .fillMaxWidth()
@@ -69,7 +88,9 @@ private fun JoinSpaceComponent(onJoin: (String) -> Unit) {
         )
 
         Spacer(modifier = Modifier.height(40.dp))
-        OtpInputField(pinText = code, onPinTextChange = { code = it })
+        OtpInputField(pinText = code, onPinTextChange = {
+            onCodeChanged(it)
+        })
         Spacer(modifier = Modifier.height(40.dp))
         Text(
             text = stringResource(R.string.onboard_space_join_subtitle),
@@ -81,9 +102,10 @@ private fun JoinSpaceComponent(onJoin: (String) -> Unit) {
         )
         Spacer(modifier = Modifier.height(30.dp))
         PrimaryButton(
-            label = stringResource(id = R.string.common_btn_join),
-            onClick = { onJoin(code) },
-            enabled = code.length == 6
+            label = stringResource(id = R.string.common_btn_verify),
+            onClick = onJoin,
+            enabled = code.length == 6,
+            showLoader = verifyingInviteCode
         )
     }
 }

@@ -5,6 +5,7 @@
     <string name="common_label_or">Or</string>
     <string name="common_btn_skip">Skip</string>
     <string name="common_btn_join">Join</string>
+    <string name="common_btn_verify">Verify</string>
     <string name="common_share_invite_code_message">Let\'s stay connected! Use invite code %s to join my Space. Download the app: [link].</string>
 
     <string name="intro_content_one">Share your location seamlessly, connecting with just a click.</string>
@@ -45,5 +46,6 @@
     <string name="onboard_join_space_joining_space_label">You\'re about to become a member of the %s Space.</string>
     <string name="onboard_join_space_subtitle">Here\'s presenting those eagerly waiting:</string>
     <string name="common_unknown">Unknown</string>
+    <string name="onboard_space_invalid_invite_code">It appears the code is no longer valid or has expired. Please review and enter a valid code.</string>
 
 </resources>

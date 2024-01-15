@@ -65,12 +65,6 @@ fun OnboardScreen() {
         enter = slideInHorizontally(initialOffsetX = { it }),
         exit = slideOutHorizontally(targetOffsetX = { -it })
     ) {
-        JoinSpaceOnboard(
-            state.spaceName ?: "",
-            onJoin = {
-                viewModel.joinSpace()
-            },
-            onSkip = { viewModel.navigateToPermission() }
-        )
+        JoinSpaceOnboard()
     }
 }
