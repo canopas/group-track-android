@@ -44,51 +44,57 @@ class SignInWithPhoneViewModel @Inject constructor(
 
         val phone = _state.value.code + _state.value.phone
 
-        fbAuthService.verifyPhoneNumber(context, phone)
-            .collect { result ->
-                when (result) {
-                    is PhoneAuthState.VerificationCompleted -> {
-                        val firebaseIdToken =
-                            fbAuthService.signInWithPhoneAuthCredential(result.credential)
-                        val isNewUser =
-                            authService.verifiedPhoneLogin(firebaseIdToken, _state.value.phone)
-                        appNavigator.navigateBack(
-                            route = AppDestinations.signIn.path,
-                            result = mapOf(
-                                KEY_RESULT to RESULT_OKAY,
-                                EXTRA_RESULT_IS_NEW_USER to isNewUser
+        try {
+            fbAuthService.verifyPhoneNumber(context, phone)
+                .collect { result ->
+                    when (result) {
+                        is PhoneAuthState.VerificationCompleted -> {
+                            val firebaseIdToken =
+                                fbAuthService.signInWithPhoneAuthCredential(result.credential)
+                            val isNewUser =
+                                authService.verifiedPhoneLogin(firebaseIdToken, _state.value.phone)
+                            appNavigator.navigateBack(
+                                route = AppDestinations.signIn.path,
+                                result = mapOf(
+                                    KEY_RESULT to RESULT_OKAY,
+                                    EXTRA_RESULT_IS_NEW_USER to isNewUser
+                                )
                             )
-                        )
-                        _state.emit(_state.value.copy(verifying = false))
-                    }
+                            _state.emit(_state.value.copy(verifying = false))
+                        }
 
-                    is PhoneAuthState.VerificationFailed -> {
-                        Timber.e(result.e, "Unable to send OTP, verification failed")
-                        _state.emit(
-                            _state.value.copy(
-                                verifying = false,
-                                error = result.e.message
+                        is PhoneAuthState.VerificationFailed -> {
+                            Timber.e(result.e, "Unable to send OTP, verification failed")
+                            _state.emit(
+                                _state.value.copy(
+                                    verifying = false,
+                                    error = result.e.message
+                                )
                             )
-                        )
-                    }
+                        }
 
-                    is PhoneAuthState.CodeSent -> {
-                        _state.emit(
-                            _state.value.copy(
-                                verifying = false,
-                                verificationId = result.verificationId
+                        is PhoneAuthState.CodeSent -> {
+                            _state.emit(
+                                _state.value.copy(
+                                    verifying = false,
+                                    verificationId = result.verificationId
+                                )
                             )
-                        )
 
-                        appNavigator.navigateTo(
-                            OtpVerificationNavigation.otpVerification(
-                                verificationId = result.verificationId,
-                                phoneNo = phone
-                            ).path
-                        )
+                            appNavigator.navigateTo(
+                                OtpVerificationNavigation.otpVerification(
+                                    verificationId = result.verificationId,
+                                    phoneNo = phone
+                                ).path
+                            )
+                        }
                     }
                 }
-            }
+        } catch (e: Exception) {
+            Timber.e(e, "Unable to verify phone, verification failed")
+            _state.emit(_state.value.copy(verifying = false, error = e.message))
+        }
+
     }
 
     fun popBack() {

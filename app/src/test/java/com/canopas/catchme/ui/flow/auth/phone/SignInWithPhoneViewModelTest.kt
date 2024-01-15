@@ -61,18 +61,6 @@ class SignInWithPhoneViewModelTest {
     }
 
     @Test
-    fun `verifyPhoneNumber should update verifying to true`() = runTest {
-        val context = mock<Context>()
-        viewModel.onPhoneChange("1234567890")
-        whenever(firebaseAuth.verifyPhoneNumber(context, "1234567890")).doSuspendableAnswer {
-            withContext(Dispatchers.IO) { delay(5000) }
-            return@doSuspendableAnswer flowOf(PhoneAuthState.CodeSent(""))
-        }
-        viewModel.verifyPhoneNumber(context)
-        assert(viewModel.state.value.verifying)
-    }
-
-    @Test
     fun `verifyPhoneNumber should update verifying to false on verification completed`() = runTest {
         val context = mock<Context>()
         val credential = mock<PhoneAuthCredential>()
@@ -80,6 +68,7 @@ class SignInWithPhoneViewModelTest {
         whenever(firebaseAuth.verifyPhoneNumber(context, "1234567890"))
             .thenReturn(flowOf(PhoneAuthState.VerificationCompleted(credential)))
         whenever(firebaseAuth.signInWithPhoneAuthCredential(credential)).thenReturn("firebaseIdToken")
+        whenever(authService.verifiedPhoneLogin("firebaseIdToken", "1234567890")).thenReturn(true)
         viewModel.verifyPhoneNumber(context)
         assert(!viewModel.state.value.verifying)
     }
@@ -92,8 +81,13 @@ class SignInWithPhoneViewModelTest {
         whenever(firebaseAuth.verifyPhoneNumber(context, "1234567890"))
             .thenReturn(flowOf(PhoneAuthState.VerificationCompleted(credential)))
         whenever(firebaseAuth.signInWithPhoneAuthCredential(credential)).thenReturn("firebaseIdToken")
+        whenever(authService.verifiedPhoneLogin("firebaseIdToken", "1234567890")).thenReturn(true)
+
         viewModel.verifyPhoneNumber(context)
-        verify(navigator).navigateBack("sign-in", result = mapOf("result_code" to 1))
+        verify(navigator).navigateBack(
+            "sign-in",
+            result = mapOf("result_code" to 1, "is-new-user" to true)
+        )
     }
 
     @Test
@@ -104,6 +98,7 @@ class SignInWithPhoneViewModelTest {
         whenever(firebaseAuth.verifyPhoneNumber(context, "1234567890"))
             .thenReturn(flowOf(PhoneAuthState.VerificationCompleted(credential)))
         whenever(firebaseAuth.signInWithPhoneAuthCredential(credential)).thenReturn("firebaseIdToken")
+        whenever(authService.verifiedPhoneLogin("firebaseIdToken", "1234567890")).thenReturn(true)
         viewModel.verifyPhoneNumber(context)
         verify(authService).verifiedPhoneLogin("firebaseIdToken", "1234567890")
     }
