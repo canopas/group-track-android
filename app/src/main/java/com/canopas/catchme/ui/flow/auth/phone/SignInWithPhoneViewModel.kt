@@ -94,7 +94,6 @@ class SignInWithPhoneViewModel @Inject constructor(
             Timber.e(e, "Unable to verify phone, verification failed")
             _state.emit(_state.value.copy(verifying = false, error = e.message))
         }
-
     }
 
     fun popBack() {
