@@ -6,7 +6,6 @@ import com.canopas.catchme.data.models.space.SPACE_MEMBER_ROLE_MEMBER
 import com.canopas.catchme.data.service.user.UserService
 import com.canopas.catchme.data.utils.FirestoreConst.FIRESTORE_COLLECTION_SPACES
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -44,6 +43,4 @@ class SpaceService @Inject constructor(
     suspend fun getSpace(spaceId: String): ApiSpace? {
         return spaceRef.document(spaceId).get().await().toObject(ApiSpace::class.java)
     }
-
 }
-

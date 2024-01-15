@@ -71,7 +71,6 @@ private fun JoinSpaceComponent(
     onCodeChanged: (String) -> Unit,
     onJoin: () -> Unit
 ) {
-
     Column(
         Modifier
             .fillMaxWidth()

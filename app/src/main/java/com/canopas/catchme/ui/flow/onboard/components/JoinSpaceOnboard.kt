@@ -87,12 +87,13 @@ fun JoinSpaceOnboard() {
         Spacer(modifier = Modifier.weight(1f))
         PrimaryButton(
             label = stringResource(R.string.common_btn_join),
-            onClick = { viewModel.joinSpace() }, showLoader = state.joiningSpace
+            onClick = { viewModel.joinSpace() },
+            showLoader = state.joiningSpace
         )
         Spacer(modifier = Modifier.height(10.dp))
         PrimaryTextButton(
             label = stringResource(R.string.common_btn_skip),
-            onClick = { viewModel.navigateToPermission() },
+            onClick = { viewModel.navigateToPermission() }
         )
     }
 }

@@ -133,7 +133,8 @@ class OnboardViewModel @Inject constructor(
                 _state.value.copy(
                     spaceName = space?.name,
                     spaceId = invitation.space_id,
-                    verifyingInviteCode = false, errorInvalidInviteCode = false,
+                    verifyingInviteCode = false,
+                    errorInvalidInviteCode = false,
                     currentStep = OnboardItems.JoinSpace
                 )
             )
@@ -185,7 +186,6 @@ class OnboardViewModel @Inject constructor(
             errorInvalidInviteCode = false
         )
     }
-
 }
 
 data class OnboardScreenState(
