@@ -33,6 +33,8 @@ class UserPreferences @Inject constructor(
 
     object PreferencesKey {
         val INTRO_SHOWN = booleanPreferencesKey("intro_shown")
+        val ONBOARD_SHOWN = booleanPreferencesKey("onboard_shown")
+
         val KEY_USER_JSON = stringPreferencesKey("current_user")
         val KEY_USER_SESSION_JSON = stringPreferencesKey("user_session")
     }
@@ -44,6 +46,16 @@ class UserPreferences @Inject constructor(
     suspend fun setIntroShown(value: Boolean) {
         preferencesDataStore.edit { preferences ->
             preferences[PreferencesKey.INTRO_SHOWN] = value
+        }
+    }
+
+    suspend fun isOnboardShown(): Boolean {
+        return preferencesDataStore.data.first()[PreferencesKey.ONBOARD_SHOWN] ?: false
+    }
+
+    suspend fun setOnboardShown(value: Boolean) {
+        preferencesDataStore.edit { preferences ->
+            preferences[PreferencesKey.ONBOARD_SHOWN] = value
         }
     }
 

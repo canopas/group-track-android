@@ -1,5 +1,7 @@
 package com.canopas.catchme.ui.flow.onboard.components
 
+import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -10,25 +12,30 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat.startActivity
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.catchme.R
 import com.canopas.catchme.ui.component.PrimaryButton
 import com.canopas.catchme.ui.component.PrimaryTextButton
+import com.canopas.catchme.ui.flow.onboard.OnboardViewModel
 import com.canopas.catchme.ui.theme.AppTheme
 
-// UGBFMJ
 @Composable
-fun ShareSpaceCodeOnboard(
-    spaceCode: String,
-    shareCode: () -> Unit,
-    onDoneSharing: () -> Unit
-) {
+fun ShareSpaceCodeOnboard() {
+    val viewModel = hiltViewModel<OnboardViewModel>()
+    val state by viewModel.state.collectAsState()
+
+    val context = LocalContext.current
     Column(
         Modifier
             .fillMaxSize()
@@ -54,7 +61,7 @@ fun ShareSpaceCodeOnboard(
                 .padding(horizontal = 24.dp)
         )
         Spacer(modifier = Modifier.height(40.dp))
-        InvitationCodeComponent(spaceCode)
+        InvitationCodeComponent(state.spaceCode ?: "")
         Spacer(modifier = Modifier.height(40.dp))
         Text(
             text = stringResource(R.string.onboard_share_space_code_tips),
@@ -67,14 +74,28 @@ fun ShareSpaceCodeOnboard(
         Spacer(modifier = Modifier.weight(1f))
         PrimaryButton(
             label = stringResource(R.string.onboard_share_space_code_btn),
-            onClick = shareCode
+            onClick = { shareInvitationCode(context, state.spaceCode ?: "") }
         )
         Spacer(modifier = Modifier.height(10.dp))
         PrimaryTextButton(
             label = stringResource(R.string.common_btn_skip),
-            onClick = onDoneSharing
+            onClick = { viewModel.navigateToPermission() }
         )
     }
+}
+
+private fun shareInvitationCode(context: Context, code: String) {
+    val sendIntent: Intent = Intent().apply {
+        action = Intent.ACTION_SEND
+        putExtra(
+            Intent.EXTRA_TEXT,
+            context.getString(R.string.common_share_invite_code_message, code)
+        )
+        type = "text/plain"
+    }
+
+    val shareIntent = Intent.createChooser(sendIntent, null)
+    context.startActivity(shareIntent)
 }
 
 @Composable

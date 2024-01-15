@@ -33,9 +33,7 @@ fun OnboardScreen() {
         enter = slideInHorizontally(initialOffsetX = { it }),
         exit = slideOutHorizontally(targetOffsetX = { -it })
     ) {
-        SpaceInfoOnboard(state.firstName ?: "") {
-            viewModel.navigateToJoinOrCreateSpace()
-        }
+        SpaceInfoOnboard()
     }
 
     AnimatedVisibility(
@@ -43,9 +41,7 @@ fun OnboardScreen() {
         enter = slideInHorizontally(initialOffsetX = { it }),
         exit = slideOutHorizontally(targetOffsetX = { -it })
     ) {
-        JoinOrCreateSpaceOnboard(onJoin = { it ->
-            viewModel.navigateToJoinSpace(it)
-        }, onCreateNewSpace = { viewModel.navigateToSpaceName() })
+        JoinOrCreateSpaceOnboard()
     }
 
     AnimatedVisibility(
@@ -53,9 +49,7 @@ fun OnboardScreen() {
         enter = slideInHorizontally(initialOffsetX = { it }),
         exit = slideOutHorizontally(targetOffsetX = { -it })
     ) {
-        CreateSpaceOnboard(state.lastName ?: "") {
-            viewModel.navigateToSpaceInvitationCode(it)
-        }
+        CreateSpaceOnboard()
     }
 
     AnimatedVisibility(
@@ -63,9 +57,7 @@ fun OnboardScreen() {
         enter = slideInHorizontally(initialOffsetX = { it }),
         exit = slideOutHorizontally(targetOffsetX = { -it })
     ) {
-        ShareSpaceCodeOnboard(state.spaceCode ?: "", shareCode = {}) {
-            viewModel.navigateToPermission()
-        }
+        ShareSpaceCodeOnboard()
     }
 
     AnimatedVisibility(
