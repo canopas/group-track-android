@@ -79,8 +79,22 @@ class SignInMethodViewModelTest {
         whenever(account.idToken).thenReturn("token")
         whenever(firebaseAuth.signInWithGoogleAuthCredential("token"))
             .thenReturn("firebaseToken")
+        whenever(authService.verifiedGoogleLogin("firebaseToken", account))
+            .thenReturn(false)
         viewModel.proceedGoogleSignIn(account)
         verify(navigator).navigateTo("home", "intro", true)
+    }
+
+    @Test
+    fun `proceedGoogleSignIn should navigate to onboard screen`() = runTest {
+        val account = mock<GoogleSignInAccount>()
+        whenever(account.idToken).thenReturn("token")
+        whenever(firebaseAuth.signInWithGoogleAuthCredential("token"))
+            .thenReturn("firebaseToken")
+        whenever(authService.verifiedGoogleLogin("firebaseToken", account))
+            .thenReturn(true)
+        viewModel.proceedGoogleSignIn(account)
+        verify(navigator).navigateTo("onboard", "intro", true)
     }
 
     @Test
@@ -104,8 +118,8 @@ class SignInMethodViewModelTest {
     }
 
     @Test
-    fun `navigateToHome should navigate to home screen`() = runTest {
-        viewModel.navigateToHome()
+    fun `skipSignUp should navigate to home screen`() = runTest {
+        viewModel.skipSignUp()
         verify(navigator).navigateTo("home", "intro", true)
     }
 

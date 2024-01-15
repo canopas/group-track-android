@@ -35,8 +35,8 @@ class SignInMethodViewModel @Inject constructor(
             _state.emit(_state.value.copy(showGoogleLoading = true))
             try {
                 val firebaseToken = firebaseAuth.signInWithGoogleAuthCredential(account.idToken)
-                authService.verifiedGoogleLogin(firebaseToken, account)
-                navigateToHome()
+                val isNewUSer = authService.verifiedGoogleLogin(firebaseToken, account)
+                onSignUp(isNewUSer)
                 _state.emit(_state.value.copy(showGoogleLoading = false))
             } catch (e: Exception) {
                 Timber.e(e, "Failed to sign in with google")
@@ -49,16 +49,32 @@ class SignInMethodViewModel @Inject constructor(
             }
         }
 
-    fun navigateToHome() {
+    fun resetErrorState() {
+        _state.value = _state.value.copy(error = null)
+    }
+
+    fun onSignUp(isNewUSer: Boolean) = viewModelScope.launch(appDispatcher.MAIN) {
+        if (isNewUSer) {
+            navigator.navigateTo(
+                AppDestinations.onboard.path,
+                popUpToRoute = AppDestinations.intro.path,
+                inclusive = true
+            )
+        } else {
+            navigator.navigateTo(
+                AppDestinations.home.path,
+                popUpToRoute = AppDestinations.intro.path,
+                inclusive = true
+            )
+        }
+    }
+
+    fun skipSignUp() = viewModelScope.launch(appDispatcher.MAIN) {
         navigator.navigateTo(
             AppDestinations.home.path,
             popUpToRoute = AppDestinations.intro.path,
             inclusive = true
         )
-    }
-
-    fun resetErrorState() {
-        _state.value = _state.value.copy(error = null)
     }
 }
 

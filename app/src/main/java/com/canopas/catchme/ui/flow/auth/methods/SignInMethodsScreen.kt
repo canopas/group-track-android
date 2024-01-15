@@ -74,10 +74,10 @@ private fun SignInAppBar() {
             containerColor = Color.Transparent
         ),
         actions = {
-            TextButton(onClick = { viewModel.navigateToHome() }) {
+            TextButton(onClick = { viewModel.skipSignUp() }) {
                 Text(
                     text = stringResource(
-                        id = R.string.sign_in_skip
+                        id = R.string.common_btn_skip
                     ),
                     style = AppTheme.appTypography.label1.copy(color = AppTheme.colorScheme.textPrimary)
                 )

@@ -119,5 +119,8 @@ dependencies {
     // country-picker
     implementation("com.canopas.jetcountrypicker:jetcountrypicker:1.0.9")
 
+    // coil
+    implementation("io.coil-kt:coil-compose:2.5.0")
+
     implementation(project(":data"))
 }

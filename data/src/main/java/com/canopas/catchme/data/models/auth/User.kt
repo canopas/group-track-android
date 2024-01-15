@@ -1,10 +1,13 @@
 package com.canopas.catchme.data.models.auth
 
+import java.util.UUID
+
 const val LOGIN_TYPE_GOOGLE = 1
 const val LOGIN_TYPE_PHONE = 2
 const val LOGIN_DEVICE_TYPE_ANDROID = 1
 
 data class ApiUser(
+    val id: String = UUID.randomUUID().toString(),
     val phone: String? = null,
     val email: String? = null,
     val auth_type: Int? = null,
@@ -17,6 +20,7 @@ data class ApiUser(
 )
 
 data class ApiUserSession(
+    val id: String = UUID.randomUUID().toString(),
     val user_id: String,
     val device_id: String? = null,
     val fcm_token: String? = null,

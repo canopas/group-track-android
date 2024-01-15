@@ -72,6 +72,8 @@ import com.canopas.catchme.ui.component.AppLogo
 import com.canopas.catchme.ui.component.AppProgressIndicator
 import com.canopas.catchme.ui.theme.AppTheme
 
+const val EXTRA_RESULT_IS_NEW_USER = "is-new-user"
+
 @Composable
 fun SignInWithPhoneScreen() {
     val viewModel = hiltViewModel<SignInWithPhoneViewModel>()
@@ -320,7 +322,7 @@ private fun NextBtn(enable: Boolean, isVerifying: Boolean, onClick: () -> Unit) 
         }
 
         Text(
-            text = stringResource(R.string.phone_sign_in_btn_next),
+            text = stringResource(R.string.common_btn_next),
             style = AppTheme.appTypography.label1.copy(color = AppTheme.colorScheme.onPrimary),
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(vertical = 6.dp, horizontal = 6.dp)

@@ -141,11 +141,15 @@ class PhoneVerificationViewModelTest {
                 "12356"
             )
         ).thenReturn("firebaseIdToken")
+        whenever(authService.verifiedPhoneLogin("firebaseIdToken", "1234567890")).thenReturn(false)
 
         viewModel.updateOTP("12356")
         viewModel.verifyOTP()
 
-        verify(navigator).navigateBack("sign-in", result = mapOf("result_code" to 1))
+        verify(navigator).navigateBack(
+            "sign-in",
+            result = mapOf("result_code" to 1, "is-new-user" to false)
+        )
     }
 
     @Test
@@ -185,9 +189,14 @@ class PhoneVerificationViewModelTest {
         val credential = mock<PhoneAuthCredential>()
         whenever(firebaseAuth.verifyPhoneNumber(context, "1234567890"))
             .thenReturn(flowOf(PhoneAuthState.VerificationCompleted(credential)))
+        whenever(authService.verifiedPhoneLogin("firebaseIdToken", "1234567890")).thenReturn(false)
+
         whenever(firebaseAuth.signInWithPhoneAuthCredential(credential)).thenReturn("firebaseIdToken")
         viewModel.resendCode(context)
-        verify(navigator).navigateBack("sign-in", result = mapOf("result_code" to 1))
+        verify(navigator).navigateBack(
+            "sign-in",
+            result = mapOf("result_code" to 1, "is-new-user" to false)
+        )
     }
 
     @Test
@@ -197,6 +206,8 @@ class PhoneVerificationViewModelTest {
         whenever(firebaseAuth.verifyPhoneNumber(context, "1234567890"))
             .thenReturn(flowOf(PhoneAuthState.VerificationCompleted(credential)))
         whenever(firebaseAuth.signInWithPhoneAuthCredential(credential)).thenReturn("firebaseIdToken")
+        whenever(authService.verifiedPhoneLogin("firebaseIdToken", "1234567890")).thenReturn(true)
+
         viewModel.resendCode(context)
         verify(authService).verifiedPhoneLogin("firebaseIdToken", "1234567890")
     }
