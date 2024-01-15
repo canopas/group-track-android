@@ -13,6 +13,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,14 +24,20 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.catchme.R
 import com.canopas.catchme.ui.component.PrimaryButton
+import com.canopas.catchme.ui.flow.onboard.OnboardViewModel
 import com.canopas.catchme.ui.theme.AppTheme
 
 @Composable
-fun CreateSpaceOnboard(lastName: String, onContinue: (String) -> Unit) {
-    val initialName = stringResource(id = R.string.onboard_create_space_initial_name, lastName)
-    var spaceName by remember { mutableStateOf(if (lastName.isEmpty()) "" else initialName) }
+fun CreateSpaceOnboard() {
+    val viewModel = hiltViewModel<OnboardViewModel>()
+    val state by viewModel.state.collectAsState()
+
+    val initialName =
+        stringResource(id = R.string.onboard_create_space_initial_name, state.lastName)
+    var spaceName by remember { mutableStateOf(if (state.lastName.isEmpty()) "" else initialName) }
 
     Column(
         modifier = Modifier
@@ -68,7 +75,8 @@ fun CreateSpaceOnboard(lastName: String, onContinue: (String) -> Unit) {
         PrimaryButton(
             label = stringResource(R.string.common_btn_next),
             modifier = Modifier.align(Alignment.CenterHorizontally),
-            onClick = { onContinue(spaceName) }
+            onClick = { viewModel.createSpace(spaceName) },
+            enabled = spaceName.trim().isNotEmpty(), showLoader = state.creatingSpace
         )
     }
 }

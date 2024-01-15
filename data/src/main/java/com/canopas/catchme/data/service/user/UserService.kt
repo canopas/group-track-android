@@ -3,6 +3,7 @@ package com.canopas.catchme.data.service.user
 import com.canopas.catchme.data.models.auth.ApiUser
 import com.canopas.catchme.data.models.auth.ApiUserSession
 import com.canopas.catchme.data.storage.UserPreferences
+import com.canopas.catchme.data.utils.FirestoreConst.FIRESTORE_COLLECTION_USERS
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -14,7 +15,7 @@ class UserService @Inject constructor(
     private val db: FirebaseFirestore
 
 ) {
-    private val userRef = db.collection("users")
+    private val userRef = db.collection(FIRESTORE_COLLECTION_USERS)
 
     var currentUser: ApiUser?
         get() {

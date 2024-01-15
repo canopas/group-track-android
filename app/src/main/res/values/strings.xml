@@ -5,7 +5,7 @@
     <string name="common_label_or">Or</string>
     <string name="common_btn_skip">Skip</string>
     <string name="common_btn_join">Join</string>
-
+    <string name="common_share_invite_code_message">Let\'s stay connected! Use invite code %s to join my Space. Download the app: [link].</string>
 
     <string name="intro_content_one">Share your location seamlessly, connecting with just a click.</string>
     <string name="intro_content_two">Stay in the know with instant alerts – whether loved ones enter or leave.</string>

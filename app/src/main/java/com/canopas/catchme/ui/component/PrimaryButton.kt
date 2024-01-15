@@ -21,7 +21,8 @@ fun PrimaryButton(
     modifier: Modifier = Modifier,
     label: String,
     onClick: () -> Unit,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    showLoader: Boolean = false
 ) {
     Button(
         onClick = onClick,
@@ -33,6 +34,9 @@ fun PrimaryButton(
         ),
         enabled = enabled
     ) {
+        if (showLoader)
+            AppProgressIndicator(color = AppTheme.colorScheme.onPrimary)
+
         Text(
             text = label,
             style = AppTheme.appTypography.subTitle2.copy(color = AppTheme.colorScheme.onPrimary),

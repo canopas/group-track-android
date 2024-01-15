@@ -51,7 +51,7 @@ fun PickNameOnboard() {
 
         PickNameTextField(
             stringResource(id = R.string.onboard_pick_name_label_first_name),
-            state.firstName ?: ""
+            state.firstName
         ) {
             viewModel.onFirstNameChange(it)
         }
@@ -59,7 +59,7 @@ fun PickNameOnboard() {
 
         PickNameTextField(
             stringResource(id = R.string.onboard_pick_name_label_last_name),
-            state.lastName ?: ""
+            state.lastName
         ) {
             viewModel.onLastNameChange(it)
         }
@@ -68,7 +68,8 @@ fun PickNameOnboard() {
             label = stringResource(R.string.common_btn_next),
             modifier = Modifier.align(Alignment.CenterHorizontally),
             onClick = { viewModel.navigateToSpaceInfo() },
-            enabled = state.enablePickNameBtn
+            enabled = state.firstName.trim().isNotEmpty() && state.lastName.trim().isNotEmpty(),
+            showLoader = state.updatingUserName
         )
     }
 }

@@ -25,6 +25,12 @@ class MainViewModel @Inject constructor(
                     popUpToRoute = AppDestinations.home.path,
                     inclusive = true
                 )
+            } else if (!userPreferences.isOnboardShown()) {
+                appNavigator.navigateTo(
+                    AppDestinations.onboard.path,
+                    popUpToRoute = AppDestinations.home.path,
+                    inclusive = true
+                )
             }
         }
     }

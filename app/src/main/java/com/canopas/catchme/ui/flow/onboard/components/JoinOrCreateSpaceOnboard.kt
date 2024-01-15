@@ -23,25 +23,30 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.catchme.R
 import com.canopas.catchme.ui.component.OtpInputField
 import com.canopas.catchme.ui.component.PrimaryButton
+import com.canopas.catchme.ui.flow.onboard.OnboardViewModel
 import com.canopas.catchme.ui.theme.AppTheme
 
 @Composable
-fun JoinOrCreateSpaceOnboard(
-    onCreateNewSpace: () -> Unit,
-    onJoin: (code: String) -> Unit
-) {
+fun JoinOrCreateSpaceOnboard() {
+    val viewModel = hiltViewModel<OnboardViewModel>()
+
     Column(
         Modifier
             .fillMaxSize()
             .background(AppTheme.colorScheme.surface),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        JoinSpaceComponent(onJoin)
+        JoinSpaceComponent {
+            viewModel.navigateToJoinSpace(it)
+        }
         Spacer(modifier = Modifier.weight(1f))
-        CreateSpaceComponent(onCreateNewSpace)
+        CreateSpaceComponent {
+            viewModel.navigateToCreateSpace()
+        }
     }
 }
 

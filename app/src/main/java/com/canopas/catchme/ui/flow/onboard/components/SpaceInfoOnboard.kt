@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -17,12 +19,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.catchme.R
 import com.canopas.catchme.ui.component.PrimaryButton
+import com.canopas.catchme.ui.flow.onboard.OnboardViewModel
 import com.canopas.catchme.ui.theme.AppTheme
 
 @Composable
-fun SpaceInfoOnboard(firstName: String, onContinue: () -> Unit) {
+fun SpaceInfoOnboard() {
+    val viewModel = hiltViewModel<OnboardViewModel>()
+    val state by viewModel.state.collectAsState()
+
     Column(
         Modifier
             .fillMaxSize()
@@ -31,9 +38,8 @@ fun SpaceInfoOnboard(firstName: String, onContinue: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(40.dp))
-        TitleContent(firstName)
+        TitleContent(state.firstName)
         Spacer(modifier = Modifier.weight(0.5f))
-
         Image(
             painter = painterResource(id = R.drawable.ic_onboard_space_intro),
             contentDescription = null,
@@ -45,7 +51,9 @@ fun SpaceInfoOnboard(firstName: String, onContinue: () -> Unit) {
         Spacer(modifier = Modifier.weight(0.5f))
         SubTitleTitleContent()
         Spacer(modifier = Modifier.height(30.dp))
-        PrimaryButton(label = stringResource(R.string.common_btn_continue), onClick = onContinue)
+        PrimaryButton(label = stringResource(R.string.common_btn_continue), onClick = {
+            viewModel.navigateToJoinOrCreateSpace()
+        })
         Spacer(modifier = Modifier.height(20.dp))
     }
 }

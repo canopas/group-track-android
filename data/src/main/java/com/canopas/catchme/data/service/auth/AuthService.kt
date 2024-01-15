@@ -6,6 +6,8 @@ import com.canopas.catchme.data.models.auth.LOGIN_TYPE_GOOGLE
 import com.canopas.catchme.data.models.auth.LOGIN_TYPE_PHONE
 import com.canopas.catchme.data.service.user.UserService
 import com.canopas.catchme.data.utils.Device
+import com.canopas.catchme.data.utils.FirestoreConst
+import com.canopas.catchme.data.utils.FirestoreConst.FIRESTORE_COLLECTION_USER_SESSIONS
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QueryDocumentSnapshot
@@ -19,8 +21,8 @@ class AuthService @Inject constructor(
     private val device: Device,
     private val userService: UserService
 ) {
-    private val userRef = db.collection("users")
-    private val sessionRef = db.collection("user-sessions")
+    private val userRef = db.collection(FirestoreConst.FIRESTORE_COLLECTION_USERS)
+    private val sessionRef = db.collection(FIRESTORE_COLLECTION_USER_SESSIONS)
 
     suspend fun verifiedPhoneLogin(firebaseToken: String?, phoneNumber: String): Boolean {
         val snapshot = userRef.whereEqualTo("phone", phoneNumber).get().await().firstOrNull()
