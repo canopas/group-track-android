@@ -72,6 +72,8 @@ import com.canopas.catchme.ui.component.AppLogo
 import com.canopas.catchme.ui.component.AppProgressIndicator
 import com.canopas.catchme.ui.theme.AppTheme
 
+const val EXTRA_RESULT_IS_NEW_USER = "is-new-user"
+
 @Composable
 fun SignInWithPhoneScreen() {
     val viewModel = hiltViewModel<SignInWithPhoneViewModel>()

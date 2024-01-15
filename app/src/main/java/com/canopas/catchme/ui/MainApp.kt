@@ -7,13 +7,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import com.canopas.catchme.ui.flow.auth.methods.SignInMethodViewModel
 import com.canopas.catchme.ui.flow.auth.methods.SignInMethodsScreen
+import com.canopas.catchme.ui.flow.auth.phone.EXTRA_RESULT_IS_NEW_USER
 import com.canopas.catchme.ui.flow.auth.phone.SignInWithPhoneScreen
 import com.canopas.catchme.ui.flow.auth.verification.PhoneVerificationScreen
 import com.canopas.catchme.ui.flow.home.HomeScreen
 import com.canopas.catchme.ui.flow.intro.IntroScreen
 import com.canopas.catchme.ui.flow.onboard.OnboardScreen
-
 import com.canopas.catchme.ui.navigation.AppDestinations
 import com.canopas.catchme.ui.navigation.KEY_RESULT
 import com.canopas.catchme.ui.navigation.NavAction
@@ -32,19 +33,28 @@ fun MainApp() {
 
     NavHost(navController = navController, startDestination = AppDestinations.home.path) {
         slideComposable(AppDestinations.intro.path) {
+            IntroScreen()
+        }
+        slideComposable(AppDestinations.onboard.path) {
             OnboardScreen()
         }
         slideComposable(AppDestinations.signIn.path) {
+            val signInModel = hiltViewModel<SignInMethodViewModel>()
+
             val result = navController.currentBackStackEntry
                 ?.savedStateHandle?.get<Int>(KEY_RESULT)
             result?.let {
+                val isNewUSer = navController.currentBackStackEntry
+                    ?.savedStateHandle?.get<Boolean>(EXTRA_RESULT_IS_NEW_USER) ?: true
                 navController.currentBackStackEntry
-                    ?.savedStateHandle?.remove<Int>(KEY_RESULT)
+                    ?.savedStateHandle?.apply {
+                        remove<Int>(KEY_RESULT)
+                        remove<Boolean>(EXTRA_RESULT_IS_NEW_USER)
+                    }
+
                 LaunchedEffect(key1 = result) {
                     if (result == RESULT_OKAY) {
-                        navController.navigate(AppDestinations.home.path) {
-                            popUpTo(AppDestinations.signIn.path) { inclusive = true }
-                        }
+                        signInModel.onSignUp(isNewUSer)
                     }
                 }
             }

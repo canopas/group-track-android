@@ -18,7 +18,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -38,15 +37,16 @@ fun OtpInputField(
     pinText: String,
     onPinTextChange: (String) -> Unit,
     textStyle: TextStyle = AppTheme.appTypography.header1,
-    digitCount: Int = 6,
+    digitCount: Int = 6
 ) {
     val focusRequester = remember { FocusRequester() }
 
     BasicTextField(
         value = pinText,
         onValueChange = {
-            if (it.length <= digitCount)
+            if (it.length <= digitCount) {
                 onPinTextChange(it)
+            }
         },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
         modifier = Modifier.focusRequester(focusRequester),
@@ -68,9 +68,9 @@ fun OtpInputField(
                     }
                 }
             }
-        })
+        }
+    )
 }
-
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -78,7 +78,7 @@ private fun OTPDigit(
     index: Int,
     pinText: String,
     textStyle: TextStyle,
-    focusRequester: FocusRequester,
+    focusRequester: FocusRequester
 ) {
     val isFocused = pinText.length == index
     val keyboardController = LocalSoftwareKeyboardController.current

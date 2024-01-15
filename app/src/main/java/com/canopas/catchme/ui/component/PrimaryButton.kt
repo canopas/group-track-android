@@ -21,7 +21,7 @@ fun PrimaryButton(
     modifier: Modifier = Modifier,
     label: String,
     onClick: () -> Unit,
-    enabled: Boolean = true,
+    enabled: Boolean = true
 ) {
     Button(
         onClick = onClick,
@@ -30,7 +30,8 @@ fun PrimaryButton(
         shape = RoundedCornerShape(50),
         colors = ButtonDefaults.buttonColors(
             containerColor = AppTheme.colorScheme.primary
-        ), enabled = enabled
+        ),
+        enabled = enabled
     ) {
         Text(
             text = label,
@@ -46,7 +47,7 @@ fun PrimaryTextButton(
     modifier: Modifier = Modifier,
     label: String,
     onClick: () -> Unit,
-    enabled: Boolean = true,
+    enabled: Boolean = true
 ) {
     TextButton(
         onClick = onClick,
@@ -56,7 +57,8 @@ fun PrimaryTextButton(
         colors = ButtonDefaults.buttonColors(
             containerColor = AppTheme.colorScheme.surface,
             contentColor = AppTheme.colorScheme.primary
-        ), enabled = enabled
+        ),
+        enabled = enabled
     ) {
         Text(
             text = label,
@@ -75,7 +77,7 @@ fun PrimaryOutlinedButton(
     containerColor: Color = AppTheme.colorScheme.surface,
     contentColor: Color = AppTheme.colorScheme.primary,
     outlineColor: Color = AppTheme.colorScheme.primary,
-    enabled: Boolean = true,
+    enabled: Boolean = true
 ) {
     OutlinedButton(
         onClick = onClick,
@@ -83,8 +85,9 @@ fun PrimaryOutlinedButton(
             .fillMaxWidth(fraction = 0.9f),
         border = BorderStroke(color = outlineColor, width = 1.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = containerColor,
-        ), enabled = enabled
+            containerColor = containerColor
+        ),
+        enabled = enabled
     ) {
         Text(
             text = label,

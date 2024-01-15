@@ -22,10 +22,11 @@ import com.canopas.catchme.ui.component.PrimaryButton
 import com.canopas.catchme.ui.component.PrimaryTextButton
 import com.canopas.catchme.ui.theme.AppTheme
 
-//UGBFMJ
+// UGBFMJ
 @Composable
 fun ShareSpaceCodeOnboard(
-    spaceCode: String, shareCode: () -> Unit,
+    spaceCode: String,
+    shareCode: () -> Unit,
     onDoneSharing: () -> Unit
 ) {
     Column(
@@ -89,7 +90,8 @@ fun InvitationCodeComponent(spaceCode: String) {
             text = spaceCode,
             style = AppTheme.appTypography.header1.copy(
                 color = AppTheme.colorScheme.textInversePrimary,
-                fontSize = 34.sp, letterSpacing = 0.8.sp,
+                fontSize = 34.sp,
+                letterSpacing = 0.8.sp,
                 fontWeight = FontWeight.ExtraBold
             ),
             textAlign = TextAlign.Center,
@@ -110,6 +112,5 @@ fun InvitationCodeComponent(spaceCode: String) {
                 .fillMaxWidth()
 
         )
-
     }
 }

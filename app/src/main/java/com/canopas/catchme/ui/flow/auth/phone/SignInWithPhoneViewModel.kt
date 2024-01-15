@@ -50,10 +50,14 @@ class SignInWithPhoneViewModel @Inject constructor(
                     is PhoneAuthState.VerificationCompleted -> {
                         val firebaseIdToken =
                             fbAuthService.signInWithPhoneAuthCredential(result.credential)
-                        authService.verifiedPhoneLogin(firebaseIdToken, _state.value.phone)
+                        val isNewUser =
+                            authService.verifiedPhoneLogin(firebaseIdToken, _state.value.phone)
                         appNavigator.navigateBack(
                             route = AppDestinations.signIn.path,
-                            result = mapOf(KEY_RESULT to RESULT_OKAY)
+                            result = mapOf(
+                                KEY_RESULT to RESULT_OKAY,
+                                EXTRA_RESULT_IS_NEW_USER to isNewUser
+                            )
                         )
                         _state.emit(_state.value.copy(verifying = false))
                     }

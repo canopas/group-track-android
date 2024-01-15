@@ -4,7 +4,7 @@ import com.canopas.catchme.data.models.auth.ApiUser
 import com.canopas.catchme.data.models.auth.ApiUserSession
 import com.canopas.catchme.data.models.auth.LOGIN_TYPE_GOOGLE
 import com.canopas.catchme.data.models.auth.LOGIN_TYPE_PHONE
-import com.canopas.catchme.data.storage.UserPreferences
+import com.canopas.catchme.data.service.user.UserService
 import com.canopas.catchme.data.utils.Device
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.firebase.firestore.FirebaseFirestore
@@ -17,35 +17,19 @@ import javax.inject.Singleton
 class AuthService @Inject constructor(
     private val db: FirebaseFirestore,
     private val device: Device,
-    private val userPreferences: UserPreferences
+    private val userService: UserService
 ) {
     private val userRef = db.collection("users")
     private val sessionRef = db.collection("user-sessions")
 
-    var currentUser: ApiUser?
-        get() {
-            return userPreferences.currentUser
-        }
-        set(newUser) {
-            userPreferences.currentUser = newUser
-        }
-
-    var currentUserSession: ApiUserSession?
-        get() {
-            return userPreferences.currentUserSession
-        }
-        set(newSession) {
-            userPreferences.currentUserSession = newSession
-        }
-
-    suspend fun verifiedPhoneLogin(firebaseToken: String?, phoneNumber: String) {
+    suspend fun verifiedPhoneLogin(firebaseToken: String?, phoneNumber: String): Boolean {
         val snapshot = userRef.whereEqualTo("phone", phoneNumber).get().await().firstOrNull()
-        processLogin(firebaseToken, null, phoneNumber, snapshot)
+        return processLogin(firebaseToken, null, phoneNumber, snapshot)
     }
 
-    suspend fun verifiedGoogleLogin(firebaseToken: String?, account: GoogleSignInAccount) {
+    suspend fun verifiedGoogleLogin(firebaseToken: String?, account: GoogleSignInAccount): Boolean {
         val snapshot = userRef.whereEqualTo("email", account.email).get().await().firstOrNull()
-        processLogin(firebaseToken, account, null, snapshot)
+        return processLogin(firebaseToken, account, null, snapshot)
     }
 
     private suspend fun processLogin(
@@ -53,10 +37,13 @@ class AuthService @Inject constructor(
         account: GoogleSignInAccount? = null,
         phoneNumber: String? = null,
         snapshot: QueryDocumentSnapshot?
-    ) {
+    ): Boolean {
         val isNewUser = snapshot?.data == null
         if (isNewUser) {
+            val userDocRef = userRef.document()
+            val userId = userDocRef.id
             val user = ApiUser(
+                id = userId,
                 email = account?.email,
                 phone = phoneNumber,
                 auth_type = if (account != null) LOGIN_TYPE_GOOGLE else LOGIN_TYPE_PHONE,
@@ -65,9 +52,10 @@ class AuthService @Inject constructor(
                 provider_firebase_id_token = firebaseToken,
                 profile_image = account?.photoUrl?.toString()
             )
-            val docId = userRef.document().id
+            val sessionDocRef = sessionRef.document()
             val session = ApiUserSession(
-                user_id = docId,
+                id = sessionDocRef.id,
+                user_id = userId,
                 device_id = device.getId(),
                 device_name = device.deviceName(),
                 session_active = true,
@@ -75,13 +63,15 @@ class AuthService @Inject constructor(
                 battery_status = null
             )
 
-            userRef.document(docId).set(user).await()
-            sessionRef.document().set(session).await()
-            currentUser = user
-            currentUserSession = session
+            userDocRef.set(user).await()
+            sessionDocRef.set(session).await()
+            userService.saveUser(user, session)
         } else {
             val docId = snapshot!!.id
+            val sessionDocRef = sessionRef.document()
+
             val session = ApiUserSession(
+                id = sessionDocRef.id,
                 user_id = docId,
                 device_id = device.getId(),
                 device_name = device.deviceName(),
@@ -89,10 +79,11 @@ class AuthService @Inject constructor(
                 app_version = device.versionCode,
                 battery_status = null
             )
-            sessionRef.document().set(session).await()
-
-            currentUser = snapshot.toObject(ApiUser::class.java)
-            currentUserSession = session
+            sessionDocRef.set(session).await()
+            val currentUser = snapshot.toObject(ApiUser::class.java)
+            userService.saveUser(currentUser, session)
         }
+
+        return isNewUser
     }
 }

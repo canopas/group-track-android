@@ -24,7 +24,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.canopas.catchme.R
-
 import com.canopas.catchme.ui.component.OtpInputField
 import com.canopas.catchme.ui.component.PrimaryButton
 import com.canopas.catchme.ui.theme.AppTheme
@@ -34,7 +33,6 @@ fun JoinOrCreateSpaceOnboard(
     onCreateNewSpace: () -> Unit,
     onJoin: (code: String) -> Unit
 ) {
-
     Column(
         Modifier
             .fillMaxSize()
@@ -83,15 +81,14 @@ private fun JoinSpaceComponent(onJoin: (String) -> Unit) {
             enabled = code.length == 6
         )
     }
-
 }
-
 
 @Composable
 private fun CreateSpaceComponent(onCreateNewSpace: () -> Unit) {
     Box(
         modifier = Modifier
-            .fillMaxWidth(), contentAlignment = Alignment.TopCenter
+            .fillMaxWidth(),
+        contentAlignment = Alignment.TopCenter
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -144,5 +141,4 @@ private fun CreateSpaceComponent(onCreateNewSpace: () -> Unit) {
             )
         }
     }
-
 }

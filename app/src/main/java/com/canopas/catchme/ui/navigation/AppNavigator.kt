@@ -25,6 +25,11 @@ object AppDestinations {
         override val path: String = "intro"
     }
 
+    val onboard = object : AppRoute {
+        override val arguments: List<NamedNavArgument> = emptyList()
+        override val path: String = "onboard"
+    }
+
     val signIn = object : AppRoute {
         override val arguments: List<NamedNavArgument> = emptyList()
         override val path: String = "sign-in"

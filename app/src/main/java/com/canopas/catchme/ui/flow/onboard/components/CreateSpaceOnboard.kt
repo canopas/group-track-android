@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,7 +22,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.canopas.catchme.R
 import com.canopas.catchme.ui.component.PrimaryButton
@@ -70,20 +68,20 @@ fun CreateSpaceOnboard(lastName: String, onContinue: (String) -> Unit) {
         PrimaryButton(
             label = stringResource(R.string.common_btn_next),
             modifier = Modifier.align(Alignment.CenterHorizontally),
-            onClick = { onContinue(spaceName) })
+            onClick = { onContinue(spaceName) }
+        )
     }
 }
 
 @Composable
 private fun PickNameTextField(title: String, value: String, onValueChanged: (String) -> Unit) {
-
     Text(
         text = title.uppercase(),
         style = AppTheme.appTypography.subTitle2.copy()
             .copy(color = AppTheme.colorScheme.textSecondary),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 28.dp),
+            .padding(horizontal = 28.dp)
     )
 
     Spacer(modifier = Modifier.height(10.dp))

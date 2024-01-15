@@ -8,6 +8,7 @@ import com.canopas.catchme.data.service.auth.AuthService
 import com.canopas.catchme.data.service.auth.FirebaseAuthService
 import com.canopas.catchme.data.service.auth.PhoneAuthState
 import com.canopas.catchme.data.utils.AppDispatcher
+import com.canopas.catchme.ui.flow.auth.phone.EXTRA_RESULT_IS_NEW_USER
 import com.canopas.catchme.ui.navigation.AppDestinations
 import com.canopas.catchme.ui.navigation.AppDestinations.OtpVerificationNavigation.KEY_PHONE_NO
 import com.canopas.catchme.ui.navigation.AppDestinations.OtpVerificationNavigation.KEY_VERIFICATION_ID
@@ -65,10 +66,10 @@ class PhoneVerificationViewModel @Inject constructor(
                 _state.value.otp
             )
 
-            authService.verifiedPhoneLogin(firebaseIdToken, _state.value.phone)
+            val isNewUser = authService.verifiedPhoneLogin(firebaseIdToken, _state.value.phone)
             appNavigator.navigateBack(
                 route = AppDestinations.signIn.path,
-                result = mapOf(KEY_RESULT to RESULT_OKAY)
+                result = mapOf(KEY_RESULT to RESULT_OKAY, EXTRA_RESULT_IS_NEW_USER to isNewUser)
             )
             _state.tryEmit(_state.value.copy(verifying = false))
         } catch (e: Exception) {
@@ -85,10 +86,14 @@ class PhoneVerificationViewModel @Inject constructor(
                     is PhoneAuthState.VerificationCompleted -> {
                         val firebaseIdToken =
                             firebaseAuth.signInWithPhoneAuthCredential(result.credential)
-                        authService.verifiedPhoneLogin(firebaseIdToken, _state.value.phone)
+                        val isNewUser =
+                            authService.verifiedPhoneLogin(firebaseIdToken, _state.value.phone)
                         appNavigator.navigateBack(
                             route = AppDestinations.signIn.path,
-                            result = mapOf(KEY_RESULT to RESULT_OKAY)
+                            result = mapOf(
+                                KEY_RESULT to RESULT_OKAY,
+                                EXTRA_RESULT_IS_NEW_USER to isNewUser
+                            )
                         )
                     }
 

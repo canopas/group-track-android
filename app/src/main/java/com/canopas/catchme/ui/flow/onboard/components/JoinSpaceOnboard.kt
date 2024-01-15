@@ -3,17 +3,13 @@ package com.canopas.catchme.ui.flow.onboard.components
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -21,7 +17,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,7 +27,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
@@ -41,11 +35,11 @@ import com.canopas.catchme.data.models.auth.ApiUser
 import com.canopas.catchme.ui.component.PrimaryButton
 import com.canopas.catchme.ui.component.PrimaryTextButton
 import com.canopas.catchme.ui.theme.AppTheme
-import kotlin.random.Random
 
 @Composable
 fun JoinSpaceOnboard(
-    spaceName: String, onJoin: () -> Unit,
+    spaceName: String,
+    onJoin: () -> Unit,
     onSkip: () -> Unit
 ) {
     Column(
@@ -56,7 +50,6 @@ fun JoinSpaceOnboard(
             .padding(top = 40.dp, bottom = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
         Spacer(modifier = Modifier.height(40.dp))
         Text(
             text = stringResource(R.string.onboard_join_space_title, spaceName),
@@ -110,7 +103,7 @@ fun SpaceMemberComponent(users: List<ApiUser>) {
     ) {
         Box(
             modifier = Modifier
-                .wrapContentWidth(),
+                .wrapContentWidth()
         ) {
             users.take(4).forEachIndexed { index, user ->
                 val setProfile = user.profile_image ?: R.drawable.ic_user_profile_placeholder
@@ -143,11 +136,10 @@ fun SpaceMemberComponent(users: List<ApiUser>) {
                         .padding(14.dp)
                         .rotate(-90f),
                     tint = AppTheme.colorScheme.textPrimary,
-                    contentDescription = "ProfileImage",
+                    contentDescription = "ProfileImage"
                 )
             }
         }
-
     }
 }
 
