@@ -9,7 +9,7 @@ import javax.inject.Singleton
 
 @Singleton
 class SpaceInvitationService @Inject constructor(
-    private val db: FirebaseFirestore,
+    private val db: FirebaseFirestore
 ) {
     private val spaceInvitationRef =
         db.collection(FirestoreConst.FIRESTORE_COLLECTION_SPACE_INVITATION)

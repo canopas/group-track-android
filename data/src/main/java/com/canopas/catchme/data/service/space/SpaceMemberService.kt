@@ -13,10 +13,8 @@ import javax.inject.Singleton
 class SpaceMemberService @Inject constructor(private val db: FirebaseFirestore) {
     private val spaceMemberRef = db.collection(FirestoreConst.FIRESTORE_COLLECTION_SPACE_MEMBERS)
 
-
     suspend fun getSpaceMembers(spaceId: String): List<ApiUser> {
         return emptyList()
-
     }
 
     suspend fun addMember(spaceId: String, userId: String, role: Int = SPACE_MEMBER_ROLE_MEMBER) {
@@ -31,6 +29,4 @@ class SpaceMemberService @Inject constructor(private val db: FirebaseFirestore) 
 
         docRef.set(member).await()
     }
-
-
 }

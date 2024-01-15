@@ -34,8 +34,9 @@ fun PrimaryButton(
         ),
         enabled = enabled
     ) {
-        if (showLoader)
+        if (showLoader) {
             AppProgressIndicator(color = AppTheme.colorScheme.onPrimary)
+        }
 
         Text(
             text = label,

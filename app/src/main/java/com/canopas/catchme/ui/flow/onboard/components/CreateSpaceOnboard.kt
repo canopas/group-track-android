@@ -76,7 +76,8 @@ fun CreateSpaceOnboard() {
             label = stringResource(R.string.common_btn_next),
             modifier = Modifier.align(Alignment.CenterHorizontally),
             onClick = { viewModel.createSpace(spaceName) },
-            enabled = spaceName.trim().isNotEmpty(), showLoader = state.creatingSpace
+            enabled = spaceName.trim().isNotEmpty(),
+            showLoader = state.creatingSpace
         )
     }
 }

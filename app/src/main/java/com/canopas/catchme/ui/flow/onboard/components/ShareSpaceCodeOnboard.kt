@@ -30,7 +30,6 @@ import com.canopas.catchme.ui.component.PrimaryTextButton
 import com.canopas.catchme.ui.flow.onboard.OnboardViewModel
 import com.canopas.catchme.ui.theme.AppTheme
 
-
 @Composable
 fun ShareSpaceCodeOnboard() {
     val viewModel = hiltViewModel<OnboardViewModel>()

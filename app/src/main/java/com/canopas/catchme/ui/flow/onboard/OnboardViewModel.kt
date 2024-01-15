@@ -86,7 +86,7 @@ class OnboardViewModel @Inject constructor(
             _state.emit(
                 _state.value.copy(
                     spaceName = spaceName,
-                    creatingSpace = true,
+                    creatingSpace = true
                 )
             )
             val invitationCode = spaceService.createSpace(spaceName)
@@ -113,7 +113,6 @@ class OnboardViewModel @Inject constructor(
     }
 
     fun joinSpace() {
-
     }
 }
 

@@ -33,5 +33,4 @@ class SpaceService @Inject constructor(
         spaceMemberService.addMember(spaceId, userId, role = SPACE_MEMBER_ROLE_ADMIN)
         return generatedCode
     }
-
 }
