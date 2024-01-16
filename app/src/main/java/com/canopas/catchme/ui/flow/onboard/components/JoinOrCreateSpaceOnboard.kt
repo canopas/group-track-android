@@ -40,7 +40,7 @@ fun JoinOrCreateSpaceOnboard() {
             .background(AppTheme.colorScheme.surface),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        JoinSpaceComponent(state.spaceCode ?: "", state.verifyingInviteCode, onCodeChanged = {
+        JoinSpaceComponent(state.spaceInviteCode ?: "", state.verifyingInviteCode, onCodeChanged = {
             viewModel.onInviteCodeChanged(it)
         }) {
             viewModel.submitInviteCode()

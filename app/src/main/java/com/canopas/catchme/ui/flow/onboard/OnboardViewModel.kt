@@ -3,7 +3,6 @@ package com.canopas.catchme.ui.flow.onboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.canopas.catchme.data.service.space.SpaceInvitationService
-import com.canopas.catchme.data.service.space.SpaceMemberService
 import com.canopas.catchme.data.service.space.SpaceService
 import com.canopas.catchme.data.service.user.UserService
 import com.canopas.catchme.data.storage.UserPreferences
@@ -24,8 +23,7 @@ class OnboardViewModel @Inject constructor(
     private val spaceService: SpaceService,
     private val userPreferences: UserPreferences,
     private val navigator: AppNavigator,
-    private val invitationService: SpaceInvitationService,
-    private val spaceMemberService: SpaceMemberService
+    private val invitationService: SpaceInvitationService
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(OnboardScreenState())
@@ -92,7 +90,7 @@ class OnboardViewModel @Inject constructor(
             _state.emit(
                 _state.value.copy(
                     creatingSpace = false,
-                    spaceCode = invitationCode,
+                    spaceInviteCode = invitationCode,
                     currentStep = OnboardItems.ShareSpaceCodeOnboard
                 )
             )
@@ -112,7 +110,7 @@ class OnboardViewModel @Inject constructor(
     }
 
     fun submitInviteCode() = viewModelScope.launch(appDispatcher.IO) {
-        val code = _state.value.spaceCode ?: return@launch
+        val code = _state.value.spaceInviteCode ?: return@launch
         _state.emit(_state.value.copy(verifyingInviteCode = true))
 
         try {
@@ -171,7 +169,7 @@ class OnboardViewModel @Inject constructor(
 
     fun onInviteCodeChanged(inviteCode: String) {
         _state.value = _state.value.copy(
-            spaceCode = inviteCode,
+            spaceInviteCode = inviteCode,
             errorInvalidInviteCode = false
         )
 
@@ -195,7 +193,7 @@ data class OnboardScreenState(
     val updatingUserName: Boolean = false,
     val spaceName: String? = "",
     val spaceId: String? = null,
-    val spaceCode: String? = "",
+    val spaceInviteCode: String? = "",
     val creatingSpace: Boolean = false,
     val verifyingInviteCode: Boolean = false,
     val joiningSpace: Boolean = false,

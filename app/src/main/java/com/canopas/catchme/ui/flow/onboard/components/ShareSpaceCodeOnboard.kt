@@ -22,7 +22,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat.startActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.catchme.R
 import com.canopas.catchme.ui.component.PrimaryButton
@@ -61,7 +60,7 @@ fun ShareSpaceCodeOnboard() {
                 .padding(horizontal = 24.dp)
         )
         Spacer(modifier = Modifier.height(40.dp))
-        InvitationCodeComponent(state.spaceCode ?: "")
+        InvitationCodeComponent(state.spaceInviteCode ?: "")
         Spacer(modifier = Modifier.height(40.dp))
         Text(
             text = stringResource(R.string.onboard_share_space_code_tips),
@@ -74,7 +73,7 @@ fun ShareSpaceCodeOnboard() {
         Spacer(modifier = Modifier.weight(1f))
         PrimaryButton(
             label = stringResource(R.string.onboard_share_space_code_btn),
-            onClick = { shareInvitationCode(context, state.spaceCode ?: "") }
+            onClick = { shareInvitationCode(context, state.spaceInviteCode ?: "") }
         )
         Spacer(modifier = Modifier.height(10.dp))
         PrimaryTextButton(
