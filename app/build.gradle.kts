@@ -122,5 +122,8 @@ dependencies {
     // coil
     implementation("io.coil-kt:coil-compose:2.5.0")
 
+    // Accompanist permission
+    implementation("com.google.accompanist:accompanist-permissions:0.32.0")
+
     implementation(project(":data"))
 }
