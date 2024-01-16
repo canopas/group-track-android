@@ -169,9 +169,9 @@ class OnboardViewModelTest {
     }
 
     @Test
-    fun `navigateToPermission should navigate to home screen`() = runTest {
+    fun `navigateToPermission should navigate to permission screen`() = runTest {
         viewModel.navigateToPermission()
-        verify(navigator).navigateTo("home", "onboard", true)
+        verify(navigator).navigateTo("enable-permissions", "onboard", true)
     }
 
     @Test
@@ -371,7 +371,7 @@ class OnboardViewModelTest {
         viewModel.submitInviteCode()
         viewModel.joinSpace()
 
-        verify(navigator).navigateTo("home", "onboard", true)
+        verify(navigator).navigateTo("enable-permissions", "onboard", true)
     }
 
     @Test
