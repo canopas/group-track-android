@@ -92,7 +92,7 @@ private fun OTPDigit(
         }, indication = null, interactionSource = remember { MutableInteractionSource() })
     ) {
         Text(
-            text = if (index >= pinText.length) "" else pinText[index].toString(),
+            text = if (index >= pinText.length) "" else pinText[index].toString().uppercase(),
             modifier = Modifier
                 .width(40.dp)
                 .height(60.dp)

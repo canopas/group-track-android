@@ -2,6 +2,7 @@ package com.canopas.catchme.ui.flow.onboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.canopas.catchme.data.service.space.SpaceInvitationService
 import com.canopas.catchme.data.service.space.SpaceService
 import com.canopas.catchme.data.service.user.UserService
 import com.canopas.catchme.data.storage.UserPreferences
@@ -21,7 +22,8 @@ class OnboardViewModel @Inject constructor(
     private val appDispatcher: AppDispatcher,
     private val spaceService: SpaceService,
     private val userPreferences: UserPreferences,
-    private val navigator: AppNavigator
+    private val navigator: AppNavigator,
+    private val invitationService: SpaceInvitationService
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(OnboardScreenState())
@@ -76,13 +78,6 @@ class OnboardViewModel @Inject constructor(
         _state.value = _state.value.copy(currentStep = OnboardItems.CreateSpace)
     }
 
-    fun navigateToJoinSpace(code: String) {
-        _state.value = _state.value.copy(
-            spaceCode = code,
-            currentStep = OnboardItems.JoinSpace
-        )
-    }
-
     fun createSpace(spaceName: String) = viewModelScope.launch(appDispatcher.IO) {
         try {
             _state.emit(
@@ -95,7 +90,7 @@ class OnboardViewModel @Inject constructor(
             _state.emit(
                 _state.value.copy(
                     creatingSpace = false,
-                    spaceCode = invitationCode,
+                    spaceInviteCode = invitationCode,
                     currentStep = OnboardItems.ShareSpaceCodeOnboard
                 )
             )
@@ -108,24 +103,101 @@ class OnboardViewModel @Inject constructor(
     fun navigateToPermission() = viewModelScope.launch {
         userPreferences.setOnboardShown(true)
         navigator.navigateTo(
-            AppDestinations.home.path,
+            AppDestinations.enablePermissions.path,
             popUpToRoute = AppDestinations.onboard.path,
             inclusive = true
         )
     }
 
-    fun joinSpace() {
+    fun submitInviteCode() = viewModelScope.launch(appDispatcher.IO) {
+        val code = _state.value.spaceInviteCode ?: return@launch
+        _state.emit(_state.value.copy(verifyingInviteCode = true))
+
+        try {
+            val invitation = invitationService.getInvitation(code)
+            if (invitation == null) {
+                _state.emit(
+                    _state.value.copy(
+                        verifyingInviteCode = false,
+                        errorInvalidInviteCode = true
+                    )
+                )
+                return@launch
+            }
+
+            val space = spaceService.getSpace(invitation.space_id)
+
+            _state.emit(
+                _state.value.copy(
+                    spaceName = space?.name,
+                    spaceId = invitation.space_id,
+                    verifyingInviteCode = false,
+                    errorInvalidInviteCode = false,
+                    currentStep = OnboardItems.JoinSpace
+                )
+            )
+        } catch (e: Exception) {
+            Timber.e(e, "Unable to verify invite code")
+            _state.emit(
+                _state.value.copy(
+                    verifyingInviteCode = false,
+                    error = e.localizedMessage
+                )
+            )
+        }
+    }
+
+    fun joinSpace() = viewModelScope.launch(appDispatcher.IO) {
+        _state.emit(_state.value.copy(joiningSpace = true))
+        val spaceId = _state.value.spaceId
+        try {
+            if (spaceId != null) {
+                spaceService.joinSpace(spaceId)
+            }
+            _state.emit(_state.value.copy(joiningSpace = false))
+            navigateToPermission()
+        } catch (e: Exception) {
+            Timber.e(e, "Unable to join space")
+            _state.emit(
+                _state.value.copy(
+                    joiningSpace = false,
+                    error = e.localizedMessage
+                )
+            )
+        }
+    }
+
+    fun onInviteCodeChanged(inviteCode: String) {
+        _state.value = _state.value.copy(
+            spaceInviteCode = inviteCode,
+            errorInvalidInviteCode = false
+        )
+
+        if (inviteCode.length == 6) {
+            submitInviteCode()
+        }
+    }
+
+    fun resetErrorState() {
+        _state.value = _state.value.copy(
+            error = null,
+            errorInvalidInviteCode = false
+        )
     }
 }
 
 data class OnboardScreenState(
+    val currentStep: OnboardItems = OnboardItems.PickName,
     val firstName: String = "",
     val lastName: String = "",
     val updatingUserName: Boolean = false,
-    val currentStep: OnboardItems = OnboardItems.PickName,
-    val creatingSpace: Boolean = false,
     val spaceName: String? = "",
-    val spaceCode: String? = "",
+    val spaceId: String? = null,
+    val spaceInviteCode: String? = "",
+    val creatingSpace: Boolean = false,
+    val verifyingInviteCode: Boolean = false,
+    val joiningSpace: Boolean = false,
+    val errorInvalidInviteCode: Boolean = false,
     val error: String? = null
 )
 

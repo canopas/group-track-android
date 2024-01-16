@@ -30,4 +30,11 @@ class SpaceInvitationService @Inject constructor(
             .map { characters.random() }
             .joinToString("")
     }
+
+    suspend fun getInvitation(inviteCode: String): ApiSpaceInvitation? {
+        val query = spaceInvitationRef.whereEqualTo("code", inviteCode.uppercase())
+        val result = query.get().await()
+        val invitation = result.documents.firstOrNull()?.toObject(ApiSpaceInvitation::class.java)
+        return invitation?.takeIf { !it.isExpired }
+    }
 }

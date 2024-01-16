@@ -29,4 +29,11 @@ class SpaceMemberService @Inject constructor(private val db: FirebaseFirestore) 
 
         docRef.set(member).await()
     }
+
+    suspend fun isMember(spaceId: String, userId: String): Boolean {
+        val query = spaceMemberRef.whereEqualTo("space_id", spaceId)
+            .whereEqualTo("user_id", userId)
+        val result = query.get().await()
+        return result.documents.isNotEmpty()
+    }
 }

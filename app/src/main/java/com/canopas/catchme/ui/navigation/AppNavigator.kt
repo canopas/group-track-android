@@ -30,6 +30,11 @@ object AppDestinations {
         override val path: String = "onboard"
     }
 
+    val enablePermissions = object : AppRoute {
+        override val arguments: List<NamedNavArgument> = emptyList()
+        override val path: String = "enable-permissions"
+    }
+
     val signIn = object : AppRoute {
         override val arguments: List<NamedNavArgument> = emptyList()
         override val path: String = "sign-in"

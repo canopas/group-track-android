@@ -5,6 +5,9 @@
     <string name="common_label_or">Or</string>
     <string name="common_btn_skip">Skip</string>
     <string name="common_btn_join">Join</string>
+    <string name="common_btn_verify">Verify</string>
+    <string name="common_btn_allow">Allow</string>
+
     <string name="common_share_invite_code_message">Let\'s stay connected! Use invite code %s to join my Space. Download the app: [link].</string>
 
     <string name="intro_content_one">Share your location seamlessly, connecting with just a click.</string>
@@ -45,5 +48,18 @@
     <string name="onboard_join_space_joining_space_label">You\'re about to become a member of the %s Space.</string>
     <string name="onboard_join_space_subtitle">Here\'s presenting those eagerly waiting:</string>
     <string name="common_unknown">Unknown</string>
+    <string name="onboard_space_invalid_invite_code">It appears the code is no longer valid or has expired. Please review and enter a valid code.</string>
+    <string name="enable_permission_title">To start, allow us few permissions</string>
+    <string name="enable_permission_subtitle">For an effective user experience on CatchMe, it\'s necessary to enable these permissions.</string>
+    <string name="enable_permission_footer">We prioritize the security of your information and want to assure you that we do not share your data with any third-party entities.</string>
+
+    <string name="enable_permission_location_access_title">Location access</string>
+    <string name="enable_permission_location_access_desc">For seamless sharing of your live location with a trusted contact requires permission for location access.</string>
+
+    <string name="enable_permission_notification_access_title">Notification access</string>
+    <string name="enable_permission_notification_access_desc">Stay connected and receive timely updates by enabling notification permission for check-ins, alerts, and messages from your trusted one.</string>
+    <string name="enable_permission_btn_enable">Enable permission</string>
+    <string name="enable_permission_rational_msg">To receive timely updates, check-ins, and alerts from CatchMe, grant notification access. We respect your privacy and will only use notifications to enhance your experience. Enable now for seamless communication!</string>
+    <string name="enable_permission_rational_title">Enable Notification Access</string>
 
 </resources>

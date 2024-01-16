@@ -2,6 +2,7 @@ package com.canopas.catchme.data.service.space
 
 import com.canopas.catchme.data.models.space.ApiSpace
 import com.canopas.catchme.data.models.space.SPACE_MEMBER_ROLE_ADMIN
+import com.canopas.catchme.data.models.space.SPACE_MEMBER_ROLE_MEMBER
 import com.canopas.catchme.data.service.user.UserService
 import com.canopas.catchme.data.utils.FirestoreConst.FIRESTORE_COLLECTION_SPACES
 import com.google.firebase.firestore.FirebaseFirestore
@@ -30,7 +31,16 @@ class SpaceService @Inject constructor(
         val space = ApiSpace(id = spaceId, name = spaceName, admin_id = userId)
         docRef.set(space).await()
         val generatedCode = invitationService.createInvitation(spaceId)
-        spaceMemberService.addMember(spaceId, userId, role = SPACE_MEMBER_ROLE_ADMIN)
+        joinSpace(spaceId, SPACE_MEMBER_ROLE_ADMIN)
         return generatedCode
+    }
+
+    suspend fun joinSpace(spaceId: String, role: Int = SPACE_MEMBER_ROLE_MEMBER) {
+        val userId = userService.currentUser?.id ?: ""
+        spaceMemberService.addMember(spaceId, userId, role)
+    }
+
+    suspend fun getSpace(spaceId: String): ApiSpace? {
+        return spaceRef.document(spaceId).get().await().toObject(ApiSpace::class.java)
     }
 }
