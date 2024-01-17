@@ -3,6 +3,7 @@ package com.canopas.catchme.ui.flow.auth.methods
 import com.canopas.catchme.MainCoroutineRule
 import com.canopas.catchme.data.service.auth.AuthService
 import com.canopas.catchme.data.service.auth.FirebaseAuthService
+import com.canopas.catchme.data.storage.UserPreferences
 import com.canopas.catchme.data.utils.AppDispatcher
 import com.canopas.catchme.ui.navigation.AppNavigator
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
@@ -32,6 +33,7 @@ class SignInMethodViewModelTest {
     private val navigator = mock<AppNavigator>()
     private val firebaseAuth = mock<FirebaseAuthService>()
     private val authService = mock<AuthService>()
+    private val userPreferences = mock<UserPreferences>()
 
     @Before
     fun setup() {
@@ -39,7 +41,8 @@ class SignInMethodViewModelTest {
             navigator,
             firebaseAuth,
             authService,
-            testDispatcher
+            testDispatcher,
+            userPreferences
         )
     }
 
@@ -82,7 +85,7 @@ class SignInMethodViewModelTest {
         whenever(authService.verifiedGoogleLogin("firebaseToken", account))
             .thenReturn(false)
         viewModel.proceedGoogleSignIn(account)
-        verify(navigator).navigateTo("home", "intro", true)
+        verify(navigator).navigateTo("home", "sign-in", true)
     }
 
     @Test
@@ -94,7 +97,7 @@ class SignInMethodViewModelTest {
         whenever(authService.verifiedGoogleLogin("firebaseToken", account))
             .thenReturn(true)
         viewModel.proceedGoogleSignIn(account)
-        verify(navigator).navigateTo("onboard", "intro", true)
+        verify(navigator).navigateTo("onboard", "sign-in", true)
     }
 
     @Test
@@ -120,7 +123,13 @@ class SignInMethodViewModelTest {
     @Test
     fun `skipSignUp should navigate to home screen`() = runTest {
         viewModel.skipSignUp()
-        verify(navigator).navigateTo("home", "intro", true)
+        verify(navigator).navigateTo("home", "sign-in", true)
+    }
+
+    @Test
+    fun `skipSignUp should set OnboardShown to true`() = runTest {
+        viewModel.skipSignUp()
+        verify(userPreferences).setOnboardShown(true)
     }
 
     @Test

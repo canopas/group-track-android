@@ -51,11 +51,7 @@ import timber.log.Timber
 
 @Composable
 fun SignInMethodsScreen() {
-    Scaffold(
-        topBar = {
-            SignInAppBar()
-        }
-    ) {
+    Scaffold {
         SignInContent(
             modifier = Modifier
                 .padding(it)

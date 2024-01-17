@@ -65,6 +65,21 @@ object AppDestinations {
             override val path = "$PATH/$phoneNo/$verificationId"
         }
     }
+
+    val map = object : AppRoute {
+        override val arguments: List<NamedNavArgument> = emptyList()
+        override val path: String = "map"
+    }
+
+    val places = object : AppRoute {
+        override val arguments: List<NamedNavArgument> = emptyList()
+        override val path: String = "places"
+    }
+
+    val activity = object : AppRoute {
+        override val arguments: List<NamedNavArgument> = emptyList()
+        override val path: String = "activity"
+    }
 }
 
 const val KEY_RESULT = "result_code"

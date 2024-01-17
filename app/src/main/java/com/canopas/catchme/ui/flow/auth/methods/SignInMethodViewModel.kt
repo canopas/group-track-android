@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.canopas.catchme.data.service.auth.AuthService
 import com.canopas.catchme.data.service.auth.FirebaseAuthService
+import com.canopas.catchme.data.storage.UserPreferences
 import com.canopas.catchme.data.utils.AppDispatcher
 import com.canopas.catchme.ui.navigation.AppDestinations
 import com.canopas.catchme.ui.navigation.AppNavigator
@@ -20,7 +21,8 @@ class SignInMethodViewModel @Inject constructor(
     private val navigator: AppNavigator,
     private val firebaseAuth: FirebaseAuthService,
     private val authService: AuthService,
-    private val appDispatcher: AppDispatcher
+    private val appDispatcher: AppDispatcher,
+    private val userPreferences: UserPreferences
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SignInMethodScreenState())
@@ -57,22 +59,24 @@ class SignInMethodViewModel @Inject constructor(
         if (isNewUSer) {
             navigator.navigateTo(
                 AppDestinations.onboard.path,
-                popUpToRoute = AppDestinations.intro.path,
+                popUpToRoute = AppDestinations.signIn.path,
                 inclusive = true
             )
         } else {
+            userPreferences.setOnboardShown(true)
             navigator.navigateTo(
                 AppDestinations.home.path,
-                popUpToRoute = AppDestinations.intro.path,
+                popUpToRoute = AppDestinations.signIn.path,
                 inclusive = true
             )
         }
     }
 
     fun skipSignUp() = viewModelScope.launch(appDispatcher.MAIN) {
+        userPreferences.setOnboardShown(true)
         navigator.navigateTo(
             AppDestinations.home.path,
-            popUpToRoute = AppDestinations.intro.path,
+            popUpToRoute = AppDestinations.signIn.path,
             inclusive = true
         )
     }
