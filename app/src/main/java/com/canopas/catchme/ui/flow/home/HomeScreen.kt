@@ -18,6 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -27,11 +28,15 @@ import com.canopas.catchme.ui.flow.home.activity.ActivityScreen
 import com.canopas.catchme.ui.flow.home.map.MapScreen
 import com.canopas.catchme.ui.flow.home.places.PlacesScreen
 import com.canopas.catchme.ui.navigation.AppDestinations
+import com.canopas.catchme.ui.navigation.AppNavigator
 import com.canopas.catchme.ui.theme.AppTheme
 
 @Composable
 fun HomeScreen() {
     val navController = rememberNavController()
+    val viewModel = hiltViewModel<HomeScreenViewModel>()
+
+    AppNavigator(navController = navController, viewModel.navActions)
 
     Scaffold(
         content = {
@@ -90,7 +95,7 @@ fun HomeBottomBar(navController: NavHostController) {
             HomeTab.Main,
             true
         ) {
-            navigateTo(AppDestinations.places.path)
+            navigateTo(AppDestinations.map.path)
         }
 
         NavItem(
@@ -99,6 +104,7 @@ fun HomeBottomBar(navController: NavHostController) {
         ) {
             navigateTo(AppDestinations.places.path)
         }
+
         NavItem(
             HomeTab.Activities,
             false

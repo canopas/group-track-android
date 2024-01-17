@@ -1,93 +1,26 @@
 package com.canopas.catchme.ui.navigation
 
-import androidx.navigation.NamedNavArgument
-import androidx.navigation.NavType
-import androidx.navigation.navArgument
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.navigation.NavHostController
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.collectLatest
 import javax.inject.Inject
 import javax.inject.Singleton
-
-interface AppRoute {
-    val arguments: List<NamedNavArgument>
-
-    val path: String
-}
-
-object AppDestinations {
-    val home = object : AppRoute {
-        override val arguments: List<NamedNavArgument> = emptyList()
-        override val path: String = "home"
-    }
-
-    val intro = object : AppRoute {
-        override val arguments: List<NamedNavArgument> = emptyList()
-        override val path: String = "intro"
-    }
-
-    val onboard = object : AppRoute {
-        override val arguments: List<NamedNavArgument> = emptyList()
-        override val path: String = "onboard"
-    }
-
-    val enablePermissions = object : AppRoute {
-        override val arguments: List<NamedNavArgument> = emptyList()
-        override val path: String = "enable-permissions"
-    }
-
-    val signIn = object : AppRoute {
-        override val arguments: List<NamedNavArgument> = emptyList()
-        override val path: String = "sign-in"
-    }
-
-    val phoneSignIn = object : AppRoute {
-        override val arguments: List<NamedNavArgument> = emptyList()
-        override val path: String = "phone-sign-in"
-    }
-
-    object OtpVerificationNavigation {
-        const val KEY_PHONE_NO = "phone_no"
-        const val KEY_VERIFICATION_ID = "verification_id"
-
-        private const val PATH = "otp-verification"
-        const val path = "$PATH/{$KEY_PHONE_NO}/{$KEY_VERIFICATION_ID}"
-
-        fun otpVerification(
-            verificationId: String,
-            phoneNo: String
-        ) = object : AppRoute {
-
-            override val arguments = listOf(
-                navArgument(KEY_PHONE_NO) { type = NavType.StringType },
-                navArgument(KEY_VERIFICATION_ID) { type = NavType.StringType }
-            )
-
-            override val path = "$PATH/$phoneNo/$verificationId"
-        }
-    }
-
-    val map = object : AppRoute {
-        override val arguments: List<NamedNavArgument> = emptyList()
-        override val path: String = "map"
-    }
-
-    val places = object : AppRoute {
-        override val arguments: List<NamedNavArgument> = emptyList()
-        override val path: String = "places"
-    }
-
-    val activity = object : AppRoute {
-        override val arguments: List<NamedNavArgument> = emptyList()
-        override val path: String = "activity"
-    }
-}
 
 const val KEY_RESULT = "result_code"
 const val RESULT_OKAY = 1
 const val RESULT_CANCEL = 0
 
 @Singleton
-class AppNavigator @Inject constructor() {
+class HomeNavigator @Inject constructor() : AppNavigator()
+
+@Singleton
+class MainNavigator @Inject constructor() : AppNavigator()
+
+abstract class AppNavigator {
 
     private val _navigationChannel =
         MutableSharedFlow<NavAction>(extraBufferCapacity = 1)
@@ -138,4 +71,46 @@ sealed class NavAction {
         val inclusive: Boolean = false,
         val isSingleTop: Boolean = false
     ) : NavAction()
+}
+
+@Composable
+fun AppNavigator(navController: NavHostController, navActions: SharedFlow<NavAction?>) {
+    LaunchedEffect(Unit) {
+        navActions.collectLatest { action ->
+            val navAction = action ?: return@collectLatest
+
+            when (navAction) {
+                is NavAction.NavigateBack -> {
+                    if (navAction.route != null) {
+                        if (navAction.result != null) {
+                            navController.getBackStackEntry(navAction.route).savedStateHandle.also { savedStateHandle ->
+                                navAction.result.forEach { (key, value) ->
+                                    savedStateHandle[key] = value
+                                }
+                            }
+                        }
+                        navController.popBackStack(navAction.route, navAction.inclusive)
+                    } else {
+                        if (navAction.result != null) {
+                            navController.previousBackStackEntry?.savedStateHandle.also { savedStateHandle ->
+                                navAction.result.forEach { (key, value) ->
+                                    savedStateHandle?.set(key, value)
+                                }
+                            }
+                        }
+                        navController.popBackStack()
+                    }
+                }
+
+                is NavAction.NavigateTo -> {
+                    navController.navigate(navAction.route) {
+                        launchSingleTop = navAction.isSingleTop
+                        navAction.popUpToRoute?.let { popUpToRoute ->
+                            popUpTo(popUpToRoute) { inclusive = navAction.inclusive }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
