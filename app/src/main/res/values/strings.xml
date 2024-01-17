@@ -61,5 +61,8 @@
     <string name="enable_permission_btn_enable">Enable permission</string>
     <string name="enable_permission_rational_msg">To receive timely updates, check-ins, and alerts from CatchMe, grant notification access. We respect your privacy and will only use notifications to enhance your experience. Enable now for seamless communication!</string>
     <string name="enable_permission_rational_title">Enable Notification Access</string>
+    <string name="home_tab_label_home">Home</string>
+    <string name="home_tab_label_activities">Activities</string>
+    <string name="home_tab_label_places">Places</string>
 
 </resources>

@@ -9,20 +9,19 @@ import com.canopas.catchme.data.service.auth.PhoneAuthState
 import com.canopas.catchme.data.utils.AppDispatcher
 import com.canopas.catchme.ui.navigation.AppDestinations
 import com.canopas.catchme.ui.navigation.AppDestinations.OtpVerificationNavigation
-import com.canopas.catchme.ui.navigation.AppNavigator
 import com.canopas.catchme.ui.navigation.KEY_RESULT
+import com.canopas.catchme.ui.navigation.MainNavigator
 import com.canopas.catchme.ui.navigation.RESULT_OKAY
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class SignInWithPhoneViewModel @Inject constructor(
-    private val appNavigator: AppNavigator,
+    private val appNavigator: MainNavigator,
     private val fbAuthService: FirebaseAuthService,
     private val authService: AuthService,
     private val dispatcher: AppDispatcher

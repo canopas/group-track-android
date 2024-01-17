@@ -9,7 +9,7 @@ import com.canopas.catchme.data.service.auth.PhoneAuthState
 import com.canopas.catchme.data.utils.AppDispatcher
 import com.canopas.catchme.ui.navigation.AppDestinations.OtpVerificationNavigation.KEY_PHONE_NO
 import com.canopas.catchme.ui.navigation.AppDestinations.OtpVerificationNavigation.KEY_VERIFICATION_ID
-import com.canopas.catchme.ui.navigation.AppNavigator
+import com.canopas.catchme.ui.navigation.MainNavigator
 import com.google.firebase.auth.PhoneAuthCredential
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -38,7 +38,7 @@ class PhoneVerificationViewModelTest {
 
     private lateinit var viewModel: PhoneVerificationViewModel
 
-    private val navigator = mock<AppNavigator>()
+    private val navigator = mock<MainNavigator>()
     private val firebaseAuth = mock<FirebaseAuthService>()
     private val authService = mock<AuthService>()
     private val savedStateHandle = mock<SavedStateHandle>()
