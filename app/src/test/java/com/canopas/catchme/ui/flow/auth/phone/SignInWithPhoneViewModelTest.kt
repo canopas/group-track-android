@@ -6,7 +6,7 @@ import com.canopas.catchme.data.service.auth.AuthService
 import com.canopas.catchme.data.service.auth.FirebaseAuthService
 import com.canopas.catchme.data.service.auth.PhoneAuthState
 import com.canopas.catchme.data.utils.AppDispatcher
-import com.canopas.catchme.ui.navigation.AppNavigator
+import com.canopas.catchme.ui.navigation.MainNavigator
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.PhoneAuthCredential
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -30,7 +30,7 @@ class SignInWithPhoneViewModelTest {
 
     private lateinit var viewModel: SignInWithPhoneViewModel
 
-    private val navigator = mock<AppNavigator>()
+    private val navigator = mock<MainNavigator>()
     private val firebaseAuth = mock<FirebaseAuthService>()
     private val authService = mock<AuthService>()
 

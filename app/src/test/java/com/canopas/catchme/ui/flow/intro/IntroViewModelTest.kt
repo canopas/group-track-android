@@ -2,7 +2,7 @@ package com.canopas.catchme.ui.flow.intro
 
 import com.canopas.catchme.MainCoroutineRule
 import com.canopas.catchme.data.storage.UserPreferences
-import com.canopas.catchme.ui.navigation.AppNavigator
+import com.canopas.catchme.ui.navigation.MainNavigator
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -19,7 +19,7 @@ class IntroViewModelTest {
     private lateinit var viewModel: IntroViewModel
 
     private val userPreferences = mock<UserPreferences>()
-    private val navigator = mock<AppNavigator>()
+    private val navigator = mock<MainNavigator>()
 
     @Before
     fun setup() {

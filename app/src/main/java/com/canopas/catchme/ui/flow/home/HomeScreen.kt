@@ -12,6 +12,8 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -75,6 +77,9 @@ fun HomeScreenContent(navController: NavHostController) {
 
 @Composable
 fun HomeBottomBar(navController: NavHostController) {
+    val viewModel = hiltViewModel<HomeScreenViewModel>()
+    val state by viewModel.state.collectAsState()
+
     fun navigateTo(route: String) {
         navController.navigate(route) {
             navController.graph.startDestinationRoute?.let { route ->
@@ -93,23 +98,26 @@ fun HomeBottomBar(navController: NavHostController) {
     ) {
         NavItem(
             HomeTab.Main,
-            true
+            state.currentTab == 0
         ) {
             navigateTo(AppDestinations.map.path)
+            viewModel.onTabChange(0)
         }
 
         NavItem(
             HomeTab.Places,
-            false
+            state.currentTab == 1
         ) {
             navigateTo(AppDestinations.places.path)
+            viewModel.onTabChange(1)
         }
 
         NavItem(
             HomeTab.Activities,
-            false
+            state.currentTab == 2
         ) {
             navigateTo(AppDestinations.activity.path)
+            viewModel.onTabChange(2)
         }
     }
 }
