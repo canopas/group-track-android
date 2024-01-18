@@ -17,7 +17,6 @@ jobs:
         env:
           GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
           DEBUG_KEYSTORE_BASE64: ${{ secrets.DEBUG_KEYSTORE_BASE64 }}
-          MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
 
         run: |
           echo $GOOGLE_SERVICES_JSON_BASE64 | base64 -di > app/google-services.json
@@ -29,7 +28,11 @@ jobs:
         run: ./gradlew build
 
       - name: Run Tests with Gradle
+        env:
+          MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
         run: ./gradlew test
 
       - name: Run Lint check
+        env:
+          MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
         run: ./gradlew ktlintCheck
