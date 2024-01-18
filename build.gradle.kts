@@ -8,6 +8,8 @@ plugins {
     id("org.jlleitschuh.gradle.ktlint") version "11.4.2"
 }
 
-object Versions {
-    const val hilt = "2.50"
+buildscript {
+    dependencies {
+        classpath("com.google.android.libraries.mapsplatform.secrets-gradle-plugin:secrets-gradle-plugin:2.0.1")
+    }
 }

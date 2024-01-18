@@ -5,6 +5,7 @@ plugins {
     id("kotlin-kapt")
     id("com.google.gms.google-services")
     id("org.jlleitschuh.gradle.ktlint")
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
 }
 
 android {
@@ -72,6 +73,10 @@ android {
     ktlint {
         debug = true
     }
+
+    secrets {
+        defaultPropertiesFileName = "local.properties"
+    }
 }
 
 dependencies {
@@ -124,6 +129,8 @@ dependencies {
 
     // Accompanist permission
     implementation("com.google.accompanist:accompanist-permissions:0.32.0")
+
+    implementation("com.google.maps.android:maps-compose:4.3.0")
 
     implementation(project(":data"))
 }

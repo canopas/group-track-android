@@ -121,18 +121,6 @@ class SignInMethodViewModelTest {
     }
 
     @Test
-    fun `skipSignUp should navigate to home screen`() = runTest {
-        viewModel.skipSignUp()
-        verify(navigator).navigateTo("home", "sign-in", true)
-    }
-
-    @Test
-    fun `skipSignUp should set OnboardShown to true`() = runTest {
-        viewModel.skipSignUp()
-        verify(userPreferences).setOnboardShown(true)
-    }
-
-    @Test
     fun `resetErrorState should set error to null`() = runTest {
         viewModel.resetErrorState()
         assert(viewModel.state.value.error == null)

@@ -41,6 +41,7 @@ fun HomeScreen() {
     AppNavigator(navController = navController, viewModel.navActions)
 
     Scaffold(
+        containerColor = AppTheme.colorScheme.surface,
         content = {
             Box(
                 modifier = Modifier
@@ -94,7 +95,7 @@ fun HomeBottomBar(navController: NavHostController) {
 
     NavigationBar(
         contentColor = AppTheme.colorScheme.primary,
-        containerColor = AppTheme.colorScheme.containerNormalOnSurface
+        containerColor = AppTheme.colorScheme.surface
     ) {
         NavItem(
             HomeTab.Main,

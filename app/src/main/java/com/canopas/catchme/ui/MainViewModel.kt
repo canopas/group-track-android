@@ -17,33 +17,4 @@ class MainViewModel @Inject constructor(
 ) : ViewModel() {
 
     val navActions = appNavigator.navigationChannel
-
-    init {
-        viewModelScope.launch {
-            if (!userPreferences.isIntroShown()) {
-                appNavigator.navigateTo(
-                    AppDestinations.intro.path,
-                    popUpToRoute = AppDestinations.home.path,
-                    inclusive = true
-                )
-            } else if (userPreferences.currentUser == null) {
-                appNavigator.navigateTo(
-                    AppDestinations.signIn.path,
-                    popUpToRoute = AppDestinations.home.path,
-                    inclusive = true
-                )
-            } else if (!userPreferences.isOnboardShown()) {
-                appNavigator.navigateTo(
-                    AppDestinations.onboard.path,
-                    popUpToRoute = AppDestinations.home.path,
-                    inclusive = true
-                )
-            }
-        }
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        Timber.e("XXX onCleared")
-    }
 }

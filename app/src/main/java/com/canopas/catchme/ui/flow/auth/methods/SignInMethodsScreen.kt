@@ -59,29 +59,6 @@ fun SignInMethodsScreen() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun SignInAppBar() {
-    val viewModel = hiltViewModel<SignInMethodViewModel>()
-
-    TopAppBar(
-        title = { },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = Color.Transparent
-        ),
-        actions = {
-            TextButton(onClick = { viewModel.skipSignUp() }) {
-                Text(
-                    text = stringResource(
-                        id = R.string.common_btn_skip
-                    ),
-                    style = AppTheme.appTypography.label1.copy(color = AppTheme.colorScheme.textPrimary)
-                )
-            }
-        }
-    )
-}
-
 @Composable
 private fun SignInContent(modifier: Modifier) {
     val viewModel = hiltViewModel<SignInMethodViewModel>()
