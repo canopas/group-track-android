@@ -85,7 +85,7 @@ class SignInMethodViewModelTest {
         whenever(authService.verifiedGoogleLogin("firebaseToken", account))
             .thenReturn(false)
         viewModel.proceedGoogleSignIn(account)
-        verify(navigator).navigateTo("home", "sign-in", true)
+        verify(navigator).navigateTo("enable-permissions", "sign-in", true)
     }
 
     @Test
@@ -118,18 +118,6 @@ class SignInMethodViewModelTest {
             .thenThrow(RuntimeException())
         viewModel.proceedGoogleSignIn(account)
         assert(!viewModel.state.value.showGoogleLoading)
-    }
-
-    @Test
-    fun `skipSignUp should navigate to home screen`() = runTest {
-        viewModel.skipSignUp()
-        verify(navigator).navigateTo("home", "sign-in", true)
-    }
-
-    @Test
-    fun `skipSignUp should set OnboardShown to true`() = runTest {
-        viewModel.skipSignUp()
-        verify(userPreferences).setOnboardShown(true)
     }
 
     @Test

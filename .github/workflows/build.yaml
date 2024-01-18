@@ -23,10 +23,16 @@ jobs:
           echo $DEBUG_KEYSTORE_BASE64 | base64 -di > app/debug.keystore
 
       - name: Build with Gradle
+        env:
+          MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
         run: ./gradlew build
 
       - name: Run Tests with Gradle
+        env:
+          MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
         run: ./gradlew test
 
       - name: Run Lint check
+        env:
+          MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
         run: ./gradlew ktlintCheck

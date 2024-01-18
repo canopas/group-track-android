@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -21,6 +23,14 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
+        }
+
+        if (System.getenv("MAPS_API_KEY") != null) {
+            manifestPlaceholders["MAPS_API_KEY"] = System.getenv("MAPS_API_KEY")
+        } else {
+            val p = Properties()
+            p.load(project.rootProject.file("local.properties").reader())
+            manifestPlaceholders["MAPS_API_KEY"] = p.getProperty("MAPS_API_KEY")
         }
     }
 
@@ -124,6 +134,8 @@ dependencies {
 
     // Accompanist permission
     implementation("com.google.accompanist:accompanist-permissions:0.32.0")
+
+    implementation("com.google.maps.android:maps-compose:4.3.0")
 
     implementation(project(":data"))
 }

@@ -65,20 +65,11 @@ class SignInMethodViewModel @Inject constructor(
         } else {
             userPreferences.setOnboardShown(true)
             navigator.navigateTo(
-                AppDestinations.home.path,
+                AppDestinations.enablePermissions.path,
                 popUpToRoute = AppDestinations.signIn.path,
                 inclusive = true
             )
         }
-    }
-
-    fun skipSignUp() = viewModelScope.launch(appDispatcher.MAIN) {
-        userPreferences.setOnboardShown(true)
-        navigator.navigateTo(
-            AppDestinations.home.path,
-            popUpToRoute = AppDestinations.signIn.path,
-            inclusive = true
-        )
     }
 }
 
