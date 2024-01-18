@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -5,7 +7,6 @@ plugins {
     id("kotlin-kapt")
     id("com.google.gms.google-services")
     id("org.jlleitschuh.gradle.ktlint")
-    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
 }
 
 android {
@@ -22,6 +23,14 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
+        }
+
+        if (System.getenv("MAPS_API_KEY") != null) {
+            manifestPlaceholders["MAPS_API_KEY"] = System.getenv("MAPS_API_KEY")
+        } else {
+            val p = Properties()
+            p.load(project.rootProject.file("local.properties").reader())
+            manifestPlaceholders["MAPS_API_KEY"] = p.getProperty("MAPS_API_KEY")
         }
     }
 
@@ -72,10 +81,6 @@ android {
     }
     ktlint {
         debug = true
-    }
-
-    secrets {
-        defaultPropertiesFileName = "local.properties"
     }
 }
 
