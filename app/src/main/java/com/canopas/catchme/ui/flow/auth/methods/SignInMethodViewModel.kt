@@ -71,7 +71,6 @@ class SignInMethodViewModel @Inject constructor(
             )
         }
     }
-
 }
 
 data class SignInMethodScreenState(

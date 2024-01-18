@@ -20,7 +20,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.canopas.catchme.R
@@ -34,7 +33,6 @@ import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 @Composable
 fun MapScreen() {
@@ -58,7 +56,8 @@ fun MapScreen() {
 
         AnimatedVisibility(
             visible = relocate,
-            enter = fadeIn(), exit = fadeOut(),
+            enter = fadeIn(),
+            exit = fadeOut(),
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(bottom = 10.dp, end = 10.dp)
@@ -68,11 +67,11 @@ fun MapScreen() {
                 scope.launch {
                     cameraPositionState.animate(
                         CameraUpdateFactory.newLatLngZoom(
-                            tempLatLong, 16f
+                            tempLatLong,
+                            16f
                         )
                     )
                 }
-
             }
         }
 
@@ -82,11 +81,9 @@ fun MapScreen() {
                 .padding(top = 10.dp, end = 10.dp)
         ) {
             MapControl(icon = R.drawable.ic_settings, modifier = Modifier) {
-
             }
 
             MapControl(icon = R.drawable.ic_messages, modifier = Modifier) {
-
             }
 
             MapControl(
@@ -106,7 +103,6 @@ private fun MapView(cameraPositionState: CameraPositionState) {
         properties = MapProperties(),
         uiSettings = MapUiSettings(zoomControlsEnabled = false, tiltGesturesEnabled = false)
     ) {
-
     }
 }
 
@@ -114,17 +110,17 @@ private fun MapView(cameraPositionState: CameraPositionState) {
 private fun MapControl(
     modifier: Modifier = Modifier,
     @DrawableRes icon: Int,
-    onClick: () -> Unit,
+    onClick: () -> Unit
 ) {
     SmallFloatingActionButton(
         modifier = modifier,
         onClick = { onClick() },
         containerColor = AppTheme.colorScheme.surface,
         contentColor = AppTheme.colorScheme.primary
-    )
-    {
+    ) {
         Icon(
-            painter = painterResource(id = icon), contentDescription = "",
+            painter = painterResource(id = icon),
+            contentDescription = "",
             modifier = Modifier.size(24.dp)
         )
     }
