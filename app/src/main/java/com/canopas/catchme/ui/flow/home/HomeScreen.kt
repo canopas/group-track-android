@@ -1,5 +1,7 @@
 package com.canopas.catchme.ui.flow.home
 
+import android.Manifest
+import android.os.Build
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.RowScope
@@ -26,17 +28,31 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.canopas.catchme.R
+import com.canopas.catchme.ui.component.CheckForBackgroundLocationPermission
 import com.canopas.catchme.ui.flow.home.activity.ActivityScreen
 import com.canopas.catchme.ui.flow.home.map.MapScreen
 import com.canopas.catchme.ui.flow.home.places.PlacesScreen
 import com.canopas.catchme.ui.navigation.AppDestinations
 import com.canopas.catchme.ui.navigation.AppNavigator
 import com.canopas.catchme.ui.theme.AppTheme
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.PermissionStatus
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.accompanist.permissions.rememberPermissionState
+import timber.log.Timber
 
 @Composable
 fun HomeScreen() {
     val navController = rememberNavController()
     val viewModel = hiltViewModel<HomeScreenViewModel>()
+    val state by viewModel.state.collectAsState()
+
+    if (state.shouldAskForBackgroundLocationPermission)
+        CheckForBackgroundLocationPermission(onDismiss = {
+            viewModel.shouldAskForBackgroundLocationPermission(false)
+        }, onGranted = {
+            viewModel.startTracking()
+        })
 
     AppNavigator(navController = navController, viewModel.navActions)
 
@@ -55,6 +71,7 @@ fun HomeScreen() {
         }
     )
 }
+
 
 @Composable
 fun HomeScreenContent(navController: NavHostController) {

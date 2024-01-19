@@ -64,5 +64,10 @@
     <string name="home_tab_label_home">Home</string>
     <string name="home_tab_label_activities">Activities</string>
     <string name="home_tab_label_places">Places</string>
+    <string name="common_background_access_permission_title">Background Location Access Required</string>
+    <string name="common_background_access_permission_message">CatchMe\'s location-sharing feature works correctly when it can access your location all the time. This ensures it gives you accurate, real-time updates.</string>
+    <string name="common_background_access_permission_steps">Go to settings > select <b>"Allow all the time"</b></string>
+    <string name="common_background_access_permission_rational_steps">Go to settings > CatchMe app info > Location permission > select <b>"Allow all the time"</b></string>
+    <string name="common_background_access_permission_btn">Go to Settings</string>
 
 </resources>
