@@ -37,5 +37,5 @@ class HomeScreenViewModel @Inject constructor(
 
 data class HomeScreenState(
     val currentTab: Int = 0,
-    val shouldAskForBackgroundLocationPermission: Boolean = true
+    val shouldAskForBackgroundLocationPermission: Boolean = false
 )

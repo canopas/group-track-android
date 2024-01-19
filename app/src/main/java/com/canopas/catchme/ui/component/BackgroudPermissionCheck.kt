@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.canopas.catchme.R
+import com.canopas.catchme.data.utils.openAppSettings
 import com.canopas.catchme.ui.theme.AppTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
@@ -59,11 +60,7 @@ fun CheckForBackgroundLocationPermission(
                 onDismiss?.invoke()
             }, goToSettings = {
                 if (locationPermissionStates?.status?.shouldShowRationale == true) {
-                    val intent = Intent(
-                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                        Uri.fromParts("package", (context as Activity).packageName, null)
-                    )
-                    context.startActivity(intent)
+                    (context as Activity).openAppSettings()
                     Timber.d("XXX CheckForBackgroundLocationPermission: shouldShowRationale")
                 } else {
                     locationPermissionStates?.launchPermissionRequest()

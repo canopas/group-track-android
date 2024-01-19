@@ -7,6 +7,8 @@ import android.os.Build
 import android.os.Looper
 import com.canopas.catchme.data.receiver.location.ACTION_LOCATION_UPDATE
 import com.canopas.catchme.data.receiver.location.LocationUpdateReceiver
+import com.canopas.catchme.data.utils.hasFineLocationPermission
+import com.canopas.catchme.data.utils.isLocationPermissionGranted
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.Granularity
 import com.google.android.gms.location.LocationAvailability
@@ -49,14 +51,16 @@ class LocationManager @Inject constructor(@ApplicationContext private val contex
     }
 
     private fun createRequest(): LocationRequest =
-        LocationRequest.Builder(Priority.PRIORITY_BALANCED_POWER_ACCURACY, LOCATION_UPDATE_INTERVAL).apply {
-            setGranularity(Granularity.GRANULARITY_PERMISSION_LEVEL)
-            setWaitForAccurateLocation(true)
-        }.build()
+        LocationRequest.Builder(Priority.PRIORITY_BALANCED_POWER_ACCURACY, LOCATION_UPDATE_INTERVAL)
+            .apply {
+                setGranularity(Granularity.GRANULARITY_PERMISSION_LEVEL)
+                setWaitForAccurateLocation(true)
+            }.build()
 
 
     fun startLocationTracking() {
-        locationClient.requestLocationUpdates(request, locationUpdatePendingIntent)
+        if (context.hasFineLocationPermission)
+            locationClient.requestLocationUpdates(request, locationUpdatePendingIntent)
     }
 
     fun stopLocationTracking() {
