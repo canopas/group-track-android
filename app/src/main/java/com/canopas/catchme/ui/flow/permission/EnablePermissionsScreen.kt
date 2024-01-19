@@ -1,4 +1,4 @@
-package com.canopas.catchme.ui.flow.auth.permission
+package com.canopas.catchme.ui.flow.permission
 
 import android.Manifest
 import android.os.Build

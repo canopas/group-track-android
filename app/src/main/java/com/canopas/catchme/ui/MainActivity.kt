@@ -15,7 +15,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.canopas.catchme.ui.flow.auth.methods.SignInMethodViewModel
 import com.canopas.catchme.ui.flow.auth.methods.SignInMethodsScreen
-import com.canopas.catchme.ui.flow.auth.permission.EnablePermissionsScreen
+import com.canopas.catchme.ui.flow.permission.EnablePermissionsScreen
 import com.canopas.catchme.ui.flow.auth.phone.EXTRA_RESULT_IS_NEW_USER
 import com.canopas.catchme.ui.flow.auth.phone.SignInWithPhoneScreen
 import com.canopas.catchme.ui.flow.auth.verification.PhoneVerificationScreen
