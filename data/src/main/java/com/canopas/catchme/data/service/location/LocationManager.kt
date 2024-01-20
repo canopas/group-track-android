@@ -4,25 +4,21 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.os.Looper
 import com.canopas.catchme.data.receiver.location.ACTION_LOCATION_UPDATE
 import com.canopas.catchme.data.receiver.location.LocationUpdateReceiver
 import com.canopas.catchme.data.utils.hasFineLocationPermission
-import com.canopas.catchme.data.utils.isLocationPermissionGranted
+import com.canopas.catchme.data.utils.isBackgroundLocationPermissionGranted
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.Granularity
-import com.google.android.gms.location.LocationAvailability
-import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import dagger.hilt.android.qualifiers.ApplicationContext
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
 private const val LOCATION_UPDATE_INTERVAL = 10000L
+private const val LOCATION_UPDATE_DISTANCE = 2f
 
 @Singleton
 class LocationManager @Inject constructor(@ApplicationContext private val context: Context) {
@@ -51,21 +47,24 @@ class LocationManager @Inject constructor(@ApplicationContext private val contex
     }
 
     private fun createRequest(): LocationRequest =
-        LocationRequest.Builder(Priority.PRIORITY_BALANCED_POWER_ACCURACY, LOCATION_UPDATE_INTERVAL)
+        LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, LOCATION_UPDATE_INTERVAL)
             .apply {
                 setGranularity(Granularity.GRANULARITY_PERMISSION_LEVEL)
+                setMinUpdateDistanceMeters(LOCATION_UPDATE_DISTANCE)
                 setWaitForAccurateLocation(true)
             }.build()
 
-
     fun startLocationTracking() {
-        if (context.hasFineLocationPermission)
+        if (context.hasFineLocationPermission) {
             locationClient.requestLocationUpdates(request, locationUpdatePendingIntent)
+        }
     }
 
     fun stopLocationTracking() {
-        locationClient.flushLocations()
-        locationClient.removeLocationUpdates(locationUpdatePendingIntent)
+        if (!context.isBackgroundLocationPermissionGranted) {
+            locationClient.flushLocations()
+            locationClient.removeLocationUpdates(locationUpdatePendingIntent)
+        }
     }
 
     fun startService() {

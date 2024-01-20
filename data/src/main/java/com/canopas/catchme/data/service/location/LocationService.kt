@@ -1,14 +1,10 @@
 package com.canopas.catchme.data.service.location
 
 import android.app.Service
-
 import android.content.Intent
-
 import android.os.IBinder
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import javax.inject.Inject
-
 
 @AndroidEntryPoint
 class LocationService : Service() {

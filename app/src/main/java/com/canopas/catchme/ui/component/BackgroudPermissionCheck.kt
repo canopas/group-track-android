@@ -2,25 +2,19 @@ package com.canopas.catchme.ui.component
 
 import android.Manifest
 import android.app.Activity
-import android.content.Intent
-import android.net.Uri
 import android.os.Build
-import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -58,7 +52,8 @@ fun CheckForBackgroundLocationPermission(
             locationPermissionStates,
             onDismiss = {
                 onDismiss?.invoke()
-            }, goToSettings = {
+            },
+            goToSettings = {
                 if (locationPermissionStates?.status?.shouldShowRationale == true) {
                     (context as Activity).openAppSettings()
                     Timber.d("XXX CheckForBackgroundLocationPermission: shouldShowRationale")
@@ -80,12 +75,11 @@ fun ShowBackgroundLocationRequestDialog(
     onDismiss: () -> Unit,
     goToSettings: () -> Unit
 ) {
-
     val shouldShowRational = locationPermissionStates?.status?.shouldShowRationale ?: false
     Dialog(onDismissRequest = onDismiss) {
         Card(
             shape = RoundedCornerShape(10.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
         ) {
             Column(
                 Modifier
@@ -93,7 +87,6 @@ fun ShowBackgroundLocationRequestDialog(
                     .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-
                 Text(
                     text = stringResource(id = R.string.common_background_access_permission_title),
                     textAlign = TextAlign.Center,
@@ -101,7 +94,7 @@ fun ShowBackgroundLocationRequestDialog(
                         .padding(top = 5.dp)
                         .fillMaxWidth(),
                     style = AppTheme.appTypography.header1,
-                    maxLines = 2,
+                    maxLines = 2
                 )
                 Text(
                     text = stringResource(id = R.string.common_background_access_permission_message),
@@ -109,7 +102,7 @@ fun ShowBackgroundLocationRequestDialog(
                     modifier = Modifier
                         .padding(vertical = 10.dp)
                         .fillMaxWidth(),
-                    style = AppTheme.appTypography.body2,
+                    style = AppTheme.appTypography.body2
                 )
 
                 Text(
@@ -118,7 +111,7 @@ fun ShowBackgroundLocationRequestDialog(
                     modifier = Modifier
                         .padding(vertical = 10.dp)
                         .fillMaxWidth(),
-                    style = AppTheme.appTypography.body3,
+                    style = AppTheme.appTypography.body3
                 )
 
                 PrimaryButton(
@@ -130,5 +123,4 @@ fun ShowBackgroundLocationRequestDialog(
             }
         }
     }
-
 }

@@ -12,7 +12,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeScreenViewModel @Inject constructor(
     private val navigator: HomeNavigator,
-    private val locationManager: LocationManager,
+    private val locationManager: LocationManager
 ) : ViewModel() {
 
     val navActions = navigator.navigationChannel
@@ -24,13 +24,12 @@ class HomeScreenViewModel @Inject constructor(
         _state.value = _state.value.copy(currentTab = index)
     }
 
-    fun shouldAskForBackgroundLocationPermission(ask:Boolean) {
+    fun shouldAskForBackgroundLocationPermission(ask: Boolean) {
         _state.value = _state.value.copy(shouldAskForBackgroundLocationPermission = ask)
     }
 
     fun startTracking() {
         shouldAskForBackgroundLocationPermission(false)
-        Timber.e("XXX startTracking")
         locationManager.startService()
     }
 }

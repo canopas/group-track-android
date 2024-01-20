@@ -3,16 +3,42 @@ package com.canopas.catchme.data.receiver.location
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.util.Log
+import com.canopas.catchme.data.service.location.ApiLocationService
+import com.canopas.catchme.data.service.user.UserService
 import com.google.android.gms.location.LocationResult
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.util.Date
+import javax.inject.Inject
 
 const val ACTION_LOCATION_UPDATE = "action.LOCATION_UPDATE"
-class LocationUpdateReceiver :BroadcastReceiver(){
+
+@AndroidEntryPoint
+class LocationUpdateReceiver : BroadcastReceiver() {
+
+    @Inject
+    lateinit var locationService: ApiLocationService
+
+    @Inject
+    lateinit var userService: UserService
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onReceive(context: Context, intent: Intent) {
-
-        Timber.d("XXX onReceive result:${LocationResult.extractResult(intent)}")
-
+        LocationResult.extractResult(intent)?.let { locationResult ->
+            scope.launch {
+                locationResult.locations.map {
+                    locationService.saveCurrentLocation(
+                        userService.currentUser?.id ?: "",
+                        it.latitude,
+                        it.longitude,
+                        Date().time
+                    )
+                }
+            }
+        }
     }
 }
