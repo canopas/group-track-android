@@ -12,9 +12,11 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -26,6 +28,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.canopas.catchme.R
+import com.canopas.catchme.data.utils.isBackgroundLocationPermissionGranted
+import com.canopas.catchme.ui.component.CheckBackgroundLocationPermission
 import com.canopas.catchme.ui.flow.home.activity.ActivityScreen
 import com.canopas.catchme.ui.flow.home.map.MapScreen
 import com.canopas.catchme.ui.flow.home.places.PlacesScreen
@@ -37,6 +41,17 @@ import com.canopas.catchme.ui.theme.AppTheme
 fun HomeScreen() {
     val navController = rememberNavController()
     val viewModel = hiltViewModel<HomeScreenViewModel>()
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        if (!context.isBackgroundLocationPermissionGranted) {
+            viewModel.shouldAskForBackgroundLocationPermission(true)
+        } else {
+            viewModel.startTracking()
+        }
+    }
+
+    PermissionChecker()
 
     AppNavigator(navController = navController, viewModel.navActions)
 
@@ -54,6 +69,20 @@ fun HomeScreen() {
             HomeBottomBar(navController)
         }
     )
+}
+
+@Composable
+private fun PermissionChecker() {
+    val viewModel = hiltViewModel<HomeScreenViewModel>()
+    val state by viewModel.state.collectAsState()
+
+    if (state.shouldAskForBackgroundLocationPermission) {
+        CheckBackgroundLocationPermission(onDismiss = {
+            viewModel.shouldAskForBackgroundLocationPermission(false)
+        }, onGranted = {
+                viewModel.startTracking()
+            })
+    }
 }
 
 @Composable

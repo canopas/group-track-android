@@ -7,4 +7,5 @@ object FirestoreConst {
     const val FIRESTORE_COLLECTION_SPACES = "spaces"
     const val FIRESTORE_COLLECTION_SPACE_MEMBERS = "space_members"
     const val FIRESTORE_COLLECTION_SPACE_INVITATION = "space_invitations"
+    const val FIRESTORE_COLLECTION_USER_LOCATIONS = "user_locations"
 }

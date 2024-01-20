@@ -1,4 +1,4 @@
-package com.canopas.catchme.ui.flow.auth.permission
+package com.canopas.catchme.ui.flow.permission
 
 import androidx.lifecycle.ViewModel
 import com.canopas.catchme.ui.navigation.AppDestinations
