@@ -29,7 +29,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.canopas.catchme.R
 import com.canopas.catchme.data.utils.isBackgroundLocationPermissionGranted
-import com.canopas.catchme.ui.component.CheckForBackgroundLocationPermission
+import com.canopas.catchme.ui.component.CheckBackgroundLocationPermission
 import com.canopas.catchme.ui.flow.home.activity.ActivityScreen
 import com.canopas.catchme.ui.flow.home.map.MapScreen
 import com.canopas.catchme.ui.flow.home.places.PlacesScreen
@@ -77,7 +77,7 @@ private fun PermissionChecker() {
     val state by viewModel.state.collectAsState()
 
     if (state.shouldAskForBackgroundLocationPermission) {
-        CheckForBackgroundLocationPermission(onDismiss = {
+        CheckBackgroundLocationPermission(onDismiss = {
             viewModel.shouldAskForBackgroundLocationPermission(false)
         }, onGranted = {
                 viewModel.startTracking()

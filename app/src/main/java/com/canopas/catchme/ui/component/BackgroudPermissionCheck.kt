@@ -27,11 +27,10 @@ import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
-import timber.log.Timber
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun CheckForBackgroundLocationPermission(
+fun CheckBackgroundLocationPermission(
     onDismiss: (() -> Unit)? = null,
     onGranted: (() -> Unit)? = null
 ) {
@@ -56,7 +55,6 @@ fun CheckForBackgroundLocationPermission(
             goToSettings = {
                 if (locationPermissionStates?.status?.shouldShowRationale == true) {
                     (context as Activity).openAppSettings()
-                    Timber.d("XXX CheckForBackgroundLocationPermission: shouldShowRationale")
                 } else {
                     locationPermissionStates?.launchPermissionRequest()
                 }
@@ -64,7 +62,6 @@ fun CheckForBackgroundLocationPermission(
         )
     } else {
         onGranted?.invoke()
-        Timber.d("XXX CheckForBackgroundLocationPermission: Granted")
     }
 }
 
@@ -93,8 +90,7 @@ fun ShowBackgroundLocationRequestDialog(
                     modifier = Modifier
                         .padding(top = 5.dp)
                         .fillMaxWidth(),
-                    style = AppTheme.appTypography.header1,
-                    maxLines = 2
+                    style = AppTheme.appTypography.header1
                 )
                 Text(
                     text = stringResource(id = R.string.common_background_access_permission_message),
