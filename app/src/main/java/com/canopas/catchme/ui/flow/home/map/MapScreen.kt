@@ -23,15 +23,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.canopas.catchme.R
+import com.canopas.catchme.ui.flow.home.map.component.MapMarker
 import com.canopas.catchme.ui.theme.AppTheme
 import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
+import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.rememberCameraPositionState
+import com.google.maps.android.compose.rememberMarkerState
 import kotlinx.coroutines.launch
 
 @Composable
@@ -103,6 +107,7 @@ private fun MapView(cameraPositionState: CameraPositionState) {
         properties = MapProperties(),
         uiSettings = MapUiSettings(zoomControlsEnabled = false, tiltGesturesEnabled = false)
     ) {
+        MapMarker() {}
     }
 }
 
