@@ -34,7 +34,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.canopas.catchme.R
-import com.canopas.catchme.data.models.auth.ApiUser
+import com.canopas.catchme.data.models.user.ApiUser
 import com.canopas.catchme.ui.component.PrimaryButton
 import com.canopas.catchme.ui.component.PrimaryTextButton
 import com.canopas.catchme.ui.flow.onboard.OnboardViewModel

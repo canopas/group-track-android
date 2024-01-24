@@ -35,7 +35,7 @@
             android:value="${MAPS_API_KEY}" />
 
         <service
-            android:name=".data.service.location.LocationService"
+            android:name=".data.service.location.BackgroundLocationService"
             android:enabled="true"
             android:exported="false" />
 

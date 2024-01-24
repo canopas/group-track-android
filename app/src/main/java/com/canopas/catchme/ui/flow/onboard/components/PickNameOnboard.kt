@@ -77,7 +77,7 @@ fun PickNameOnboard() {
 private fun PickNameTextField(title: String, value: String, onValueChanged: (String) -> Unit) {
     Text(
         text = title.uppercase(),
-        style = AppTheme.appTypography.subTitle2.copy()
+        style = AppTheme.appTypography.subTitle2
             .copy(color = AppTheme.colorScheme.textSecondary),
         modifier = Modifier
             .fillMaxWidth()
@@ -97,7 +97,9 @@ private fun PickNameTextField(title: String, value: String, onValueChanged: (Str
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 14.dp),
-            textStyle = AppTheme.appTypography.header4,
+            textStyle = AppTheme.appTypography.header4.copy(
+                color = AppTheme.colorScheme.textSecondary
+            ),
             onValueChange = { value ->
                 onValueChanged(value)
             },

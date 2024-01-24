@@ -68,6 +68,6 @@ class LocationManager @Inject constructor(@ApplicationContext private val contex
     }
 
     fun startService() {
-        context.startService(Intent(context, LocationService::class.java))
+        context.startService(Intent(context, BackgroundLocationService::class.java))
     }
 }

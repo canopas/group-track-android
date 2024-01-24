@@ -11,6 +11,9 @@ import android.graphics.Path
 import android.graphics.Shader
 import android.graphics.Typeface
 import android.graphics.drawable.BitmapDrawable
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Easing
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -22,16 +25,18 @@ import androidx.compose.ui.platform.LocalContext
 import coil.ImageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
-import com.canopas.catchme.data.models.auth.ApiUser
+import com.canopas.catchme.data.models.user.ApiUser
 import com.canopas.catchme.data.models.location.ApiLocation
 import com.canopas.catchme.ui.theme.AppTheme.colorScheme
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberMarkerState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import kotlin.math.roundToInt
 
 @Composable
@@ -40,18 +45,22 @@ fun MapMarker(
     location: ApiLocation,
     onClick: () -> Unit
 ) {
-    val state = rememberMarkerState(
-        position = LatLng(
-            location.latitude,
-            location.longitude
+    var state by remember {
+        mutableStateOf(
+            MarkerState(
+                position = LatLng(
+                    location.latitude,
+                    location.longitude
+                )
+            )
         )
-    )
+    }
 
-    var iconState by remember { mutableStateOf<BitmapDescriptor?>(null) }
+    var iconState by remember(user) { mutableStateOf<BitmapDescriptor?>(null) }
     val context = LocalContext.current
     val markerColor = colorScheme.primary.toArgb()
 
-    LaunchedEffect(key1 = Unit, block = {
+    LaunchedEffect(key1 = user, block = {
         iconState = loadBitmapDescriptorFromUrl(
             context,
             user.profile_image,
@@ -60,8 +69,40 @@ fun MapMarker(
         )
     })
 
+    val animatable = remember { Animatable(0f) }
+
+    LaunchedEffect(key1 = location, user) {
+        animatable.snapTo(0f)
+        animatable.animateTo(1f, animationSpec = tween(1000))
+        Timber.d("XXX update state")
+        state = MarkerState(
+            position = LatLng(
+                location.latitude,
+                location.longitude
+            )
+        )
+    }
+
+    Timber.d("XXX MapMarker: ${user.fullName} }")
+
+    val interpolator = remember {
+        LatLngInterpolator.Linear()
+    }
+
+    val animatedLatLong = interpolator.interpolate(
+        animatable.value,
+        state.position,
+        LatLng(location.latitude, location.longitude)
+    )
+
     Marker(
-        state = state,
+        state = MarkerState(
+            position = LatLng(
+                animatedLatLong.latitude,
+                animatedLatLong.longitude
+            )
+        ),
+        title = user.fullName,
         icon = iconState,
         onClick = {
             onClick()
@@ -78,11 +119,12 @@ private suspend fun loadBitmapDescriptorFromUrl(
 ): BitmapDescriptor {
     return withContext(Dispatchers.IO) {
         if (imageUrl.isNullOrEmpty()) {
+            val placeHolder = createPlaceHolderBitmap(
+                userName.first().toString(),
+                markerColor
+            )
             return@withContext BitmapDescriptorFactory.fromBitmap(
-                createPlaceHolderBitmap(
-                    userName.first().toString(),
-                    markerColor
-                )
+                transformBitmap(placeHolder, markerColor)
             )
         }
         val loader = ImageLoader(context)
@@ -100,6 +142,24 @@ private suspend fun loadBitmapDescriptorFromUrl(
         )
 
         return@withContext BitmapDescriptorFactory.fromBitmap(transformBitmap(bitmap, markerColor))
+    }
+}
+
+interface LatLngInterpolator {
+    fun interpolate(fraction: Float, a: LatLng, b: LatLng): LatLng
+
+    class Linear : LatLngInterpolator {
+        override fun interpolate(fraction: Float, a: LatLng, b: LatLng): LatLng {
+            val lat = (b.latitude - a.latitude) * fraction + a.latitude
+            var lngDelta = b.longitude - a.longitude
+
+            // Take the shortest path across the 180th meridian.
+            if (Math.abs(lngDelta) > 180) {
+                lngDelta -= Math.signum(lngDelta) * 360
+            }
+            val lng = lngDelta * fraction + a.longitude
+            return LatLng(lat, lng)
+        }
     }
 }
 

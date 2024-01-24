@@ -6,6 +6,7 @@ import com.canopas.catchme.data.utils.snapshotFlow
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
@@ -41,14 +42,12 @@ class ApiLocationService @Inject constructor(
         locationRef.document(location.id).set(location).await()
     }
 
-    suspend fun getCurrentLocation(userId: String) = flow<ApiLocation> {
+    suspend fun getCurrentLocation(userId: String) = channelFlow<ApiLocation?> {
         locationRef.whereEqualTo("user_id", userId)
             .orderBy("created_at", Query.Direction.DESCENDING).limit(1)
             .snapshotFlow(ApiLocation::class.java)
             .collectLatest {
-                if (it.isNotEmpty()) {
-                    emit(it.first())
-                }
+                send(it.firstOrNull())
             }
     }
 

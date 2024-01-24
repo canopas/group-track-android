@@ -1,10 +1,10 @@
 package com.canopas.catchme.data.service.auth
 
-import com.canopas.catchme.data.models.auth.ApiUser
-import com.canopas.catchme.data.models.auth.ApiUserSession
-import com.canopas.catchme.data.models.auth.LOGIN_TYPE_GOOGLE
-import com.canopas.catchme.data.models.auth.LOGIN_TYPE_PHONE
-import com.canopas.catchme.data.service.user.UserService
+import com.canopas.catchme.data.models.user.ApiUser
+import com.canopas.catchme.data.models.user.ApiUserSession
+import com.canopas.catchme.data.models.user.LOGIN_TYPE_GOOGLE
+import com.canopas.catchme.data.models.user.LOGIN_TYPE_PHONE
+import com.canopas.catchme.data.storage.UserPreferences
 import com.canopas.catchme.data.utils.Device
 import com.canopas.catchme.data.utils.FirestoreConst.FIRESTORE_COLLECTION_USERS
 import com.canopas.catchme.data.utils.FirestoreConst.FIRESTORE_COLLECTION_USER_SESSIONS
@@ -17,9 +17,9 @@ import javax.inject.Singleton
 
 @Singleton
 class AuthService @Inject constructor(
-    private val db: FirebaseFirestore,
+    db: FirebaseFirestore,
     private val device: Device,
-    private val userService: UserService
+    private val userPreferences: UserPreferences,
 ) {
     private val userRef = db.collection(FIRESTORE_COLLECTION_USERS)
     private val sessionRef = db.collection(FIRESTORE_COLLECTION_USER_SESSIONS)
@@ -67,7 +67,7 @@ class AuthService @Inject constructor(
 
             userDocRef.set(user).await()
             sessionDocRef.set(session).await()
-            userService.saveUser(user, session)
+            saveUser(user, session)
         } else {
             val docId = snapshot!!.id
             val sessionDocRef = sessionRef.document()
@@ -83,9 +83,44 @@ class AuthService @Inject constructor(
             )
             sessionDocRef.set(session).await()
             val currentUser = snapshot.toObject(ApiUser::class.java)
-            userService.saveUser(currentUser, session)
+            saveUser(currentUser, session)
         }
 
         return isNewUser
+    }
+
+
+    var currentUser: ApiUser?
+        get() {
+            return userPreferences.currentUser
+        }
+        private set(newUser) {
+            userPreferences.currentUser = newUser
+        }
+
+    var currentUserSession: ApiUserSession?
+        get() {
+            return userPreferences.currentUserSession
+        }
+        private set(newSession) {
+            userPreferences.currentUserSession = newSession
+        }
+
+    private fun saveUser(user: ApiUser, session: ApiUserSession) {
+        currentUser = user
+        currentUserSession = session
+    }
+
+    fun saveUser(user: ApiUser) {
+        currentUser = user
+    }
+
+    fun saveUserSession(session: ApiUserSession) {
+        currentUserSession = session
+    }
+
+    suspend fun updateUser(user: ApiUser) {
+        userRef.document(user.id).set(user).await()
+        currentUser = user
     }
 }
