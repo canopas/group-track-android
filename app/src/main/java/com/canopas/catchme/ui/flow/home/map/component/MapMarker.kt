@@ -22,6 +22,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
 import coil.ImageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
@@ -45,6 +47,9 @@ fun MapMarker(
     location: ApiLocation,
     onClick: () -> Unit
 ) {
+
+    val iconState = rememberMarkerIconState(user)
+
     var state by remember {
         mutableStateOf(
             MarkerState(
@@ -55,19 +60,6 @@ fun MapMarker(
             )
         )
     }
-
-    var iconState by remember(user) { mutableStateOf<BitmapDescriptor?>(null) }
-    val context = LocalContext.current
-    val markerColor = colorScheme.primary.toArgb()
-
-    LaunchedEffect(key1 = user, block = {
-        iconState = loadBitmapDescriptorFromUrl(
-            context,
-            user.profile_image,
-            user.first_name ?: "",
-            markerColor
-        )
-    })
 
     val animatable = remember { Animatable(0f) }
 
@@ -83,7 +75,7 @@ fun MapMarker(
         )
     }
 
-    Timber.d("XXX MapMarker: ${user.fullName} }")
+    // Timber.d("XXX MapMarker: ${user.fullName} }")
 
     val interpolator = remember {
         LatLngInterpolator.Linear()
@@ -111,39 +103,7 @@ fun MapMarker(
     )
 }
 
-private suspend fun loadBitmapDescriptorFromUrl(
-    context: Context,
-    imageUrl: String?,
-    userName: String,
-    markerColor: Int
-): BitmapDescriptor {
-    return withContext(Dispatchers.IO) {
-        if (imageUrl.isNullOrEmpty()) {
-            val placeHolder = createPlaceHolderBitmap(
-                userName.first().toString(),
-                markerColor
-            )
-            return@withContext BitmapDescriptorFactory.fromBitmap(
-                transformBitmap(placeHolder, markerColor)
-            )
-        }
-        val loader = ImageLoader(context)
-        val request = ImageRequest.Builder(context)
-            .data(imageUrl)
-            .allowHardware(false)
-            .size(250)
-            .build()
 
-        val result = loader.execute(request)
-        val drawable = (result as? SuccessResult)?.drawable
-        val bitmap = (drawable as? BitmapDrawable)?.bitmap ?: createPlaceHolderBitmap(
-            userName.first().toString(),
-            markerColor
-        )
-
-        return@withContext BitmapDescriptorFactory.fromBitmap(transformBitmap(bitmap, markerColor))
-    }
-}
 
 interface LatLngInterpolator {
     fun interpolate(fraction: Float, a: LatLng, b: LatLng): LatLng
@@ -161,85 +121,4 @@ interface LatLngInterpolator {
             return LatLng(lat, lng)
         }
     }
-}
-
-private fun createPlaceHolderBitmap(markerLabel: String, markerColor: Int): Bitmap {
-    val size = 250
-    val output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-    val canvas = Canvas(output)
-    val r = size / 2f
-
-    val whiteBorder = Paint()
-    whiteBorder.isAntiAlias = true
-    whiteBorder.color = markerColor
-    whiteBorder.alpha = 180
-    whiteBorder.strokeWidth = 15f
-    canvas.drawCircle(r, r, r, whiteBorder)
-
-    val paint = Paint()
-    paint.color = Color.WHITE
-    paint.textSize = 80f
-    paint.isAntiAlias = true
-    paint.textAlign = Paint.Align.CENTER
-    paint.setTypeface(Typeface.create(Typeface.DEFAULT_BOLD, Typeface.BOLD))
-
-    val xPos = canvas.width / 2f
-    val yPos = (canvas.height / 2 - (paint.descent() + paint.ascent()) / 2)
-
-    canvas.drawText(markerLabel.uppercase(), xPos, yPos, paint)
-
-    return output
-}
-
-private fun transformBitmap(source: Bitmap, markerColor: Int): Bitmap {
-    val photoMargin = 30f
-    val strokeWidth = 15f
-    val triangleMargin = 10f
-    val size = 250
-
-    val r = size / 2f
-    val output =
-        Bitmap.createBitmap(
-            (size + triangleMargin).roundToInt(),
-            (size + triangleMargin).roundToInt(),
-            Bitmap.Config.ARGB_8888
-        )
-    val canvas = Canvas(output)
-
-    val trianglePaint = Paint(Paint.ANTI_ALIAS_FLAG)
-    trianglePaint.strokeWidth = 5f
-    trianglePaint.color = markerColor
-    trianglePaint.style = Paint.Style.FILL_AND_STROKE
-    trianglePaint.isAntiAlias = true
-    trianglePaint.pathEffect = CornerPathEffect(15f)
-
-    val triangle = Path()
-    triangle.fillType = Path.FillType.EVEN_ODD
-    triangle.moveTo(size - strokeWidth, size / 2f)
-    triangle.lineTo(size / 2f, size + triangleMargin)
-    triangle.lineTo(strokeWidth, size / 2f)
-    triangle.close()
-    canvas.drawPath(triangle, trianglePaint)
-
-    val paintBorder = Paint()
-    paintBorder.isAntiAlias = true
-    paintBorder.color = markerColor
-    paintBorder.strokeWidth = strokeWidth
-    canvas.drawCircle(r, r, r - strokeWidth, paintBorder)
-
-    val whiteBorder = Paint()
-    whiteBorder.isAntiAlias = true
-    whiteBorder.color = Color.WHITE
-    whiteBorder.strokeWidth = strokeWidth
-    canvas.drawCircle(r, r, r - 22f, whiteBorder)
-
-    val paint = Paint()
-    paint.isAntiAlias = true
-    paint.setShader(BitmapShader(source, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP))
-    canvas.drawCircle(r, r, r - photoMargin, paint)
-
-    if (source != output) {
-        source.recycle()
-    }
-    return output
 }
