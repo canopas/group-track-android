@@ -19,7 +19,7 @@ import javax.inject.Singleton
 class AuthService @Inject constructor(
     db: FirebaseFirestore,
     private val device: Device,
-    private val userPreferences: UserPreferences,
+    private val userPreferences: UserPreferences
 ) {
     private val userRef = db.collection(FIRESTORE_COLLECTION_USERS)
     private val sessionRef = db.collection(FIRESTORE_COLLECTION_USER_SESSIONS)
@@ -88,7 +88,6 @@ class AuthService @Inject constructor(
 
         return isNewUser
     }
-
 
     var currentUser: ApiUser?
         get() {

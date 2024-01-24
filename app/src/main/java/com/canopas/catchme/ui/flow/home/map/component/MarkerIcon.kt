@@ -11,7 +11,6 @@ import android.graphics.Path
 import android.graphics.Shader
 import android.graphics.Typeface
 import android.graphics.drawable.BitmapDrawable
-import android.util.DisplayMetrics
 import android.util.TypedValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -48,7 +47,9 @@ fun rememberMarkerIconState(user: ApiUser): BitmapDescriptor? {
         iconState = loadBitmapDescriptorFromUrl(
             context,
             user,
-            markerColor, markerIconSize, markerTextSize
+            markerColor,
+            markerIconSize,
+            markerTextSize
         )
     }
     return iconState
@@ -67,11 +68,12 @@ private suspend fun loadBitmapDescriptorFromUrl(
         if (imageUrl.isNullOrEmpty()) {
             val placeHolder = createPlaceHolderBitmap(
                 userName,
-                markerColor, markerIconSize.roundToInt(), markerTextSize
+                markerColor,
+                markerIconSize.roundToInt(),
+                markerTextSize
             )
 
             transformBitmap(context, placeHolder, markerColor, markerIconSize)
-
         } else {
             val loader = ImageLoader(context)
             val request = ImageRequest.Builder(context)
@@ -84,15 +86,17 @@ private suspend fun loadBitmapDescriptorFromUrl(
             val drawable = (result as? SuccessResult)?.drawable
             val bitmap = (drawable as? BitmapDrawable)?.bitmap ?: createPlaceHolderBitmap(
                 userName,
-                markerColor, markerIconSize.roundToInt(), markerTextSize
+                markerColor,
+                markerIconSize.roundToInt(),
+                markerTextSize
             )
 
             transformBitmap(
                 context,
                 bitmap,
-                markerColor, markerIconSize
+                markerColor,
+                markerIconSize
             )
-
         }
     }
 }

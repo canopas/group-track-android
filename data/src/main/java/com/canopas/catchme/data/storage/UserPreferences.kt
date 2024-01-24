@@ -39,7 +39,6 @@ class UserPreferences @Inject constructor(
         val KEY_USER_JSON = stringPreferencesKey("current_user")
         val KEY_USER_SESSION_JSON = stringPreferencesKey("user_session")
         val KEY_USER_CURRENT_SPACE = stringPreferencesKey("user_current_space")
-
     }
 
     suspend fun isIntroShown(): Boolean {

@@ -1,8 +1,6 @@
 package com.canopas.catchme.data.repository
 
 import com.canopas.catchme.data.models.space.ApiSpace
-import com.canopas.catchme.data.models.space.ApiSpaceMember
-import com.canopas.catchme.data.models.user.ApiUser
 import com.canopas.catchme.data.models.user.UserInfo
 import com.canopas.catchme.data.service.auth.AuthService
 import com.canopas.catchme.data.service.location.ApiLocationService
@@ -10,21 +8,15 @@ import com.canopas.catchme.data.service.space.ApiSpaceService
 import com.canopas.catchme.data.service.user.ApiUserService
 import com.canopas.catchme.data.storage.UserPreferences
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.flow.transform
-import timber.log.Timber
 import javax.inject.Inject
 
 class SpaceRepository @Inject constructor(
@@ -60,7 +52,6 @@ class SpaceRepository @Inject constructor(
 
     private suspend fun getSpace(spaceId: String): ApiSpace? = spaceService.getSpace(spaceId)
 
-
     @OptIn(ExperimentalCoroutinesApi::class)
     suspend fun listenMemberWithLocation() {
         val currentSpace = getCurrentSpace() ?: return
@@ -84,13 +75,12 @@ class SpaceRepository @Inject constructor(
 
             val existingMembers = this.members.value.toMutableList()
             userInfos.forEach { userInfo ->
-                //Timber.e("XXX listen location ${userInfo.location}")
-                existingMembers.removeAll { it.user.id == userInfo.user.id  }
+                // Timber.e("XXX listen location ${userInfo.location}")
+                existingMembers.removeAll { it.user.id == userInfo.user.id }
                 existingMembers.add(userInfo)
             }
 
             _members.emit(existingMembers)
         }
     }
-
 }

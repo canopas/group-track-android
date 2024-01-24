@@ -1,6 +1,5 @@
 package com.canopas.catchme.data.service.space
 
-import com.canopas.catchme.data.models.user.ApiUser
 import com.canopas.catchme.data.models.space.ApiSpace
 import com.canopas.catchme.data.models.space.ApiSpaceMember
 import com.canopas.catchme.data.models.space.SPACE_MEMBER_ROLE_ADMIN
@@ -12,7 +11,6 @@ import com.canopas.catchme.data.utils.snapshotFlow
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -107,5 +105,4 @@ class ApiSpaceService @Inject constructor(
 //                }
 //            }
 //    }
-
 }

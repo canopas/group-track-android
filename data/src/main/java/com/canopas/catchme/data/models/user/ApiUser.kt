@@ -17,9 +17,8 @@ data class ApiUser(
     val location_enabled: Boolean = true,
     val provider_firebase_id_token: String? = null,
     val created_at: Long? = System.currentTimeMillis()
-)
-{
-    val fullName :String get() = "$first_name $last_name"
+) {
+    val fullName: String get() = "$first_name $last_name"
 }
 data class ApiUserSession(
     val id: String = UUID.randomUUID().toString(),

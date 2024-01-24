@@ -17,5 +17,4 @@ class ApiUserService @Inject constructor(
     suspend fun getUser(userId: String): ApiUser? {
         return userRef.document(userId).get().await().toObject(ApiUser::class.java)
     }
-
 }

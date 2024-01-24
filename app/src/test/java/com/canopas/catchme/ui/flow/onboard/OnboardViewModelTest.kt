@@ -1,11 +1,11 @@
 package com.canopas.catchme.ui.flow.onboard
 
 import com.canopas.catchme.MainCoroutineRule
-import com.canopas.catchme.data.models.user.ApiUser
 import com.canopas.catchme.data.models.space.ApiSpace
 import com.canopas.catchme.data.models.space.ApiSpaceInvitation
-import com.canopas.catchme.data.service.space.SpaceInvitationService
+import com.canopas.catchme.data.models.user.ApiUser
 import com.canopas.catchme.data.service.space.ApiSpaceService
+import com.canopas.catchme.data.service.space.SpaceInvitationService
 import com.canopas.catchme.data.service.user.ApiUserService
 import com.canopas.catchme.data.storage.UserPreferences
 import com.canopas.catchme.data.utils.AppDispatcher
