@@ -32,6 +32,7 @@ import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
 
 private const val MARKER_ICON_SIZE = 60f
+
 @Composable
 fun rememberMarkerIconState(user: ApiUser): BitmapDescriptor? {
     val context = LocalContext.current
@@ -52,7 +53,7 @@ fun rememberMarkerIconState(user: ApiUser): BitmapDescriptor? {
 private suspend fun loadBitmapDescriptorFromUrl(
     context: Context,
     apiUser: ApiUser,
-    markerColor: Int,
+    markerColor: Int
 ): BitmapDescriptor {
     val imageUrl = apiUser.profile_image
     val userName = apiUser.first_name?.first()?.toString() ?: ""
@@ -64,7 +65,7 @@ private suspend fun loadBitmapDescriptorFromUrl(
             val placeHolder = createPlaceHolderBitmap(
                 context,
                 userName,
-                markerColor,
+                markerColor
             )
 
             transformBitmap(context, placeHolder)
@@ -81,7 +82,7 @@ private suspend fun loadBitmapDescriptorFromUrl(
             val bitmap = (drawable as? BitmapDrawable)?.bitmap ?: createPlaceHolderBitmap(
                 context,
                 userName,
-                markerColor,
+                markerColor
             )
 
             transformBitmap(
@@ -95,7 +96,7 @@ private suspend fun loadBitmapDescriptorFromUrl(
 private fun createPlaceHolderBitmap(
     context: Context,
     markerLabel: String,
-    markerColor: Int,
+    markerColor: Int
 ): Bitmap {
     val dm = context.resources.displayMetrics
     val markerIconSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, MARKER_ICON_SIZE, dm).roundToInt()
@@ -152,10 +153,14 @@ private fun transformBitmap(
     val canvas = Canvas(output)
 
     val corners = floatArrayOf(
-        corner, corner,
-        corner, corner,
-        corner, corner,
-        pointerCorner, pointerCorner
+        corner,
+        corner,
+        corner,
+        corner,
+        corner,
+        corner,
+        pointerCorner,
+        pointerCorner
     )
 
     val bgPaint = Paint()
@@ -163,7 +168,7 @@ private fun transformBitmap(
     bgPaint.isAntiAlias = true
     bgPaint.color = Color.WHITE
 
-    bgPaint.setShadowLayer(shadowMargin, 0f, 0f, Color.GRAY);
+    bgPaint.setShadowLayer(shadowMargin, 0f, 0f, Color.GRAY)
 
     val rect = RectF(
         shadowMargin,
