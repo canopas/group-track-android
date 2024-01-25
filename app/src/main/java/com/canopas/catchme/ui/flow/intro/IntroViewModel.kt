@@ -17,24 +17,26 @@ class IntroViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            if (userPreferences.isIntroShown() && userPreferences.currentUser == null) {
-                navigator.navigateTo(
-                    AppDestinations.signIn.path,
-                    popUpToRoute = AppDestinations.intro.path,
-                    inclusive = true
-                )
-            } else if (userPreferences.isIntroShown() && !userPreferences.isOnboardShown()) {
-                navigator.navigateTo(
-                    AppDestinations.onboard.path,
-                    popUpToRoute = AppDestinations.intro.path,
-                    inclusive = true
-                )
-            } else {
-                navigator.navigateTo(
-                    AppDestinations.home.path,
-                    popUpToRoute = AppDestinations.intro.path,
-                    inclusive = true
-                )
+            if (userPreferences.isIntroShown()) {
+                if (userPreferences.currentUser == null) {
+                    navigator.navigateTo(
+                        AppDestinations.signIn.path,
+                        popUpToRoute = AppDestinations.intro.path,
+                        inclusive = true
+                    )
+                } else if (!userPreferences.isOnboardShown()) {
+                    navigator.navigateTo(
+                        AppDestinations.onboard.path,
+                        popUpToRoute = AppDestinations.intro.path,
+                        inclusive = true
+                    )
+                } else {
+                    navigator.navigateTo(
+                        AppDestinations.home.path,
+                        popUpToRoute = AppDestinations.intro.path,
+                        inclusive = true
+                    )
+                }
             }
         }
     }

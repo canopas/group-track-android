@@ -3,8 +3,8 @@ package com.canopas.catchme.data.receiver.location
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import com.canopas.catchme.data.service.auth.AuthService
 import com.canopas.catchme.data.service.location.ApiLocationService
-import com.canopas.catchme.data.service.user.UserService
 import com.google.android.gms.location.LocationResult
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -23,7 +23,7 @@ class LocationUpdateReceiver : BroadcastReceiver() {
     lateinit var locationService: ApiLocationService
 
     @Inject
-    lateinit var userService: UserService
+    lateinit var authService: AuthService
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -31,7 +31,7 @@ class LocationUpdateReceiver : BroadcastReceiver() {
             scope.launch {
                 locationResult.locations.map {
                     locationService.saveCurrentLocation(
-                        userService.currentUser?.id ?: "",
+                        authService.currentUser?.id ?: "",
                         it.latitude,
                         it.longitude,
                         Date().time

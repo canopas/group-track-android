@@ -2,9 +2,9 @@ package com.canopas.catchme.ui.flow.onboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.canopas.catchme.data.service.auth.AuthService
+import com.canopas.catchme.data.service.space.ApiSpaceService
 import com.canopas.catchme.data.service.space.SpaceInvitationService
-import com.canopas.catchme.data.service.space.SpaceService
-import com.canopas.catchme.data.service.user.UserService
 import com.canopas.catchme.data.storage.UserPreferences
 import com.canopas.catchme.data.utils.AppDispatcher
 import com.canopas.catchme.ui.navigation.AppDestinations
@@ -18,9 +18,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class OnboardViewModel @Inject constructor(
-    private val userService: UserService,
+    private val authService: AuthService,
     private val appDispatcher: AppDispatcher,
-    private val spaceService: SpaceService,
+    private val spaceService: ApiSpaceService,
     private val userPreferences: UserPreferences,
     private val navigator: MainNavigator,
     private val invitationService: SpaceInvitationService
@@ -29,10 +29,10 @@ class OnboardViewModel @Inject constructor(
     private val _state = MutableStateFlow(OnboardScreenState())
     val state: StateFlow<OnboardScreenState> = _state
 
-    private val currentUser get() = userService.currentUser
+    private val currentUser get() = authService.currentUser
 
     init {
-        val user = userService.currentUser
+        val user = authService.currentUser
         _state.value = _state.value.copy(
             firstName = user?.first_name ?: "",
             lastName = user?.last_name ?: ""
@@ -58,7 +58,7 @@ class OnboardViewModel @Inject constructor(
                 first_name = _state.value.firstName.trim(),
                 last_name = _state.value.lastName.trim()
             )
-            user?.let { userService.updateUser(it) }
+            user?.let { authService.updateUser(it) }
         }
         _state.emit(
             _state.value.copy(

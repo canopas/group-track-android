@@ -5,8 +5,9 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import com.canopas.catchme.data.models.auth.ApiUser
-import com.canopas.catchme.data.models.auth.ApiUserSession
+import com.canopas.catchme.data.models.user.ApiUser
+import com.canopas.catchme.data.models.user.ApiUserSession
+import com.canopas.catchme.data.storage.UserPreferences.PreferencesKey.KEY_USER_CURRENT_SPACE
 import com.canopas.catchme.data.storage.UserPreferences.PreferencesKey.KEY_USER_JSON
 import com.canopas.catchme.data.storage.UserPreferences.PreferencesKey.KEY_USER_SESSION_JSON
 import com.squareup.moshi.JsonAdapter
@@ -37,6 +38,7 @@ class UserPreferences @Inject constructor(
 
         val KEY_USER_JSON = stringPreferencesKey("current_user")
         val KEY_USER_SESSION_JSON = stringPreferencesKey("user_session")
+        val KEY_USER_CURRENT_SPACE = stringPreferencesKey("user_current_space")
     }
 
     suspend fun isIntroShown(): Boolean {
@@ -92,6 +94,22 @@ class UserPreferences @Inject constructor(
             } else {
                 preferencesDataStore.edit { preferences ->
                     preferences[KEY_USER_SESSION_JSON] = userSessionJsonAdapter.toJson(newSession)
+                }
+            }
+        }
+
+    var currentSpace: String?
+        get() = runBlocking {
+            preferencesDataStore.data.first()[KEY_USER_CURRENT_SPACE]
+        }
+        set(newSpace) = runBlocking {
+            if (newSpace == null) {
+                preferencesDataStore.edit {
+                    it.remove(KEY_USER_CURRENT_SPACE)
+                }
+            } else {
+                preferencesDataStore.edit { preferences ->
+                    preferences[KEY_USER_CURRENT_SPACE] = newSpace
                 }
             }
         }

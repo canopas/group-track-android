@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,7 +23,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.catchme.R
+import com.canopas.catchme.ui.flow.home.map.component.MapMarker
 import com.canopas.catchme.ui.theme.AppTheme
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
@@ -98,11 +101,17 @@ fun MapScreen() {
 
 @Composable
 private fun MapView(cameraPositionState: CameraPositionState) {
+    val viewModel = hiltViewModel<MapViewModel>()
+    val state by viewModel.state.collectAsState()
+
     GoogleMap(
         cameraPositionState = cameraPositionState,
         properties = MapProperties(),
         uiSettings = MapUiSettings(zoomControlsEnabled = false, tiltGesturesEnabled = false)
     ) {
+        state.members.filter { it.location != null }.forEach {
+            MapMarker(user = it.user, location = it.location!!) {}
+        }
     }
 }
 

@@ -3,7 +3,7 @@ package com.canopas.catchme.data.models.space
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-class ApiSpace(
+data class ApiSpace(
     val id: String = UUID.randomUUID().toString(),
     val admin_id: String = "",
     val name: String = "",
@@ -13,7 +13,7 @@ class ApiSpace(
 const val SPACE_MEMBER_ROLE_ADMIN = 1
 const val SPACE_MEMBER_ROLE_MEMBER = 2
 
-class ApiSpaceMember(
+data class ApiSpaceMember(
     val id: String = UUID.randomUUID().toString(),
     val space_id: String = "",
     val user_id: String = "",
@@ -22,7 +22,7 @@ class ApiSpaceMember(
     val created_at: Long? = System.currentTimeMillis()
 )
 
-class ApiSpaceInvitation(
+data class ApiSpaceInvitation(
     val id: String = UUID.randomUUID().toString(),
     val space_id: String = "",
     val code: String = "",

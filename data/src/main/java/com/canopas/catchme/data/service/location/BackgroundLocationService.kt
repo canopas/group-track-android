@@ -7,7 +7,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class LocationService : Service() {
+class BackgroundLocationService : Service() {
 
     @Inject
     lateinit var locationManager: LocationManager
