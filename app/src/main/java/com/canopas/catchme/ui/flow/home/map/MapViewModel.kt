@@ -21,6 +21,7 @@ class MapViewModel @Inject constructor(
     private val _state = MutableStateFlow(MapScreenState())
     val state = _state.asStateFlow()
 
+
     init {
         viewModelScope.launch(appDispatcher.IO) {
             spaceRepository.listenMemberWithLocation()

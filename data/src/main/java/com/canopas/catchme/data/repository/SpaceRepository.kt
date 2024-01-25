@@ -1,6 +1,8 @@
 package com.canopas.catchme.data.repository
 
 import com.canopas.catchme.data.models.space.ApiSpace
+import com.canopas.catchme.data.models.space.SPACE_MEMBER_ROLE_MEMBER
+import com.canopas.catchme.data.models.space.SpaceInfo
 import com.canopas.catchme.data.models.user.UserInfo
 import com.canopas.catchme.data.service.auth.AuthService
 import com.canopas.catchme.data.service.location.ApiLocationService
@@ -31,6 +33,22 @@ class SpaceRepository @Inject constructor(
 
     private val _members = MutableStateFlow<List<UserInfo>>(emptyList())
     val members = _members.asStateFlow()
+
+    suspend fun getAllSpaceInfo(): List<SpaceInfo> {
+        val userId = authService.currentUser?.id ?: ""
+        val spaces = getUserSpaces(userId).mapNotNull { it }
+        val spaceInfos = spaces.map { space ->
+            val members =
+                spaceService.getSpaceMemberByUserId(space.id).first()
+                    .mapNotNull { userService.getUser(it.user_id) }
+                    .map {
+                        val location = locationService.getCurrentLocation(it.id).first()
+                        UserInfo(it, location)
+                    }
+            SpaceInfo(space, members)
+        }
+        return spaceInfos
+    }
 
     private suspend fun getCurrentSpace(): ApiSpace? {
         val spaceId = userPreferences.currentSpace
@@ -70,8 +88,6 @@ class SpaceRepository @Inject constructor(
                     }
             }
             combine(flows) { it.toList() }
-        }.collectLatest { userInfos ->
-            _members.emit(userInfos)
         }
     }
 }
