@@ -5,7 +5,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -15,7 +14,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -43,7 +41,6 @@ fun MapScreen() {
     val tempLatLong = remember {
         LatLng(21.231809060338193, 72.83629238605499)
     }
-    var enableLocation by remember { mutableStateOf(true) }
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(tempLatLong, 16f)
     }
@@ -66,7 +63,7 @@ fun MapScreen() {
                 .padding(bottom = 10.dp, end = 10.dp)
 
         ) {
-            MapControl(icon = R.drawable.ic_relocate) {
+            RelocateBtn(icon = R.drawable.ic_relocate) {
                 scope.launch {
                     cameraPositionState.animate(
                         CameraUpdateFactory.newLatLngZoom(
@@ -75,25 +72,6 @@ fun MapScreen() {
                         )
                     )
                 }
-            }
-        }
-
-        Column(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(top = 10.dp, end = 10.dp)
-        ) {
-            MapControl(icon = R.drawable.ic_settings, modifier = Modifier) {
-            }
-
-            MapControl(icon = R.drawable.ic_messages, modifier = Modifier) {
-            }
-
-            MapControl(
-                icon = if (enableLocation) R.drawable.ic_location_on else R.drawable.ic_location_off,
-                modifier = Modifier
-            ) {
-                enableLocation = !enableLocation
             }
         }
     }
@@ -116,7 +94,7 @@ private fun MapView(cameraPositionState: CameraPositionState) {
 }
 
 @Composable
-private fun MapControl(
+private fun RelocateBtn(
     modifier: Modifier = Modifier,
     @DrawableRes icon: Int,
     onClick: () -> Unit

@@ -1,4 +1,4 @@
-package com.canopas.catchme.ui.flow.home
+package com.canopas.catchme.ui.flow.home.home
 
 import androidx.lifecycle.ViewModel
 import com.canopas.catchme.data.repository.SpaceRepository

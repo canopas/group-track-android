@@ -1,8 +1,10 @@
-package com.canopas.catchme.ui.flow.home
+package com.canopas.catchme.ui.flow.home.home
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
@@ -10,11 +12,16 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -31,6 +38,7 @@ import com.canopas.catchme.R
 import com.canopas.catchme.data.utils.isBackgroundLocationPermissionGranted
 import com.canopas.catchme.ui.component.CheckBackgroundLocationPermission
 import com.canopas.catchme.ui.flow.home.activity.ActivityScreen
+import com.canopas.catchme.ui.flow.home.home.component.SpaceSelectionMenu
 import com.canopas.catchme.ui.flow.home.map.MapScreen
 import com.canopas.catchme.ui.flow.home.places.PlacesScreen
 import com.canopas.catchme.ui.navigation.AppDestinations
@@ -63,12 +71,61 @@ fun HomeScreen() {
                     .padding(it)
             ) {
                 HomeScreenContent(navController)
+                HomeTopBar()
             }
         },
         bottomBar = {
             HomeBottomBar(navController)
         }
     )
+}
+
+@Composable
+fun HomeTopBar() {
+    var enableLocation by remember { mutableStateOf(true) }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 10.dp)
+            .padding(horizontal = 6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        MapControl(icon = R.drawable.ic_settings, modifier = Modifier) {
+        }
+
+        SpaceSelectionMenu(modifier = Modifier.weight(1f)) {}
+
+        MapControl(icon = R.drawable.ic_messages, modifier = Modifier) {
+        }
+
+        MapControl(
+            icon = if (enableLocation) R.drawable.ic_location_on else R.drawable.ic_location_off,
+            modifier = Modifier
+        ) {
+            enableLocation = !enableLocation
+        }
+    }
+}
+
+@Composable
+private fun MapControl(
+    modifier: Modifier = Modifier,
+    @DrawableRes icon: Int,
+    onClick: () -> Unit
+) {
+    SmallFloatingActionButton(
+        modifier = modifier,
+        onClick = { onClick() },
+        containerColor = AppTheme.colorScheme.surface,
+        contentColor = AppTheme.colorScheme.primary
+    ) {
+        Icon(
+            painter = painterResource(id = icon),
+            contentDescription = "",
+            modifier = Modifier.size(24.dp)
+        )
+    }
 }
 
 @Composable

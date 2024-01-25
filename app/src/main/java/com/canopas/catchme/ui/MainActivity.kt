@@ -18,7 +18,7 @@ import com.canopas.catchme.ui.flow.auth.methods.SignInMethodsScreen
 import com.canopas.catchme.ui.flow.auth.phone.EXTRA_RESULT_IS_NEW_USER
 import com.canopas.catchme.ui.flow.auth.phone.SignInWithPhoneScreen
 import com.canopas.catchme.ui.flow.auth.verification.PhoneVerificationScreen
-import com.canopas.catchme.ui.flow.home.HomeScreen
+import com.canopas.catchme.ui.flow.home.home.HomeScreen
 import com.canopas.catchme.ui.flow.intro.IntroScreen
 import com.canopas.catchme.ui.flow.onboard.OnboardScreen
 import com.canopas.catchme.ui.flow.permission.EnablePermissionsScreen
