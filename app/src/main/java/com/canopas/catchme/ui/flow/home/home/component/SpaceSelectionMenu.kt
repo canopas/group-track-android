@@ -1,10 +1,17 @@
 package com.canopas.catchme.ui.flow.home.home.component
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults.smallShape
 import androidx.compose.material3.Icon
@@ -44,6 +51,25 @@ fun SpaceSelectionMenu(modifier: Modifier, onClick: () -> Unit) {
                 painter = painterResource(id = R.drawable.ic_arrow_down),
                 contentDescription = "drop-down-arrow"
             )
+        }
+    }
+}
+
+@Composable
+fun SpaceSelectionPopup(show: Boolean) {
+    AnimatedVisibility(visible = show,
+        enter = slideInVertically { -it },
+        exit = slideOutVertically { -it }) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(150.dp)
+                .background(
+                    color = AppTheme.colorScheme.surface,
+                    shape = RoundedCornerShape(bottomStart = 10.dp, bottomEnd = 10.dp)
+                )
+        ) {
+
         }
     }
 }

@@ -1,6 +1,11 @@
 package com.canopas.catchme.ui.flow.home.home
 
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -39,6 +44,7 @@ import com.canopas.catchme.data.utils.isBackgroundLocationPermissionGranted
 import com.canopas.catchme.ui.component.CheckBackgroundLocationPermission
 import com.canopas.catchme.ui.flow.home.activity.ActivityScreen
 import com.canopas.catchme.ui.flow.home.home.component.SpaceSelectionMenu
+import com.canopas.catchme.ui.flow.home.home.component.SpaceSelectionPopup
 import com.canopas.catchme.ui.flow.home.map.MapScreen
 import com.canopas.catchme.ui.flow.home.places.PlacesScreen
 import com.canopas.catchme.ui.navigation.AppDestinations
@@ -83,6 +89,9 @@ fun HomeScreen() {
 @Composable
 fun HomeTopBar() {
     var enableLocation by remember { mutableStateOf(true) }
+    var toggleSpaceSelection by remember { mutableStateOf(false) }
+
+    SpaceSelectionPopup(show = toggleSpaceSelection)
 
     Row(
         modifier = Modifier
@@ -94,7 +103,9 @@ fun HomeTopBar() {
         MapControl(icon = R.drawable.ic_settings, modifier = Modifier) {
         }
 
-        SpaceSelectionMenu(modifier = Modifier.weight(1f)) {}
+        SpaceSelectionMenu(modifier = Modifier.weight(1f)) {
+            toggleSpaceSelection = !toggleSpaceSelection
+        }
 
         MapControl(icon = R.drawable.ic_messages, modifier = Modifier) {
         }
@@ -137,8 +148,8 @@ private fun PermissionChecker() {
         CheckBackgroundLocationPermission(onDismiss = {
             viewModel.shouldAskForBackgroundLocationPermission(false)
         }, onGranted = {
-                viewModel.startTracking()
-            })
+            viewModel.startTracking()
+        })
     }
 }
 
