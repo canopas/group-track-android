@@ -36,7 +36,6 @@ import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 @Composable
 fun MapScreen() {
@@ -105,14 +104,12 @@ private fun MapView(cameraPositionState: CameraPositionState) {
     val viewModel = hiltViewModel<MapViewModel>()
     val state by viewModel.state.collectAsState()
 
-    Timber.d("XXX update map ${state.members.size}")
     GoogleMap(
         cameraPositionState = cameraPositionState,
         properties = MapProperties(),
         uiSettings = MapUiSettings(zoomControlsEnabled = false, tiltGesturesEnabled = false)
     ) {
         state.members.filter { it.location != null }.forEach {
-            Timber.d("XXX MapMarker: ${it.location}")
             MapMarker(user = it.user, location = it.location!!) {}
         }
     }

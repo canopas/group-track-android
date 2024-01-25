@@ -11,7 +11,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import java.util.Date
 import javax.inject.Inject
 
@@ -29,7 +28,6 @@ class LocationUpdateReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         LocationResult.extractResult(intent)?.let { locationResult ->
-            Timber.d("XXX location update")
             scope.launch {
                 locationResult.locations.map {
                     locationService.saveCurrentLocation(

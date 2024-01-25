@@ -10,7 +10,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.MarkerState
-import timber.log.Timber
 
 @Composable
 fun rememberMarkerState(
@@ -25,7 +24,6 @@ fun rememberMarkerState(
     LaunchedEffect(key1 = position) {
         animatable.snapTo(0f)
         animatable.animateTo(1f, animationSpec = tween(1000))
-        Timber.d("XXX update state")
         state = MarkerState(
             position = LatLng(
                 position.latitude,

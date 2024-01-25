@@ -4,9 +4,9 @@ import com.canopas.catchme.MainCoroutineRule
 import com.canopas.catchme.data.models.space.ApiSpace
 import com.canopas.catchme.data.models.space.ApiSpaceInvitation
 import com.canopas.catchme.data.models.user.ApiUser
+import com.canopas.catchme.data.service.auth.AuthService
 import com.canopas.catchme.data.service.space.ApiSpaceService
 import com.canopas.catchme.data.service.space.SpaceInvitationService
-import com.canopas.catchme.data.service.user.ApiUserService
 import com.canopas.catchme.data.storage.UserPreferences
 import com.canopas.catchme.data.utils.AppDispatcher
 import com.canopas.catchme.ui.navigation.MainNavigator
@@ -33,7 +33,7 @@ class OnboardViewModelTest {
 
     private lateinit var viewModel: OnboardViewModel
 
-    private val userService = mock<ApiUserService>()
+    private val userService = mock<AuthService>()
     private val userPreferences = mock<UserPreferences>()
     private val spaceService = mock<ApiSpaceService>()
     private val navigator = mock<MainNavigator>()

@@ -7,6 +7,7 @@ import com.canopas.catchme.data.service.location.ApiLocationService
 import com.canopas.catchme.data.service.space.ApiSpaceService
 import com.canopas.catchme.data.service.user.ApiUserService
 import com.canopas.catchme.data.storage.UserPreferences
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class SpaceRepository @Inject constructor(
@@ -30,7 +32,7 @@ class SpaceRepository @Inject constructor(
     private val _members = MutableStateFlow<List<UserInfo>>(emptyList())
     val members = _members.asStateFlow()
 
-    suspend fun getCurrentSpace(): ApiSpace? {
+    private suspend fun getCurrentSpace(): ApiSpace? {
         val spaceId = userPreferences.currentSpace
 
         if (spaceId.isNullOrEmpty()) {
@@ -53,16 +55,13 @@ class SpaceRepository @Inject constructor(
     private suspend fun getSpace(spaceId: String): ApiSpace? = spaceService.getSpace(spaceId)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    suspend fun listenMemberWithLocation() {
-        val currentSpace = getCurrentSpace() ?: return
+    suspend fun listenMemberWithLocation() = withContext(Dispatchers.IO) {
+        val currentSpace = getCurrentSpace() ?: return@withContext
         spaceService.getMemberBySpaceId(currentSpace.id).map { member ->
-            val currentMembers = this@SpaceRepository.members.value.toMutableList()
-
-            val users =
-                member.filter { it.user_id !in currentMembers.map { it.user.id } }.mapNotNull {
-                    userService.getUser(it.user_id)
-                }
-            users
+            val currentMembers = members.value
+            member.filter { it.user_id !in currentMembers.map { it.user.id } }.mapNotNull {
+                userService.getUser(it.user_id)
+            }
         }.flatMapLatest { users ->
             val flows = users.map { user ->
                 locationService.getCurrentLocation(user.id)
@@ -72,15 +71,7 @@ class SpaceRepository @Inject constructor(
             }
             combine(flows) { it.toList() }
         }.collectLatest { userInfos ->
-
-            val existingMembers = this.members.value.toMutableList()
-            userInfos.forEach { userInfo ->
-                // Timber.e("XXX listen location ${userInfo.location}")
-                existingMembers.removeAll { it.user.id == userInfo.user.id }
-                existingMembers.add(userInfo)
-            }
-
-            _members.emit(existingMembers)
+            _members.emit(userInfos)
         }
     }
 }
