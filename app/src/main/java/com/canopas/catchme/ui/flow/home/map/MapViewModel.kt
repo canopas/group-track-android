@@ -21,18 +21,15 @@ class MapViewModel @Inject constructor(
     private val _state = MutableStateFlow(MapScreenState())
     val state = _state.asStateFlow()
 
-
     init {
-        viewModelScope.launch(appDispatcher.IO) {
-            spaceRepository.listenMemberWithLocation()
-        }
         viewModelScope.launch {
-            spaceRepository.members.collectLatest {
+            spaceRepository.getMemberWithLocation().collectLatest {
                 _state.emit(_state.value.copy(members = it))
             }
         }
     }
 }
+
 
 data class MapScreenState(
     val members: List<UserInfo> = emptyList()

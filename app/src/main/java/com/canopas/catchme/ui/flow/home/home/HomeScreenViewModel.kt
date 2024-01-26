@@ -6,10 +6,12 @@ import com.canopas.catchme.data.models.space.SpaceInfo
 import com.canopas.catchme.data.repository.SpaceRepository
 import com.canopas.catchme.data.service.location.LocationManager
 import com.canopas.catchme.data.utils.AppDispatcher
+import com.canopas.catchme.ui.navigation.AppDestinations
 import com.canopas.catchme.ui.navigation.HomeNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -46,17 +48,27 @@ class HomeScreenViewModel @Inject constructor(
 
     private fun getAllSpaces() = viewModelScope.launch(appDispatcher.IO) {
         try {
-            _state.emit(_state.value.copy(isLoadingSpaces = true))
-            val spaces = spaceRepository.getAllSpaceInfo()
-            _state.emit(_state.value.copy(spaces = spaces, isLoadingSpaces = false))
+            _state.emit(_state.value.copy(isLoadingSpaces = _state.value.spaces.isEmpty()))
+            spaceRepository.getAllSpaceInfo().collectLatest { spaces ->
+                if(spaceRepository.currentSpaceId.isEmpty()){
+                    spaceRepository.currentSpaceId = spaces.firstOrNull()?.space?.id ?: ""
+                }
+                _state.emit(_state.value.copy(spaces = spaces, isLoadingSpaces = false, selectedSpaceId = spaceRepository.currentSpaceId))
+            }
         } catch (e: Exception) {
             Timber.e(e, "Failed to get all spaces")
             _state.emit(_state.value.copy(error = e.message, isLoadingSpaces = false))
         }
     }
 
-    fun toggleSpaceSelection(show: Boolean) {
-        _state.value = _state.value.copy(showSpaceSelectionPopup = show)
+    fun toggleSpaceSelection() {
+        _state.value =
+            _state.value.copy(showSpaceSelectionPopup = !state.value.showSpaceSelectionPopup)
+    }
+
+    fun navigateToCreateSpace() {
+        toggleSpaceSelection()
+        navigator.navigateTo(AppDestinations.createSpace.path)
     }
 }
 
@@ -64,6 +76,7 @@ data class HomeScreenState(
     val currentTab: Int = 0,
     val shouldAskForBackgroundLocationPermission: Boolean = false,
     val spaces: List<SpaceInfo> = emptyList(),
+    val selectedSpaceId: String = "",
     val isLoadingSpaces: Boolean = false,
     val showSpaceSelectionPopup: Boolean = false,
     val error: String? = null

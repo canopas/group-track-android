@@ -2,18 +2,18 @@ package com.canopas.catchme.ui.flow.home.home
 
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
@@ -22,12 +22,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -37,7 +39,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.canopas.catchme.R
 import com.canopas.catchme.data.utils.isBackgroundLocationPermissionGranted
@@ -47,8 +49,12 @@ import com.canopas.catchme.ui.flow.home.home.component.SpaceSelectionMenu
 import com.canopas.catchme.ui.flow.home.home.component.SpaceSelectionPopup
 import com.canopas.catchme.ui.flow.home.map.MapScreen
 import com.canopas.catchme.ui.flow.home.places.PlacesScreen
+import com.canopas.catchme.ui.flow.home.space.create.CreateSpaceHomeScreen
+import com.canopas.catchme.ui.flow.home.space.create.SpaceInvite
 import com.canopas.catchme.ui.navigation.AppDestinations
 import com.canopas.catchme.ui.navigation.AppNavigator
+import com.canopas.catchme.ui.navigation.slideComposable
+import com.canopas.catchme.ui.navigation.tabComposable
 import com.canopas.catchme.ui.theme.AppTheme
 
 @Composable
@@ -68,6 +74,19 @@ fun HomeScreen() {
     PermissionChecker()
 
     AppNavigator(navController = navController, viewModel.navActions)
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+
+    val showTopBar by remember {
+        derivedStateOf {
+            showSpaceTopBarOn.contains(navBackStackEntry?.destination?.route)
+        }
+    }
+
+    val hideBottomBar by remember {
+        derivedStateOf {
+            hideBottomBarOn.contains(navBackStackEntry?.destination?.route)
+        }
+    }
 
     Scaffold(
         containerColor = AppTheme.colorScheme.surface,
@@ -77,21 +96,40 @@ fun HomeScreen() {
                     .padding(it)
             ) {
                 HomeScreenContent(navController)
-                HomeTopBar()
+
+                AnimatedVisibility(visible = showTopBar,
+                    enter = slideInVertically { -it },
+                    exit = slideOutVertically { -it }) {
+                    HomeTopBar()
+                }
             }
         },
         bottomBar = {
-            HomeBottomBar(navController)
+            AnimatedVisibility(visible = !hideBottomBar,
+                enter = slideInVertically(tween(100)) { it },
+                exit = slideOutVertically(tween(100)) { it }) {
+                HomeBottomBar(navController)
+            }
         }
     )
 }
 
 @Composable
 fun HomeTopBar() {
+    val viewModel = hiltViewModel<HomeScreenViewModel>()
+    val state by viewModel.state.collectAsState()
     var enableLocation by remember { mutableStateOf(true) }
-    var toggleSpaceSelection by remember { mutableStateOf(false) }
 
-    SpaceSelectionPopup(show = toggleSpaceSelection)
+    SpaceSelectionPopup(
+        show = state.showSpaceSelectionPopup,
+        spaces = state.spaces,
+        selectSpaceId = state.selectedSpaceId,
+        onSpaceSelected = {},
+        onJoinSpace = {},
+        onCreateSpace = {
+            viewModel.navigateToCreateSpace()
+        }
+    )
 
     Row(
         modifier = Modifier
@@ -103,9 +141,7 @@ fun HomeTopBar() {
         MapControl(icon = R.drawable.ic_settings, modifier = Modifier) {
         }
 
-        SpaceSelectionMenu(modifier = Modifier.weight(1f)) {
-            toggleSpaceSelection = !toggleSpaceSelection
-        }
+        SpaceSelectionMenu(modifier = Modifier.weight(1f))
 
         MapControl(icon = R.drawable.ic_messages, modifier = Modifier) {
         }
@@ -153,22 +189,31 @@ private fun PermissionChecker() {
     }
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun HomeScreenContent(navController: NavHostController) {
     NavHost(
         navController = navController,
         startDestination = AppDestinations.map.path
     ) {
-        composable(AppDestinations.map.path) {
+        tabComposable(AppDestinations.map.path) {
             MapScreen()
         }
 
-        composable(AppDestinations.places.path) {
+        tabComposable(AppDestinations.places.path) {
             PlacesScreen()
         }
 
-        composable(AppDestinations.activity.path) {
+        tabComposable(AppDestinations.activity.path) {
             ActivityScreen()
+        }
+
+        slideComposable(AppDestinations.createSpace.path) {
+            CreateSpaceHomeScreen()
+        }
+
+        slideComposable(AppDestinations.spaceInvite.path) {
+            SpaceInvite()
         }
     }
 }
@@ -190,9 +235,10 @@ fun HomeBottomBar(navController: NavHostController) {
         }
     }
 
-    NavigationBar(
+    BottomAppBar(
         contentColor = AppTheme.colorScheme.primary,
-        containerColor = AppTheme.colorScheme.surface
+        containerColor = AppTheme.colorScheme.surface,
+        modifier = Modifier.shadow(10.dp)
     ) {
         NavItem(
             HomeTab.Main,
@@ -285,3 +331,17 @@ sealed class HomeTab(
         R.drawable.ic_tab_activities_filled
     )
 }
+
+val showSpaceTopBarOn: List<String>
+    get() = listOf(
+        AppDestinations.map.path,
+        AppDestinations.activity.path,
+        AppDestinations.places.path
+    )
+
+
+val hideBottomBarOn: List<String>
+    get() = listOf(
+        AppDestinations.createSpace.path,
+        AppDestinations.spaceInvite.path
+    )

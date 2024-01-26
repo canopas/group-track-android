@@ -26,6 +26,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.catchme.R
+import com.canopas.catchme.ui.component.CreateSpace
 import com.canopas.catchme.ui.component.PrimaryButton
 import com.canopas.catchme.ui.flow.onboard.OnboardViewModel
 import com.canopas.catchme.ui.theme.AppTheme
@@ -35,92 +36,21 @@ fun CreateSpaceOnboard() {
     val viewModel = hiltViewModel<OnboardViewModel>()
     val state by viewModel.state.collectAsState()
 
-    val initialName =
-        stringResource(id = R.string.onboard_create_space_initial_name, state.lastName)
-    var spaceName by remember { mutableStateOf(if (state.lastName.isEmpty()) "" else initialName) }
+    val initialName = if (state.lastName.isEmpty()) "" else stringResource(
+        id = R.string.onboard_create_space_initial_name,
+        state.lastName
+    )
+    var spaceName by remember { mutableStateOf(initialName) }
 
-    Column(
+    CreateSpace(
         modifier = Modifier
             .fillMaxSize()
             .background(AppTheme.colorScheme.surface)
-            .padding(top = 80.dp)
+            .padding(top = 80.dp),
+        spaceName = spaceName, showLoader = state.creatingSpace,
+        onSpaceNameChanged = { spaceName = it }
     ) {
-        Spacer(modifier = Modifier.height(30.dp))
-        Text(
-            text = stringResource(R.string.onboard_create_space_give_name_title),
-            style = AppTheme.appTypography.header1,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 28.dp)
-        )
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Text(
-            text = stringResource(R.string.onboard_create_space_subtitle),
-            style = AppTheme.appTypography.body1,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 28.dp)
-        )
-        Spacer(modifier = Modifier.height(30.dp))
-
-        PickNameTextField(
-            stringResource(id = R.string.onboard_create_space_name_label),
-            spaceName
-        ) {
-            spaceName = it
-        }
-
-        Spacer(modifier = Modifier.height(60.dp))
-        PrimaryButton(
-            label = stringResource(R.string.common_btn_next),
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-            onClick = { viewModel.createSpace(spaceName) },
-            enabled = spaceName.trim().isNotEmpty(),
-            showLoader = state.creatingSpace
-        )
+        viewModel.createSpace(spaceName)
     }
-}
 
-@Composable
-private fun PickNameTextField(title: String, value: String, onValueChanged: (String) -> Unit) {
-    Text(
-        text = title.uppercase(),
-        style = AppTheme.appTypography.subTitle2.copy()
-            .copy(color = AppTheme.colorScheme.textSecondary),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 28.dp)
-    )
-
-    Spacer(modifier = Modifier.height(10.dp))
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 28.dp),
-        contentAlignment = Alignment.BottomEnd
-    ) {
-        BasicTextField(
-            value = value,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 14.dp),
-            textStyle = AppTheme.appTypography.header4,
-            onValueChange = { value ->
-                onValueChanged(value)
-            },
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Text,
-                imeAction = ImeAction.Next
-            ),
-            singleLine = true
-        )
-
-        Divider(
-            Modifier.align(Alignment.BottomCenter),
-            thickness = 1.dp,
-            color = AppTheme.colorScheme.outline
-        )
-    }
 }

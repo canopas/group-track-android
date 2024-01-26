@@ -42,7 +42,6 @@ fun PrimaryButton(
             text = label,
             style = AppTheme.appTypography.subTitle2.copy(color = AppTheme.colorScheme.onPrimary),
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(vertical = 6.dp, horizontal = 6.dp)
         )
     }
 }

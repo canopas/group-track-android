@@ -76,4 +76,32 @@ object AppDestinations {
         override val arguments: List<NamedNavArgument> = emptyList()
         override val path: String = "activity"
     }
+
+    val createSpace = object : AppRoute {
+        override val arguments: List<NamedNavArgument> = emptyList()
+        override val path: String = "create-space"
+    }
+
+    val spaceInvite = object : AppRoute {
+        override val arguments: List<NamedNavArgument> = emptyList()
+        override val path: String = "space-invite"
+    }
+
+    object SpaceInvitation {
+        private const val KEY_INVITE_CODE = "invite_code"
+        private const val PATH = "space-invite"
+        const val path = "$PATH/{$KEY_INVITE_CODE}/"
+
+        fun spaceInvitation(
+            inviteCode: String,
+        ) = object : AppRoute {
+
+            override val arguments = listOf(
+                navArgument(KEY_INVITE_CODE) { type = NavType.StringType },
+            )
+
+            override val path = "$PATH/$inviteCode"
+        }
+    }
+
 }

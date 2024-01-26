@@ -7,6 +7,8 @@
     <string name="common_btn_join">Join</string>
     <string name="common_btn_verify">Verify</string>
     <string name="common_btn_allow">Allow</string>
+    <string name="common_btn_create_space">Create new</string>
+    <string name="common_btn_join_space">Join space</string>
 
     <string name="common_share_invite_code_message">Let\'s stay connected! Use invite code %s to join my Space. Download the app: [link].</string>
 
@@ -69,5 +71,24 @@
     <string name="common_background_access_permission_steps">Go to settings > select <b>"Allow all the time"</b></string>
     <string name="common_background_access_permission_rational_steps">Go to settings > CatchMe app info > Location permission > select <b>"Allow all the time"</b></string>
     <string name="common_background_access_permission_btn">Go to Settings</string>
+    <string name="home_space_selection_menu_default_text">Select a space</string>
+    <string name="home_space_selection_space_item_subtitle_members">By %s • %s members</string>
+    <string name="home_space_selection_space_item_subtitle_member">By %s • %s member</string>
+    <string name="home_create_space_suggestions">Some suggestions…</string>
+
+    <string-array name="home_create_space_name_suggestion">
+        <item>Family</item>
+        <item>Friends</item>
+        <item>Special someones</item>
+        <item>Siblings</item>
+        <item>Office Squad</item>
+        <item>Colleagues</item>
+        <item>Team Unity</item>
+        <item>My Squad</item>
+        <item>Heart mates</item>
+        <item>Blood Bond</item>
+
+
+    </string-array>
 
 </resources>

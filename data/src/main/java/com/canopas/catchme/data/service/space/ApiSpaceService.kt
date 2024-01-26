@@ -5,6 +5,7 @@ import com.canopas.catchme.data.models.space.ApiSpaceMember
 import com.canopas.catchme.data.models.space.SPACE_MEMBER_ROLE_ADMIN
 import com.canopas.catchme.data.models.space.SPACE_MEMBER_ROLE_MEMBER
 import com.canopas.catchme.data.service.auth.AuthService
+import com.canopas.catchme.data.storage.UserPreferences
 import com.canopas.catchme.data.utils.FirestoreConst
 import com.canopas.catchme.data.utils.FirestoreConst.FIRESTORE_COLLECTION_SPACES
 import com.canopas.catchme.data.utils.snapshotFlow
@@ -19,7 +20,8 @@ import javax.inject.Singleton
 class ApiSpaceService @Inject constructor(
     db: FirebaseFirestore,
     private val invitationService: SpaceInvitationService,
-    private val authService: AuthService
+    private val authService: AuthService,
+    private val userPreferences: UserPreferences
 ) {
     private val spaceRef = db.collection(FIRESTORE_COLLECTION_SPACES)
     private val spaceMemberRef = db.collection(FirestoreConst.FIRESTORE_COLLECTION_SPACE_MEMBERS)
@@ -33,12 +35,14 @@ class ApiSpaceService @Inject constructor(
         docRef.set(space).await()
         val generatedCode = invitationService.createInvitation(spaceId)
         joinSpace(spaceId, SPACE_MEMBER_ROLE_ADMIN)
+        userPreferences.currentSpace = spaceId
         return generatedCode
     }
 
     suspend fun joinSpace(spaceId: String, role: Int = SPACE_MEMBER_ROLE_MEMBER) {
         val userId = authService.currentUser?.id ?: ""
         addMember(spaceId, userId, role)
+        userPreferences.currentSpace = spaceId
     }
 
     private suspend fun addMember(
@@ -65,44 +69,14 @@ class ApiSpaceService @Inject constructor(
         return result.documents.isNotEmpty()
     }
 
-//    suspend fun getSpaces() = flow<List<ApiSpace>> {
-//        val userId = authService.currentUser?.id ?: ""
-//        getSpaces(userId).collectLatest { space ->
-//
-//        }
-//    }
 
-    suspend fun getSpace(spaceId: String): ApiSpace? {
-        return spaceRef.document(spaceId).get().await().toObject(ApiSpace::class.java)
-    }
+    suspend fun getSpace(spaceId: String) =
+        spaceRef.document(spaceId).get().await().toObject(ApiSpace::class.java)
 
-    suspend fun getSpaceMemberByUserId(userId: String) = channelFlow<List<ApiSpaceMember>> {
+    suspend fun getSpaceMemberByUserId(userId: String) =
         spaceMemberRef.whereEqualTo("user_id", userId).snapshotFlow(ApiSpaceMember::class.java)
-            .collectLatest {
-                if (it.isNotEmpty()) {
-                    send(it)
-                }
-            }
-    }
 
-    suspend fun getMemberBySpaceId(spaceId: String) = channelFlow<List<ApiSpaceMember>> {
+    suspend fun getMemberBySpaceId(spaceId: String) =
         spaceMemberRef.whereEqualTo("space_id", spaceId).snapshotFlow(ApiSpaceMember::class.java)
-            .collectLatest {
-                if (it.isNotEmpty()) {
-                    send(it)
-                }
-            }
-    }
 
-//    suspend fun getMember(spaceId: String) = flow<List<ApiUser>> {
-//        spaceMemberRef.whereEqualTo("space_id", spaceId)
-//            .snapshotFlow(ApiSpaceMember::class.java)
-//            .collectLatest {
-//                if (it.isNotEmpty()) {
-//                    val userIds = it.map { member -> member.user_id }
-//                    val users = userRef.whereIn("user_id", userIds).get().await()
-//                    emit(users.toObjects(ApiUser::class.java))
-//                }
-//            }
-//    }
 }
