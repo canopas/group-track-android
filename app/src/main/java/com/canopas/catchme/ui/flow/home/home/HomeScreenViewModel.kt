@@ -50,10 +50,16 @@ class HomeScreenViewModel @Inject constructor(
         try {
             _state.emit(_state.value.copy(isLoadingSpaces = _state.value.spaces.isEmpty()))
             spaceRepository.getAllSpaceInfo().collectLatest { spaces ->
-                if(spaceRepository.currentSpaceId.isEmpty()){
+                if (spaceRepository.currentSpaceId.isEmpty()) {
                     spaceRepository.currentSpaceId = spaces.firstOrNull()?.space?.id ?: ""
                 }
-                _state.emit(_state.value.copy(spaces = spaces, isLoadingSpaces = false, selectedSpaceId = spaceRepository.currentSpaceId))
+                _state.emit(
+                    _state.value.copy(
+                        spaces = spaces,
+                        isLoadingSpaces = false,
+                        selectedSpaceId = spaceRepository.currentSpaceId
+                    )
+                )
             }
         } catch (e: Exception) {
             Timber.e(e, "Failed to get all spaces")
@@ -69,6 +75,11 @@ class HomeScreenViewModel @Inject constructor(
     fun navigateToCreateSpace() {
         toggleSpaceSelection()
         navigator.navigateTo(AppDestinations.createSpace.path)
+    }
+
+    fun selectSpace(spaceId: String) {
+        spaceRepository.currentSpaceId = spaceId
+        _state.value = (_state.value.copy(selectedSpaceId = spaceId))
     }
 }
 

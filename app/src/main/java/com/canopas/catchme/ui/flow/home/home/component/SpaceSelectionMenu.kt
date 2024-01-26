@@ -11,6 +11,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,6 +38,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -104,9 +106,11 @@ fun SpaceSelectionPopup(
     onSpaceSelected: (String) -> Unit = {},
     onCreateSpace: () -> Unit = {}, onJoinSpace: () -> Unit = {}
 ) {
-    AnimatedVisibility(visible = show,
+    AnimatedVisibility(
+        visible = show,
         enter = slideInVertically { -it },
-        exit = slideOutVertically { -it }) {
+        exit = slideOutVertically { -it } + fadeOut()
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -125,10 +129,15 @@ fun SpaceSelectionPopup(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f, fill = false).animateContentSize()
+                    .weight(1f, fill = false)
+                    .animateContentSize()
             ) {
                 items(spaces) { space ->
-                    SpaceItem(space, space.space.id == selectSpaceId)
+                    SpaceItem(
+                        space,
+                        space.space.id == selectSpaceId,
+                        onSpaceSelected = onSpaceSelected
+                    )
                 }
             }
 
@@ -145,32 +154,39 @@ fun SpaceSelectionPopup(
                     onClick = onJoinSpace
                 )
             }
-
         }
     }
 }
 
 @Composable
-private fun SpaceItem(space: SpaceInfo, isSelected: Boolean) {
+private fun SpaceItem(
+    space: SpaceInfo,
+    isSelected: Boolean,
+    onSpaceSelected: (String) -> Unit = {}
+) {
     val admin = space.members.first { it.user.id == space.space.admin_id }.user
     val members = space.members
+    val containerShape = RoundedCornerShape(10.dp)
     Row(
         modifier = Modifier
             .padding(vertical = 4.dp)
             .fillMaxWidth()
             .background(
                 color = if (isSelected) AppTheme.colorScheme.primary.copy(0.1f) else AppTheme.colorScheme.containerNormal,
-                shape = RoundedCornerShape(10.dp)
+                shape = containerShape
             )
             .border(
                 width = 1.dp,
                 color = if (isSelected) AppTheme.colorScheme.primary else Color.Transparent,
-                shape = RoundedCornerShape(10.dp)
+                shape = containerShape
             )
-            .padding(10.dp),
+            .clip(shape = containerShape)
+            .clickable { onSpaceSelected(space.space.id) }
+            .padding(vertical = 10.dp, horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        RadioButton(selected = isSelected, onClick = { })
-
+        RadioButton(selected = isSelected, onClick = null)
+        Spacer(modifier = Modifier.width(16.dp))
         Column {
 
             Text(

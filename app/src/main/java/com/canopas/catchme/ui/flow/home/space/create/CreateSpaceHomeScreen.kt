@@ -47,9 +47,10 @@ fun CreateSpaceHomeScreen() {
         CreateSpace(
             modifier = Modifier.padding(it),
             spaceName = state.spaceName,
+            showLoader = state.creatingSpace,
             onSpaceNameChanged = { viewModel.onSpaceNameChange(it) },
             onNext = {
-                  viewModel.createSpace()
+                viewModel.createSpace()
             },
         )
     }

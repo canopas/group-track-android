@@ -41,7 +41,10 @@ class CreateSpaceHomeViewModel @Inject constructor(
                     spaceInviteCode = invitationCode
                 )
             )
-            appNavigator.navigateTo(AppDestinations.spaceInvite.path)
+            appNavigator.navigateTo(
+                AppDestinations.spaceInvite.path,
+                AppDestinations.createSpace.path, inclusive = true
+            )
         } catch (e: Exception) {
             Timber.e(e, "Unable to create space")
             _state.emit(_state.value.copy(error = e.localizedMessage))

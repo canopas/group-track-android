@@ -128,7 +128,9 @@ fun HomeTopBar() {
         show = state.showSpaceSelectionPopup,
         spaces = state.spaces,
         selectSpaceId = state.selectedSpaceId,
-        onSpaceSelected = {},
+        onSpaceSelected = {
+            viewModel.selectSpace(it)
+        },
         onJoinSpace = {},
         onCreateSpace = {
             viewModel.navigateToCreateSpace()
