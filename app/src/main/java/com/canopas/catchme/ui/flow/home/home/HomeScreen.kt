@@ -3,6 +3,8 @@ package com.canopas.catchme.ui.flow.home.home
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -29,7 +31,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -138,20 +142,38 @@ fun HomeTopBar() {
             .padding(horizontal = 6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        MapControl(icon = R.drawable.ic_settings, modifier = Modifier) {
+        MapControl(
+            icon = R.drawable.ic_settings,
+            modifier = Modifier,
+            visible = !state.showSpaceSelectionPopup
+        ) {
         }
 
         SpaceSelectionMenu(modifier = Modifier.weight(1f))
 
-        MapControl(icon = R.drawable.ic_messages, modifier = Modifier) {
+        MapControl(
+            icon = R.drawable.ic_messages,
+            modifier = Modifier,
+            visible = !state.showSpaceSelectionPopup
+        ) {
         }
 
-        MapControl(
-            icon = if (enableLocation) R.drawable.ic_location_on else R.drawable.ic_location_off,
-            modifier = Modifier
-        ) {
-            enableLocation = !enableLocation
+        Box {
+            MapControl(
+                icon = if (enableLocation) R.drawable.ic_location_on else R.drawable.ic_location_off,
+                modifier = Modifier, visible = !state.showSpaceSelectionPopup
+            ) {
+                enableLocation = !enableLocation
+            }
+            MapControl(
+                icon = R.drawable.ic_add_member,
+                modifier = Modifier,
+                visible = state.showSpaceSelectionPopup
+            ) {
+            }
         }
+
+
     }
 }
 
@@ -159,11 +181,15 @@ fun HomeTopBar() {
 private fun MapControl(
     modifier: Modifier = Modifier,
     @DrawableRes icon: Int,
+    visible: Boolean = true,
     onClick: () -> Unit
 ) {
+
+    val alpha by animateFloatAsState(targetValue = if (visible) 1f else 0f, tween(100), label = "")
+
     SmallFloatingActionButton(
-        modifier = modifier,
-        onClick = { onClick() },
+        modifier = modifier.alpha(alpha),
+        onClick = { if (visible) onClick() },
         containerColor = AppTheme.colorScheme.surface,
         contentColor = AppTheme.colorScheme.primary
     ) {

@@ -1,6 +1,7 @@
 package com.canopas.catchme.ui.flow.home.home.component
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -124,7 +125,7 @@ fun SpaceSelectionPopup(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
+                    .weight(1f, fill = false).animateContentSize()
             ) {
                 items(spaces) { space ->
                     SpaceItem(space, space.space.id == selectSpaceId)
@@ -187,7 +188,6 @@ private fun SpaceItem(space: SpaceInfo, isSelected: Boolean) {
                 style = AppTheme.appTypography.label1.copy(color = AppTheme.colorScheme.textSecondary)
             )
         }
-
 
     }
 }
