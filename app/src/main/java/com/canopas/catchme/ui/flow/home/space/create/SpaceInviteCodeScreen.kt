@@ -10,7 +10,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,54 +34,65 @@ import com.canopas.catchme.ui.component.PrimaryButton
 import com.canopas.catchme.ui.component.PrimaryTextButton
 import com.canopas.catchme.ui.theme.AppTheme
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SpaceInvite() {
     val viewModel = hiltViewModel<SpaceInviteViewModel>()
+
+    Scaffold(topBar = {
+        TopAppBar(
+            colors = TopAppBarDefaults.topAppBarColors(containerColor = AppTheme.colorScheme.surface),
+            title = {
+                Text(
+                    text = stringResource(id = R.string.space_inviate_code_title),
+                    style = AppTheme.appTypography.header3
+                )
+            },
+            navigationIcon = {
+                IconButton(onClick = { viewModel.popBackStack() }) {
+                    Icon(
+                        Icons.Default.ArrowBack,
+                        contentDescription = ""
+                    )
+                }
+            }
+        )
+    }) {
+        SpaceInviteContent(modifier = Modifier.padding(it))
+    }
+}
+
+@Composable
+fun SpaceInviteContent(modifier: Modifier) {
+    val viewModel = hiltViewModel<SpaceInviteViewModel>()
     val context = LocalContext.current
     Column(
-        Modifier
+        modifier
             .fillMaxSize()
             .background(AppTheme.colorScheme.surface)
             .padding(horizontal = 16.dp)
             .padding(top = 40.dp, bottom = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(40.dp))
+
         Text(
-            text = stringResource(R.string.onboard_share_space_code_title),
+            text = stringResource(R.string.space_invite_title, viewModel.spaceName),
             style = AppTheme.appTypography.header1,
-            textAlign = TextAlign.Center,
             modifier = Modifier
                 .fillMaxWidth()
         )
         Text(
-            text = stringResource(R.string.onboard_share_space_code_subtitle),
-            style = AppTheme.appTypography.header4.copy(fontWeight = FontWeight.W500),
-            textAlign = TextAlign.Center,
+            text = stringResource(R.string.space_invite_subtitle),
+            style = AppTheme.appTypography.subTitle1.copy(AppTheme.colorScheme.textSecondary),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp)
         )
         Spacer(modifier = Modifier.height(40.dp))
         InvitationCodeComponent(viewModel.spaceInviteCode)
         Spacer(modifier = Modifier.height(40.dp))
-        Text(
-            text = stringResource(R.string.onboard_share_space_code_tips),
-            style = AppTheme.appTypography.body1,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-
-        )
-        Spacer(modifier = Modifier.weight(1f))
         PrimaryButton(
             label = stringResource(R.string.onboard_share_space_code_btn),
             onClick = { shareInvitationCode(context, viewModel.spaceInviteCode) }
-        )
-        Spacer(modifier = Modifier.height(10.dp))
-        PrimaryTextButton(
-            label = stringResource(R.string.common_btn_skip),
-            onClick = { viewModel.popBackStack() }
         )
     }
 }
@@ -97,14 +116,14 @@ fun InvitationCodeComponent(spaceCode: String) {
     Column(
         Modifier
             .fillMaxWidth()
-            .background(color = AppTheme.colorScheme.tertiary, shape = RoundedCornerShape(20.dp))
+            .background(color = AppTheme.colorScheme.primary.copy(alpha = 0.1f), shape = RoundedCornerShape(20.dp))
             .padding(vertical = 24.dp, horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             text = spaceCode,
             style = AppTheme.appTypography.header1.copy(
-                color = AppTheme.colorScheme.textInversePrimary,
+                color = AppTheme.colorScheme.primary,
                 fontSize = 34.sp,
                 letterSpacing = 0.8.sp,
                 fontWeight = FontWeight.ExtraBold
@@ -118,7 +137,7 @@ fun InvitationCodeComponent(spaceCode: String) {
         Text(
             text = stringResource(R.string.onboard_share_code_expiry_desc),
             style = AppTheme.appTypography.body1.copy(
-                color = AppTheme.colorScheme.textInversePrimary.copy(
+                color = AppTheme.colorScheme.textPrimary.copy(
                     alpha = 0.8f
                 )
             ),

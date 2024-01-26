@@ -43,7 +43,7 @@
     <string name="onboard_create_space_subtitle">Tips: You can create dedicated Spaces for work, family, friends, and more.</string>
     <string name="onboard_share_space_code_title">Unlock the Space!</string>
     <string name="onboard_share_space_code_tips">Share this code in your own style. Connecting is as flexible as you are.</string>
-    <string name="onboard_share_space_code_subtitle">" Share this invite code with your trusted ones."</string>
+    <string name="onboard_share_space_code_subtitle">Share this invite code with your trusted ones.</string>
     <string name="onboard_share_space_code_btn">Share code</string>
     <string name="onboard_share_code_expiry_desc">This code will be active for 2 days.</string>
     <string name="onboard_join_space_title">Get set to connect! </string>
@@ -75,6 +75,9 @@
     <string name="home_space_selection_space_item_subtitle_members">By %s • %s members</string>
     <string name="home_space_selection_space_item_subtitle_member">By %s • %s member</string>
     <string name="home_create_space_suggestions">Some suggestions…</string>
+    <string name="space_inviate_code_title">Invite Code</string>
+    <string name="space_invite_title">Inviate members to the %s</string>
+    <string name="space_invite_subtitle">Share this invite code with your trusted ones in your own style. Connecting is as flexible as you are.</string>
 
     <string-array name="home_create_space_name_suggestion">
         <item>Family</item>

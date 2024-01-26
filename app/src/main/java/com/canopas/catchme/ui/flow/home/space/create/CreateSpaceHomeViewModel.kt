@@ -42,7 +42,7 @@ class CreateSpaceHomeViewModel @Inject constructor(
                 )
             )
             appNavigator.navigateTo(
-                AppDestinations.spaceInvite.path,
+                AppDestinations.SpaceInvitation.spaceInvitation(invitationCode, _state.value.spaceName).path,
                 AppDestinations.createSpace.path, inclusive = true
             )
         } catch (e: Exception) {

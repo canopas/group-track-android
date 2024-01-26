@@ -240,7 +240,7 @@ fun HomeScreenContent(navController: NavHostController) {
             CreateSpaceHomeScreen()
         }
 
-        slideComposable(AppDestinations.spaceInvite.path) {
+        slideComposable(AppDestinations.SpaceInvitation.path) {
             SpaceInvite()
         }
     }
@@ -371,5 +371,5 @@ val showSpaceTopBarOn: List<String>
 val hideBottomBarOn: List<String>
     get() = listOf(
         AppDestinations.createSpace.path,
-        AppDestinations.spaceInvite.path
+        AppDestinations.SpaceInvitation.path
     )
