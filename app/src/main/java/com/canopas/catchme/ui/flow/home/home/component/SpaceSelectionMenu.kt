@@ -106,7 +106,7 @@ fun SpaceSelectionPopup(
     AnimatedVisibility(visible = show,
         enter = slideInVertically { -it },
         exit = slideOutVertically { -it }) {
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .shadow(
@@ -121,24 +121,28 @@ fun SpaceSelectionPopup(
                 .padding(16.dp)
                 .padding(top = 60.dp)
         ) {
-            items(spaces) { space ->
-                SpaceItem(space, space.space.id == selectSpaceId)
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+            ) {
+                items(spaces) { space ->
+                    SpaceItem(space, space.space.id == selectSpaceId)
+                }
             }
 
-            item {
-                Row(modifier = Modifier.padding(top = 20.dp)) {
-                    PrimaryButton(
-                        modifier = Modifier.weight(1f),
-                        label = stringResource(id = R.string.common_btn_create_space),
-                        onClick = onCreateSpace
-                    )
-                    Spacer(modifier = Modifier.width(10.dp))
-                    PrimaryButton(
-                        modifier = Modifier.weight(1f),
-                        label = stringResource(id = R.string.common_btn_join_space),
-                        onClick = onJoinSpace
-                    )
-                }
+            Row(modifier = Modifier.padding(top = 20.dp)) {
+                PrimaryButton(
+                    modifier = Modifier.weight(1f),
+                    label = stringResource(id = R.string.common_btn_create_space),
+                    onClick = onCreateSpace
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                PrimaryButton(
+                    modifier = Modifier.weight(1f),
+                    label = stringResource(id = R.string.common_btn_join_space),
+                    onClick = onJoinSpace
+                )
             }
 
         }
@@ -164,7 +168,7 @@ private fun SpaceItem(space: SpaceInfo, isSelected: Boolean) {
             )
             .padding(10.dp),
     ) {
-        RadioButton(selected = isSelected, onClick = {  })
+        RadioButton(selected = isSelected, onClick = { })
 
         Column {
 
