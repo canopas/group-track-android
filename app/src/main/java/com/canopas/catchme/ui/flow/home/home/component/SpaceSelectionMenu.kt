@@ -2,6 +2,7 @@ package com.canopas.catchme.ui.flow.home.home.component
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -31,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -49,6 +51,12 @@ fun SpaceSelectionMenu(modifier: Modifier) {
     val state by viewModel.state.collectAsState()
 
     val selectedSpace = state.spaces.firstOrNull { it.space.id == state.selectedSpaceId }
+
+    val dropDownArrowRotation by
+    animateFloatAsState(
+        targetValue = if (state.showSpaceSelectionPopup) 180f else 0f,
+        label = ""
+    )
 
     FloatingActionButton(
         { viewModel.toggleSpaceSelection() },
@@ -84,7 +92,8 @@ fun SpaceSelectionMenu(modifier: Modifier) {
             } else {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_arrow_down),
-                    contentDescription = "drop-down-arrow"
+                    contentDescription = "drop-down-arrow",
+                    modifier = Modifier.rotate(dropDownArrowRotation)
                 )
             }
         }
