@@ -88,7 +88,11 @@ class HomeScreenViewModel @Inject constructor(
         try {
             spaceRepository.currentSpaceId = spaceId
             val space = _state.value.spaces.firstOrNull { it.space.id == spaceId }
-            _state.value = (_state.value.copy(selectedSpaceId = spaceId, selectedSpace = space))
+            _state.value = (_state.value.copy(
+                selectedSpaceId = spaceId,
+                selectedSpace = space,
+                showSpaceSelectionPopup = false
+            ))
         } catch (e: Exception) {
             Timber.e(e, "Failed to get space")
             _state.emit(_state.value.copy(error = e.message, isLoadingSpaces = false))

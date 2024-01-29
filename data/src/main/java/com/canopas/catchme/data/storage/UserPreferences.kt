@@ -14,6 +14,7 @@ import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 import javax.inject.Named
@@ -97,6 +98,10 @@ class UserPreferences @Inject constructor(
                 }
             }
         }
+
+    var currentSpaceState = preferencesDataStore.data.map { preferences ->
+        preferences[KEY_USER_CURRENT_SPACE] ?: ""
+    }
 
     var currentSpace: String?
         get() = runBlocking {

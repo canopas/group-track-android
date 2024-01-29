@@ -11,6 +11,7 @@ import com.canopas.catchme.data.service.user.ApiUserService
 import com.canopas.catchme.data.storage.UserPreferences
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.firstOrNull
@@ -28,11 +29,24 @@ class SpaceRepository @Inject constructor(
     private val locationService: ApiLocationService,
     private val userPreferences: UserPreferences
 ) {
+
     var currentSpaceId: String
         get() = userPreferences.currentSpace ?: ""
         set(value) {
             userPreferences.currentSpace = value
         }
+
+    suspend fun createSpaceAndGetInviteCode(spaceName: String): String {
+        val spaceId = spaceService.createSpace(spaceName)
+        val generatedCode = invitationService.createInvitation(spaceId)
+        currentSpaceId = spaceId
+        return generatedCode
+    }
+
+    suspend fun joinSpace(spaceId: String) {
+        spaceService.joinSpace(spaceId)
+        currentSpaceId = spaceId
+    }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     suspend fun getAllSpaceInfo(): Flow<List<SpaceInfo>> {
@@ -69,12 +83,12 @@ class SpaceRepository @Inject constructor(
             }
         }
 
-    private suspend fun getSpace(spaceId: String): ApiSpace? = spaceService.getSpace(spaceId)
+    suspend fun getSpace(spaceId: String): ApiSpace? = spaceService.getSpace(spaceId)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     suspend fun getMemberWithLocation(): Flow<List<UserInfo>> {
-        val currentSpace = getCurrentSpace() ?: return emptyFlow()
-        return spaceService.getMemberBySpaceId(currentSpace.id)
+        if (currentSpaceId.isEmpty()) return emptyFlow()
+        return spaceService.getMemberBySpaceId(currentSpaceId)
             .map { members ->
                 members.mapNotNull { userService.getUser(it.user_id) }
             }.flatMapLatest { users ->

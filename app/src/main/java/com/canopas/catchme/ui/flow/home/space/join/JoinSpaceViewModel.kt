@@ -3,6 +3,7 @@ package com.canopas.catchme.ui.flow.home.space.join
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.canopas.catchme.data.models.space.ApiSpace
+import com.canopas.catchme.data.repository.SpaceRepository
 import com.canopas.catchme.data.service.space.ApiSpaceService
 import com.canopas.catchme.data.service.space.SpaceInvitationService
 import com.canopas.catchme.data.utils.AppDispatcher
@@ -19,7 +20,7 @@ class JoinSpaceViewModel @Inject constructor(
     private val appNavigator: HomeNavigator,
     private val appDispatcher: AppDispatcher,
     private val invitationService: SpaceInvitationService,
-    private val spaceService: ApiSpaceService
+    private val spaceRepository: SpaceRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(JoinSpaceState())
@@ -49,8 +50,8 @@ class JoinSpaceViewModel @Inject constructor(
             }
 
             val spaceId = invitation.space_id
-            spaceService.joinSpace(spaceId)
-            val space = spaceService.getSpace(spaceId)
+            spaceRepository.joinSpace(spaceId)
+            val space = spaceRepository.getSpace(spaceId)
 
             _state.emit(_state.value.copy(verifying = false, joinedSpace = space))
         } catch (e: Exception) {

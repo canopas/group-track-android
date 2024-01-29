@@ -17,13 +17,10 @@ import javax.inject.Singleton
 @Singleton
 class ApiSpaceService @Inject constructor(
     db: FirebaseFirestore,
-    private val invitationService: SpaceInvitationService,
     private val authService: AuthService,
-    private val userPreferences: UserPreferences
 ) {
     private val spaceRef = db.collection(FIRESTORE_COLLECTION_SPACES)
     private val spaceMemberRef = db.collection(FirestoreConst.FIRESTORE_COLLECTION_SPACE_MEMBERS)
-    private val userRef = db.collection(FirestoreConst.FIRESTORE_COLLECTION_USERS)
 
     suspend fun createSpace(spaceName: String): String {
         val docRef = spaceRef.document()
@@ -31,16 +28,13 @@ class ApiSpaceService @Inject constructor(
         val userId = authService.currentUser?.id ?: ""
         val space = ApiSpace(id = spaceId, name = spaceName, admin_id = userId)
         docRef.set(space).await()
-        val generatedCode = invitationService.createInvitation(spaceId)
         joinSpace(spaceId, SPACE_MEMBER_ROLE_ADMIN)
-        userPreferences.currentSpace = spaceId
-        return generatedCode
+        return spaceId
     }
 
     suspend fun joinSpace(spaceId: String, role: Int = SPACE_MEMBER_ROLE_MEMBER) {
         val userId = authService.currentUser?.id ?: ""
         addMember(spaceId, userId, role)
-        userPreferences.currentSpace = spaceId
     }
 
     private suspend fun addMember(

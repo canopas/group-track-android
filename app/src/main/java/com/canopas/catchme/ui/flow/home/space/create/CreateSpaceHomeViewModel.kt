@@ -2,6 +2,7 @@ package com.canopas.catchme.ui.flow.home.space.create
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.canopas.catchme.data.repository.SpaceRepository
 import com.canopas.catchme.data.service.space.ApiSpaceService
 import com.canopas.catchme.data.utils.AppDispatcher
 import com.canopas.catchme.ui.navigation.AppDestinations
@@ -16,7 +17,7 @@ import javax.inject.Inject
 @HiltViewModel
 class CreateSpaceHomeViewModel @Inject constructor(
     private val appNavigator: HomeNavigator,
-    private val spaceService: ApiSpaceService,
+    private val spaceRepository: SpaceRepository,
     private val appDispatcher: AppDispatcher
 ) : ViewModel() {
 
@@ -34,7 +35,7 @@ class CreateSpaceHomeViewModel @Inject constructor(
     fun createSpace() = viewModelScope.launch(appDispatcher.IO) {
         try {
             _state.emit(_state.value.copy(creatingSpace = true))
-            val invitationCode = spaceService.createSpace(_state.value.spaceName)
+            val invitationCode = spaceRepository.createSpaceAndGetInviteCode(_state.value.spaceName)
             appNavigator.navigateTo(
                 AppDestinations.SpaceInvitation.spaceInvitation(invitationCode, _state.value.spaceName).path,
                 AppDestinations.createSpace.path,
