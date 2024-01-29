@@ -34,20 +34,19 @@ class SpaceRepository @Inject constructor(
             userPreferences.currentSpace = value
         }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     suspend fun getAllSpaceInfo(): Flow<List<SpaceInfo>> {
         val userId = authService.currentUser?.id ?: ""
-        return getUserSpaces(userId).map { spaces ->
-            spaces.filterNotNull().map { space ->
-                val members =
-                    spaceService.getMemberBySpaceId(space.id).firstOrNull()
-                        ?.mapNotNull { userService.getUser(it.user_id) }
-                        ?.map {
-                            val location = locationService.getCurrentLocation(it.id).firstOrNull()
-                            UserInfo(it, location)
-                        } ?: emptyList()
-
-                SpaceInfo(space, members)
+        return getUserSpaces(userId).flatMapLatest { spaces ->
+            val flows = spaces.filterNotNull().map { space ->
+                spaceService.getMemberBySpaceId(space.id)
+                    .map { members ->
+                        members.mapNotNull { userService.getUser(it.user_id) }.map { UserInfo(it) }
+                    }.map { members ->
+                        SpaceInfo(space, members)
+                    }
             }
+            combine(flows) { it.toList() }
         }
     }
 

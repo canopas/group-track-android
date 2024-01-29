@@ -35,12 +35,6 @@ class CreateSpaceHomeViewModel @Inject constructor(
         try {
             _state.emit(_state.value.copy(creatingSpace = true))
             val invitationCode = spaceService.createSpace(_state.value.spaceName)
-            _state.emit(
-                _state.value.copy(
-                    creatingSpace = false,
-                    spaceInviteCode = invitationCode
-                )
-            )
             appNavigator.navigateTo(
                 AppDestinations.SpaceInvitation.spaceInvitation(invitationCode, _state.value.spaceName).path,
                 AppDestinations.createSpace.path,

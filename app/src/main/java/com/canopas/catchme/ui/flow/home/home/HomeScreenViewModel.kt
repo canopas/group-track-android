@@ -50,7 +50,6 @@ class HomeScreenViewModel @Inject constructor(
         try {
             _state.emit(_state.value.copy(isLoadingSpaces = _state.value.spaces.isEmpty()))
             spaceRepository.getAllSpaceInfo().collectLatest { spaces ->
-
                 if (spaceRepository.currentSpaceId.isEmpty()) {
                     spaceRepository.currentSpaceId = spaces.firstOrNull()?.space?.id ?: ""
                 }
@@ -59,9 +58,7 @@ class HomeScreenViewModel @Inject constructor(
                     tempSpaces.indexOfFirst { it.space.id == spaceRepository.currentSpaceId }
 
                 if (index != -1) {
-                    tempSpaces.removeAt(index)
-                    val item = spaces[index]
-                    tempSpaces.add(0, item)
+                    tempSpaces.add(0, tempSpaces.removeAt(index))
                 }
                 _state.emit(
                     _state.value.copy(
