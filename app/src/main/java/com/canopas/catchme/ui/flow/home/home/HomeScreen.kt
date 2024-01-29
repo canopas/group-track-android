@@ -4,7 +4,6 @@ import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -33,7 +32,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -55,6 +53,7 @@ import com.canopas.catchme.ui.flow.home.map.MapScreen
 import com.canopas.catchme.ui.flow.home.places.PlacesScreen
 import com.canopas.catchme.ui.flow.home.space.create.CreateSpaceHomeScreen
 import com.canopas.catchme.ui.flow.home.space.create.SpaceInvite
+import com.canopas.catchme.ui.flow.home.space.join.JoinSpaceScreen
 import com.canopas.catchme.ui.navigation.AppDestinations
 import com.canopas.catchme.ui.navigation.AppNavigator
 import com.canopas.catchme.ui.navigation.slideComposable
@@ -101,17 +100,21 @@ fun HomeScreen() {
             ) {
                 HomeScreenContent(navController)
 
-                AnimatedVisibility(visible = showTopBar,
+                AnimatedVisibility(
+                    visible = showTopBar,
                     enter = slideInVertically { -it },
-                    exit = slideOutVertically { -it }) {
+                    exit = slideOutVertically { -it }
+                ) {
                     HomeTopBar()
                 }
             }
         },
         bottomBar = {
-            AnimatedVisibility(visible = !hideBottomBar,
+            AnimatedVisibility(
+                visible = !hideBottomBar,
                 enter = slideInVertically(tween(100)) { it },
-                exit = slideOutVertically(tween(100)) { it }) {
+                exit = slideOutVertically(tween(100)) { it }
+            ) {
                 HomeBottomBar(navController)
             }
         }
@@ -131,7 +134,7 @@ fun HomeTopBar() {
         onSpaceSelected = {
             viewModel.selectSpace(it)
         },
-        onJoinSpace = {},
+        onJoinSpace = { viewModel.joinSpace() },
         onCreateSpace = {
             viewModel.navigateToCreateSpace()
         }
@@ -161,21 +164,22 @@ fun HomeTopBar() {
         }
 
         Box {
-            MapControl(
-                icon = if (enableLocation) R.drawable.ic_location_on else R.drawable.ic_location_off,
-                modifier = Modifier, visible = !state.showSpaceSelectionPopup
-            ) {
-                enableLocation = !enableLocation
-            }
-            MapControl(
-                icon = R.drawable.ic_add_member,
-                modifier = Modifier,
-                visible = state.showSpaceSelectionPopup
-            ) {
+            if (state.showSpaceSelectionPopup) {
+                MapControl(
+                    icon = R.drawable.ic_add_member,
+                    modifier = Modifier
+                ) {
+                    viewModel.addMember()
+                }
+            } else {
+                MapControl(
+                    icon = if (enableLocation) R.drawable.ic_location_on else R.drawable.ic_location_off,
+                    modifier = Modifier
+                ) {
+                    enableLocation = !enableLocation
+                }
             }
         }
-
-
     }
 }
 
@@ -186,7 +190,6 @@ private fun MapControl(
     visible: Boolean = true,
     onClick: () -> Unit
 ) {
-
     val alpha by animateFloatAsState(targetValue = if (visible) 1f else 0f, tween(100), label = "")
 
     SmallFloatingActionButton(
@@ -212,8 +215,8 @@ private fun PermissionChecker() {
         CheckBackgroundLocationPermission(onDismiss = {
             viewModel.shouldAskForBackgroundLocationPermission(false)
         }, onGranted = {
-            viewModel.startTracking()
-        })
+                viewModel.startTracking()
+            })
     }
 }
 
@@ -238,6 +241,10 @@ fun HomeScreenContent(navController: NavHostController) {
 
         slideComposable(AppDestinations.createSpace.path) {
             CreateSpaceHomeScreen()
+        }
+
+        slideComposable(AppDestinations.joinSpace.path) {
+            JoinSpaceScreen()
         }
 
         slideComposable(AppDestinations.SpaceInvitation.path) {
@@ -367,9 +374,9 @@ val showSpaceTopBarOn: List<String>
         AppDestinations.places.path
     )
 
-
 val hideBottomBarOn: List<String>
     get() = listOf(
         AppDestinations.createSpace.path,
-        AppDestinations.SpaceInvitation.path
+        AppDestinations.SpaceInvitation.path,
+        AppDestinations.joinSpace.path
     )

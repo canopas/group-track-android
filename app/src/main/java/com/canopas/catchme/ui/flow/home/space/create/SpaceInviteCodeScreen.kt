@@ -31,13 +31,12 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.catchme.R
 import com.canopas.catchme.ui.component.PrimaryButton
-import com.canopas.catchme.ui.component.PrimaryTextButton
 import com.canopas.catchme.ui.theme.AppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SpaceInvite() {
-    val viewModel = hiltViewModel<SpaceInviteViewModel>()
+    val viewModel = hiltViewModel<SpaceInviteCodeViewModel>()
 
     Scaffold(topBar = {
         TopAppBar(
@@ -63,8 +62,8 @@ fun SpaceInvite() {
 }
 
 @Composable
-fun SpaceInviteContent(modifier: Modifier) {
-    val viewModel = hiltViewModel<SpaceInviteViewModel>()
+private fun SpaceInviteContent(modifier: Modifier) {
+    val viewModel = hiltViewModel<SpaceInviteCodeViewModel>()
     val context = LocalContext.current
     Column(
         modifier
@@ -74,7 +73,6 @@ fun SpaceInviteContent(modifier: Modifier) {
             .padding(top = 40.dp, bottom = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
         Text(
             text = stringResource(R.string.space_invite_title, viewModel.spaceName),
             style = AppTheme.appTypography.header1,

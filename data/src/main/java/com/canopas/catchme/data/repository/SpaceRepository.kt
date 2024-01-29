@@ -1,37 +1,29 @@
 package com.canopas.catchme.data.repository
 
-import android.util.Log
 import com.canopas.catchme.data.models.space.ApiSpace
-import com.canopas.catchme.data.models.space.SPACE_MEMBER_ROLE_MEMBER
 import com.canopas.catchme.data.models.space.SpaceInfo
 import com.canopas.catchme.data.models.user.UserInfo
 import com.canopas.catchme.data.service.auth.AuthService
 import com.canopas.catchme.data.service.location.ApiLocationService
 import com.canopas.catchme.data.service.space.ApiSpaceService
+import com.canopas.catchme.data.service.space.SpaceInvitationService
 import com.canopas.catchme.data.service.user.ApiUserService
 import com.canopas.catchme.data.storage.UserPreferences
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class SpaceRepository @Inject constructor(
     private val authService: AuthService,
     private val spaceService: ApiSpaceService,
+    private val invitationService: SpaceInvitationService,
     private val userService: ApiUserService,
     private val locationService: ApiLocationService,
     private val userPreferences: UserPreferences
@@ -60,9 +52,9 @@ class SpaceRepository @Inject constructor(
     }
 
     private suspend fun getCurrentSpace(): ApiSpace? {
-        val spaceId = userPreferences.currentSpace
+        val spaceId = currentSpaceId
 
-        if (spaceId.isNullOrEmpty()) {
+        if (spaceId.isEmpty()) {
             val userId = authService.currentUser?.id ?: ""
             return getUserSpaces(userId).firstOrNull()?.sortedBy { it?.created_at }?.firstOrNull()
         }
@@ -77,7 +69,6 @@ class SpaceRepository @Inject constructor(
                 space
             }
         }
-
 
     private suspend fun getSpace(spaceId: String): ApiSpace? = spaceService.getSpace(spaceId)
 
@@ -96,5 +87,13 @@ class SpaceRepository @Inject constructor(
                 }
                 combine(flows) { it.toList() }
             }
+    }
+
+    suspend fun getInviteCode(spaceId: String): String? {
+        val code = invitationService.getSpaceInviteCode(spaceId)
+        if (code?.isExpired == true) {
+            return invitationService.regenerateInvitationCode(spaceId)
+        }
+        return code?.code
     }
 }

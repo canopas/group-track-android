@@ -30,7 +30,6 @@ class MapViewModel @Inject constructor(
     }
 }
 
-
 data class MapScreenState(
     val members: List<UserInfo> = emptyList()
 )

@@ -3,6 +3,7 @@ package com.canopas.catchme.ui.flow.onboard.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,18 +35,21 @@ fun JoinOrCreateSpaceOnboard() {
     val viewModel = hiltViewModel<OnboardViewModel>()
     val state by viewModel.state.collectAsState()
 
-    Column(
+    Box(
         Modifier
             .fillMaxSize()
-            .background(AppTheme.colorScheme.surface),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .background(AppTheme.colorScheme.surface)
     ) {
-        JoinSpaceComponent(state.spaceInviteCode ?: "", state.verifyingInviteCode, onCodeChanged = {
-            viewModel.onInviteCodeChanged(it)
-        }) {
+        JoinSpaceComponent(
+            state.spaceInviteCode ?: "",
+            state.verifyingInviteCode,
+            onCodeChanged = {
+                viewModel.onInviteCodeChanged(it)
+            }
+        ) {
             viewModel.submitInviteCode()
         }
-        Spacer(modifier = Modifier.weight(1f))
+
         CreateSpaceComponent {
             viewModel.navigateToCreateSpace()
         }
@@ -110,9 +114,10 @@ private fun JoinSpaceComponent(
 }
 
 @Composable
-private fun CreateSpaceComponent(onCreateNewSpace: () -> Unit) {
+private fun BoxScope.CreateSpaceComponent(onCreateNewSpace: () -> Unit) {
     Box(
         modifier = Modifier
+            .align(Alignment.BottomCenter)
             .fillMaxWidth(),
         contentAlignment = Alignment.TopCenter
     ) {

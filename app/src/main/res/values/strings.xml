@@ -9,6 +9,9 @@
     <string name="common_btn_allow">Allow</string>
     <string name="common_btn_create_space">Create new</string>
     <string name="common_btn_join_space">Join space</string>
+    <string name="common_btn_ok">Okay</string>
+    <string name="common_label_congratulations">Congratulations!</string>
+
 
     <string name="common_share_invite_code_message">Let\'s stay connected! Use invite code %s to join my Space. Download the app: [link].</string>
 
@@ -76,8 +79,11 @@
     <string name="home_space_selection_space_item_subtitle_member">By %s • %s member</string>
     <string name="home_create_space_suggestions">Some suggestions…</string>
     <string name="space_inviate_code_title">Invite Code</string>
-    <string name="space_invite_title">Inviate members to the %s</string>
+    <string name="space_invite_title">Invite members to the %s</string>
     <string name="space_invite_subtitle">Share this invite code with your trusted ones in your own style. Connecting is as flexible as you are.</string>
+    <string name="join_space_title_enter_code">Enter the invite code</string>
+    <string name="join_space_title">Join Space</string>
+    <string name="join_space_success_popup_message">You\'re now a member of the %s group for sharing your real-time location.</string>
 
     <string-array name="home_create_space_name_suggestion">
         <item>Family</item>

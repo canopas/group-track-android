@@ -77,7 +77,7 @@ private fun SignInContent(modifier: Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(80.dp))
         AppLogo(colorTint = AppTheme.colorScheme.primary)
         Spacer(modifier = Modifier.weight(1f))
         GoogleSignInBtn()

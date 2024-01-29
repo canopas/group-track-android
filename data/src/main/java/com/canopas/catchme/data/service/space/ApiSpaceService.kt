@@ -10,8 +10,6 @@ import com.canopas.catchme.data.utils.FirestoreConst
 import com.canopas.catchme.data.utils.FirestoreConst.FIRESTORE_COLLECTION_SPACES
 import com.canopas.catchme.data.utils.snapshotFlow
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -69,7 +67,6 @@ class ApiSpaceService @Inject constructor(
         return result.documents.isNotEmpty()
     }
 
-
     suspend fun getSpace(spaceId: String) =
         spaceRef.document(spaceId).get().await().toObject(ApiSpace::class.java)
 
@@ -78,5 +75,4 @@ class ApiSpaceService @Inject constructor(
 
     suspend fun getMemberBySpaceId(spaceId: String) =
         spaceMemberRef.whereEqualTo("space_id", spaceId).snapshotFlow(ApiSpaceMember::class.java)
-
 }

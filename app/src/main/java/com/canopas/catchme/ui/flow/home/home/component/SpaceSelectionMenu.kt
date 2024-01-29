@@ -2,22 +2,16 @@ package com.canopas.catchme.ui.flow.home.home.component
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -29,9 +23,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults.smallShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -47,7 +39,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.catchme.R
 import com.canopas.catchme.data.models.space.SpaceInfo
-import com.canopas.catchme.ui.component.AppProgressIndicator
 import com.canopas.catchme.ui.component.PrimaryButton
 import com.canopas.catchme.ui.flow.home.home.HomeScreenViewModel
 import com.canopas.catchme.ui.theme.AppTheme
@@ -102,9 +93,12 @@ fun SpaceSelectionMenu(modifier: Modifier) {
 
 @Composable
 fun SpaceSelectionPopup(
-    show: Boolean, spaces: List<SpaceInfo>, selectSpaceId: String,
+    show: Boolean,
+    spaces: List<SpaceInfo>,
+    selectSpaceId: String,
     onSpaceSelected: (String) -> Unit = {},
-    onCreateSpace: () -> Unit = {}, onJoinSpace: () -> Unit = {}
+    onCreateSpace: () -> Unit = {},
+    onJoinSpace: () -> Unit = {}
 ) {
     AnimatedVisibility(
         visible = show,
@@ -188,7 +182,6 @@ private fun SpaceItem(
         RadioButton(selected = isSelected, onClick = null)
         Spacer(modifier = Modifier.width(16.dp))
         Column {
-
             Text(
                 text = space.space.name,
                 style = AppTheme.appTypography.subTitle2.copy(color = AppTheme.colorScheme.textPrimary)
@@ -196,14 +189,16 @@ private fun SpaceItem(
 
             Text(
                 text = stringResource(
-                    id = if (members.size > 1) R.string.home_space_selection_space_item_subtitle_members
-                    else R.string.home_space_selection_space_item_subtitle_member,
+                    id = if (members.size > 1) {
+                        R.string.home_space_selection_space_item_subtitle_members
+                    } else {
+                        R.string.home_space_selection_space_item_subtitle_member
+                    },
                     admin.fullName,
                     members.size
                 ),
                 style = AppTheme.appTypography.label1.copy(color = AppTheme.colorScheme.textSecondary)
             )
         }
-
     }
 }

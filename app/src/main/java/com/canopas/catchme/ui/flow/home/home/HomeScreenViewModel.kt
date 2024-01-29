@@ -50,12 +50,23 @@ class HomeScreenViewModel @Inject constructor(
         try {
             _state.emit(_state.value.copy(isLoadingSpaces = _state.value.spaces.isEmpty()))
             spaceRepository.getAllSpaceInfo().collectLatest { spaces ->
+
                 if (spaceRepository.currentSpaceId.isEmpty()) {
                     spaceRepository.currentSpaceId = spaces.firstOrNull()?.space?.id ?: ""
                 }
+                val tempSpaces = spaces.toMutableList()
+                val index =
+                    tempSpaces.indexOfFirst { it.space.id == spaceRepository.currentSpaceId }
+
+                if (index != -1) {
+                    tempSpaces.removeAt(index)
+                    val item = spaces[index]
+                    tempSpaces.add(0, item)
+                }
                 _state.emit(
                     _state.value.copy(
-                        spaces = spaces,
+                        selectedSpace = spaces.firstOrNull { it.space.id == spaceRepository.currentSpaceId },
+                        spaces = tempSpaces,
                         isLoadingSpaces = false,
                         selectedSpaceId = spaceRepository.currentSpaceId
                     )
@@ -73,13 +84,38 @@ class HomeScreenViewModel @Inject constructor(
     }
 
     fun navigateToCreateSpace() {
-        toggleSpaceSelection()
         navigator.navigateTo(AppDestinations.createSpace.path)
     }
 
-    fun selectSpace(spaceId: String) {
-        spaceRepository.currentSpaceId = spaceId
-        _state.value = (_state.value.copy(selectedSpaceId = spaceId))
+    fun selectSpace(spaceId: String) = viewModelScope.launch(appDispatcher.IO) {
+        try {
+            spaceRepository.currentSpaceId = spaceId
+            val space = _state.value.spaces.firstOrNull { it.space.id == spaceId }
+            _state.value = (_state.value.copy(selectedSpaceId = spaceId, selectedSpace = space))
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to get space")
+            _state.emit(_state.value.copy(error = e.message, isLoadingSpaces = false))
+        }
+    }
+
+    fun addMember() = viewModelScope.launch(appDispatcher.IO) {
+        try {
+            val space = _state.value.selectedSpace?.space ?: return@launch
+            _state.emit(_state.value.copy(isLoadingSpaces = _state.value.spaces.isEmpty()))
+            val inviteCode = spaceRepository.getInviteCode(space.id) ?: return@launch
+            navigator.navigateTo(
+                AppDestinations.SpaceInvitation.spaceInvitation(inviteCode, space.name).path,
+                AppDestinations.createSpace.path,
+                inclusive = true
+            )
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to get invite code")
+            _state.emit(_state.value.copy(error = e.message, isLoadingSpaces = false))
+        }
+    }
+
+    fun joinSpace() {
+        navigator.navigateTo(AppDestinations.joinSpace.path)
     }
 }
 
@@ -88,6 +124,7 @@ data class HomeScreenState(
     val shouldAskForBackgroundLocationPermission: Boolean = false,
     val spaces: List<SpaceInfo> = emptyList(),
     val selectedSpaceId: String = "",
+    val selectedSpace: SpaceInfo? = null,
     val isLoadingSpaces: Boolean = false,
     val showSpaceSelectionPopup: Boolean = false,
     val error: String? = null
