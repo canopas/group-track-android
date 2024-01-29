@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.canopas.catchme.data.models.space.ApiSpace
 import com.canopas.catchme.data.repository.SpaceRepository
-import com.canopas.catchme.data.service.space.ApiSpaceService
 import com.canopas.catchme.data.service.space.SpaceInvitationService
 import com.canopas.catchme.data.utils.AppDispatcher
 import com.canopas.catchme.ui.navigation.HomeNavigator

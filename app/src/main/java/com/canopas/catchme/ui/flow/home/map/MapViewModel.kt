@@ -8,13 +8,10 @@ import com.canopas.catchme.data.storage.UserPreferences
 import com.canopas.catchme.data.utils.AppDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -31,6 +28,7 @@ class MapViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
+            _state.value = _state.value.copy(currentUserId = userPreferences.currentUser?.id)
             userPreferences.currentSpaceState.collectLatest {
                 locationJob?.cancel()
                 listenMemberLocation()
@@ -48,5 +46,6 @@ class MapViewModel @Inject constructor(
 }
 
 data class MapScreenState(
-    val members: List<UserInfo> = emptyList()
+    val members: List<UserInfo> = emptyList(),
+    val currentUserId: String? = ""
 )

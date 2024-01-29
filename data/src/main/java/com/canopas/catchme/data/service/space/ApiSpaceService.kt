@@ -5,7 +5,6 @@ import com.canopas.catchme.data.models.space.ApiSpaceMember
 import com.canopas.catchme.data.models.space.SPACE_MEMBER_ROLE_ADMIN
 import com.canopas.catchme.data.models.space.SPACE_MEMBER_ROLE_MEMBER
 import com.canopas.catchme.data.service.auth.AuthService
-import com.canopas.catchme.data.storage.UserPreferences
 import com.canopas.catchme.data.utils.FirestoreConst
 import com.canopas.catchme.data.utils.FirestoreConst.FIRESTORE_COLLECTION_SPACES
 import com.canopas.catchme.data.utils.snapshotFlow
@@ -17,7 +16,7 @@ import javax.inject.Singleton
 @Singleton
 class ApiSpaceService @Inject constructor(
     db: FirebaseFirestore,
-    private val authService: AuthService,
+    private val authService: AuthService
 ) {
     private val spaceRef = db.collection(FIRESTORE_COLLECTION_SPACES)
     private val spaceMemberRef = db.collection(FirestoreConst.FIRESTORE_COLLECTION_SPACE_MEMBERS)

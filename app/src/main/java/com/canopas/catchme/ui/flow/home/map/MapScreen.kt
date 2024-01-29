@@ -4,26 +4,34 @@ import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.catchme.R
+import com.canopas.catchme.data.models.user.UserInfo
 import com.canopas.catchme.ui.flow.home.map.component.MapMarker
+import com.canopas.catchme.ui.flow.home.map.component.MapUserItem
 import com.canopas.catchme.ui.theme.AppTheme
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
@@ -38,39 +46,70 @@ import kotlinx.coroutines.launch
 @Composable
 fun MapScreen() {
     val scope = rememberCoroutineScope()
-    val tempLatLong = remember {
-        LatLng(21.231809060338193, 72.83629238605499)
+    val viewModel = hiltViewModel<MapViewModel>()
+    val state by viewModel.state.collectAsState()
+
+    val userLocation = remember(state.members) {
+        val location = state.members.find { it.user.id == state.currentUserId }?.location
+        LatLng(location?.latitude ?: 0.0, location?.longitude ?: 0.0)
     }
+
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(tempLatLong, 16f)
+        position = CameraPosition.fromLatLngZoom(userLocation, 16f)
     }
 
     val relocate by remember {
         derivedStateOf {
-            cameraPositionState.position.target != tempLatLong
+            cameraPositionState.position.target != userLocation
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        MapView(cameraPositionState)
+    LaunchedEffect(userLocation) {
+        cameraPositionState.animate(
+            CameraUpdateFactory.newLatLngZoom(
+                userLocation,
+                16f
+            )
+        )
+    }
 
-        AnimatedVisibility(
-            visible = relocate,
-            enter = fadeIn(),
-            exit = fadeOut(),
+    Box(modifier = Modifier.fillMaxSize()) {
+        MapView(cameraPositionState, state.members)
+
+        Column(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(bottom = 10.dp, end = 10.dp)
-
+                .padding(bottom = 10.dp),
+            horizontalAlignment = Alignment.End
         ) {
-            RelocateBtn(icon = R.drawable.ic_relocate) {
-                scope.launch {
-                    cameraPositionState.animate(
-                        CameraUpdateFactory.newLatLngZoom(
-                            tempLatLong,
-                            16f
+            AnimatedVisibility(
+                visible = relocate,
+                enter = fadeIn(),
+                exit = fadeOut(),
+                modifier = Modifier
+                    .padding(bottom = 10.dp, end = 10.dp)
+            ) {
+                RelocateBtn(
+                    icon = R.drawable.ic_relocate
+                ) {
+                    scope.launch {
+                        cameraPositionState.animate(
+                            CameraUpdateFactory.newLatLngZoom(
+                                userLocation,
+                                16f
+                            )
                         )
-                    )
+                    }
+                }
+            }
+            LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(horizontal = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(state.members) {
+                    MapUserItem(it) {
+                    }
                 }
             }
         }
@@ -78,16 +117,13 @@ fun MapScreen() {
 }
 
 @Composable
-private fun MapView(cameraPositionState: CameraPositionState) {
-    val viewModel = hiltViewModel<MapViewModel>()
-    val state by viewModel.state.collectAsState()
-
+private fun MapView(cameraPositionState: CameraPositionState, members: List<UserInfo>) {
     GoogleMap(
         cameraPositionState = cameraPositionState,
         properties = MapProperties(),
         uiSettings = MapUiSettings(zoomControlsEnabled = false, tiltGesturesEnabled = false)
     ) {
-        state.members.filter { it.location != null }.forEach {
+        members.filter { it.location != null }.forEach {
             MapMarker(user = it.user, location = it.location!!) {}
         }
     }
