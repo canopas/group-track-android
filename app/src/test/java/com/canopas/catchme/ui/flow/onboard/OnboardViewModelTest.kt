@@ -4,8 +4,8 @@ import com.canopas.catchme.MainCoroutineRule
 import com.canopas.catchme.data.models.space.ApiSpace
 import com.canopas.catchme.data.models.space.ApiSpaceInvitation
 import com.canopas.catchme.data.models.user.ApiUser
+import com.canopas.catchme.data.repository.SpaceRepository
 import com.canopas.catchme.data.service.auth.AuthService
-import com.canopas.catchme.data.service.space.ApiSpaceService
 import com.canopas.catchme.data.service.space.SpaceInvitationService
 import com.canopas.catchme.data.storage.UserPreferences
 import com.canopas.catchme.data.utils.AppDispatcher
@@ -35,7 +35,7 @@ class OnboardViewModelTest {
 
     private val userService = mock<AuthService>()
     private val userPreferences = mock<UserPreferences>()
-    private val spaceService = mock<ApiSpaceService>()
+    private val spaceRepository = mock<SpaceRepository>()
     private val navigator = mock<MainNavigator>()
     private val invitationService = mock<SpaceInvitationService>()
 
@@ -48,7 +48,7 @@ class OnboardViewModelTest {
         viewModel = OnboardViewModel(
             userService,
             testDispatcher,
-            spaceService,
+            spaceRepository,
             userPreferences,
             navigator,
             invitationService
@@ -120,7 +120,7 @@ class OnboardViewModelTest {
 
     @Test
     fun `createSpace should set creatingSpace state to true`() = runTest {
-        whenever(spaceService.createSpace("space")).doSuspendableAnswer {
+        whenever(spaceRepository.createSpaceAndGetInviteCode("space")).doSuspendableAnswer {
             withContext(Dispatchers.IO) { delay(1000) }
             return@doSuspendableAnswer "invitationCode"
         }
@@ -137,19 +137,19 @@ class OnboardViewModelTest {
     @Test
     fun `createSpace should call createSpace`() = runTest {
         viewModel.createSpace("space")
-        verify(spaceService).createSpace("space")
+        verify(spaceRepository).createSpaceAndGetInviteCode("space")
     }
 
     @Test
     fun `createSpace should set spaceCode`() = runTest {
-        whenever(spaceService.createSpace("space")).thenReturn("invitationCode")
+        whenever(spaceRepository.createSpaceAndGetInviteCode("space")).thenReturn("invitationCode")
         viewModel.createSpace("space")
         assert(viewModel.state.value.spaceInviteCode == "invitationCode")
     }
 
     @Test
     fun `createSpace should set creatingSpace to false after space created`() = runTest {
-        whenever(spaceService.createSpace("space")).thenReturn("invitationCode")
+        whenever(spaceRepository.createSpaceAndGetInviteCode("space")).thenReturn("invitationCode")
         viewModel.createSpace("space")
         assert(!viewModel.state.value.creatingSpace)
     }
@@ -157,10 +157,17 @@ class OnboardViewModelTest {
     @Test
     fun `createSpace should set currentStep to ShareSpaceCodeOnboard after space created`() =
         runTest {
-            whenever(spaceService.createSpace("space")).thenReturn("invitationCode")
+            whenever(spaceRepository.createSpaceAndGetInviteCode("space")).thenReturn("invitationCode")
             viewModel.createSpace("space")
             assert(viewModel.state.value.currentStep == OnboardItems.ShareSpaceCodeOnboard)
         }
+
+    @Test
+    fun `createSpace should set error state if createSpace throws exception`() = runTest {
+        whenever(spaceRepository.createSpaceAndGetInviteCode("space")).thenThrow(RuntimeException("error"))
+        viewModel.createSpace("space")
+        assert(viewModel.state.value.error == "error")
+    }
 
     @Test
     fun `navigateToPermission should set OnboardShown to true`() = runTest {
@@ -228,7 +235,7 @@ class OnboardViewModelTest {
 
         whenever(invitationService.getInvitation("inviteCode")).thenReturn(null)
         viewModel.submitInviteCode()
-        verifyNoInteractions(spaceService)
+        verifyNoInteractions(spaceRepository)
     }
 
     @Test
@@ -242,7 +249,7 @@ class OnboardViewModelTest {
         whenever(space.name).thenReturn("spaceName")
 
         whenever(invitationService.getInvitation("inviteCode")).thenReturn(invitation)
-        whenever(spaceService.getSpace("spaceId")).thenReturn(space)
+        whenever(spaceRepository.getSpace("spaceId")).thenReturn(space)
         viewModel.submitInviteCode()
 
         assert(viewModel.state.value.spaceName == space.name)
@@ -261,7 +268,7 @@ class OnboardViewModelTest {
             whenever(space.name).thenReturn("spaceName")
 
             whenever(invitationService.getInvitation("inviteCode")).thenReturn(invitation)
-            whenever(spaceService.getSpace("spaceId")).thenReturn(space)
+            whenever(spaceRepository.getSpace("spaceId")).thenReturn(space)
             viewModel.submitInviteCode()
 
             assert(!viewModel.state.value.verifyingInviteCode)
@@ -279,7 +286,7 @@ class OnboardViewModelTest {
         whenever(space.name).thenReturn("spaceName")
 
         whenever(invitationService.getInvitation("inviteCode")).thenReturn(invitation)
-        whenever(spaceService.getSpace("spaceId")).thenReturn(space)
+        whenever(spaceRepository.getSpace("spaceId")).thenReturn(space)
         viewModel.submitInviteCode()
 
         assert(viewModel.state.value.currentStep == OnboardItems.JoinSpace)
@@ -304,9 +311,9 @@ class OnboardViewModelTest {
         whenever(space.name).thenReturn("spaceName")
 
         whenever(invitationService.getInvitation("inviteCode")).thenReturn(invitation)
-        whenever(spaceService.getSpace("spaceId")).thenReturn(space)
+        whenever(spaceRepository.getSpace("spaceId")).thenReturn(space)
 
-        whenever(spaceService.joinSpace("spaceId")).doSuspendableAnswer {
+        whenever(spaceRepository.joinSpace("spaceId")).doSuspendableAnswer {
             withContext(Dispatchers.IO) { delay(5000) }
             return@doSuspendableAnswer null
         }
@@ -327,13 +334,13 @@ class OnboardViewModelTest {
         whenever(space.name).thenReturn("spaceName")
 
         whenever(invitationService.getInvitation("inviteCode")).thenReturn(invitation)
-        whenever(spaceService.getSpace("spaceId")).thenReturn(space)
+        whenever(spaceRepository.getSpace("spaceId")).thenReturn(space)
 
         viewModel.onInviteCodeChanged("inviteCode")
         viewModel.submitInviteCode()
 
         viewModel.joinSpace()
-        verify(spaceService).joinSpace("spaceId")
+        verify(spaceRepository).joinSpace("spaceId")
     }
 
     @Test
@@ -346,7 +353,7 @@ class OnboardViewModelTest {
         whenever(space.name).thenReturn("spaceName")
 
         whenever(invitationService.getInvitation("inviteCode")).thenReturn(invitation)
-        whenever(spaceService.getSpace("spaceId")).thenReturn(space)
+        whenever(spaceRepository.getSpace("spaceId")).thenReturn(space)
 
         viewModel.onInviteCodeChanged("inviteCode")
         viewModel.submitInviteCode()
@@ -365,7 +372,7 @@ class OnboardViewModelTest {
         whenever(space.name).thenReturn("spaceName")
 
         whenever(invitationService.getInvitation("inviteCode")).thenReturn(invitation)
-        whenever(spaceService.getSpace("spaceId")).thenReturn(space)
+        whenever(spaceRepository.getSpace("spaceId")).thenReturn(space)
 
         viewModel.onInviteCodeChanged("inviteCode")
         viewModel.submitInviteCode()
@@ -384,7 +391,7 @@ class OnboardViewModelTest {
         whenever(space.name).thenReturn("spaceName")
 
         whenever(invitationService.getInvitation("inviteCode")).thenReturn(invitation)
-        whenever(spaceService.getSpace("spaceId")).thenReturn(space)
+        whenever(spaceRepository.getSpace("spaceId")).thenReturn(space)
 
         viewModel.onInviteCodeChanged("inviteCode")
         viewModel.submitInviteCode()
@@ -403,8 +410,8 @@ class OnboardViewModelTest {
         whenever(space.name).thenReturn("spaceName")
 
         whenever(invitationService.getInvitation("inviteCode")).thenReturn(invitation)
-        whenever(spaceService.getSpace("spaceId")).thenReturn(space)
-        whenever(spaceService.joinSpace("spaceId")).thenThrow(RuntimeException("error"))
+        whenever(spaceRepository.getSpace("spaceId")).thenReturn(space)
+        whenever(spaceRepository.joinSpace("spaceId")).thenThrow(RuntimeException("error"))
 
         viewModel.onInviteCodeChanged("inviteCode")
         viewModel.submitInviteCode()
