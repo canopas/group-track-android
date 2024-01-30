@@ -3,7 +3,6 @@ package com.canopas.catchme.ui.flow.onboard.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,8 +10,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -35,9 +37,11 @@ fun JoinOrCreateSpaceOnboard() {
     val viewModel = hiltViewModel<OnboardViewModel>()
     val state by viewModel.state.collectAsState()
 
-    Box(
+    val scrollState = rememberScrollState()
+    Column(
         Modifier
             .fillMaxSize()
+            .verticalScroll(scrollState)
             .background(AppTheme.colorScheme.surface)
     ) {
         JoinSpaceComponent(
@@ -49,6 +53,8 @@ fun JoinOrCreateSpaceOnboard() {
         ) {
             viewModel.submitInviteCode()
         }
+
+        Spacer(modifier = Modifier.height(80.dp))
 
         CreateSpaceComponent {
             viewModel.navigateToCreateSpace()
@@ -114,10 +120,9 @@ private fun JoinSpaceComponent(
 }
 
 @Composable
-private fun BoxScope.CreateSpaceComponent(onCreateNewSpace: () -> Unit) {
+private fun CreateSpaceComponent(onCreateNewSpace: () -> Unit) {
     Box(
         modifier = Modifier
-            .align(Alignment.BottomCenter)
             .fillMaxWidth(),
         contentAlignment = Alignment.TopCenter
     ) {
@@ -125,13 +130,17 @@ private fun BoxScope.CreateSpaceComponent(onCreateNewSpace: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .padding(top = 25.dp)
-                .background(AppTheme.colorScheme.tertiary)
                 .padding(bottom = 30.dp)
         ) {
-            Spacer(modifier = Modifier.height(40.dp))
+            Divider(
+                thickness = 1.dp,
+                color = AppTheme.colorScheme.textSecondary.copy(alpha = 0.5f),
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(60.dp))
             Text(
                 text = stringResource(R.string.onboard_space_create_title),
-                style = AppTheme.appTypography.header2.copy(color = AppTheme.colorScheme.textInversePrimary),
+                style = AppTheme.appTypography.header2.copy(color = AppTheme.colorScheme.textPrimary),
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -141,7 +150,7 @@ private fun BoxScope.CreateSpaceComponent(onCreateNewSpace: () -> Unit) {
 
             Text(
                 text = stringResource(R.string.onboard_space_create_subtitle),
-                style = AppTheme.appTypography.body1.copy(color = AppTheme.colorScheme.textInversePrimary),
+                style = AppTheme.appTypography.body1.copy(color = AppTheme.colorScheme.textSecondary),
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -160,13 +169,20 @@ private fun BoxScope.CreateSpaceComponent(onCreateNewSpace: () -> Unit) {
                 .height(50.dp)
                 .width(60.dp)
                 .background(color = AppTheme.colorScheme.surface, shape = RoundedCornerShape(40.dp))
-                .border(width = 3.dp, color = AppTheme.colorScheme.tertiary, shape = CircleShape),
+                .border(
+                    width = 1.dp,
+                    color = AppTheme.colorScheme.textSecondary.copy(alpha = 0.5f),
+                    shape = CircleShape
+                ),
             contentAlignment = Alignment.Center
-
         ) {
             Text(
                 text = stringResource(R.string.common_label_or).uppercase(),
-                style = AppTheme.appTypography.header4.copy(color = AppTheme.colorScheme.tertiary),
+                style = AppTheme.appTypography.subTitle2.copy(
+                    color = AppTheme.colorScheme.textSecondary.copy(
+                        alpha = 0.5f
+                    )
+                ),
                 textAlign = TextAlign.Center,
                 modifier = Modifier
             )
