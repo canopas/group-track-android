@@ -17,26 +17,35 @@ jobs:
         env:
           GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
           APKSIGN_KEYSTORE_BASE64: ${{ secrets.APKSIGN_KEYSTORE_BASE64 }}
-          APKSIGN_KEYSTORE_PASS: ${{ secrets.APKSIGN_KEYSTORE_PASS }}
-          APKSIGN_KEY_ALIAS: ${{ secrets.APKSIGN_KEY_ALIAS }}
-          APKSIGN_KEY_PASS: ${{ secrets.APKSIGN_KEY_PASS }}
 
         run: |
           echo $GOOGLE_SERVICES_JSON_BASE64 | base64 -di > app/google-services.json
-          echo $APKSIGN_KEYSTORE_BASE64 | base64 -di > app/release.keystore
-          export APKSIGN_KEYSTORE=`pwd`/release.keystore
-
-      - name: Build with Gradle
+          
+      - name: Run Lint check
         env:
           MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
-        run: ./gradlew build
+        run: ./gradlew ktlintCheck
 
       - name: Run Tests with Gradle
         env:
           MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
         run: ./gradlew test
 
-      - name: Run Lint check
+      - name: Build with Gradle
         env:
           MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
-        run: ./gradlew ktlintCheck
+          APKSIGN_KEYSTORE_PASS: ${{ secrets.APKSIGN_KEYSTORE_PASS }}
+          APKSIGN_KEY_ALIAS: ${{ secrets.APKSIGN_KEY_ALIAS }}
+          APKSIGN_KEY_PASS: ${{ secrets.APKSIGN_KEY_PASS }}
+        run: |
+          echo $APKSIGN_KEYSTORE_BASE64 | base64 -di > app/release.keystore
+          export APKSIGN_KEYSTORE=`pwd`/release.keystore
+          ./gradlew assembleRelease
+          mv app/build/outputs/apk/release/*.apk .
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: CatchMe APK
+          path: CatchMe*.apk
+          retention-days: 2

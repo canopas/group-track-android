@@ -30,7 +30,8 @@ android {
         minSdk = 21
         targetSdk = 34
         versionCode = versionMajor * 1000000 + versionMinor * 10000 + versionBuild
-        versionName = "${versionMajor}.${versionMinor}.${versionBuild}"
+        versionName = "$versionMajor.$versionMinor.$versionBuild"
+        setProperty("archivesBaseName", "CatchMe-$versionName-$versionCode")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
