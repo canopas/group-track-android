@@ -1,10 +1,11 @@
-name: Android Build
+name: Publish (Internal)
 
 on: [ push ]
 
 jobs:
-  build:
+  deploy_internal_android:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v2
       - name: set up JDK 17
@@ -13,30 +14,28 @@ jobs:
           distribution: adopt
           java-version: 17
 
-      - name: Retrieve the secret and decode it to a file
+      - uses: actions/checkout@v2
+      - name: Set up ruby env
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 2.7.2
+          bundler-cache: true
+
+      - name: Deploy internally
         env:
+          MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
           GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
+          APP_PLAY_SERVICE_JSON: ${{ secrets.APP_PLAY_SERVICE_JSON }}
           APKSIGN_KEYSTORE_BASE64: ${{ secrets.APKSIGN_KEYSTORE_BASE64 }}
           APKSIGN_KEYSTORE_PASS: ${{ secrets.APKSIGN_KEYSTORE_PASS }}
           APKSIGN_KEY_ALIAS: ${{ secrets.APKSIGN_KEY_ALIAS }}
           APKSIGN_KEY_PASS: ${{ secrets.APKSIGN_KEY_PASS }}
+          CI_RUN_NUMBER: ${{ github.run_number }}
 
         run: |
           echo $GOOGLE_SERVICES_JSON_BASE64 | base64 -di > app/google-services.json
           echo $APKSIGN_KEYSTORE_BASE64 | base64 -di > app/release.keystore
           export APKSIGN_KEYSTORE=`pwd`/release.keystore
-
-      - name: Build with Gradle
-        env:
-          MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
-        run: ./gradlew build
-
-      - name: Run Tests with Gradle
-        env:
-          MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
-        run: ./gradlew test
-
-      - name: Run Lint check
-        env:
-          MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
-        run: ./gradlew ktlintCheck
+          sudo gem install bundler fastlane
+          echo $PLAY_SERVICES_JSON_BASE64 > google_play_api_key.json
+          bundle exec fastlane upload_internal
