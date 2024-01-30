@@ -49,19 +49,25 @@ android {
 
     signingConfigs {
         if (System.getenv("APKSIGN_KEYSTORE") != null) {
-            getByName("debug") {
+            create("release") {
                 keyAlias = System.getenv("APKSIGN_KEY_ALIAS")
                 keyPassword = System.getenv("APKSIGN_KEYSTORE_PASS")
                 storeFile = file(System.getenv("APKSIGN_KEYSTORE"))
                 storePassword = System.getenv("APKSIGN_KEY_PASS")
             }
         } else {
-            getByName("debug") {
+            create("release") {
                 keyAlias = "catchme"
                 keyPassword = "catchme"
                 storeFile = file("debug.keystore")
                 storePassword = "catchme"
             }
+        }
+        getByName("debug") {
+            keyAlias = "catchme"
+            keyPassword = "catchme"
+            storeFile = file("debug.keystore")
+            storePassword = "catchme"
         }
     }
 
@@ -73,7 +79,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
         debug {
             isMinifyEnabled = false
