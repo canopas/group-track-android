@@ -39,7 +39,7 @@ class MapViewModel @Inject constructor(
     private fun listenMemberLocation() {
         locationJob = viewModelScope.launch(appDispatcher.IO) {
             spaceRepository.getMemberWithLocation().collectLatest {
-                _state.emit(_state.value.copy(members = it))
+                _state.emit(_state.value.copy(members = it.filter { it.isLocationEnable }))
             }
         }
     }

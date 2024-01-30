@@ -91,16 +91,17 @@ class SpaceRepository @Inject constructor(
     suspend fun getMemberWithLocation(): Flow<List<UserInfo>> {
         if (currentSpaceId.isEmpty()) return emptyFlow()
         return spaceService.getMemberBySpaceId(currentSpaceId)
-            .map { members ->
-                members.filter { it.location_enabled }
-                    .mapNotNull { userService.getUser(it.user_id) }
-            }.flatMapLatest { users ->
-                val flows = users.map { user ->
-                    locationService.getCurrentLocation(user.id)
-                        .map {
-                            UserInfo(user, it)
+            .flatMapLatest { members ->
+                val flows = members.filter { it.location_enabled }
+                    .mapNotNull { member ->
+                        val user = userService.getUser(member.user_id)
+                        user?.let {
+                            locationService.getCurrentLocation(user.id)
+                                .map {
+                                    UserInfo(user, it, member.location_enabled)
+                                }
                         }
-                }
+                    }
                 combine(flows) { it.toList() }
             }
     }
