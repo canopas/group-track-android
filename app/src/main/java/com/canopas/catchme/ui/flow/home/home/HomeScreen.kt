@@ -45,6 +45,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.canopas.catchme.R
 import com.canopas.catchme.data.utils.isBackgroundLocationPermissionGranted
+import com.canopas.catchme.ui.component.AppProgressIndicator
 import com.canopas.catchme.ui.component.CheckBackgroundLocationPermission
 import com.canopas.catchme.ui.flow.home.activity.ActivityScreen
 import com.canopas.catchme.ui.flow.home.home.component.SpaceSelectionMenu
@@ -187,6 +188,7 @@ private fun MapControl(
     modifier: Modifier = Modifier,
     @DrawableRes icon: Int,
     visible: Boolean = true,
+    showLoader: Boolean = false,
     onClick: () -> Unit
 ) {
     val alpha by animateFloatAsState(targetValue = if (visible) 1f else 0f, tween(100), label = "")
@@ -197,11 +199,15 @@ private fun MapControl(
         containerColor = AppTheme.colorScheme.surface,
         contentColor = AppTheme.colorScheme.primary
     ) {
-        Icon(
-            painter = painterResource(id = icon),
-            contentDescription = "",
-            modifier = Modifier.size(24.dp)
-        )
+        if (showLoader) {
+            AppProgressIndicator()
+        } else {
+            Icon(
+                painter = painterResource(id = icon),
+                contentDescription = "",
+                modifier = Modifier.size(24.dp)
+            )
+        }
     }
 }
 
@@ -214,8 +220,8 @@ private fun PermissionChecker() {
         CheckBackgroundLocationPermission(onDismiss = {
             viewModel.shouldAskForBackgroundLocationPermission(false)
         }, onGranted = {
-                viewModel.startTracking()
-            })
+            viewModel.startTracking()
+        })
     }
 }
 
