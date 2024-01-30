@@ -1,9 +1,6 @@
 name: Publish (Internal)
 
-on:
-  push:
-    branches:
-      - main
+on: [ push ]
 
 jobs:
   deploy_internal_android:
@@ -37,7 +34,7 @@ jobs:
 
         run: |
           echo $GOOGLE_SERVICES_JSON_BASE64 | base64 -di > app/google-services.json
-          echo $APKSIGN_KEYSTORE_BASE64 | base64 -di > app/release.keystore
+          echo $APKSIGN_KEYSTORE_BASE64 | base64 -di > release.keystore
           export APKSIGN_KEYSTORE=`pwd`/release.keystore
           sudo gem install bundler fastlane
           echo $PLAY_SERVICES_JSON_BASE64 > google_play_api_key.json
