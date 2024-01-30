@@ -1,11 +1,13 @@
 package com.canopas.catchme.data.models.user
 
+import androidx.annotation.Keep
 import java.util.UUID
 
 const val LOGIN_TYPE_GOOGLE = 1
 const val LOGIN_TYPE_PHONE = 2
 const val LOGIN_DEVICE_TYPE_ANDROID = 1
 
+@Keep
 data class ApiUser(
     val id: String = UUID.randomUUID().toString(),
     val phone: String? = null,
@@ -20,6 +22,8 @@ data class ApiUser(
 ) {
     val fullName: String get() = "$first_name $last_name"
 }
+
+@Keep
 data class ApiUserSession(
     val id: String = UUID.randomUUID().toString(),
     val user_id: String,

@@ -1,7 +1,9 @@
 package com.canopas.catchme.data.models.location
 
+import androidx.annotation.Keep
 import java.util.UUID
 
+@Keep
 data class ApiLocation(
     val id: String = UUID.randomUUID().toString(),
     val user_id: String = "",
