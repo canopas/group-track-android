@@ -92,7 +92,8 @@ class SpaceRepository @Inject constructor(
         if (currentSpaceId.isEmpty()) return emptyFlow()
         return spaceService.getMemberBySpaceId(currentSpaceId)
             .map { members ->
-                members.mapNotNull { userService.getUser(it.user_id) }
+                members.filter { it.location_enabled }
+                    .mapNotNull { userService.getUser(it.user_id) }
             }.flatMapLatest { users ->
                 val flows = users.map { user ->
                     locationService.getCurrentLocation(user.id)
@@ -112,7 +113,7 @@ class SpaceRepository @Inject constructor(
         return code?.code
     }
 
-    suspend  fun enableLocation(spaceId: String, userId: String, locationEnabled: Boolean) {
+    suspend fun enableLocation(spaceId: String, userId: String, locationEnabled: Boolean) {
         spaceService.enableLocation(spaceId, userId, locationEnabled)
     }
 }

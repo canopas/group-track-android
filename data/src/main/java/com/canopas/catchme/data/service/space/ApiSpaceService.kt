@@ -54,9 +54,10 @@ class ApiSpaceService @Inject constructor(
     }
 
     suspend fun enableLocation(spaceId: String, userId: String, enable: Boolean) {
-        val query = spaceMemberRef.whereEqualTo("space_id", spaceId)
-            .whereEqualTo("user_id", userId).get().await()
-        query.documents.firstOrNull()?.reference?.update("location_enabled", enable)?.await()
+        spaceMemberRef.whereEqualTo("space_id", spaceId)
+            .whereEqualTo("user_id", userId).get()
+            .await().documents.firstOrNull()
+            ?.reference?.update("location_enabled", enable)?.await()
     }
 
     suspend fun isMember(spaceId: String, userId: String): Boolean {

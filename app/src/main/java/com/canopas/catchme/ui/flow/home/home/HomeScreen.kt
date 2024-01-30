@@ -125,7 +125,6 @@ fun HomeScreen() {
 fun HomeTopBar() {
     val viewModel = hiltViewModel<HomeScreenViewModel>()
     val state by viewModel.state.collectAsState()
-    var enableLocation by remember { mutableStateOf(true) }
 
     SpaceSelectionPopup(
         show = state.showSpaceSelectionPopup,
@@ -173,10 +172,10 @@ fun HomeTopBar() {
                 }
             } else {
                 MapControl(
-                    icon = if (enableLocation) R.drawable.ic_location_on else R.drawable.ic_location_off,
+                    icon = if (state.locationEnabled) R.drawable.ic_location_on else R.drawable.ic_location_off,
                     modifier = Modifier
                 ) {
-                    enableLocation = !enableLocation
+                    viewModel.toggleLocation()
                 }
             }
         }
