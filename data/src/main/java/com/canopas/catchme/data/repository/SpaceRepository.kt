@@ -56,7 +56,7 @@ class SpaceRepository @Inject constructor(
                     .map { members ->
                         members.mapNotNull { member ->
                             val user = userService.getUser(member.user_id)
-                            user?.let { UserInfo(user, isLocationEnable = member.location_enabled)}
+                            user?.let { UserInfo(user, isLocationEnable = member.location_enabled) }
                         }
                     }.map { members ->
                         SpaceInfo(space, members)
@@ -112,7 +112,7 @@ class SpaceRepository @Inject constructor(
         return code?.code
     }
 
-    fun enableLocation(spaceId: String, userId: String, locationEnabled: Boolean) {
-
+    suspend  fun enableLocation(spaceId: String, userId: String, locationEnabled: Boolean) {
+        spaceService.enableLocation(spaceId, userId, locationEnabled)
     }
 }
