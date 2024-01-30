@@ -53,6 +53,10 @@ class ApiSpaceService @Inject constructor(
         docRef.set(member).await()
     }
 
+    suspend fun enableLocation(spaceId: String,userId: String,enable:Boolean){
+
+    }
+
     suspend fun isMember(spaceId: String, userId: String): Boolean {
         val query = spaceMemberRef.whereEqualTo("space_id", spaceId)
             .whereEqualTo("user_id", userId)

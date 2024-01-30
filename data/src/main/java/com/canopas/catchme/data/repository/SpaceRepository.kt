@@ -54,7 +54,10 @@ class SpaceRepository @Inject constructor(
             val flows = spaces.filterNotNull().map { space ->
                 spaceService.getMemberBySpaceId(space.id)
                     .map { members ->
-                        members.mapNotNull { userService.getUser(it.user_id) }.map { UserInfo(it) }
+                        members.mapNotNull { member ->
+                            val user = userService.getUser(member.user_id)
+                            user?.let { UserInfo(user, isLocationEnable = member.location_enabled)}
+                        }
                     }.map { members ->
                         SpaceInfo(space, members)
                     }
@@ -107,5 +110,9 @@ class SpaceRepository @Inject constructor(
             return invitationService.regenerateInvitationCode(spaceId)
         }
         return code?.code
+    }
+
+    fun enableLocation(spaceId: String, userId: String, locationEnabled: Boolean) {
+
     }
 }

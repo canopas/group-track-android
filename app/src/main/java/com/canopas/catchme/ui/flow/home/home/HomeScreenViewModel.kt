@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.canopas.catchme.data.models.space.SpaceInfo
 import com.canopas.catchme.data.repository.SpaceRepository
 import com.canopas.catchme.data.service.location.LocationManager
+import com.canopas.catchme.data.storage.UserPreferences
 import com.canopas.catchme.data.utils.AppDispatcher
 import com.canopas.catchme.ui.navigation.AppDestinations
 import com.canopas.catchme.ui.navigation.HomeNavigator
@@ -21,6 +22,7 @@ class HomeScreenViewModel @Inject constructor(
     private val navigator: HomeNavigator,
     private val locationManager: LocationManager,
     private val spaceRepository: SpaceRepository,
+    private val userPreferences: UserPreferences,
     private val appDispatcher: AppDispatcher
 ) : ViewModel() {
 
@@ -60,9 +62,16 @@ class HomeScreenViewModel @Inject constructor(
                 if (index != -1) {
                     tempSpaces.add(0, tempSpaces.removeAt(index))
                 }
+                val selectedSpace =
+                    spaces.firstOrNull { it.space.id == spaceRepository.currentSpaceId }
+                val locationEnabled =
+                    selectedSpace?.members?.firstOrNull { it.user.id == userPreferences.currentUser?.id }?.isLocationEnable
+                        ?: true
+
                 _state.emit(
                     _state.value.copy(
-                        selectedSpace = spaces.firstOrNull { it.space.id == spaceRepository.currentSpaceId },
+                        selectedSpace = selectedSpace,
+                        locationEnabled = locationEnabled,
                         spaces = tempSpaces,
                         isLoadingSpaces = false,
                         selectedSpaceId = spaceRepository.currentSpaceId
@@ -87,12 +96,15 @@ class HomeScreenViewModel @Inject constructor(
     fun selectSpace(spaceId: String) = viewModelScope.launch(appDispatcher.IO) {
         spaceRepository.currentSpaceId = spaceId
         val space = _state.value.spaces.firstOrNull { it.space.id == spaceId }
-        _state.value = (
+        val locationEnabled =
+            space?.members?.firstOrNull { it.user.id == userPreferences.currentUser?.id }?.isLocationEnable
+                ?: true
+        _state.value =
             _state.value.copy(
                 selectedSpaceId = spaceId,
                 selectedSpace = space,
+                locationEnabled = locationEnabled,
                 showSpaceSelectionPopup = false
-            )
             )
     }
 
@@ -116,6 +128,19 @@ class HomeScreenViewModel @Inject constructor(
     fun joinSpace() {
         navigator.navigateTo(AppDestinations.joinSpace.path)
     }
+
+    fun toggleLocation() = viewModelScope.launch(appDispatcher.IO) {
+        try {
+            val locationEnabled = !_state.value.locationEnabled
+            val spaceId = _state.value.selectedSpace?.space?.id ?: return@launch
+            val userId = userPreferences.currentUser?.id ?: return@launch
+            spaceRepository.enableLocation(spaceId, userId, locationEnabled)
+            _state.value = _state.value.copy(locationEnabled = locationEnabled)
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to get invite code")
+            _state.emit(_state.value.copy(error = e.message))
+        }
+    }
 }
 
 data class HomeScreenState(
@@ -124,6 +149,7 @@ data class HomeScreenState(
     val spaces: List<SpaceInfo> = emptyList(),
     val selectedSpaceId: String = "",
     val selectedSpace: SpaceInfo? = null,
+    val locationEnabled: Boolean = true,
     val isLoadingSpaces: Boolean = false,
     val showSpaceSelectionPopup: Boolean = false,
     val error: String? = null
