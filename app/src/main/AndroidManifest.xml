@@ -23,6 +23,7 @@
             android:name=".ui.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
+            android:windowSoftInputMode="adjustResize"
             android:theme="@style/Theme.CatchMe">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

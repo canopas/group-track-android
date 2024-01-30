@@ -31,6 +31,23 @@ class SpaceInvitationService @Inject constructor(
             .joinToString("")
     }
 
+    suspend fun getSpaceInviteCode(spaceId: String): ApiSpaceInvitation? {
+        val query = spaceInvitationRef.whereEqualTo("space_id", spaceId)
+        val result = query.get().await()
+        return result.documents.firstOrNull()?.toObject(ApiSpaceInvitation::class.java)
+    }
+
+    suspend fun regenerateInvitationCode(spaceId: String): String {
+        val invitation = getSpaceInviteCode(spaceId)
+        if (invitation != null) {
+            val newCode = generateInvitationCode()
+            val docRef = spaceInvitationRef.document(invitation.id)
+            docRef.update("code", newCode).await()
+            return newCode
+        }
+        return ""
+    }
+
     suspend fun getInvitation(inviteCode: String): ApiSpaceInvitation? {
         val query = spaceInvitationRef.whereEqualTo("code", inviteCode.uppercase())
         val result = query.get().await()

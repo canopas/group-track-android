@@ -18,7 +18,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -31,10 +33,12 @@ import com.canopas.catchme.ui.flow.onboard.OnboardViewModel
 import com.canopas.catchme.ui.theme.AppTheme
 import com.canopas.catchme.ui.theme.CatchMeTheme
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun PickNameOnboard() {
     val viewModel = hiltViewModel<OnboardViewModel>()
     val state by viewModel.state.collectAsState()
+    val keyboard = LocalSoftwareKeyboardController.current
     val scrollState = rememberScrollState()
 
     Column(
@@ -66,7 +70,10 @@ fun PickNameOnboard() {
         PrimaryButton(
             label = stringResource(R.string.common_btn_next),
             modifier = Modifier.align(Alignment.CenterHorizontally),
-            onClick = { viewModel.navigateToSpaceInfo() },
+            onClick = {
+                keyboard?.hide()
+                viewModel.navigateToSpaceInfo()
+            },
             enabled = state.firstName.trim().isNotEmpty() && state.lastName.trim().isNotEmpty(),
             showLoader = state.updatingUserName
         )

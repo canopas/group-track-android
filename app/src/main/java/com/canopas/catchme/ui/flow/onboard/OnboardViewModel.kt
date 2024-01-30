@@ -2,8 +2,8 @@ package com.canopas.catchme.ui.flow.onboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.canopas.catchme.data.repository.SpaceRepository
 import com.canopas.catchme.data.service.auth.AuthService
-import com.canopas.catchme.data.service.space.ApiSpaceService
 import com.canopas.catchme.data.service.space.SpaceInvitationService
 import com.canopas.catchme.data.storage.UserPreferences
 import com.canopas.catchme.data.utils.AppDispatcher
@@ -20,7 +20,7 @@ import javax.inject.Inject
 class OnboardViewModel @Inject constructor(
     private val authService: AuthService,
     private val appDispatcher: AppDispatcher,
-    private val spaceService: ApiSpaceService,
+    private val spaceRepository: SpaceRepository,
     private val userPreferences: UserPreferences,
     private val navigator: MainNavigator,
     private val invitationService: SpaceInvitationService
@@ -86,7 +86,7 @@ class OnboardViewModel @Inject constructor(
                     creatingSpace = true
                 )
             )
-            val invitationCode = spaceService.createSpace(spaceName)
+            val invitationCode = spaceRepository.createSpaceAndGetInviteCode(spaceName)
             _state.emit(
                 _state.value.copy(
                     creatingSpace = false,
@@ -125,7 +125,7 @@ class OnboardViewModel @Inject constructor(
                 return@launch
             }
 
-            val space = spaceService.getSpace(invitation.space_id)
+            val space = spaceRepository.getSpace(invitation.space_id)
 
             _state.emit(
                 _state.value.copy(
@@ -152,7 +152,7 @@ class OnboardViewModel @Inject constructor(
         val spaceId = _state.value.spaceId
         try {
             if (spaceId != null) {
-                spaceService.joinSpace(spaceId)
+                spaceRepository.joinSpace(spaceId)
             }
             _state.emit(_state.value.copy(joiningSpace = false))
             navigateToPermission()

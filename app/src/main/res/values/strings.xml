@@ -7,6 +7,11 @@
     <string name="common_btn_join">Join</string>
     <string name="common_btn_verify">Verify</string>
     <string name="common_btn_allow">Allow</string>
+    <string name="common_btn_create_space">Create new</string>
+    <string name="common_btn_join_space">Join space</string>
+    <string name="common_btn_ok">Okay</string>
+    <string name="common_label_congratulations">Congratulations!</string>
+
 
     <string name="common_share_invite_code_message">Let\'s stay connected! Use invite code %s to join my Space. Download the app: [link].</string>
 
@@ -41,7 +46,7 @@
     <string name="onboard_create_space_subtitle">Tips: You can create dedicated Spaces for work, family, friends, and more.</string>
     <string name="onboard_share_space_code_title">Unlock the Space!</string>
     <string name="onboard_share_space_code_tips">Share this code in your own style. Connecting is as flexible as you are.</string>
-    <string name="onboard_share_space_code_subtitle">" Share this invite code with your trusted ones."</string>
+    <string name="onboard_share_space_code_subtitle">Share this invite code with your trusted ones.</string>
     <string name="onboard_share_space_code_btn">Share code</string>
     <string name="onboard_share_code_expiry_desc">This code will be active for 2 days.</string>
     <string name="onboard_join_space_title">Get set to connect! </string>
@@ -69,5 +74,35 @@
     <string name="common_background_access_permission_steps">Go to settings > select <b>"Allow all the time"</b></string>
     <string name="common_background_access_permission_rational_steps">Go to settings > CatchMe app info > Location permission > select <b>"Allow all the time"</b></string>
     <string name="common_background_access_permission_btn">Go to Settings</string>
+    <string name="home_space_selection_menu_default_text">Select a space</string>
+    <string name="home_space_selection_space_item_subtitle_members">By %s • %s members</string>
+    <string name="home_space_selection_space_item_subtitle_member">By %s • %s member</string>
+    <string name="home_create_space_suggestions">Some suggestions…</string>
+    <string name="space_inviate_code_title">Invite Code</string>
+    <string name="space_invite_title">Invite members to the %s</string>
+    <string name="space_invite_subtitle">Share this invite code with your trusted ones in your own style. Connecting is as flexible as you are.</string>
+    <string name="join_space_title_enter_code">Enter the invite code</string>
+    <string name="join_space_title">Join Space</string>
+    <string name="join_space_success_popup_message">You\'re now a member of the %s group for sharing your real-time location.</string>
+    <string name="map_user_item_location_updated_now">Just now</string>
+    <string name="map_user_item_location_updated_minutes_ago">%s minutes ago</string>
+    <string name="map_user_item_location_updated_hours_ago">%s hours ago</string>
+    <string name="map_user_item_location_updated_since_days">Since %s</string>
+    <string name="map_user_item_location_unknown">Location not found</string>
+
+    <string-array name="home_create_space_name_suggestion">
+        <item>Family</item>
+        <item>Friends</item>
+        <item>Special someones</item>
+        <item>Siblings</item>
+        <item>Office Squad</item>
+        <item>Colleagues</item>
+        <item>Team Unity</item>
+        <item>My Squad</item>
+        <item>Heart mates</item>
+        <item>Blood Bond</item>
+
+
+    </string-array>
 
 </resources>

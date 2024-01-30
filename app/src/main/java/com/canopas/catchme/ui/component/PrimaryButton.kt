@@ -1,8 +1,10 @@
 package com.canopas.catchme.ui.component
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -36,13 +38,13 @@ fun PrimaryButton(
     ) {
         if (showLoader) {
             AppProgressIndicator(color = AppTheme.colorScheme.onPrimary)
+            Spacer(modifier = Modifier.width(4.dp))
         }
 
         Text(
             text = label,
             style = AppTheme.appTypography.subTitle2.copy(color = AppTheme.colorScheme.onPrimary),
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(vertical = 6.dp, horizontal = 6.dp)
+            textAlign = TextAlign.Center
         )
     }
 }
