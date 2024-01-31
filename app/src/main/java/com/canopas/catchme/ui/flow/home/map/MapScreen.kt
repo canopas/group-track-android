@@ -49,8 +49,8 @@ fun MapScreen() {
     val viewModel = hiltViewModel<MapViewModel>()
     val state by viewModel.state.collectAsState()
 
-    val userLocation = remember(state.members) {
-        val location = state.members.find { it.user.id == state.currentUserId }?.location
+    val userLocation = remember(state.currentLocation) {
+        val location = state.currentLocation
         LatLng(location?.latitude ?: 0.0, location?.longitude ?: 0.0)
     }
 
@@ -60,7 +60,8 @@ fun MapScreen() {
 
     val relocate by remember {
         derivedStateOf {
-            cameraPositionState.position.target != userLocation
+            val distance = cameraPositionState.position.target.distanceTo(userLocation)
+            distance > 100
         }
     }
 
@@ -82,26 +83,20 @@ fun MapScreen() {
                 .padding(bottom = 10.dp),
             horizontalAlignment = Alignment.End
         ) {
-            AnimatedVisibility(
-                visible = relocate,
-                enter = fadeIn(),
-                exit = fadeOut(),
-                modifier = Modifier
-                    .padding(bottom = 10.dp, end = 10.dp)
+            RelocateBtn(
+                icon = R.drawable.ic_relocate,
+                show = relocate
             ) {
-                RelocateBtn(
-                    icon = R.drawable.ic_relocate
-                ) {
-                    scope.launch {
-                        cameraPositionState.animate(
-                            CameraUpdateFactory.newLatLngZoom(
-                                userLocation,
-                                16f
-                            )
+                scope.launch {
+                    cameraPositionState.animate(
+                        CameraUpdateFactory.newLatLngZoom(
+                            userLocation,
+                            16f
                         )
-                    }
+                    )
                 }
             }
+
             LazyRow(
                 modifier = Modifier.fillMaxWidth(),
                 contentPadding = PaddingValues(horizontal = 10.dp),
@@ -121,7 +116,13 @@ private fun MapView(cameraPositionState: CameraPositionState, members: List<User
     GoogleMap(
         cameraPositionState = cameraPositionState,
         properties = MapProperties(),
-        uiSettings = MapUiSettings(zoomControlsEnabled = false, tiltGesturesEnabled = false)
+        uiSettings = MapUiSettings(
+            zoomControlsEnabled = false,
+            tiltGesturesEnabled = false,
+            myLocationButtonEnabled = false,
+            compassEnabled = false,
+            mapToolbarEnabled = false
+        )
     ) {
         members.filter { it.location != null }.forEach {
             MapMarker(user = it.user, location = it.location!!) {}
@@ -133,18 +134,39 @@ private fun MapView(cameraPositionState: CameraPositionState, members: List<User
 private fun RelocateBtn(
     modifier: Modifier = Modifier,
     @DrawableRes icon: Int,
+    show: Boolean = true,
     onClick: () -> Unit
 ) {
-    SmallFloatingActionButton(
-        modifier = modifier,
-        onClick = { onClick() },
-        containerColor = AppTheme.colorScheme.surface,
-        contentColor = AppTheme.colorScheme.primary
+    AnimatedVisibility(
+        visible = show,
+        enter = fadeIn(),
+        exit = fadeOut(),
+        modifier = Modifier
+            .padding(bottom = 10.dp, end = 10.dp)
     ) {
-        Icon(
-            painter = painterResource(id = icon),
-            contentDescription = "",
-            modifier = Modifier.size(24.dp)
-        )
+        SmallFloatingActionButton(
+            modifier = modifier,
+            onClick = { onClick() },
+            containerColor = AppTheme.colorScheme.surface,
+            contentColor = AppTheme.colorScheme.primary
+        ) {
+            Icon(
+                painter = painterResource(id = icon),
+                contentDescription = "",
+                modifier = Modifier.size(24.dp)
+            )
+        }
     }
+}
+
+fun LatLng.distanceTo(other: LatLng): Double {
+    val result = FloatArray(3)
+    android.location.Location.distanceBetween(
+        latitude,
+        longitude,
+        other.latitude,
+        other.longitude,
+        result
+    )
+    return result[0].toDouble()
 }

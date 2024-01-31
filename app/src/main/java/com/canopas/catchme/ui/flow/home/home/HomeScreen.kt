@@ -25,7 +25,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -158,7 +157,6 @@ fun HomeTopBar() {
 
         MapControl(
             icon = R.drawable.ic_messages,
-            modifier = Modifier,
             visible = !state.showSpaceSelectionPopup
         ) {
         }
@@ -166,15 +164,14 @@ fun HomeTopBar() {
         Box {
             if (state.showSpaceSelectionPopup) {
                 MapControl(
-                    icon = R.drawable.ic_add_member,
-                    modifier = Modifier
+                    icon = R.drawable.ic_add_member
                 ) {
                     viewModel.addMember()
                 }
             } else {
                 MapControl(
                     icon = if (state.locationEnabled) R.drawable.ic_location_on else R.drawable.ic_location_off,
-                    modifier = Modifier
+                    showLoader = state.enablingLocation
                 ) {
                     viewModel.toggleLocation()
                 }
@@ -200,7 +197,7 @@ private fun MapControl(
         contentColor = AppTheme.colorScheme.primary
     ) {
         if (showLoader) {
-            AppProgressIndicator()
+            AppProgressIndicator(strokeWidth = 2.dp)
         } else {
             Icon(
                 painter = painterResource(id = icon),
@@ -220,8 +217,8 @@ private fun PermissionChecker() {
         CheckBackgroundLocationPermission(onDismiss = {
             viewModel.shouldAskForBackgroundLocationPermission(false)
         }, onGranted = {
-            viewModel.startTracking()
-        })
+                viewModel.startTracking()
+            })
     }
 }
 
