@@ -9,16 +9,29 @@ plugins {
     id("org.jlleitschuh.gradle.ktlint")
 }
 
+var versionMajor = 1
+var versionMinor = 0
+var versionBuild = 0
+
 android {
     namespace = "com.canopas.catchme"
     compileSdk = 34
+
+    if (System.getenv("CI_RUN_NUMBER") != null) {
+        versionBuild = System.getenv("CI_RUN_NUMBER").toInt()
+    } else {
+        versionMajor = 1
+        versionMinor = 0
+        versionBuild = 0
+    }
 
     defaultConfig {
         applicationId = "com.canopas.catchme"
         minSdk = 21
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = versionMajor * 1000000 + versionMinor * 10000 + versionBuild
+        versionName = "$versionMajor.$versionMinor.$versionBuild"
+        setProperty("archivesBaseName", "CatchMe-$versionName-$versionCode")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -35,6 +48,21 @@ android {
     }
 
     signingConfigs {
+        if (System.getenv("APKSIGN_KEYSTORE") != null) {
+            create("release") {
+                keyAlias = System.getenv("APKSIGN_KEY_ALIAS")
+                keyPassword = System.getenv("APKSIGN_KEYSTORE_PASS")
+                storeFile = file(System.getenv("APKSIGN_KEYSTORE"))
+                storePassword = System.getenv("APKSIGN_KEY_PASS")
+            }
+        } else {
+            create("release") {
+                keyAlias = "catchme"
+                keyPassword = "catchme"
+                storeFile = file("debug.keystore")
+                storePassword = "catchme"
+            }
+        }
         getByName("debug") {
             keyAlias = "catchme"
             keyPassword = "catchme"
@@ -51,7 +79,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
         debug {
             isMinifyEnabled = false

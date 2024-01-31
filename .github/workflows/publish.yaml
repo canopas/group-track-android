@@ -1,0 +1,44 @@
+name: Publish (Internal)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy_internal_android:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: set up JDK 17
+        uses: actions/setup-java@v2
+        with:
+          distribution: adopt
+          java-version: 17
+
+      - uses: actions/checkout@v2
+      - name: Set up ruby env
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 2.7.2
+          bundler-cache: true
+
+      - name: Deploy internally
+        env:
+          MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
+          GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
+          APP_PLAY_SERVICE_JSON: ${{ secrets.APP_PLAY_SERVICE_JSON }}
+          APKSIGN_KEYSTORE_BASE64: ${{ secrets.APKSIGN_KEYSTORE_BASE64 }}
+          APKSIGN_KEYSTORE_PASS: ${{ secrets.APKSIGN_KEYSTORE_PASS }}
+          APKSIGN_KEY_ALIAS: ${{ secrets.APKSIGN_KEY_ALIAS }}
+          APKSIGN_KEY_PASS: ${{ secrets.APKSIGN_KEY_PASS }}
+          CI_RUN_NUMBER: ${{ github.run_number }}
+
+        run: |
+          echo $GOOGLE_SERVICES_JSON_BASE64 | base64 -di > app/google-services.json
+          echo $APKSIGN_KEYSTORE_BASE64 | base64 -di > release.keystore
+          export APKSIGN_KEYSTORE=`pwd`/release.keystore
+          sudo gem install bundler fastlane
+          echo $APP_PLAY_SERVICE_JSON > google_play_api_key.json
+          bundle exec fastlane upload_internal
