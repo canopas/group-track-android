@@ -25,7 +25,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -45,6 +44,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.canopas.catchme.R
 import com.canopas.catchme.data.utils.isBackgroundLocationPermissionGranted
+import com.canopas.catchme.ui.component.AppProgressIndicator
 import com.canopas.catchme.ui.component.CheckBackgroundLocationPermission
 import com.canopas.catchme.ui.flow.home.activity.ActivityScreen
 import com.canopas.catchme.ui.flow.home.home.component.SpaceSelectionMenu
@@ -125,7 +125,6 @@ fun HomeScreen() {
 fun HomeTopBar() {
     val viewModel = hiltViewModel<HomeScreenViewModel>()
     val state by viewModel.state.collectAsState()
-    var enableLocation by remember { mutableStateOf(true) }
 
     SpaceSelectionPopup(
         show = state.showSpaceSelectionPopup,
@@ -158,7 +157,6 @@ fun HomeTopBar() {
 
         MapControl(
             icon = R.drawable.ic_messages,
-            modifier = Modifier,
             visible = !state.showSpaceSelectionPopup
         ) {
         }
@@ -166,17 +164,16 @@ fun HomeTopBar() {
         Box {
             if (state.showSpaceSelectionPopup) {
                 MapControl(
-                    icon = R.drawable.ic_add_member,
-                    modifier = Modifier
+                    icon = R.drawable.ic_add_member
                 ) {
                     viewModel.addMember()
                 }
             } else {
                 MapControl(
-                    icon = if (enableLocation) R.drawable.ic_location_on else R.drawable.ic_location_off,
-                    modifier = Modifier
+                    icon = if (state.locationEnabled) R.drawable.ic_location_on else R.drawable.ic_location_off,
+                    showLoader = state.enablingLocation
                 ) {
-                    enableLocation = !enableLocation
+                    viewModel.toggleLocation()
                 }
             }
         }
@@ -188,6 +185,7 @@ private fun MapControl(
     modifier: Modifier = Modifier,
     @DrawableRes icon: Int,
     visible: Boolean = true,
+    showLoader: Boolean = false,
     onClick: () -> Unit
 ) {
     val alpha by animateFloatAsState(targetValue = if (visible) 1f else 0f, tween(100), label = "")
@@ -198,11 +196,15 @@ private fun MapControl(
         containerColor = AppTheme.colorScheme.surface,
         contentColor = AppTheme.colorScheme.primary
     ) {
-        Icon(
-            painter = painterResource(id = icon),
-            contentDescription = "",
-            modifier = Modifier.size(24.dp)
-        )
+        if (showLoader) {
+            AppProgressIndicator(strokeWidth = 2.dp)
+        } else {
+            Icon(
+                painter = painterResource(id = icon),
+                contentDescription = "",
+                modifier = Modifier.size(24.dp)
+            )
+        }
     }
 }
 

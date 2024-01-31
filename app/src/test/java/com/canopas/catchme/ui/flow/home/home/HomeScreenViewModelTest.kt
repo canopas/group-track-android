@@ -7,9 +7,11 @@ import com.canopas.catchme.data.models.user.ApiUser
 import com.canopas.catchme.data.models.user.UserInfo
 import com.canopas.catchme.data.repository.SpaceRepository
 import com.canopas.catchme.data.service.location.LocationManager
+import com.canopas.catchme.data.storage.UserPreferences
 import com.canopas.catchme.data.utils.AppDispatcher
 import com.canopas.catchme.ui.flow.home.home.HomeViewModelTestData.space_info1
 import com.canopas.catchme.ui.flow.home.home.HomeViewModelTestData.space_info2
+import com.canopas.catchme.ui.flow.home.home.HomeViewModelTestData.user1
 import com.canopas.catchme.ui.navigation.HomeNavigator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -28,7 +30,7 @@ import org.mockito.kotlin.whenever
 object HomeViewModelTestData {
     private val space = ApiSpace(id = "space1", admin_id = "user1", name = "space_name")
     private val space2 = ApiSpace(id = "space2", admin_id = "user2", name = "space_name")
-    private val user1 = ApiUser(id = "user1", first_name = "first_name", last_name = "last_name")
+    val user1 = ApiUser(id = "user1", first_name = "first_name", last_name = "last_name")
     private val user2 = ApiUser(id = "user2", first_name = "first_name", last_name = "last_name")
     private val userInfo1 = UserInfo(user1)
     private val userInfo2 = UserInfo(user2)
@@ -46,6 +48,7 @@ class HomeScreenViewModelTest {
     private val navigator = mock<HomeNavigator>()
     private val locationManager = mock<LocationManager>()
     private val spaceRepository = mock<SpaceRepository>()
+    private val userPreferences = mock<UserPreferences>()
 
     private val testDispatcher = AppDispatcher(IO = UnconfinedTestDispatcher())
 
@@ -56,6 +59,7 @@ class HomeScreenViewModelTest {
             navigator = navigator,
             locationManager = locationManager,
             spaceRepository = spaceRepository,
+            userPreferences = userPreferences,
             appDispatcher = testDispatcher
         )
     }
@@ -89,29 +93,31 @@ class HomeScreenViewModelTest {
     }
 
     @Test
-    fun `getAllSpace should set currentSpaceId to first space id if currentSpaceId is empty`() = runTest {
-        val result = listOf(space_info1)
-        whenever(spaceRepository.currentSpaceId).thenReturn("")
-        whenever(spaceRepository.getAllSpaceInfo()).thenReturn(flowOf(result))
-        setUp()
+    fun `getAllSpace should set currentSpaceId to first space id if currentSpaceId is empty`() =
+        runTest {
+            val result = listOf(space_info1)
+            whenever(spaceRepository.currentSpaceId).thenReturn("")
+            whenever(spaceRepository.getAllSpaceInfo()).thenReturn(flowOf(result))
+            setUp()
 
-        verify(spaceRepository).currentSpaceId = "space1"
-    }
+            verify(spaceRepository).currentSpaceId = "space1"
+        }
 
     @Test
-    fun `getAllSpace should arrange the spaces list to have current space at first position`() = runTest {
-        val result = listOf(space_info1, space_info2)
-        whenever(spaceRepository.currentSpaceId).thenReturn("space2")
-        whenever(spaceRepository.getAllSpaceInfo()).thenReturn(flowOf(result))
-        setUp()
+    fun `getAllSpace should arrange the spaces list to have current space at first position`() =
+        runTest {
+            val result = listOf(space_info1, space_info2)
+            whenever(spaceRepository.currentSpaceId).thenReturn("space2")
+            whenever(spaceRepository.getAllSpaceInfo()).thenReturn(flowOf(result))
+            setUp()
 
-        with(viewModel.state.value) {
-            assert(spaces == listOf(space_info2, space_info1))
-            assert(selectedSpace == space_info2)
-            assert(selectedSpaceId == "space2")
-            assert(!isLoadingSpaces)
+            with(viewModel.state.value) {
+                assert(spaces == listOf(space_info2, space_info1))
+                assert(selectedSpace == space_info2)
+                assert(selectedSpaceId == "space2")
+                assert(!isLoadingSpaces)
+            }
         }
-    }
 
     @Test
     fun `getAllSpace should set error if getAllSpaceInfo throws exception`() = runTest {
@@ -130,11 +136,12 @@ class HomeScreenViewModelTest {
     }
 
     @Test
-    fun `shouldAskForBackgroundLocationPermission should set shouldAskForBackgroundLocationPermission to true`() = runTest {
-        setUp()
-        viewModel.shouldAskForBackgroundLocationPermission(true)
-        assert(viewModel.state.value.shouldAskForBackgroundLocationPermission)
-    }
+    fun `shouldAskForBackgroundLocationPermission should set shouldAskForBackgroundLocationPermission to true`() =
+        runTest {
+            setUp()
+            viewModel.shouldAskForBackgroundLocationPermission(true)
+            assert(viewModel.state.value.shouldAskForBackgroundLocationPermission)
+        }
 
     @Test
     fun `toggleSpaceSelection should toggle showSpaceSelectionPopup`() = runTest {
@@ -235,4 +242,55 @@ class HomeScreenViewModelTest {
         viewModel.joinSpace()
         verify(navigator).navigateTo("join-space")
     }
+
+    @Test
+    fun `toggleLocation should update enablingLocation to true`() = runTest {
+        whenever(spaceRepository.currentSpaceId).thenReturn("space1")
+        whenever(spaceRepository.getAllSpaceInfo()).thenReturn(flowOf(listOf(space_info1)))
+        whenever(userPreferences.currentUser).thenReturn(user1)
+        whenever(spaceRepository.enableLocation("space1", "user1", false)).doSuspendableAnswer {
+            withContext(Dispatchers.IO) {
+                delay(1000)
+            }
+        }
+        setUp()
+        viewModel.toggleLocation()
+        assert(viewModel.state.value.enablingLocation)
+    }
+
+    @Test
+    fun `toggleLocation should invoke enableLocation with locationEnable false`() =
+        runTest {
+            whenever(spaceRepository.currentSpaceId).thenReturn("space1")
+            whenever(spaceRepository.getAllSpaceInfo()).thenReturn(flowOf(listOf(space_info1)))
+            whenever(userPreferences.currentUser).thenReturn(user1)
+            setUp()
+            viewModel.toggleLocation()
+            verify(spaceRepository).enableLocation("space1", "user1", false)
+        }
+
+    @Test
+    fun `toggleLocation should invoke enableLocation with locationEnable true`() =
+        runTest {
+            whenever(spaceRepository.currentSpaceId).thenReturn("space1")
+            whenever(spaceRepository.getAllSpaceInfo()).thenReturn(flowOf(listOf(space_info1)))
+            whenever(userPreferences.currentUser).thenReturn(user1)
+            setUp()
+            viewModel.toggleLocation()
+            verify(spaceRepository).enableLocation("space1", "user1", false)
+            viewModel.toggleLocation()
+            verify(spaceRepository).enableLocation("space1", "user1", true)
+        }
+
+    @Test
+    fun `toggleLocation should set error state if enableLocation throws exception`() =
+        runTest {
+            whenever(spaceRepository.currentSpaceId).thenReturn("space1")
+            whenever(spaceRepository.getAllSpaceInfo()).thenReturn(flowOf(listOf(space_info1)))
+            whenever(userPreferences.currentUser).thenReturn(user1)
+            whenever(spaceRepository.enableLocation("space1", "user1", false)).thenThrow(RuntimeException("error"))
+            setUp()
+            viewModel.toggleLocation()
+            assert(viewModel.state.value.error == "error")
+        }
 }

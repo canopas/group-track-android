@@ -54,7 +54,10 @@ class SpaceRepository @Inject constructor(
             val flows = spaces.filterNotNull().map { space ->
                 spaceService.getMemberBySpaceId(space.id)
                     .map { members ->
-                        members.mapNotNull { userService.getUser(it.user_id) }.map { UserInfo(it) }
+                        members.mapNotNull { member ->
+                            val user = userService.getUser(member.user_id)
+                            user?.let { UserInfo(user, isLocationEnable = member.location_enabled) }
+                        }
                     }.map { members ->
                         SpaceInfo(space, members)
                     }
@@ -88,15 +91,17 @@ class SpaceRepository @Inject constructor(
     suspend fun getMemberWithLocation(): Flow<List<UserInfo>> {
         if (currentSpaceId.isEmpty()) return emptyFlow()
         return spaceService.getMemberBySpaceId(currentSpaceId)
-            .map { members ->
-                members.mapNotNull { userService.getUser(it.user_id) }
-            }.flatMapLatest { users ->
-                val flows = users.map { user ->
-                    locationService.getCurrentLocation(user.id)
-                        .map {
-                            UserInfo(user, it)
+            .flatMapLatest { members ->
+                val flows = members
+                    .mapNotNull { member ->
+                        val user = userService.getUser(member.user_id)
+                        user?.let {
+                            locationService.getCurrentLocation(user.id)
+                                .map {
+                                    UserInfo(user, it, member.location_enabled)
+                                }
                         }
-                }
+                    }
                 combine(flows) { it.toList() }
             }
     }
@@ -107,5 +112,9 @@ class SpaceRepository @Inject constructor(
             return invitationService.regenerateInvitationCode(spaceId)
         }
         return code?.code
+    }
+
+    suspend fun enableLocation(spaceId: String, userId: String, locationEnabled: Boolean) {
+        spaceService.enableLocation(spaceId, userId, locationEnabled)
     }
 }

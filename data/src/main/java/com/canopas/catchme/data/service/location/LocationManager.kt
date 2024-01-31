@@ -3,6 +3,7 @@ package com.canopas.catchme.data.service.location
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.location.Location
 import android.os.Build
 import com.canopas.catchme.data.receiver.location.ACTION_LOCATION_UPDATE
 import com.canopas.catchme.data.receiver.location.LocationUpdateReceiver
@@ -14,6 +15,7 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -30,6 +32,8 @@ class LocationManager @Inject constructor(@ApplicationContext private val contex
     init {
         request = createRequest()
     }
+
+    suspend fun getLastLocation(): Location? = locationClient.lastLocation.await()
 
     private val locationUpdatePendingIntent: PendingIntent by lazy {
         val intent = Intent(context, LocationUpdateReceiver::class.java)

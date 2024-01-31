@@ -8,18 +8,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.canopas.catchme.data.models.user.ApiUser
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.MarkerState
 
 @Composable
 fun rememberMarkerState(
+    user: ApiUser,
     position: LatLng = LatLng(0.0, 0.0)
 ): MarkerState {
-    var state by remember {
+    var state by remember(user) {
         mutableStateOf(MarkerState(position))
     }
 
-    val animatable = remember { Animatable(0f) }
+    val animatable = remember(user) { Animatable(0f) }
 
     LaunchedEffect(key1 = position) {
         animatable.snapTo(0f)

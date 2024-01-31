@@ -89,6 +89,7 @@
     <string name="map_user_item_location_updated_hours_ago">%s hours ago</string>
     <string name="map_user_item_location_updated_since_days">Since %s</string>
     <string name="map_user_item_location_unknown">Location not found</string>
+    <string name="map_user_item_location_off">Location turned off</string>
 
     <string-array name="home_create_space_name_suggestion">
         <item>Family</item>

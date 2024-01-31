@@ -13,8 +13,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -23,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -103,20 +108,41 @@ fun MapUserItem(
                                 fontFamily = InterFontFamily
                             )
                         ) {
-                            append(" • $lastUpdated")
+                            if (userInfo.isLocationEnable) append(" • $lastUpdated")
                         }
                     },
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
 
-                Text(
-                    text = location,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                    style = AppTheme.appTypography.label2.copy(color = AppTheme.colorScheme.textSecondary),
-                    modifier = Modifier.padding(top = 4.dp)
-                )
+                if (!userInfo.isLocationEnable) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Outlined.Info,
+                            contentDescription = "",
+                            tint = Color.Red,
+                            modifier = Modifier
+                                .size(14.dp)
+
+                        )
+                        Text(
+                            text = stringResource(id = R.string.map_user_item_location_off),
+                            style = AppTheme.appTypography.label1.copy(
+                                color = Color.Red,
+                                fontWeight = FontWeight.Normal
+                            ),
+                            modifier = Modifier
+                                .padding(start = 4.dp)
+                        )
+                    }
+                } else {
+                    Text(
+                        text = location,
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis,
+                        style = AppTheme.appTypography.label2.copy(color = AppTheme.colorScheme.textSecondary)
+                    )
+                }
             }
         }
     }
