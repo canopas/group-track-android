@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.runtime.Composable
@@ -31,7 +33,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.catchme.R
 import com.canopas.catchme.ui.flow.home.map.component.MapMarker
 import com.canopas.catchme.ui.flow.home.map.component.MapUserItem
-import com.canopas.catchme.ui.flow.home.map.member.MemberDetailBottomSheet
+import com.canopas.catchme.ui.flow.home.map.component.MemberDetailBottomSheetContent
 import com.canopas.catchme.ui.theme.AppTheme
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
@@ -43,8 +45,24 @@ import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapScreen() {
+    val viewModel = hiltViewModel<MapViewModel>()
+    val state by viewModel.state.collectAsState()
+
+    BottomSheetScaffold(sheetContent = {
+        if (state.selectedUser != null && state.showUserDetails) {
+            MemberDetailBottomSheetContent(state.selectedUser!!)
+        }
+    }) {
+        MapScreenContent(modifier = Modifier)
+
+    }
+}
+
+@Composable
+fun MapScreenContent(modifier: Modifier) {
     val scope = rememberCoroutineScope()
     val viewModel = hiltViewModel<MapViewModel>()
     val state by viewModel.state.collectAsState()
@@ -74,7 +92,7 @@ fun MapScreen() {
         )
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = modifier.fillMaxSize()) {
         MapView(cameraPositionState)
 
         Column(
@@ -108,12 +126,6 @@ fun MapScreen() {
                     }
                 }
             }
-        }
-    }
-
-    if (state.showUserDetails && state.selectedUser != null) {
-        MemberDetailBottomSheet(user = state.selectedUser!!) {
-            viewModel.dissmissMemberDetail()
         }
     }
 }

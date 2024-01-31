@@ -1,4 +1,4 @@
-package com.canopas.catchme.ui.flow.home.map.member
+package com.canopas.catchme.ui.flow.home.map.component
 
 import android.util.Log
 import androidx.compose.foundation.layout.Box
@@ -22,13 +22,11 @@ import kotlinx.coroutines.launch
 @Composable
 fun MemberDetailBottomSheetContent(
     user: UserInfo,
-    onDismissRequest: () -> Unit,
+
 
     ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
-
-
 
 
 }
