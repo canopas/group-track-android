@@ -1,6 +1,9 @@
 name: Publish (Internal)
 
-on: [ push ]
+on:
+  push:
+    branches:
+      - main
 
 jobs:
   deploy_internal_android:
