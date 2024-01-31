@@ -133,7 +133,7 @@ class HomeScreenViewModel @Inject constructor(
         try {
             _state.emit(_state.value.copy(enablingLocation = true))
             val locationEnabled = !_state.value.locationEnabled
-            val spaceId = _state.value.selectedSpace?.space?.id ?: return@launch
+            val spaceId = _state.value.selectedSpaceId
             val userId = userPreferences.currentUser?.id ?: return@launch
             spaceRepository.enableLocation(spaceId, userId, locationEnabled)
             _state.emit(

@@ -3,6 +3,7 @@ package com.canopas.catchme.ui.flow.home.map
 import com.canopas.catchme.MainCoroutineRule
 import com.canopas.catchme.data.models.user.ApiUser
 import com.canopas.catchme.data.repository.SpaceRepository
+import com.canopas.catchme.data.service.location.LocationManager
 import com.canopas.catchme.data.storage.UserPreferences
 import com.canopas.catchme.data.utils.AppDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -24,6 +25,7 @@ class MapViewModelTest {
 
     private val spaceRepository = mock<SpaceRepository>()
     private val userPreferences = mock<UserPreferences>()
+    private val locationManager = mock<LocationManager>()
     private val testDispatcher = AppDispatcher(IO = UnconfinedTestDispatcher())
 
     private lateinit var viewModel: MapViewModel
@@ -32,6 +34,7 @@ class MapViewModelTest {
         viewModel = MapViewModel(
             spaceRepository = spaceRepository,
             userPreferences = userPreferences,
+            locationManager = locationManager,
             appDispatcher = testDispatcher
         )
     }
