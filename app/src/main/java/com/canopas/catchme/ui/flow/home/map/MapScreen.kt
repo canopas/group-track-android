@@ -29,9 +29,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.catchme.R
-import com.canopas.catchme.data.models.user.UserInfo
 import com.canopas.catchme.ui.flow.home.map.component.MapMarker
 import com.canopas.catchme.ui.flow.home.map.component.MapUserItem
+import com.canopas.catchme.ui.flow.home.map.member.MemberDetailBottomSheet
 import com.canopas.catchme.ui.theme.AppTheme
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
@@ -49,8 +49,8 @@ fun MapScreen() {
     val viewModel = hiltViewModel<MapViewModel>()
     val state by viewModel.state.collectAsState()
 
-    val userLocation = remember(state.currentLocation) {
-        val location = state.currentLocation
+    val userLocation = remember(state.currentCameraPosition) {
+        val location = state.currentCameraPosition
         LatLng(location?.latitude ?: 0.0, location?.longitude ?: 0.0)
     }
 
@@ -75,7 +75,7 @@ fun MapScreen() {
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        MapView(cameraPositionState, state.members)
+        MapView(cameraPositionState)
 
         Column(
             modifier = Modifier
@@ -104,15 +104,27 @@ fun MapScreen() {
             ) {
                 items(state.members) {
                     MapUserItem(it) {
+                        viewModel.showMemberDetail(it)
                     }
                 }
             }
         }
     }
+
+    if (state.showUserDetails && state.selectedUser != null) {
+        MemberDetailBottomSheet(user = state.selectedUser!!) {
+            viewModel.dissmissMemberDetail()
+        }
+    }
 }
 
 @Composable
-private fun MapView(cameraPositionState: CameraPositionState, members: List<UserInfo>) {
+private fun MapView(
+    cameraPositionState: CameraPositionState,
+) {
+    val viewModel = hiltViewModel<MapViewModel>()
+    val state by viewModel.state.collectAsState()
+
     GoogleMap(
         cameraPositionState = cameraPositionState,
         properties = MapProperties(),
@@ -124,8 +136,14 @@ private fun MapView(cameraPositionState: CameraPositionState, members: List<User
             mapToolbarEnabled = false
         )
     ) {
-        members.filter { it.location != null && it.isLocationEnable }.forEach {
-            MapMarker(user = it.user, location = it.location!!) {}
+        state.members.filter { it.location != null && it.isLocationEnable }.forEach {
+            MapMarker(
+                user = it.user,
+                location = it.location!!,
+                isSelected = it.user.id == state.selectedUser?.user?.id
+            ) {
+                viewModel.showMemberDetail(it)
+            }
         }
     }
 }

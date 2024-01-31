@@ -34,7 +34,7 @@ class MapViewModel @Inject constructor(
         viewModelScope.launch {
             _state.value = _state.value.copy(currentUserId = userPreferences.currentUser?.id)
             withContext(appDispatcher.IO) {
-                _state.emit(_state.value.copy(currentLocation = locationManager.getLastLocation()))
+                _state.emit(_state.value.copy(currentCameraPosition = locationManager.getLastLocation()))
             }
             userPreferences.currentSpaceState.collectLatest {
                 locationJob?.cancel()
@@ -47,14 +47,24 @@ class MapViewModel @Inject constructor(
         locationJob = viewModelScope.launch(appDispatcher.IO) {
             spaceRepository.getMemberWithLocation().collectLatest {
                 val currentLocation = locationManager.getLastLocation()
-                _state.emit(_state.value.copy(members = it, currentLocation = currentLocation))
+                _state.emit(_state.value.copy(members = it, currentCameraPosition = currentLocation))
             }
         }
+    }
+
+    fun showMemberDetail(user: UserInfo) {
+        _state.value = _state.value.copy(selectedUser = user, showUserDetails = true)
+    }
+
+    fun dissmissMemberDetail() {
+        _state.value = _state.value.copy(showUserDetails = false, selectedUser = null)
     }
 }
 
 data class MapScreenState(
     val members: List<UserInfo> = emptyList(),
     val currentUserId: String? = "",
-    val currentLocation: Location? = null
+    val currentCameraPosition: Location? = null,
+    val selectedUser: UserInfo? = null,
+    val showUserDetails: Boolean = false
 )
