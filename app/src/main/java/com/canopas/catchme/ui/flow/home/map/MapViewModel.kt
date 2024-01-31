@@ -47,16 +47,26 @@ class MapViewModel @Inject constructor(
         locationJob = viewModelScope.launch(appDispatcher.IO) {
             spaceRepository.getMemberWithLocation().collectLatest {
                 val currentLocation = locationManager.getLastLocation()
-                _state.emit(_state.value.copy(members = it, currentCameraPosition = currentLocation))
+                _state.emit(
+                    _state.value.copy(
+                        members = it,
+                        currentCameraPosition = currentLocation
+                    )
+                )
             }
         }
     }
 
-    fun showMemberDetail(user: UserInfo) {
-        _state.value = _state.value.copy(selectedUser = user, showUserDetails = true)
+    fun showMemberDetail(userInfo: UserInfo) {
+        val selectedUser = _state.value.selectedUser
+        if (selectedUser != null && selectedUser.user.id == userInfo.user.id) {
+            dismissMemberDetail()
+        } else {
+            _state.value = _state.value.copy(selectedUser = userInfo, showUserDetails = true)
+        }
     }
 
-    fun dissmissMemberDetail() {
+    private fun dismissMemberDetail() {
         _state.value = _state.value.copy(showUserDetails = false, selectedUser = null)
     }
 }

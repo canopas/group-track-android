@@ -1,6 +1,8 @@
 package com.canopas.catchme.ui.flow.home.map.component
 
 import android.util.Log
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -11,10 +13,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
@@ -63,12 +68,11 @@ fun MapMarker(
 fun MarkerContent(user: ApiUser, isSelected: Boolean) {
     val profileUrl = user.profile_image
     val shape = RoundedCornerShape(16.dp, 16.dp, 16.dp, 3.dp)
-
     Box(
         modifier = Modifier
             .size(64.dp)
             .background(
-                if (isSelected) AppTheme.colorScheme.tertiary else AppTheme.colorScheme.surface,
+                if (isSelected) AppTheme.colorScheme.secondary else AppTheme.colorScheme.surface,
                 shape = shape
             )
             .border(1.5.dp, AppTheme.colorScheme.containerHigh, shape = shape)

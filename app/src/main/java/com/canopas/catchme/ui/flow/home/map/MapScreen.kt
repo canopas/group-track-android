@@ -51,13 +51,14 @@ fun MapScreen() {
     val viewModel = hiltViewModel<MapViewModel>()
     val state by viewModel.state.collectAsState()
 
-    BottomSheetScaffold(sheetContent = {
-        if (state.selectedUser != null && state.showUserDetails) {
-            MemberDetailBottomSheetContent(state.selectedUser!!)
-        }
+    BottomSheetScaffold(
+        sheetContainerColor = AppTheme.colorScheme.surface,
+        sheetContent = {
+       // if (state.selectedUser != null && state.showUserDetails) {
+            MemberDetailBottomSheetContent()
+      //  }
     }) {
         MapScreenContent(modifier = Modifier)
-
     }
 }
 
@@ -112,18 +113,6 @@ fun MapScreenContent(modifier: Modifier) {
                             16f
                         )
                     )
-                }
-            }
-
-            LazyRow(
-                modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(horizontal = 10.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(state.members) {
-                    MapUserItem(it) {
-                        viewModel.showMemberDetail(it)
-                    }
                 }
             }
         }
