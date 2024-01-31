@@ -17,6 +17,7 @@ fun MapMarker(
 ) {
     val iconState = rememberMarkerIconState(user)
     val markerState = rememberMarkerState(
+        user = user,
         position = LatLng(
             location.latitude,
             location.longitude
