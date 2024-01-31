@@ -47,7 +47,7 @@ class MapViewModel @Inject constructor(
         locationJob = viewModelScope.launch(appDispatcher.IO) {
             spaceRepository.getMemberWithLocation().collectLatest {
                 val currentLocation = locationManager.getLastLocation()
-                _state.emit(_state.value.copy(members = it.filter { it.isLocationEnable }, currentLocation = currentLocation))
+                _state.emit(_state.value.copy(members = it, currentLocation = currentLocation))
             }
         }
     }

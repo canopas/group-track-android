@@ -92,7 +92,7 @@ class SpaceRepository @Inject constructor(
         if (currentSpaceId.isEmpty()) return emptyFlow()
         return spaceService.getMemberBySpaceId(currentSpaceId)
             .flatMapLatest { members ->
-                val flows = members.filter { it.location_enabled }
+                val flows = members
                     .mapNotNull { member ->
                         val user = userService.getUser(member.user_id)
                         user?.let {

@@ -124,7 +124,7 @@ private fun MapView(cameraPositionState: CameraPositionState, members: List<User
             mapToolbarEnabled = false
         )
     ) {
-        members.filter { it.location != null }.forEach {
+        members.filter { it.location != null && it.isLocationEnable }.forEach {
             MapMarker(user = it.user, location = it.location!!) {}
         }
     }
