@@ -43,9 +43,10 @@ class ApiLocationService @Inject constructor(
             .orderBy("created_at", Query.Direction.DESCENDING).limit(1)
             .snapshotFlow(ApiLocation::class.java)
 
-    suspend fun getLocationHistory(userId: String, timestamp: Long) =
+    suspend fun getLocationHistory(userId: String, from: Long, to:Long) =
         locationRef.whereEqualTo("user_id", userId)
-            .whereGreaterThanOrEqualTo("created_at", timestamp)
+            .whereGreaterThanOrEqualTo("created_at", from)
+            .whereLessThan("created_at", to)
             .orderBy("created_at", Query.Direction.DESCENDING)
             .snapshotFlow(ApiLocation::class.java)
 

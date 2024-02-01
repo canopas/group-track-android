@@ -1,14 +1,11 @@
 package com.canopas.catchme.ui.flow.home.map.member
 
-import android.location.Location
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.canopas.catchme.data.models.location.ApiLocation
 import com.canopas.catchme.data.models.user.UserInfo
 import com.canopas.catchme.data.service.location.ApiLocationService
 import com.canopas.catchme.data.utils.AppDispatcher
-import com.canopas.catchme.ui.flow.home.map.distanceTo
-import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,19 +23,20 @@ class MemberDetailViewModel @Inject constructor(
     private val _state = MutableStateFlow(MemberDetailState())
     var state = _state.asStateFlow()
 
-    fun fetchUserLocationHistory(userInfo: UserInfo, timestamp: Long) {
-        _state.value = _state.value.copy(selectedUser = userInfo, selectedTime = timestamp)
-        fetchLocationHistory(timestamp)
+    fun fetchUserLocationHistory(userInfo: UserInfo, from: Long, to: Long) {
+        _state.value =
+            _state.value.copy(selectedUser = userInfo, selectedTimeFrom = from, selectedTimeTo = to)
+        fetchLocationHistory(from, to)
     }
 
-    fun fetchLocationHistory(timestamp: Long) = viewModelScope.launch(appDispatcher.IO) {
-        _state.emit(_state.value.copy(selectedTime = timestamp))
+    fun fetchLocationHistory(from: Long, to: Long) = viewModelScope.launch(appDispatcher.IO) {
+        _state.emit(_state.value.copy(selectedTimeFrom = from, selectedTimeTo = to))
 
         try {
             _state.emit(_state.value.copy(isLoading = true))
             locationService.getLocationHistory(
                 _state.value.selectedUser?.user?.id ?: "",
-                timestamp
+                from, to
             ).collectLatest {
                 val locations = it
                     .distinctBy { it.latitude }
@@ -56,7 +54,8 @@ class MemberDetailViewModel @Inject constructor(
 
 data class MemberDetailState(
     val selectedUser: UserInfo? = null,
-    val selectedTime: Long? = null,
+    val selectedTimeFrom: Long? = null,
+    val selectedTimeTo: Long? = null,
     val location: List<ApiLocation> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null

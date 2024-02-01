@@ -73,7 +73,6 @@ fun MapScreen() {
     LaunchedEffect(bottomSheetState) {
         snapshotFlow { bottomSheetState.currentValue }
             .collect {
-                Timber.e("XXX sheet state ${it.toString()}")
                 if (it == SheetValue.Hidden) {
                     viewModel.dismissMemberDetail()
                 }
@@ -85,7 +84,6 @@ fun MapScreen() {
         sheetContainerColor = AppTheme.colorScheme.surface,
         sheetPeekHeight = if(state.showUserDetails) (screenHeight / 3).dp else 0.dp,
         sheetContent = {
-            Timber.e("XXX selected ${state.selectedUser}")
             state.selectedUser?.let { MemberDetailBottomSheetContent(state.selectedUser!!) }
         }
     ) {

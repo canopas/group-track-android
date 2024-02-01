@@ -1,15 +1,16 @@
 package com.canopas.catchme.ui.flow.home.map.member
 
 import android.content.Context
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -20,13 +21,14 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Place
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -35,11 +37,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -56,6 +60,7 @@ import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 
@@ -71,7 +76,11 @@ fun MemberDetailBottomSheetContent(
         val calendar = Calendar.getInstance()
         calendar.add(Calendar.HOUR_OF_DAY, -24)
         val timestamp = calendar.timeInMillis
-        viewModel.fetchUserLocationHistory(userInfo, timestamp)
+        viewModel.fetchUserLocationHistory(
+            userInfo,
+            from = timestamp,
+            to = System.currentTimeMillis()
+        )
     }
 
     Column(modifier = Modifier.fillMaxHeight(0.9f)) {
@@ -80,9 +89,17 @@ fun MemberDetailBottomSheetContent(
         Divider(thickness = 1.dp, color = AppTheme.colorScheme.outline)
         Spacer(modifier = Modifier.height(10.dp))
 
-        FilterOption {}
+        FilterOption(
+            selectedFromTimestamp = state.selectedTimeFrom ?: 0,
+            selectedToTimestamp = state.selectedTimeTo ?: 0
+        ) {
+            val calendar = Calendar.getInstance()
+            calendar.timeInMillis = it
+            calendar.add(Calendar.DAY_OF_MONTH, 1)
+            viewModel.fetchLocationHistory(from = it, to = calendar.timeInMillis)
+        }
 
-        LocationHistory(state.location)
+        LocationHistory(state.location, state.isLoading)
 
     }
 
@@ -90,12 +107,46 @@ fun MemberDetailBottomSheetContent(
 
 @Composable
 fun LocationHistory(
-    locations: List<ApiLocation>
+    locations: List<ApiLocation>,
+    isLoading: Boolean
 ) {
-    LazyColumn(contentPadding = PaddingValues(bottom = 30.dp)) {
-        itemsIndexed(locations) { index, location ->
-            LocationHistoryItem(location, index, isLastItem = index == locations.lastIndex)
+    Box {
+        if (locations.isEmpty() && !isLoading) {
+            EmptyHistory()
+        } else {
+            LazyColumn(contentPadding = PaddingValues(bottom = 30.dp)) {
+                itemsIndexed(locations) { index, location ->
+                    LocationHistoryItem(location, index, isLastItem = index == locations.lastIndex)
+                }
+            }
         }
+    }
+}
+
+@Composable
+private fun EmptyHistory() {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.ic_empty_location_history),
+            contentDescription = "",
+            modifier = Modifier
+                .padding(bottom = 30.dp)
+                .alpha(0.8f),
+        )
+
+        Text(
+            text = stringResource(id = R.string.member_detail_empty_location_history),
+            style = AppTheme.appTypography.body1.copy(
+                color = AppTheme.colorScheme.containerHigh.copy(
+                    alpha = 0.8f
+                )
+            ),
+            modifier = Modifier.padding(bottom = 30.dp)
+        )
     }
 }
 
@@ -186,7 +237,14 @@ private fun LocationHistoryItem(location: ApiLocation, index: Int, isLastItem: B
 }
 
 @Composable
-fun FilterOption(onClick: () -> Unit = {}) {
+fun FilterOption(
+    selectedFromTimestamp: Long,
+    selectedToTimestamp: Long,
+    onTimeSelected: (Long) -> Unit = {}
+) {
+    var showDatePicker by remember {
+        mutableStateOf(false)
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -200,10 +258,12 @@ fun FilterOption(onClick: () -> Unit = {}) {
             style = AppTheme.appTypography.body2.copy(color = AppTheme.colorScheme.textSecondary)
         )
         Spacer(modifier = Modifier.weight(1f))
-        TextButton(onClick = onClick) {
+        TextButton(onClick = {
+            showDatePicker = true
+        }) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "Today",
+                    text = getFormattedFilterLabel(selectedFromTimestamp, selectedToTimestamp),
                     style = AppTheme.appTypography.body2.copy(color = AppTheme.colorScheme.textSecondary),
                     modifier = Modifier.padding(end = 5.dp)
                 )
@@ -219,6 +279,51 @@ fun FilterOption(onClick: () -> Unit = {}) {
 
     }
 
+    if (showDatePicker) {
+        ShowDatePicker(selectedFromTimestamp,
+            confirmButtonClick = { timestamp ->
+                showDatePicker = false
+
+                onTimeSelected(timestamp)
+
+            }, dismissButtonClick = {
+                showDatePicker = false
+            })
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ShowDatePicker(
+    selectedTimestamp: Long? = null,
+    confirmButtonClick: (Long) -> Unit,
+    dismissButtonClick: () -> Unit
+) {
+    val calendar = Calendar.getInstance()
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = selectedTimestamp ?: calendar.timeInMillis
+    )
+    DatePickerDialog(onDismissRequest = {},
+        confirmButton = {
+            TextButton(onClick = {
+                confirmButtonClick(
+                    datePickerState.selectedDateMillis ?: calendar.timeInMillis
+                )
+            }) {
+                Text(text = "Confirm")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = dismissButtonClick) {
+                Text(text = "Cancel")
+            }
+        }) {
+        DatePicker(
+            state = datePickerState,
+            dateValidator = { date -> date <= System.currentTimeMillis() }
+        )
+    }
+
 }
 
 @Composable
@@ -230,14 +335,28 @@ fun UserInfoContent(userInfo: UserInfo) {
             .padding(horizontal = 16.dp)
     ) {
         UserProfile(modifier = Modifier.size(54.dp), user = userInfo.user)
-        Text(
-            text = userInfo.user.fullName,
+
+        Column(
             modifier = Modifier
                 .padding(start = 16.dp)
-                .weight(1f),
-            style = AppTheme.appTypography.header3,
-            maxLines = 1,
-        )
+                .weight(1f), verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = userInfo.user.fullName,
+                style = AppTheme.appTypography.header3,
+                maxLines = 1,
+            )
+            if (!userInfo.isLocationEnable)
+                Text(
+                    text = stringResource(id = R.string.map_user_item_location_off),
+                    style = AppTheme.appTypography.label1.copy(
+                        color = Color.Red,
+                        fontWeight = FontWeight.Normal
+                    )
+                )
+
+        }
+
 
         Box(
             modifier = Modifier
@@ -264,22 +383,30 @@ fun UserInfoContent(userInfo: UserInfo) {
 
 private fun getFormattedTimeString(context: Context, timestamp: Long): String {
     val now = System.currentTimeMillis()
-    val duration = abs(timestamp - now)
-    val days = TimeUnit.MILLISECONDS.toDays(duration)
-    val hours = TimeUnit.MILLISECONDS.toHours(duration)
-    val minutes = TimeUnit.MILLISECONDS.toMinutes(duration)
-
+    val elapsedTime = now - timestamp
     return when {
-        minutes < 1 -> context.getString(R.string.map_user_item_location_updated_now)
-        hours < 1 -> context.getString(
+        elapsedTime < TimeUnit.MINUTES.toMillis(1) -> context.getString(R.string.map_user_item_location_updated_now)
+        elapsedTime < TimeUnit.HOURS.toMillis(1) -> context.getString(
             R.string.map_user_item_location_updated_minutes_ago,
-            minutes.toString()
+            "${TimeUnit.MILLISECONDS.toMinutes(elapsedTime)}"
         )
 
-        else -> {
-            val output = SimpleDateFormat("h:mm a")
-            output.format(Date(timestamp))
-        }
+        elapsedTime < TimeUnit.DAYS.toMillis(1) ->
+            SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date(timestamp))
+
+        else -> SimpleDateFormat("h:mm a • d MMM", Locale.getDefault()).format(Date(timestamp))
     }
 }
 
+fun getFormattedFilterLabel(startTimestamp: Long, endTimestamp: Long): String {
+    val startDate = Date(startTimestamp)
+    val endDate = Date(endTimestamp)
+
+    val startDateFormat = SimpleDateFormat("d MMM", Locale.getDefault())
+    val endDateFormat = SimpleDateFormat("d MMM", Locale.getDefault())
+
+    val startDateFormatted = startDateFormat.format(startDate)
+    val endDateFormatted = endDateFormat.format(endDate)
+
+    return "$startDateFormatted • $endDateFormatted"
+}
