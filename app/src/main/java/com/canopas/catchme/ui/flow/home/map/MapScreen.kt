@@ -59,7 +59,6 @@ private const val DEFAULT_CAMERA_ZOOM_FOR_SELECTED_USER = 17f
 fun MapScreen() {
     val viewModel = hiltViewModel<MapViewModel>()
     val state by viewModel.state.collectAsState()
-    val scope = rememberCoroutineScope()
     val configuration = LocalConfiguration.current
     val screenHeight = configuration.screenHeightDp
 
@@ -70,18 +69,12 @@ fun MapScreen() {
     val scaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = bottomSheetState
     )
-
-//    LaunchedEffect(state.showUserDetails) {
-//        if (state.selectedUser != null && state.showUserDetails) {
-//            bottomSheetState.show()
-//        } else {
-//            bottomSheetState.hide()
-//        }
-//    }
+    
     LaunchedEffect(bottomSheetState) {
         snapshotFlow { bottomSheetState.currentValue }
             .collect {
-                if(it == SheetValue.Hidden) {
+                Timber.e("XXX sheet state ${it.toString()}")
+                if (it == SheetValue.Hidden) {
                     viewModel.dismissMemberDetail()
                 }
             }
@@ -90,12 +83,12 @@ fun MapScreen() {
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetContainerColor = AppTheme.colorScheme.surface,
-        sheetPeekHeight = (screenHeight / 3).dp,
+        sheetPeekHeight = if(state.showUserDetails) (screenHeight / 3).dp else 0.dp,
         sheetContent = {
-            if (state.selectedUser != null && state.showUserDetails) {
-                MemberDetailBottomSheetContent(state.selectedUser!!)
-            }
-        }) {
+            Timber.e("XXX selected ${state.selectedUser}")
+            state.selectedUser?.let { MemberDetailBottomSheetContent(state.selectedUser!!) }
+        }
+    ) {
         MapScreenContent(modifier = Modifier)
     }
 }
@@ -122,18 +115,7 @@ fun MapScreenContent(modifier: Modifier) {
         }
     }
 
-    LaunchedEffect(userLocation) {
-        if (state.selectedUser == null) {
-            cameraPositionState.animate(
-                CameraUpdateFactory.newLatLngZoom(
-                    userLocation,
-                    DEFAULT_CAMERA_ZOOM
-                )
-            )
-        }
-    }
-
-    LaunchedEffect(state.selectedUser) {
+    LaunchedEffect(userLocation, state.selectedUser) {
         if (state.selectedUser != null) {
             val location = state.selectedUser?.location
             if (location != null) {
@@ -145,6 +127,13 @@ fun MapScreenContent(modifier: Modifier) {
                     )
                 )
             }
+        } else {
+            cameraPositionState.animate(
+                CameraUpdateFactory.newLatLngZoom(
+                    userLocation,
+                    DEFAULT_CAMERA_ZOOM
+                )
+            )
         }
     }
 

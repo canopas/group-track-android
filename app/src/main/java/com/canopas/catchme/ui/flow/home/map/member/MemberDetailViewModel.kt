@@ -44,7 +44,6 @@ class MemberDetailViewModel @Inject constructor(
                     .distinctBy { it.latitude }
                     .distinctBy { it.longitude }.sortedByDescending { it.created_at }
 
-                Timber.e("XXX fetchLocationHistory ${locations.size}")
                 _state.emit(_state.value.copy(isLoading = false, location = locations))
             }
         } catch (e: Exception) {
