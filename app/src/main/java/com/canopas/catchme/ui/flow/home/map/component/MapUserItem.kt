@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -41,8 +42,10 @@ import coil.request.ImageRequest
 import com.canopas.catchme.R
 import com.canopas.catchme.data.models.user.ApiUser
 import com.canopas.catchme.data.models.user.UserInfo
+import com.canopas.catchme.ui.component.UserProfile
 import com.canopas.catchme.ui.theme.AppTheme
 import com.canopas.catchme.ui.theme.InterFontFamily
+import com.canopas.catchme.utils.getAddress
 import com.google.android.gms.maps.model.LatLng
 import timber.log.Timber
 import java.io.IOException
@@ -62,7 +65,7 @@ fun MapUserItem(
     val location = remember(userInfo) {
         val latLng =
             LatLng(userInfo.location?.latitude ?: 0.0, userInfo.location?.longitude ?: 0.0)
-        getAddress(context, latLng) ?: context.getString(R.string.map_user_item_location_unknown)
+        latLng.getAddress(context) ?: context.getString(R.string.map_user_item_location_unknown)
     }
     val lastUpdated = remember(userInfo) {
         getTimeAgoString(context, userInfo.location?.created_at ?: 0L)
@@ -83,7 +86,11 @@ fun MapUserItem(
 
     ) {
         Row(modifier = Modifier.padding(10.dp)) {
-            UserProfile(user = user)
+            UserProfile(
+                Modifier
+                    .size(50.dp),
+                user = user
+            )
 
             Column(
                 modifier = Modifier
@@ -148,42 +155,7 @@ fun MapUserItem(
     }
 }
 
-@Composable
-private fun UserProfile(user: ApiUser) {
-    val profileUrl = user.profile_image
-    Box(
-        modifier = Modifier
-            .size(50.dp)
-            .background(
-                AppTheme.colorScheme.primary.copy(alpha = 0.7f),
-                shape = RoundedCornerShape(16.dp)
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        if (!profileUrl.isNullOrEmpty()) {
-            Image(
-                painter = rememberAsyncImagePainter(
-                    ImageRequest.Builder(LocalContext.current).data(
-                        profileUrl
-                    ).build()
-                ),
-                contentScale = ContentScale.Crop,
-                contentDescription = "ProfileImage"
-            )
-        } else {
-            Text(
-                text = user.fullName.take(1).uppercase(),
-                style = TextStyle(
-                    color = Color.White,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 28.sp
-                )
-            )
-        }
-    }
-}
-
-private fun getTimeAgoString(context: Context, timestamp: Long): String {
+private  fun getTimeAgoString(context: Context, timestamp: Long): String {
     val now = System.currentTimeMillis()
     val duration = abs(timestamp - now)
     val days = TimeUnit.MILLISECONDS.toDays(duration)
@@ -191,7 +163,7 @@ private fun getTimeAgoString(context: Context, timestamp: Long): String {
     val minutes = TimeUnit.MILLISECONDS.toMinutes(duration)
 
     return when {
-        minutes < 2 -> context.getString(R.string.map_user_item_location_updated_now)
+        minutes < 1 -> context.getString(R.string.map_user_item_location_updated_now)
         hours < 1 -> context.getString(
             R.string.map_user_item_location_updated_minutes_ago,
             minutes.toString()
@@ -210,18 +182,3 @@ private fun getTimeAgoString(context: Context, timestamp: Long): String {
     }
 }
 
-private fun getAddress(context: Context, latLng: LatLng): String? {
-    try {
-        val geocoder = Geocoder(context, Locale.getDefault())
-        val addressList = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1)
-        addressList?.map {
-        }
-        if (addressList != null && addressList.size > 0) {
-            val address = addressList[0]
-            return address.getAddressLine(0)
-        }
-    } catch (e: IOException) {
-        Timber.e(e)
-    }
-    return null
-}

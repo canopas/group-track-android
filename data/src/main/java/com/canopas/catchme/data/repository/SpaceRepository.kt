@@ -98,7 +98,7 @@ class SpaceRepository @Inject constructor(
                         user?.let {
                             locationService.getCurrentLocation(user.id)
                                 .map {
-                                    UserInfo(user, it, member.location_enabled)
+                                    UserInfo(user, it.firstOrNull(), member.location_enabled)
                                 }
                         }
                     }

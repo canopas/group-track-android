@@ -17,7 +17,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.SmallFloatingActionButton
+import androidx.compose.material3.rememberBottomSheetScaffoldState
+import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -25,15 +28,17 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.catchme.R
 import com.canopas.catchme.ui.flow.home.map.component.MapMarker
 import com.canopas.catchme.ui.flow.home.map.component.MapUserItem
-import com.canopas.catchme.ui.flow.home.map.component.MemberDetailBottomSheetContent
+import com.canopas.catchme.ui.flow.home.map.member.MemberDetailBottomSheetContent
 import com.canopas.catchme.ui.theme.AppTheme
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
@@ -44,20 +49,53 @@ import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.launch
+import timber.log.Timber
+
+private const val DEFAULT_CAMERA_ZOOM = 15f
+private const val DEFAULT_CAMERA_ZOOM_FOR_SELECTED_USER = 17f
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapScreen() {
     val viewModel = hiltViewModel<MapViewModel>()
     val state by viewModel.state.collectAsState()
+    val scope = rememberCoroutineScope()
+    val configuration = LocalConfiguration.current
+    val screenHeight = configuration.screenHeightDp
+
+    val bottomSheetState = rememberStandardBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        skipHiddenState = false
+    )
+    val scaffoldState = rememberBottomSheetScaffoldState(
+        bottomSheetState = bottomSheetState
+    )
+
+//    LaunchedEffect(state.showUserDetails) {
+//        if (state.selectedUser != null && state.showUserDetails) {
+//            bottomSheetState.show()
+//        } else {
+//            bottomSheetState.hide()
+//        }
+//    }
+    LaunchedEffect(bottomSheetState) {
+        snapshotFlow { bottomSheetState.currentValue }
+            .collect {
+                if(it == SheetValue.Hidden) {
+                    viewModel.dismissMemberDetail()
+                }
+            }
+    }
 
     BottomSheetScaffold(
+        scaffoldState = scaffoldState,
         sheetContainerColor = AppTheme.colorScheme.surface,
+        sheetPeekHeight = (screenHeight / 3).dp,
         sheetContent = {
-       // if (state.selectedUser != null && state.showUserDetails) {
-            MemberDetailBottomSheetContent()
-      //  }
-    }) {
+            if (state.selectedUser != null && state.showUserDetails) {
+                MemberDetailBottomSheetContent(state.selectedUser!!)
+            }
+        }) {
         MapScreenContent(modifier = Modifier)
     }
 }
@@ -74,7 +112,7 @@ fun MapScreenContent(modifier: Modifier) {
     }
 
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(userLocation, 16f)
+        position = CameraPosition.fromLatLngZoom(userLocation, DEFAULT_CAMERA_ZOOM)
     }
 
     val relocate by remember {
@@ -85,12 +123,29 @@ fun MapScreenContent(modifier: Modifier) {
     }
 
     LaunchedEffect(userLocation) {
-        cameraPositionState.animate(
-            CameraUpdateFactory.newLatLngZoom(
-                userLocation,
-                16f
+        if (state.selectedUser == null) {
+            cameraPositionState.animate(
+                CameraUpdateFactory.newLatLngZoom(
+                    userLocation,
+                    DEFAULT_CAMERA_ZOOM
+                )
             )
-        )
+        }
+    }
+
+    LaunchedEffect(state.selectedUser) {
+        if (state.selectedUser != null) {
+            val location = state.selectedUser?.location
+            if (location != null) {
+                val latLng = LatLng(location.latitude, location.longitude)
+                cameraPositionState.animate(
+                    CameraUpdateFactory.newLatLngZoom(
+                        latLng,
+                        DEFAULT_CAMERA_ZOOM_FOR_SELECTED_USER
+                    )
+                )
+            }
+        }
     }
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -110,11 +165,22 @@ fun MapScreenContent(modifier: Modifier) {
                     cameraPositionState.animate(
                         CameraUpdateFactory.newLatLngZoom(
                             userLocation,
-                            16f
+                            DEFAULT_CAMERA_ZOOM
                         )
                     )
                 }
             }
+//            LazyRow(
+//                modifier = Modifier.fillMaxWidth(),
+//                contentPadding = PaddingValues(horizontal = 10.dp),
+//                horizontalArrangement = Arrangement.spacedBy(12.dp)
+//            ) {
+//                items(state.members) {
+//                    MapUserItem(it) {
+//                        viewModel.showMemberDetail(it)
+//                    }
+//                }
+//            }
         }
     }
 }

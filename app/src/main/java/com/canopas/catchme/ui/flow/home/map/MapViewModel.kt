@@ -57,16 +57,16 @@ class MapViewModel @Inject constructor(
         }
     }
 
-    fun showMemberDetail(userInfo: UserInfo) {
+    fun showMemberDetail(userInfo: UserInfo) = viewModelScope.launch(appDispatcher.IO) {
         val selectedUser = _state.value.selectedUser
         if (selectedUser != null && selectedUser.user.id == userInfo.user.id) {
             dismissMemberDetail()
         } else {
-            _state.value = _state.value.copy(selectedUser = userInfo, showUserDetails = true)
+            _state.emit(_state.value.copy(selectedUser = userInfo, showUserDetails = true))
         }
     }
 
-    private fun dismissMemberDetail() {
+     fun dismissMemberDetail() {
         _state.value = _state.value.copy(showUserDetails = false, selectedUser = null)
     }
 }

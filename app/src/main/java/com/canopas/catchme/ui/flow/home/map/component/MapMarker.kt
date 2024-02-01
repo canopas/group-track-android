@@ -30,6 +30,7 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.canopas.catchme.data.models.location.ApiLocation
 import com.canopas.catchme.data.models.user.ApiUser
+import com.canopas.catchme.ui.component.UserProfile
 import com.canopas.catchme.ui.theme.AppTheme
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.MarkerComposable
@@ -79,39 +80,10 @@ fun MarkerContent(user: ApiUser, isSelected: Boolean) {
             .padding(5.dp),
         contentAlignment = Alignment.Center
     ) {
-        Box(
+        UserProfile(
             modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    AppTheme.colorScheme.surface,
-                    shape = RoundedCornerShape(16.dp)
-                )
-                .background(
-                    AppTheme.colorScheme.primary.copy(alpha = 0.7f),
-                    shape = RoundedCornerShape(16.dp)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            if (!profileUrl.isNullOrEmpty()) {
-                Image(
-                    painter = rememberAsyncImagePainter(
-                        ImageRequest.Builder(LocalContext.current).data(
-                            profileUrl
-                        ).build()
-                    ),
-                    contentScale = ContentScale.Crop,
-                    contentDescription = "ProfileImage"
-                )
-            } else {
-                Text(
-                    text = user.fullName.take(1).uppercase(),
-                    style = TextStyle(
-                        color = Color.White,
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 28.sp
-                    )
-                )
-            }
-        }
+                .fillMaxSize(),
+            user = user
+        )
     }
 }

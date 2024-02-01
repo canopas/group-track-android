@@ -7,7 +7,9 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -36,12 +38,15 @@ class ApiLocationService @Inject constructor(
         locationRef.document(location.id).set(location).await()
     }
 
-    suspend fun getCurrentLocation(userId: String) = channelFlow<ApiLocation?> {
+    suspend fun getCurrentLocation(userId: String) =
         locationRef.whereEqualTo("user_id", userId)
             .orderBy("created_at", Query.Direction.DESCENDING).limit(1)
             .snapshotFlow(ApiLocation::class.java)
-            .collectLatest {
-                send(it.firstOrNull())
-            }
-    }
+
+    suspend fun getLocationHistory(userId: String, timestamp: Long) =
+        locationRef.whereEqualTo("user_id", userId)
+            .whereGreaterThanOrEqualTo("created_at", timestamp)
+            .orderBy("created_at", Query.Direction.DESCENDING)
+            .snapshotFlow(ApiLocation::class.java)
+
 }
