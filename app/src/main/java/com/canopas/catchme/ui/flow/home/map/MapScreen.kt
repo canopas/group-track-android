@@ -4,16 +4,11 @@ import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -37,7 +32,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.catchme.R
 import com.canopas.catchme.ui.flow.home.map.component.MapMarker
-import com.canopas.catchme.ui.flow.home.map.component.MapUserItem
 import com.canopas.catchme.ui.flow.home.map.member.MemberDetailBottomSheetContent
 import com.canopas.catchme.ui.theme.AppTheme
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -49,7 +43,6 @@ import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 private const val DEFAULT_CAMERA_ZOOM = 15f
 private const val DEFAULT_CAMERA_ZOOM_FOR_SELECTED_USER = 17f
@@ -69,7 +62,7 @@ fun MapScreen() {
     val scaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = bottomSheetState
     )
-    
+
     LaunchedEffect(bottomSheetState) {
         snapshotFlow { bottomSheetState.currentValue }
             .collect {
@@ -82,7 +75,7 @@ fun MapScreen() {
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetContainerColor = AppTheme.colorScheme.surface,
-        sheetPeekHeight = if(state.showUserDetails) (screenHeight / 3).dp else 0.dp,
+        sheetPeekHeight = if (state.showUserDetails) (screenHeight / 3).dp else 0.dp,
         sheetContent = {
             state.selectedUser?.let { MemberDetailBottomSheetContent(state.selectedUser!!) }
         }
@@ -174,7 +167,7 @@ fun MapScreenContent(modifier: Modifier) {
 
 @Composable
 private fun MapView(
-    cameraPositionState: CameraPositionState,
+    cameraPositionState: CameraPositionState
 ) {
     val viewModel = hiltViewModel<MapViewModel>()
     val state by viewModel.state.collectAsState()

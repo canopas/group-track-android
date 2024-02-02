@@ -5,11 +5,7 @@ import com.canopas.catchme.data.utils.FirestoreConst
 import com.canopas.catchme.data.utils.snapshotFlow
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
-import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -43,11 +39,9 @@ class ApiLocationService @Inject constructor(
             .orderBy("created_at", Query.Direction.DESCENDING).limit(1)
             .snapshotFlow(ApiLocation::class.java)
 
-    suspend fun getLocationHistory(userId: String, from: Long, to:Long) =
+    fun getLocationHistoryQuery(userId: String, from: Long, to: Long) =
         locationRef.whereEqualTo("user_id", userId)
             .whereGreaterThanOrEqualTo("created_at", from)
             .whereLessThan("created_at", to)
-            .orderBy("created_at", Query.Direction.DESCENDING)
-            .snapshotFlow(ApiLocation::class.java)
-
+            .orderBy("created_at", Query.Direction.DESCENDING).limit(8)
 }

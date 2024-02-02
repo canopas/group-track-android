@@ -6,7 +6,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -17,10 +16,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.Divider
@@ -47,39 +46,41 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.canopas.catchme.R
 import com.canopas.catchme.data.models.location.ApiLocation
 import com.canopas.catchme.data.models.user.UserInfo
+import com.canopas.catchme.ui.component.AppProgressIndicator
 import com.canopas.catchme.ui.component.UserProfile
 import com.canopas.catchme.ui.theme.AppTheme
 import com.canopas.catchme.utils.getAddress
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
-import kotlin.math.abs
 
 @Composable
 fun MemberDetailBottomSheetContent(
-    userInfo: UserInfo,
+    userInfo: UserInfo
 ) {
     val viewModel = hiltViewModel<MemberDetailViewModel>()
     val state by viewModel.state.collectAsState()
+    val locations = viewModel.location.collectAsLazyPagingItems()
 
     LaunchedEffect(userInfo) {
-        Timber.d("XXX fetchUserLocationHistory")
         val calendar = Calendar.getInstance()
         calendar.add(Calendar.HOUR_OF_DAY, -24)
         val timestamp = calendar.timeInMillis
         viewModel.fetchUserLocationHistory(
-            userInfo,
             from = timestamp,
-            to = System.currentTimeMillis()
+            to = System.currentTimeMillis(),
+            userInfo
         )
     }
 
@@ -96,27 +97,49 @@ fun MemberDetailBottomSheetContent(
             val calendar = Calendar.getInstance()
             calendar.timeInMillis = it
             calendar.add(Calendar.DAY_OF_MONTH, 1)
-            viewModel.fetchLocationHistory(from = it, to = calendar.timeInMillis)
+            viewModel.fetchUserLocationHistory(from = it, to = calendar.timeInMillis)
         }
-
-        LocationHistory(state.location, state.isLoading)
-
+        LocationHistory(locations)
     }
-
 }
 
 @Composable
 fun LocationHistory(
-    locations: List<ApiLocation>,
-    isLoading: Boolean
+    locations: LazyPagingItems<ApiLocation>
 ) {
     Box {
-        if (locations.isEmpty() && !isLoading) {
-            EmptyHistory()
-        } else {
-            LazyColumn(contentPadding = PaddingValues(bottom = 30.dp)) {
-                itemsIndexed(locations) { index, location ->
-                    LocationHistoryItem(location, index, isLastItem = index == locations.lastIndex)
+        when {
+            locations.loadState.refresh == LoadState.Loading -> {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) { AppProgressIndicator() }
+            }
+
+            locations.itemCount == 0 -> {
+                EmptyHistory()
+            }
+
+            else -> {
+                LazyColumn {
+                    items(locations.itemCount) { index ->
+                        val location = locations[index]
+
+                        LocationHistoryItem(
+                            location!!,
+                            index,
+                            isLastItem = index == locations.itemCount - 1
+                        )
+                    }
+
+                    if (locations.loadState.append == LoadState.Loading) {
+                        item {
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) { AppProgressIndicator() }
+                        }
+                    }
                 }
             }
         }
@@ -135,7 +158,7 @@ private fun EmptyHistory() {
             contentDescription = "",
             modifier = Modifier
                 .padding(bottom = 30.dp)
-                .alpha(0.8f),
+                .alpha(0.8f)
         )
 
         Text(
@@ -183,8 +206,9 @@ private fun LocationHistoryItem(location: ApiLocation, index: Int, isLastItem: B
                     ),
                 contentAlignment = Alignment.Center
             ) {
+
                 Icon(
-                    Icons.Default.LocationOn,
+                   if(address.isEmpty()) Icons.Outlined.Refresh else Icons.Default.LocationOn,
                     contentDescription = "",
                     tint = AppTheme.colorScheme.surface,
                     modifier = Modifier
@@ -193,7 +217,7 @@ private fun LocationHistoryItem(location: ApiLocation, index: Int, isLastItem: B
                 )
             }
             Spacer(modifier = Modifier.height(10.dp))
-            if (!isLastItem)
+            if (!isLastItem) {
                 Divider(
                     thickness = 2.dp,
                     modifier = Modifier
@@ -201,6 +225,7 @@ private fun LocationHistoryItem(location: ApiLocation, index: Int, isLastItem: B
                         .height(48.dp),
                     color = AppTheme.colorScheme.containerHigh
                 )
+            }
         }
 
         Column(
@@ -230,10 +255,8 @@ private fun LocationHistoryItem(location: ApiLocation, index: Int, isLastItem: B
                     style = AppTheme.appTypography.label2.copy(color = AppTheme.colorScheme.textSecondary)
                 )
             }
-
         }
     }
-
 }
 
 @Composable
@@ -252,7 +275,6 @@ fun FilterOption(
             .padding(bottom = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-
         Text(
             text = stringResource(id = R.string.member_detail_location_history),
             style = AppTheme.appTypography.body2.copy(color = AppTheme.colorScheme.textSecondary)
@@ -276,19 +298,20 @@ fun FilterOption(
                 )
             }
         }
-
     }
 
     if (showDatePicker) {
-        ShowDatePicker(selectedFromTimestamp,
+        ShowDatePicker(
+            selectedFromTimestamp,
             confirmButtonClick = { timestamp ->
                 showDatePicker = false
 
                 onTimeSelected(timestamp)
-
-            }, dismissButtonClick = {
+            },
+            dismissButtonClick = {
                 showDatePicker = false
-            })
+            }
+        )
     }
 }
 
@@ -303,7 +326,8 @@ fun ShowDatePicker(
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = selectedTimestamp ?: calendar.timeInMillis
     )
-    DatePickerDialog(onDismissRequest = {},
+    DatePickerDialog(
+        onDismissRequest = {},
         confirmButton = {
             TextButton(onClick = {
                 confirmButtonClick(
@@ -317,13 +341,13 @@ fun ShowDatePicker(
             TextButton(onClick = dismissButtonClick) {
                 Text(text = "Cancel")
             }
-        }) {
+        }
+    ) {
         DatePicker(
             state = datePickerState,
             dateValidator = { date -> date <= System.currentTimeMillis() }
         )
     }
-
 }
 
 @Composable
@@ -339,14 +363,15 @@ fun UserInfoContent(userInfo: UserInfo) {
         Column(
             modifier = Modifier
                 .padding(start = 16.dp)
-                .weight(1f), verticalArrangement = Arrangement.Center
+                .weight(1f),
+            verticalArrangement = Arrangement.Center
         ) {
             Text(
                 text = userInfo.user.fullName,
                 style = AppTheme.appTypography.header3,
-                maxLines = 1,
+                maxLines = 1
             )
-            if (!userInfo.isLocationEnable)
+            if (!userInfo.isLocationEnable) {
                 Text(
                     text = stringResource(id = R.string.map_user_item_location_off),
                     style = AppTheme.appTypography.label1.copy(
@@ -354,9 +379,8 @@ fun UserInfoContent(userInfo: UserInfo) {
                         fontWeight = FontWeight.Normal
                     )
                 )
-
+            }
         }
-
 
         Box(
             modifier = Modifier
@@ -377,9 +401,7 @@ fun UserInfoContent(userInfo: UserInfo) {
             )
         }
     }
-
 }
-
 
 private fun getFormattedTimeString(context: Context, timestamp: Long): String {
     val now = System.currentTimeMillis()

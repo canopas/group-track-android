@@ -66,7 +66,7 @@ class MapViewModel @Inject constructor(
         }
     }
 
-     fun dismissMemberDetail() {
+    fun dismissMemberDetail() {
         _state.value = _state.value.copy(showUserDetails = false, selectedUser = null)
     }
 }

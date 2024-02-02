@@ -96,6 +96,7 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("androidx.navigation:navigation-compose:2.7.6")
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
+    implementation("com.google.firebase:firebase-firestore-ktx:24.10.1")
 
     // Test
     testImplementation("junit:junit:4.13.2")
@@ -136,6 +137,9 @@ dependencies {
     implementation("com.google.accompanist:accompanist-permissions:0.32.0")
 
     implementation("com.google.maps.android:maps-compose:4.3.0")
+
+    // Paging
+    implementation("androidx.paging:paging-compose:3.2.1")
 
     implementation(project(":data"))
 }
