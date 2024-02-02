@@ -206,9 +206,8 @@ private fun LocationHistoryItem(location: ApiLocation, index: Int, isLastItem: B
                     ),
                 contentAlignment = Alignment.Center
             ) {
-
                 Icon(
-                   if(address.isEmpty()) Icons.Outlined.Refresh else Icons.Default.LocationOn,
+                    if (address.isEmpty()) Icons.Outlined.Refresh else Icons.Default.LocationOn,
                     contentDescription = "",
                     tint = AppTheme.colorScheme.surface,
                     modifier = Modifier
