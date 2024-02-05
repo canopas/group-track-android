@@ -171,13 +171,13 @@ class OnboardViewModelTest {
 
     @Test
     fun `navigateToPermission should set OnboardShown to true`() = runTest {
-        viewModel.navigateToPermission()
+        viewModel.navigateToHome()
         verify(userPreferences).setOnboardShown(true)
     }
 
     @Test
     fun `navigateToPermission should navigate to permission screen`() = runTest {
-        viewModel.navigateToPermission()
+        viewModel.navigateToHome()
         verify(navigator).navigateTo("enable-permissions", "onboard", true)
     }
 

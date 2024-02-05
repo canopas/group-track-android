@@ -100,7 +100,7 @@ class OnboardViewModel @Inject constructor(
         }
     }
 
-    fun navigateToPermission() = viewModelScope.launch {
+    fun navigateToHome() = viewModelScope.launch {
         userPreferences.setOnboardShown(true)
         navigator.navigateTo(
             AppDestinations.home.path,
@@ -155,7 +155,7 @@ class OnboardViewModel @Inject constructor(
                 spaceRepository.joinSpace(spaceId)
             }
             _state.emit(_state.value.copy(joiningSpace = false))
-            navigateToPermission()
+            navigateToHome()
         } catch (e: Exception) {
             Timber.e(e, "Unable to join space")
             _state.emit(

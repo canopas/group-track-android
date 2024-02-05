@@ -34,7 +34,7 @@ val Context.isBackgroundLocationPermissionGranted get() = hasBackgroundLocationP
 val Context.hasFineLocationPermission
     get() = checkPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
 
-private val Context.hasCoarseLocationPermission
+ val Context.hasCoarseLocationPermission
     get() = checkPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
 
 private val Context.hasBackgroundLocationPermission

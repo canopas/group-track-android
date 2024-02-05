@@ -34,7 +34,7 @@
     <string name="onboard_pick_name_title">What\'s your name?</string>
     <string name="onboard_pick_name_label_first_name">First name</string>
     <string name="onboard_pick_name_label_last_name">Last name</string>
-    <string name="onboard_space_info_title">Hi %s, The Map Awaits! Join or create Your Space Now!</string>
+    <string name="onboard_space_info_title">Connect, Share, Explore. Join Your Trusted Space for Safe Location Sharing.</string>
     <string name="onboard_space_info_subtitle">A Space is your exclusive and private area, just for you and your family.</string>
     <string name="onboard_space_join_title">Ready to connect? Input your invite code for Space entry.</string>
     <string name="onboard_space_join_subtitle">Get the code from the Space creator to join.</string>
