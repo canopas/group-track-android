@@ -37,7 +37,7 @@ private val outlineLightColor = Color(0x14000000)
 private val outlineDarkColor = Color(0x14FFFFFF)
 
 private val surfaceLightColor = Color(0xFFFFFFFF)
-private val surfaceDarkColor = Color(0xFF121212)
+private val surfaceDarkColor = Color(0xFF495E14)
 
 internal val themeLightColorScheme = lightColorScheme().copy(
     primary = primaryColor,

@@ -11,6 +11,7 @@
     <string name="common_btn_join_space">Join space</string>
     <string name="common_btn_ok">Okay</string>
     <string name="common_label_congratulations">Congratulations!</string>
+    <string name="common_btn_add">Add</string>
 
 
     <string name="common_share_invite_code_message">Let\'s stay connected! Use invite code %s to join my Space. Download the app: [link].</string>

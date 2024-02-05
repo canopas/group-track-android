@@ -4,11 +4,19 @@ import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -31,7 +39,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.catchme.R
+import com.canopas.catchme.ui.flow.home.map.component.AddMemberBtn
 import com.canopas.catchme.ui.flow.home.map.component.MapMarker
+import com.canopas.catchme.ui.flow.home.map.component.MapUserItem
 import com.canopas.catchme.ui.flow.home.map.member.MemberDetailBottomSheetContent
 import com.canopas.catchme.ui.theme.AppTheme
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -133,11 +143,12 @@ fun MapScreenContent(modifier: Modifier) {
 
         Column(
             modifier = Modifier
+                .fillMaxWidth()
                 .align(Alignment.BottomEnd)
-                .padding(bottom = 10.dp),
-            horizontalAlignment = Alignment.End
+                .padding(bottom = 10.dp)
         ) {
             RelocateBtn(
+                modifier = Modifier.align(Alignment.End),
                 icon = R.drawable.ic_relocate,
                 show = relocate
             ) {
@@ -150,17 +161,25 @@ fun MapScreenContent(modifier: Modifier) {
                     )
                 }
             }
-//            LazyRow(
-//                modifier = Modifier.fillMaxWidth(),
-//                contentPadding = PaddingValues(horizontal = 10.dp),
-//                horizontalArrangement = Arrangement.spacedBy(12.dp)
-//            ) {
-//                items(state.members) {
-//                    MapUserItem(it) {
-//                        viewModel.showMemberDetail(it)
-//                    }
-//                }
-//            }
+            LazyRow(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .wrapContentWidth()
+                    .background(AppTheme.colorScheme.surface, shape = RoundedCornerShape(6.dp))
+                    .align(Alignment.CenterHorizontally),
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 5.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                item {
+                    AddMemberBtn(state.loadingInviteCode) { viewModel.addMember() }
+                }
+                items(state.members) {
+                    MapUserItem(it) {
+                        viewModel.showMemberDetail(it)
+                    }
+                }
+            }
         }
     }
 }
@@ -206,11 +225,10 @@ private fun RelocateBtn(
         visible = show,
         enter = fadeIn(),
         exit = fadeOut(),
-        modifier = Modifier
+        modifier = modifier
             .padding(bottom = 10.dp, end = 10.dp)
     ) {
         SmallFloatingActionButton(
-            modifier = modifier,
             onClick = { onClick() },
             containerColor = AppTheme.colorScheme.surface,
             contentColor = AppTheme.colorScheme.primary

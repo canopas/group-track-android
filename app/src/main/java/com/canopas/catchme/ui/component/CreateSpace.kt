@@ -146,7 +146,7 @@ private fun PickNameTextField(title: String, value: String, onValueChanged: (Str
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 14.dp),
-            textStyle = AppTheme.appTypography.header4,
+            textStyle = AppTheme.appTypography.header4.copy(AppTheme.colorScheme.textPrimary),
             onValueChange = { value ->
                 onValueChanged(value)
             },

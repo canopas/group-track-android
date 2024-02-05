@@ -66,7 +66,7 @@ class SpaceRepository @Inject constructor(
         }
     }
 
-    private suspend fun getCurrentSpace(): ApiSpace? {
+    suspend fun getCurrentSpace(): ApiSpace? {
         val spaceId = currentSpaceId
 
         if (spaceId.isEmpty()) {
