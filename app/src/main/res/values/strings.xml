@@ -12,6 +12,7 @@
     <string name="common_btn_ok">Okay</string>
     <string name="common_label_congratulations">Congratulations!</string>
     <string name="common_btn_add">Add</string>
+    <string name="common_unknown">Unknown</string>
 
 
     <string name="common_share_invite_code_message">Let\'s stay connected! Use invite code %s to join my Space. Download the app: [link].</string>
@@ -53,7 +54,6 @@
     <string name="onboard_join_space_title">Get set to connect! </string>
     <string name="onboard_join_space_joining_space_label">You\'re about to become a member of the %s Space.</string>
     <string name="onboard_join_space_subtitle">Here\'s presenting those eagerly waiting:</string>
-    <string name="common_unknown">Unknown</string>
     <string name="onboard_space_invalid_invite_code">It appears the code is no longer valid or has expired. Please review and enter a valid code.</string>
     <string name="enable_permission_title">Enable Permissions</string>
     <string name="enable_permission_subtitle">For an effective user experience on CatchMe, it\'s necessary to enable these permissions.</string>

@@ -10,7 +10,6 @@ import com.canopas.catchme.data.receiver.location.LocationUpdateReceiver
 import com.canopas.catchme.data.utils.hasCoarseLocationPermission
 import com.canopas.catchme.data.utils.hasFineLocationPermission
 import com.canopas.catchme.data.utils.isBackgroundLocationPermissionGranted
-import com.canopas.catchme.data.utils.isLocationPermissionGranted
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.Granularity
 import com.google.android.gms.location.LocationRequest

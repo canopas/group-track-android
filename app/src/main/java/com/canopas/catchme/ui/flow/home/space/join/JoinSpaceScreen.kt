@@ -119,7 +119,7 @@ private fun JoinSpaceContent(modifier: Modifier) {
 }
 
 @Composable
-private fun JoinedSpacePopup(space: ApiSpace, onDismiss: () -> Unit) {
+fun JoinedSpacePopup(space: ApiSpace, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = { onDismiss() },
         title = {

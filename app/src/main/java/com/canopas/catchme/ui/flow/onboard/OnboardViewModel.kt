@@ -2,6 +2,7 @@ package com.canopas.catchme.ui.flow.onboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.canopas.catchme.data.models.space.ApiSpace
 import com.canopas.catchme.data.repository.SpaceRepository
 import com.canopas.catchme.data.service.auth.AuthService
 import com.canopas.catchme.data.service.space.SpaceInvitationService
@@ -63,6 +64,7 @@ class OnboardViewModel @Inject constructor(
         _state.emit(
             _state.value.copy(
                 updatingUserName = false,
+                prevStep = _state.value.currentStep,
                 currentStep = OnboardItems.SpaceIntro
             )
         )
@@ -70,12 +72,16 @@ class OnboardViewModel @Inject constructor(
 
     fun navigateToJoinOrCreateSpace() {
         _state.value = _state.value.copy(
+            prevStep = _state.value.currentStep,
             currentStep = OnboardItems.JoinOrCreateSpace
         )
     }
 
     fun navigateToCreateSpace() {
-        _state.value = _state.value.copy(currentStep = OnboardItems.CreateSpace)
+        _state.value = _state.value.copy(
+            prevStep = _state.value.currentStep,
+            currentStep = OnboardItems.CreateSpace
+        )
     }
 
     fun createSpace(spaceName: String) = viewModelScope.launch(appDispatcher.IO) {
@@ -91,6 +97,7 @@ class OnboardViewModel @Inject constructor(
                 _state.value.copy(
                     creatingSpace = false,
                     spaceInviteCode = invitationCode,
+                    prevStep = _state.value.currentStep,
                     currentStep = OnboardItems.ShareSpaceCodeOnboard
                 )
             )
@@ -127,13 +134,17 @@ class OnboardViewModel @Inject constructor(
 
             val space = spaceRepository.getSpace(invitation.space_id)
 
+            if (space != null) {
+                spaceRepository.joinSpace(invitation.space_id)
+            }
+
             _state.emit(
                 _state.value.copy(
+                    joinedSpace = space,
                     spaceName = space?.name,
                     spaceId = invitation.space_id,
                     verifyingInviteCode = false,
-                    errorInvalidInviteCode = false,
-                    currentStep = OnboardItems.JoinSpace
+                    errorInvalidInviteCode = false
                 )
             )
         } catch (e: Exception) {
@@ -141,26 +152,6 @@ class OnboardViewModel @Inject constructor(
             _state.emit(
                 _state.value.copy(
                     verifyingInviteCode = false,
-                    error = e.localizedMessage
-                )
-            )
-        }
-    }
-
-    fun joinSpace() = viewModelScope.launch(appDispatcher.IO) {
-        _state.emit(_state.value.copy(joiningSpace = true))
-        val spaceId = _state.value.spaceId
-        try {
-            if (spaceId != null) {
-                spaceRepository.joinSpace(spaceId)
-            }
-            _state.emit(_state.value.copy(joiningSpace = false))
-            navigateToHome()
-        } catch (e: Exception) {
-            Timber.e(e, "Unable to join space")
-            _state.emit(
-                _state.value.copy(
-                    joiningSpace = false,
                     error = e.localizedMessage
                 )
             )
@@ -184,19 +175,27 @@ class OnboardViewModel @Inject constructor(
             errorInvalidInviteCode = false
         )
     }
+
+    fun popTo(page: OnboardItems) {
+        _state.value = _state.value.copy(
+            prevStep = _state.value.currentStep,
+            currentStep = page
+        )
+    }
 }
 
 data class OnboardScreenState(
+    val prevStep: OnboardItems = OnboardItems.PickName,
     val currentStep: OnboardItems = OnboardItems.PickName,
     val firstName: String = "",
     val lastName: String = "",
     val updatingUserName: Boolean = false,
     val spaceName: String? = "",
     val spaceId: String? = null,
+    val joinedSpace: ApiSpace? = null,
     val spaceInviteCode: String? = "",
     val creatingSpace: Boolean = false,
     val verifyingInviteCode: Boolean = false,
-    val joiningSpace: Boolean = false,
     val errorInvalidInviteCode: Boolean = false,
     val error: String? = null
 )
@@ -207,5 +206,4 @@ sealed class OnboardItems {
     data object JoinOrCreateSpace : OnboardItems()
     data object CreateSpace : OnboardItems()
     data object ShareSpaceCodeOnboard : OnboardItems()
-    data object JoinSpace : OnboardItems()
 }

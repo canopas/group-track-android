@@ -176,9 +176,9 @@ class OnboardViewModelTest {
     }
 
     @Test
-    fun `navigateToPermission should navigate to permission screen`() = runTest {
+    fun `navigateToHome should navigate to home screen`() = runTest {
         viewModel.navigateToHome()
-        verify(navigator).navigateTo("enable-permissions", "onboard", true)
+        verify(navigator).navigateTo("home", "onboard", true)
     }
 
     @Test
@@ -276,7 +276,7 @@ class OnboardViewModelTest {
         }
 
     @Test
-    fun `submitInviteCode should set currentStep to JoinSpace`() = runTest {
+    fun `submitInviteCode should set joinedSpace`() = runTest {
         viewModel.onInviteCodeChanged("inviteCode")
 
         val invitation = mock<ApiSpaceInvitation>()
@@ -289,7 +289,7 @@ class OnboardViewModelTest {
         whenever(spaceRepository.getSpace("spaceId")).thenReturn(space)
         viewModel.submitInviteCode()
 
-        assert(viewModel.state.value.currentStep == OnboardItems.JoinSpace)
+        assert(viewModel.state.value.joinedSpace == space)
     }
 
     @Test
@@ -298,125 +298,6 @@ class OnboardViewModelTest {
 
         whenever(invitationService.getInvitation("inviteCode")).thenThrow(RuntimeException("error"))
         viewModel.submitInviteCode()
-        assert(viewModel.state.value.error == "error")
-    }
-
-    @Test
-    fun `joinSpace should set joiningSpace to true`() = runTest {
-        val invitation = mock<ApiSpaceInvitation>()
-
-        whenever(invitation.space_id).thenReturn("spaceId")
-
-        val space = mock<ApiSpace>()
-        whenever(space.name).thenReturn("spaceName")
-
-        whenever(invitationService.getInvitation("inviteCode")).thenReturn(invitation)
-        whenever(spaceRepository.getSpace("spaceId")).thenReturn(space)
-
-        whenever(spaceRepository.joinSpace("spaceId")).doSuspendableAnswer {
-            withContext(Dispatchers.IO) { delay(5000) }
-            return@doSuspendableAnswer null
-        }
-
-        viewModel.onInviteCodeChanged("inviteCode")
-        viewModel.submitInviteCode()
-        viewModel.joinSpace()
-        assert(viewModel.state.value.joiningSpace)
-    }
-
-    @Test
-    fun `joinSpace should call joinSpace`() = runTest {
-        val invitation = mock<ApiSpaceInvitation>()
-
-        whenever(invitation.space_id).thenReturn("spaceId")
-
-        val space = mock<ApiSpace>()
-        whenever(space.name).thenReturn("spaceName")
-
-        whenever(invitationService.getInvitation("inviteCode")).thenReturn(invitation)
-        whenever(spaceRepository.getSpace("spaceId")).thenReturn(space)
-
-        viewModel.onInviteCodeChanged("inviteCode")
-        viewModel.submitInviteCode()
-
-        viewModel.joinSpace()
-        verify(spaceRepository).joinSpace("spaceId")
-    }
-
-    @Test
-    fun `joinSpace should set joiningSpace to false after space joined`() = runTest {
-        val invitation = mock<ApiSpaceInvitation>()
-
-        whenever(invitation.space_id).thenReturn("spaceId")
-
-        val space = mock<ApiSpace>()
-        whenever(space.name).thenReturn("spaceName")
-
-        whenever(invitationService.getInvitation("inviteCode")).thenReturn(invitation)
-        whenever(spaceRepository.getSpace("spaceId")).thenReturn(space)
-
-        viewModel.onInviteCodeChanged("inviteCode")
-        viewModel.submitInviteCode()
-        viewModel.joinSpace()
-
-        assert(!viewModel.state.value.joiningSpace)
-    }
-
-    @Test
-    fun `joinSpace should navigate to permission screen after space joined`() = runTest {
-        val invitation = mock<ApiSpaceInvitation>()
-
-        whenever(invitation.space_id).thenReturn("spaceId")
-
-        val space = mock<ApiSpace>()
-        whenever(space.name).thenReturn("spaceName")
-
-        whenever(invitationService.getInvitation("inviteCode")).thenReturn(invitation)
-        whenever(spaceRepository.getSpace("spaceId")).thenReturn(space)
-
-        viewModel.onInviteCodeChanged("inviteCode")
-        viewModel.submitInviteCode()
-        viewModel.joinSpace()
-
-        verify(navigator).navigateTo("enable-permissions", "onboard", true)
-    }
-
-    @Test
-    fun `joinSpace should set OnboardShown to true after space joined`() = runTest {
-        val invitation = mock<ApiSpaceInvitation>()
-
-        whenever(invitation.space_id).thenReturn("spaceId")
-
-        val space = mock<ApiSpace>()
-        whenever(space.name).thenReturn("spaceName")
-
-        whenever(invitationService.getInvitation("inviteCode")).thenReturn(invitation)
-        whenever(spaceRepository.getSpace("spaceId")).thenReturn(space)
-
-        viewModel.onInviteCodeChanged("inviteCode")
-        viewModel.submitInviteCode()
-        viewModel.joinSpace()
-
-        verify(userPreferences).setOnboardShown(true)
-    }
-
-    @Test
-    fun `joinSpace should set error if joinSpace throw error`() = runTest {
-        val invitation = mock<ApiSpaceInvitation>()
-
-        whenever(invitation.space_id).thenReturn("spaceId")
-
-        val space = mock<ApiSpace>()
-        whenever(space.name).thenReturn("spaceName")
-
-        whenever(invitationService.getInvitation("inviteCode")).thenReturn(invitation)
-        whenever(spaceRepository.getSpace("spaceId")).thenReturn(space)
-        whenever(spaceRepository.joinSpace("spaceId")).thenThrow(RuntimeException("error"))
-
-        viewModel.onInviteCodeChanged("inviteCode")
-        viewModel.submitInviteCode()
-        viewModel.joinSpace()
-
         assert(viewModel.state.value.error == "error")
     }
 

@@ -29,6 +29,7 @@ import com.canopas.catchme.R
 import com.canopas.catchme.ui.component.AppBanner
 import com.canopas.catchme.ui.component.OtpInputField
 import com.canopas.catchme.ui.component.PrimaryButton
+import com.canopas.catchme.ui.flow.home.space.join.JoinedSpacePopup
 import com.canopas.catchme.ui.flow.onboard.OnboardViewModel
 import com.canopas.catchme.ui.theme.AppTheme
 
@@ -71,6 +72,10 @@ fun JoinOrCreateSpaceOnboard() {
         AppBanner(msg = state.error!!) {
             viewModel.resetErrorState()
         }
+    }
+
+    if (state.joinedSpace != null) {
+        JoinedSpacePopup(state.joinedSpace!!) { viewModel.navigateToHome() }
     }
 }
 

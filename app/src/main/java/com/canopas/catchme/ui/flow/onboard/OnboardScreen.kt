@@ -10,7 +10,6 @@ import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.catchme.ui.flow.onboard.components.CreateSpaceOnboard
 import com.canopas.catchme.ui.flow.onboard.components.JoinOrCreateSpaceOnboard
-import com.canopas.catchme.ui.flow.onboard.components.JoinSpaceOnboard
 import com.canopas.catchme.ui.flow.onboard.components.PickNameOnboard
 import com.canopas.catchme.ui.flow.onboard.components.ShareSpaceCodeOnboard
 import com.canopas.catchme.ui.flow.onboard.components.SpaceInfoOnboard
@@ -47,7 +46,9 @@ fun OnboardScreen() {
     AnimatedVisibility(
         visible = state.currentStep == OnboardItems.CreateSpace,
         enter = slideInHorizontally(initialOffsetX = { it }),
-        exit = slideOutHorizontally(targetOffsetX = { -it })
+        exit = slideOutHorizontally(targetOffsetX = {
+            if (state.prevStep == OnboardItems.CreateSpace) it else -it
+        })
     ) {
         CreateSpaceOnboard()
     }
@@ -58,13 +59,5 @@ fun OnboardScreen() {
         exit = slideOutHorizontally(targetOffsetX = { -it })
     ) {
         ShareSpaceCodeOnboard()
-    }
-
-    AnimatedVisibility(
-        visible = state.currentStep == OnboardItems.JoinSpace,
-        enter = slideInHorizontally(initialOffsetX = { it }),
-        exit = slideOutHorizontally(targetOffsetX = { -it })
-    ) {
-        JoinSpaceOnboard()
     }
 }

@@ -167,7 +167,7 @@ private fun SpaceItem(
     isSelected: Boolean,
     onSpaceSelected: (String) -> Unit = {}
 ) {
-    val admin = space.members.first { it.user.id == space.space.admin_id }.user
+    val admin = space.members.firstOrNull { it.user.id == space.space.admin_id }?.user
     val members = space.members
     val containerShape = RoundedCornerShape(10.dp)
     Row(
@@ -203,7 +203,7 @@ private fun SpaceItem(
                     } else {
                         R.string.home_space_selection_space_item_subtitle_member
                     },
-                    admin.fullName,
+                    admin?.fullName ?: stringResource(id = R.string.common_unknown),
                     members.size
                 ),
                 style = AppTheme.appTypography.label1.copy(color = AppTheme.colorScheme.textSecondary)

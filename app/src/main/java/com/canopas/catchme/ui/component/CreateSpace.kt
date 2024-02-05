@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -43,7 +44,9 @@ fun CreateSpace(
     val keyboardController = LocalSoftwareKeyboardController.current
     val scrollState = rememberScrollState()
     Column(
-        modifier = modifier.verticalScroll(scrollState)
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(scrollState)
     ) {
         Spacer(modifier = Modifier.height(20.dp))
         Text(
@@ -85,7 +88,7 @@ fun CreateSpace(
             onSpaceNameChanged(it)
             keyboardController?.hide()
         }
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.weight(1f))
 
         PrimaryButton(
             label = stringResource(R.string.common_btn_next),
@@ -97,6 +100,7 @@ fun CreateSpace(
             enabled = spaceName.trim().isNotEmpty(),
             showLoader = showLoader
         )
+        Spacer(modifier = Modifier.height(40.dp))
     }
 }
 
