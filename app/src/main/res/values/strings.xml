@@ -62,6 +62,9 @@
     <string name="enable_permission_location_access_title">Location access</string>
     <string name="enable_permission_location_access_desc">For seamless sharing of your live location with a trusted contact requires permission for location access.</string>
 
+    <string name="enable_permission_background_location_access_title">Background Location access</string>
+    <string name="enable_permission_background_location_access_desc">Granting background location permission allows you to effortlessly stay connected with trusted ones, ensuring seamless coordination and peace of mind in knowing their whereabouts.\n\nGo to settings > CatchMe app info > Location permission > select <b>"Allow all the time"</b></string>
+
     <string name="enable_permission_notification_access_title">Notification access</string>
     <string name="enable_permission_notification_access_desc">Stay connected and receive timely updates by enabling notification permission for check-ins, alerts, and messages from your trusted one.</string>
     <string name="enable_permission_btn_enable">Enable permission</string>
@@ -93,6 +96,10 @@
     <string name="map_user_item_location_off">Location turned off</string>
     <string name="member_detail_location_history">Location History</string>
     <string name="member_detail_empty_location_history">No Location History Found!</string>
+    <string name="home_permission_footer_title">Stay closed to your loved one</string>
+    <string name="home_permission_footer_subtitle">Allow CatchMe to access your location data.</string>
+    <string name="home_permission_footer_missing_permission_title">Location sharing is currently not possible</string>
+    <string name="home_permission_footer_missing_permission_subtitle">Some permissions are missing - grant access</string>
 
     <string-array name="home_create_space_name_suggestion">
         <item>Family</item>

@@ -2,26 +2,35 @@ package com.canopas.catchme.ui.flow.home.map
 
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.SmallFloatingActionButton
+import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
@@ -35,10 +44,14 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.catchme.R
+import com.canopas.catchme.data.utils.hasAllPermission
 import com.canopas.catchme.ui.flow.home.map.component.AddMemberBtn
 import com.canopas.catchme.ui.flow.home.map.component.MapMarker
 import com.canopas.catchme.ui.flow.home.map.component.MapUserItem
@@ -145,7 +158,7 @@ fun MapScreenContent(modifier: Modifier) {
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomEnd)
-                .padding(bottom = 10.dp)
+
         ) {
             RelocateBtn(
                 modifier = Modifier.align(Alignment.End),
@@ -161,26 +174,77 @@ fun MapScreenContent(modifier: Modifier) {
                     )
                 }
             }
-            LazyRow(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .wrapContentWidth()
-                    .background(AppTheme.colorScheme.surface, shape = RoundedCornerShape(6.dp))
-                    .align(Alignment.CenterHorizontally),
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 5.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                item {
-                    AddMemberBtn(state.loadingInviteCode) { viewModel.addMember() }
-                }
-                items(state.members) {
-                    MapUserItem(it) {
-                        viewModel.showMemberDetail(it)
+
+            if (state.members.isNotEmpty()) {
+                LazyRow(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 10.dp)
+                        .fillMaxWidth()
+                        .background(AppTheme.colorScheme.surface, shape = RoundedCornerShape(6.dp))
+                        .align(Alignment.CenterHorizontally),
+                    contentPadding = PaddingValues(horizontal = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    item {
+                        AddMemberBtn(state.loadingInviteCode) { viewModel.addMember() }
+                    }
+                    items(state.members) {
+                        MapUserItem(it) {
+                            viewModel.showMemberDetail(it)
+                        }
                     }
                 }
             }
+
+            AnimatedVisibility(
+                visible = !LocalContext.current.hasAllPermission,
+                enter = slideInVertically(tween(100)) { it },
+                exit = slideOutVertically(tween(100)) { it }
+            ) {
+                PermissionFooter() {
+                    viewModel.navigateToPermissionScreen()
+                }
+            }
         }
+    }
+}
+
+@Composable
+fun PermissionFooter(onClick: () -> Unit) {
+    val context = LocalContext.current
+
+    Row(
+        modifier = Modifier
+            .height(72.dp)
+            .clickable { onClick() }
+            .background(color = AppTheme.colorScheme.secondary)
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = stringResource(id = R.string.home_permission_footer_missing_permission_title),
+                style = AppTheme.appTypography.label1.copy(
+                    color = AppTheme.colorScheme.textInversePrimary,
+                    fontWeight = FontWeight.W600
+                )
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = stringResource(id = R.string.home_permission_footer_missing_permission_subtitle),
+                style = AppTheme.appTypography.body3.copy(color = AppTheme.colorScheme.textInversePrimary)
+            )
+        }
+        Icon(
+            Icons.Default.KeyboardArrowRight,
+            contentDescription = "",
+            tint = AppTheme.colorScheme.textInversePrimary
+        )
     }
 }
 

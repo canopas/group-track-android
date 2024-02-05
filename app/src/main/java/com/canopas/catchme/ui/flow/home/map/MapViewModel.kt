@@ -90,6 +90,10 @@ class MapViewModel @Inject constructor(
             _state.emit(_state.value.copy(error = e.message, loadingInviteCode = false))
         }
     }
+
+    fun navigateToPermissionScreen() {
+        navigator.navigateTo(AppDestinations.enablePermissions.path)
+    }
 }
 
 data class MapScreenState(

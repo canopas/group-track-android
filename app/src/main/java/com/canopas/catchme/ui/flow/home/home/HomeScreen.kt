@@ -45,7 +45,6 @@ import androidx.navigation.compose.rememberNavController
 import com.canopas.catchme.R
 import com.canopas.catchme.data.utils.isBackgroundLocationPermissionGranted
 import com.canopas.catchme.ui.component.AppProgressIndicator
-import com.canopas.catchme.ui.component.CheckBackgroundLocationPermission
 import com.canopas.catchme.ui.flow.home.activity.ActivityScreen
 import com.canopas.catchme.ui.flow.home.home.component.SpaceSelectionMenu
 import com.canopas.catchme.ui.flow.home.home.component.SpaceSelectionPopup
@@ -54,6 +53,7 @@ import com.canopas.catchme.ui.flow.home.places.PlacesScreen
 import com.canopas.catchme.ui.flow.home.space.create.CreateSpaceHomeScreen
 import com.canopas.catchme.ui.flow.home.space.create.SpaceInvite
 import com.canopas.catchme.ui.flow.home.space.join.JoinSpaceScreen
+import com.canopas.catchme.ui.flow.permission.EnablePermissionsScreen
 import com.canopas.catchme.ui.navigation.AppDestinations
 import com.canopas.catchme.ui.navigation.AppNavigator
 import com.canopas.catchme.ui.navigation.slideComposable
@@ -67,14 +67,10 @@ fun HomeScreen() {
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
-        if (!context.isBackgroundLocationPermissionGranted) {
-            viewModel.shouldAskForBackgroundLocationPermission(true)
-        } else {
+        if (context.isBackgroundLocationPermissionGranted) {
             viewModel.startTracking()
         }
     }
-
-    PermissionChecker()
 
     AppNavigator(navController = navController, viewModel.navActions)
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -108,8 +104,8 @@ fun HomeScreen() {
                     HomeTopBar()
                 }
             }
-        },
-        bottomBar = {
+        }
+       /* bottomBar = {
             AnimatedVisibility(
                 visible = !hideBottomBar,
                 enter = slideInVertically(tween(100)) { it },
@@ -117,7 +113,7 @@ fun HomeScreen() {
             ) {
                 HomeBottomBar(navController)
             }
-        }
+        }*/
     )
 }
 
@@ -208,20 +204,6 @@ private fun MapControl(
     }
 }
 
-@Composable
-private fun PermissionChecker() {
-    val viewModel = hiltViewModel<HomeScreenViewModel>()
-    val state by viewModel.state.collectAsState()
-
-    if (state.shouldAskForBackgroundLocationPermission) {
-        CheckBackgroundLocationPermission(onDismiss = {
-            viewModel.shouldAskForBackgroundLocationPermission(false)
-        }, onGranted = {
-                viewModel.startTracking()
-            })
-    }
-}
-
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun HomeScreenContent(navController: NavHostController) {
@@ -251,6 +233,10 @@ fun HomeScreenContent(navController: NavHostController) {
 
         slideComposable(AppDestinations.SpaceInvitation.path) {
             SpaceInvite()
+        }
+
+        slideComposable(AppDestinations.enablePermissions.path) {
+            EnablePermissionsScreen()
         }
     }
 }

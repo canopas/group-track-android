@@ -37,7 +37,9 @@ private val outlineLightColor = Color(0x14000000)
 private val outlineDarkColor = Color(0x14FFFFFF)
 
 private val surfaceLightColor = Color(0xFFFFFFFF)
-private val surfaceDarkColor = Color(0xFF495E14)
+private val surfaceDarkColor = Color(0xFF121212)
+
+val permissionWarningColor = Color(0xFFf4bb41)
 
 internal val themeLightColorScheme = lightColorScheme().copy(
     primary = primaryColor,
@@ -133,7 +135,8 @@ data class AppColorScheme(
     val onPrimary: Color = textPrimaryDarkColor,
     val onPrimaryVariant: Color = textPrimaryLightColor,
     val onSecondary: Color = textSecondaryDarkColor,
-    val onDisabled: Color = textDisabledLightColor
+    val onDisabled: Color = textDisabledLightColor,
+    val permissionWarning: Color = permissionWarningColor
 ) {
     val containerNormalOnSurface: Color
         get() {

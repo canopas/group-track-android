@@ -43,3 +43,13 @@ private val Context.hasBackgroundLocationPermission
     } else {
         true
     }
+
+val Context.hasNotificationPermission
+    get() =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            checkPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            true
+        }
+
+val Context.hasAllPermission get() = isLocationPermissionGranted && hasNotificationPermission
