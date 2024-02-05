@@ -1,5 +1,6 @@
 package com.canopas.catchme.ui.flow.home.map
 
+import android.Manifest
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -54,11 +55,15 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.catchme.R
 import com.canopas.catchme.data.utils.hasAllPermission
+import com.canopas.catchme.data.utils.hasFineLocationPermission
 import com.canopas.catchme.ui.flow.home.map.component.AddMemberBtn
 import com.canopas.catchme.ui.flow.home.map.component.MapMarker
 import com.canopas.catchme.ui.flow.home.map.component.MapUserItem
 import com.canopas.catchme.ui.flow.home.map.member.MemberDetailBottomSheetContent
 import com.canopas.catchme.ui.theme.AppTheme
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.PermissionStatus
+import com.google.accompanist.permissions.rememberPermissionState
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -73,13 +78,23 @@ import kotlinx.coroutines.launch
 private const val DEFAULT_CAMERA_ZOOM = 15f
 private const val DEFAULT_CAMERA_ZOOM_FOR_SELECTED_USER = 17f
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun MapScreen() {
     val viewModel = hiltViewModel<MapViewModel>()
     val state by viewModel.state.collectAsState()
     val configuration = LocalConfiguration.current
     val screenHeight = configuration.screenHeightDp
+
+    val permissionState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
+    LaunchedEffect(permissionState) {
+        snapshotFlow { permissionState.status == PermissionStatus.Granted && state.currentCameraPosition == null }
+            .collect {
+                if (it) {
+                    viewModel.startLocationTracking()
+                }
+            }
+    }
 
     val bottomSheetState = rememberStandardBottomSheetState(
         initialValue = SheetValue.Hidden,
@@ -183,7 +198,8 @@ fun MapScreenContent(modifier: Modifier) {
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
                         .padding(bottom = 10.dp)
-                        .fillMaxWidth().shadow(10.dp, shape = RoundedCornerShape(6.dp))
+                        .fillMaxWidth()
+                        .shadow(10.dp, shape = RoundedCornerShape(6.dp))
                         .background(AppTheme.colorScheme.surface, shape = RoundedCornerShape(6.dp))
                         .align(Alignment.CenterHorizontally),
                     contentPadding = PaddingValues(horizontal = 8.dp),
@@ -216,6 +232,22 @@ fun MapScreenContent(modifier: Modifier) {
 
 @Composable
 fun PermissionFooter(onClick: () -> Unit) {
+    val context = LocalContext.current
+    val hasLocationPermission = context.hasFineLocationPermission
+
+    val title = if (!hasLocationPermission) {
+        stringResource(id = R.string.home_permission_footer_title)
+    } else {
+        stringResource(id = R.string.home_permission_footer_missing_location_permission_title)
+    }
+
+    val subTitle =
+        if (!hasLocationPermission) {
+            stringResource(id = R.string.home_permission_footer_subtitle)
+        } else {
+            stringResource(id = R.string.home_permission_footer_missing_location_permission_subtitle)
+        }
+
     Row(
         modifier = Modifier
             .height(72.dp)
@@ -229,7 +261,7 @@ fun PermissionFooter(onClick: () -> Unit) {
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = stringResource(id = R.string.home_permission_footer_missing_permission_title),
+                text = title,
                 style = AppTheme.appTypography.label1.copy(
                     color = AppTheme.colorScheme.textInversePrimary,
                     fontWeight = FontWeight.W600
@@ -237,7 +269,7 @@ fun PermissionFooter(onClick: () -> Unit) {
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
-                text = stringResource(id = R.string.home_permission_footer_missing_permission_subtitle),
+                text = subTitle,
                 style = AppTheme.appTypography.body3.copy(color = AppTheme.colorScheme.textInversePrimary)
             )
         }

@@ -98,8 +98,8 @@
     <string name="member_detail_empty_location_history">No Location History Found!</string>
     <string name="home_permission_footer_title">Stay closed to your loved one</string>
     <string name="home_permission_footer_subtitle">Allow CatchMe to access your location data.</string>
-    <string name="home_permission_footer_missing_permission_title">Location sharing is currently not possible</string>
-    <string name="home_permission_footer_missing_permission_subtitle">Some permissions are missing - grant access</string>
+    <string name="home_permission_footer_missing_location_permission_title">Location sharing is currently not possible</string>
+    <string name="home_permission_footer_missing_location_permission_subtitle">Some permissions are missing - grant access</string>
 
     <string-array name="home_create_space_name_suggestion">
         <item>Family</item>

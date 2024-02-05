@@ -94,6 +94,14 @@ class MapViewModel @Inject constructor(
     fun navigateToPermissionScreen() {
         navigator.navigateTo(AppDestinations.enablePermissions.path)
     }
+
+    fun startLocationTracking() {
+        viewModelScope.launch(appDispatcher.IO) {
+            val currentLocation = locationManager.getLastLocation()
+            _state.emit(_state.value.copy(currentCameraPosition = currentLocation))
+            locationManager.startService()
+        }
+    }
 }
 
 data class MapScreenState(

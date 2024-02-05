@@ -39,12 +39,7 @@ class HomeScreenViewModel @Inject constructor(
         _state.value = _state.value.copy(currentTab = index)
     }
 
-    fun shouldAskForBackgroundLocationPermission(ask: Boolean) {
-        _state.value = _state.value.copy(shouldAskForBackgroundLocationPermission = ask)
-    }
-
     fun startTracking() {
-        shouldAskForBackgroundLocationPermission(false)
         locationManager.startService()
     }
 
@@ -151,7 +146,6 @@ class HomeScreenViewModel @Inject constructor(
 
 data class HomeScreenState(
     val currentTab: Int = 0,
-    val shouldAskForBackgroundLocationPermission: Boolean = false,
     val spaces: List<SpaceInfo> = emptyList(),
     val selectedSpaceId: String = "",
     val selectedSpace: SpaceInfo? = null,

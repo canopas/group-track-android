@@ -136,25 +136,10 @@ class HomeScreenViewModelTest {
     }
 
     @Test
-    fun `shouldAskForBackgroundLocationPermission should set shouldAskForBackgroundLocationPermission to true`() =
-        runTest {
-            setUp()
-            viewModel.shouldAskForBackgroundLocationPermission(true)
-            assert(viewModel.state.value.shouldAskForBackgroundLocationPermission)
-        }
-
-    @Test
     fun `toggleSpaceSelection should toggle showSpaceSelectionPopup`() = runTest {
         setUp()
         viewModel.toggleSpaceSelection()
         assert(viewModel.state.value.showSpaceSelectionPopup)
-    }
-
-    @Test
-    fun `startTracking should set shouldAskForBackgroundLocationPermission to false`() = runTest {
-        setUp()
-        viewModel.startTracking()
-        assert(!viewModel.state.value.shouldAskForBackgroundLocationPermission)
     }
 
     @Test
