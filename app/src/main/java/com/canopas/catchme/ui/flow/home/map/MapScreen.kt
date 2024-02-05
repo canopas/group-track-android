@@ -9,6 +9,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -60,6 +61,7 @@ import com.canopas.catchme.ui.theme.AppTheme
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
@@ -252,10 +254,19 @@ private fun MapView(
 ) {
     val viewModel = hiltViewModel<MapViewModel>()
     val state by viewModel.state.collectAsState()
+    val isDarkMode = isSystemInDarkTheme()
+    val context = LocalContext.current
+    val mapProperties = MapProperties(
+        mapStyleOptions = if (isDarkMode) {
+            MapStyleOptions.loadRawResourceStyle(context, R.raw.map_theme_night)
+        } else {
+            null
+        }
+    )
 
     GoogleMap(
         cameraPositionState = cameraPositionState,
-        properties = MapProperties(),
+        properties = mapProperties,
         uiSettings = MapUiSettings(
             zoomControlsEnabled = false,
             tiltGesturesEnabled = false,
