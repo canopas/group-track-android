@@ -213,8 +213,6 @@ fun MapScreenContent(modifier: Modifier) {
 
 @Composable
 fun PermissionFooter(onClick: () -> Unit) {
-    val context = LocalContext.current
-
     Row(
         modifier = Modifier
             .height(72.dp)

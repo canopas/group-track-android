@@ -1,6 +1,7 @@
 package com.canopas.catchme.ui.flow.auth.permission
 
 import com.canopas.catchme.ui.flow.permission.EnablePermissionViewModel
+import com.canopas.catchme.ui.navigation.HomeNavigator
 import com.canopas.catchme.ui.navigation.MainNavigator
 import org.junit.Test
 import org.mockito.kotlin.mock
@@ -8,14 +9,14 @@ import org.mockito.kotlin.verify
 
 class EnablePermissionViewModelTest {
 
-    private val appNavigator = mock<MainNavigator>()
+    private val appNavigator = mock<HomeNavigator>()
 
     private val viewModel = EnablePermissionViewModel(appNavigator)
 
     @Test
-    fun `navigationToHome should navigate to home screen`() {
-        viewModel.navigationToHome()
+    fun `popBack should call navigate back`() {
+        viewModel.popBack()
 
-        verify(appNavigator).navigateTo("home", "enable-permissions", true)
+        verify(appNavigator).navigateBack()
     }
 }

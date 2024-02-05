@@ -65,7 +65,7 @@ class SignInMethodViewModel @Inject constructor(
         } else {
             userPreferences.setOnboardShown(true)
             navigator.navigateTo(
-                AppDestinations.enablePermissions.path,
+                AppDestinations.home.path,
                 popUpToRoute = AppDestinations.signIn.path,
                 inclusive = true
             )

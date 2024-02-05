@@ -103,7 +103,7 @@ class OnboardViewModel @Inject constructor(
     fun navigateToPermission() = viewModelScope.launch {
         userPreferences.setOnboardShown(true)
         navigator.navigateTo(
-            AppDestinations.enablePermissions.path,
+            AppDestinations.home.path,
             popUpToRoute = AppDestinations.onboard.path,
             inclusive = true
         )

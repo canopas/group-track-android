@@ -19,11 +19,17 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,9 +55,48 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 
-@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun EnablePermissionsScreen() {
+    Scaffold(topBar = { EnablePermissionsAppBar() }) {
+        EnablePermissionsContent(Modifier.padding(it))
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun EnablePermissionsAppBar() {
+    val viewModel = hiltViewModel<EnablePermissionViewModel>()
+
+    TopAppBar(
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = AppTheme.colorScheme.surface
+        ),
+        title = {
+            Text(
+                text = stringResource(id = R.string.enable_permission_title),
+                style = AppTheme.appTypography.header3
+            )
+        },
+        navigationIcon = {
+            IconButton(
+                onClick = {
+                    viewModel.popBack()
+                },
+                modifier = Modifier
+            ) {
+                Icon(
+                    Icons.Filled.ArrowBack,
+                    contentDescription = null,
+                    tint = AppTheme.colorScheme.textSecondary
+                )
+            }
+        }
+    )
+}
+
+@OptIn(ExperimentalPermissionsApi::class)
+@Composable
+fun EnablePermissionsContent(modifier: Modifier) {
     val viewModel = hiltViewModel<EnablePermissionViewModel>()
     val context = LocalContext.current
     val locationPermissionStates = rememberMultiplePermissionsState(
@@ -77,22 +122,13 @@ fun EnablePermissionsScreen() {
 
     val scrollState = rememberScrollState()
     Column(
-        Modifier
+        modifier
             .fillMaxSize()
             .verticalScroll(scrollState)
             .background(AppTheme.colorScheme.surface)
             .padding(vertical = 40.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(20.dp))
-        Text(
-            text = stringResource(R.string.enable_permission_title),
-            style = AppTheme.appTypography.header1,
-
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-        )
         Text(
             text = stringResource(R.string.enable_permission_subtitle),
             style = AppTheme.appTypography.label1.copy(color = AppTheme.colorScheme.textSecondary),
@@ -149,10 +185,9 @@ fun EnablePermissionsScreen() {
                 if (notificationPermissionStates?.status != null && notificationPermissionStates.status != PermissionStatus.Granted) {
                     showNotificationRational = true
                 } else {
-                    viewModel.navigationToHome()
+                    viewModel.popBack()
                 }
-            },
-            enabled = locationPermissionStates.allPermissionsGranted && bgLocationPermissionStates?.status == PermissionStatus.Granted
+            }
         )
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -170,7 +205,7 @@ fun EnablePermissionsScreen() {
         NotificationPermissionRationaleDialog(
             onSkip = {
                 showNotificationRational = false
-                viewModel.navigationToHome()
+                viewModel.popBack()
             },
             onContinue = {
                 showNotificationRational = false
