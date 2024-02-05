@@ -44,6 +44,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -182,7 +183,7 @@ fun MapScreenContent(modifier: Modifier) {
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
                         .padding(bottom = 10.dp)
-                        .fillMaxWidth()
+                        .fillMaxWidth().shadow(10.dp, shape = RoundedCornerShape(6.dp))
                         .background(AppTheme.colorScheme.surface, shape = RoundedCornerShape(6.dp))
                         .align(Alignment.CenterHorizontally),
                     contentPadding = PaddingValues(horizontal = 8.dp),
