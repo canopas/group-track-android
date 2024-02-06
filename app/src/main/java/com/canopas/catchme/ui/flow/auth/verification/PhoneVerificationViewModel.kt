@@ -66,7 +66,10 @@ class PhoneVerificationViewModel @Inject constructor(
                 _state.value.otp
             )
 
-            val isNewUser = authService.verifiedPhoneLogin(firebaseIdToken, _state.value.phone)
+            val isNewUser = authService.verifiedPhoneLogin(
+                firebaseAuth.currentUserUid,
+                firebaseIdToken, _state.value.phone
+            )
             appNavigator.navigateBack(
                 route = AppDestinations.signIn.path,
                 result = mapOf(KEY_RESULT to RESULT_OKAY, EXTRA_RESULT_IS_NEW_USER to isNewUser)
@@ -87,7 +90,11 @@ class PhoneVerificationViewModel @Inject constructor(
                         val firebaseIdToken =
                             firebaseAuth.signInWithPhoneAuthCredential(result.credential)
                         val isNewUser =
-                            authService.verifiedPhoneLogin(firebaseIdToken, _state.value.phone)
+                            authService.verifiedPhoneLogin(
+                                firebaseAuth.currentUserUid,
+                                firebaseIdToken,
+                                _state.value.phone
+                            )
                         appNavigator.navigateBack(
                             route = AppDestinations.signIn.path,
                             result = mapOf(

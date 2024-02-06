@@ -9,8 +9,8 @@ import com.canopas.catchme.data.utils.Device
 import com.canopas.catchme.data.utils.FirestoreConst.FIRESTORE_COLLECTION_USERS
 import com.canopas.catchme.data.utils.FirestoreConst.FIRESTORE_COLLECTION_USER_SESSIONS
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.QueryDocumentSnapshot
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -24,13 +24,22 @@ class AuthService @Inject constructor(
     private val userRef = db.collection(FIRESTORE_COLLECTION_USERS)
     private val sessionRef = db.collection(FIRESTORE_COLLECTION_USER_SESSIONS)
 
-    suspend fun verifiedPhoneLogin(firebaseToken: String?, phoneNumber: String): Boolean {
-        val snapshot = userRef.whereEqualTo("phone", phoneNumber).get().await().firstOrNull()
+    suspend fun verifiedPhoneLogin(
+        uid: String?,
+        firebaseToken: String?,
+        phoneNumber: String
+    ): Boolean {
+        val snapshot = if (uid != null)
+            userRef.document(uid).get().await() else null
         return processLogin(firebaseToken, null, phoneNumber, snapshot)
     }
 
-    suspend fun verifiedGoogleLogin(firebaseToken: String?, account: GoogleSignInAccount): Boolean {
-        val snapshot = userRef.whereEqualTo("email", account.email).get().await().firstOrNull()
+    suspend fun verifiedGoogleLogin(
+        uid: String?,
+        firebaseToken: String?,
+        account: GoogleSignInAccount
+    ): Boolean {
+        val snapshot = if (uid != null) userRef.document(uid).get().await() else null
         return processLogin(firebaseToken, account, null, snapshot)
     }
 
@@ -38,7 +47,7 @@ class AuthService @Inject constructor(
         firebaseToken: String?,
         account: GoogleSignInAccount? = null,
         phoneNumber: String? = null,
-        snapshot: QueryDocumentSnapshot?
+        snapshot: DocumentSnapshot?
     ): Boolean {
         val isNewUser = snapshot?.data == null
         if (isNewUser) {
@@ -83,7 +92,7 @@ class AuthService @Inject constructor(
             )
             sessionDocRef.set(session).await()
             val currentUser = snapshot.toObject(ApiUser::class.java)
-            saveUser(currentUser, session)
+            saveUser(currentUser!!, session)
         }
 
         return isNewUser
@@ -97,7 +106,7 @@ class AuthService @Inject constructor(
             userPreferences.currentUser = newUser
         }
 
-    var currentUserSession: ApiUserSession?
+    private var currentUserSession: ApiUserSession?
         get() {
             return userPreferences.currentUserSession
         }
