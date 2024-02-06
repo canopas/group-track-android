@@ -6,6 +6,7 @@ import com.canopas.catchme.data.models.space.SpaceInfo
 import com.canopas.catchme.data.models.user.ApiUser
 import com.canopas.catchme.data.models.user.UserInfo
 import com.canopas.catchme.data.repository.SpaceRepository
+import com.canopas.catchme.data.service.auth.AuthService
 import com.canopas.catchme.data.service.location.LocationManager
 import com.canopas.catchme.data.storage.UserPreferences
 import com.canopas.catchme.data.utils.AppDispatcher
@@ -13,6 +14,7 @@ import com.canopas.catchme.ui.flow.home.home.HomeViewModelTestData.space_info1
 import com.canopas.catchme.ui.flow.home.home.HomeViewModelTestData.space_info2
 import com.canopas.catchme.ui.flow.home.home.HomeViewModelTestData.user1
 import com.canopas.catchme.ui.navigation.HomeNavigator
+import com.canopas.catchme.ui.navigation.MainNavigator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -46,9 +48,12 @@ class HomeScreenViewModelTest {
     val coroutineRule = MainCoroutineRule()
 
     private val navigator = mock<HomeNavigator>()
+    private val mainNavigator = mock<MainNavigator>()
     private val locationManager = mock<LocationManager>()
     private val spaceRepository = mock<SpaceRepository>()
     private val userPreferences = mock<UserPreferences>()
+    private val authService = mock<AuthService>()
+
 
     private val testDispatcher = AppDispatcher(IO = UnconfinedTestDispatcher())
 
@@ -57,9 +62,11 @@ class HomeScreenViewModelTest {
     private fun setUp() {
         viewModel = HomeScreenViewModel(
             navigator = navigator,
+            mainNavigator = mainNavigator,
             locationManager = locationManager,
             spaceRepository = spaceRepository,
             userPreferences = userPreferences,
+            authService = authService,
             appDispatcher = testDispatcher
         )
     }
@@ -273,7 +280,9 @@ class HomeScreenViewModelTest {
             whenever(spaceRepository.currentSpaceId).thenReturn("space1")
             whenever(spaceRepository.getAllSpaceInfo()).thenReturn(flowOf(listOf(space_info1)))
             whenever(userPreferences.currentUser).thenReturn(user1)
-            whenever(spaceRepository.enableLocation("space1", "user1", false)).thenThrow(RuntimeException("error"))
+            whenever(spaceRepository.enableLocation("space1", "user1", false)).thenThrow(
+                RuntimeException("error")
+            )
             setUp()
             viewModel.toggleLocation()
             assert(viewModel.state.value.error == "error")

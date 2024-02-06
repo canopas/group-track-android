@@ -4,11 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.canopas.catchme.data.models.space.SpaceInfo
 import com.canopas.catchme.data.repository.SpaceRepository
+import com.canopas.catchme.data.service.auth.AuthService
 import com.canopas.catchme.data.service.location.LocationManager
 import com.canopas.catchme.data.storage.UserPreferences
 import com.canopas.catchme.data.utils.AppDispatcher
 import com.canopas.catchme.ui.navigation.AppDestinations
 import com.canopas.catchme.ui.navigation.HomeNavigator
+import com.canopas.catchme.ui.navigation.MainNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,9 +22,11 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeScreenViewModel @Inject constructor(
     private val navigator: HomeNavigator,
+    private val mainNavigator: MainNavigator,
     private val locationManager: LocationManager,
     private val spaceRepository: SpaceRepository,
     private val userPreferences: UserPreferences,
+    private val authService: AuthService,
     private val appDispatcher: AppDispatcher
 ) : ViewModel() {
 
@@ -32,7 +36,22 @@ class HomeScreenViewModel @Inject constructor(
     val state: StateFlow<HomeScreenState> = _state
 
     init {
+        updateUser()
         getAllSpaces()
+    }
+
+    private fun updateUser() = viewModelScope.launch(appDispatcher.IO) {
+        val user = authService.getUser()
+        if (user == null) {
+            authService.signOut()
+            mainNavigator.navigateTo(
+                AppDestinations.signIn.path,
+                AppDestinations.home.path,
+                true
+            )
+        } else {
+            authService.saveUser(user)
+        }
     }
 
     fun onTabChange(index: Int) {
@@ -141,6 +160,10 @@ class HomeScreenViewModel @Inject constructor(
             Timber.e(e, "Failed to get invite code")
             _state.emit(_state.value.copy(error = e.message))
         }
+    }
+
+    fun navigateToSettings() {
+        navigator.navigateTo(AppDestinations.settings.path)
     }
 }
 

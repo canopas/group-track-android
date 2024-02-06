@@ -47,7 +47,6 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.catchme.R
 import com.canopas.catchme.data.utils.openAppSettings
-import com.canopas.catchme.ui.component.PrimaryButton
 import com.canopas.catchme.ui.theme.AppTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
@@ -126,7 +125,7 @@ fun EnablePermissionsContent(modifier: Modifier) {
             .fillMaxSize()
             .verticalScroll(scrollState)
             .background(AppTheme.colorScheme.surface)
-            .padding(vertical = 40.dp),
+            .padding(vertical = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
@@ -171,7 +170,11 @@ fun EnablePermissionsContent(modifier: Modifier) {
                 description = stringResource(R.string.enable_permission_notification_access_desc),
                 isGranted = notificationPermissionStates?.status == PermissionStatus.Granted,
                 onClick = {
-                    if (notificationPermissionStates?.status != PermissionStatus.Granted) {
+                    if (notificationPermissionStates?.status is PermissionStatus.Denied ||
+                        notificationPermissionStates?.status?.shouldShowRationale == true
+                    ) {
+                        showNotificationRational = true
+                    } else if (notificationPermissionStates?.status != PermissionStatus.Granted) {
                         notificationPermissionStates?.launchPermissionRequest()
                     }
                 }
@@ -179,18 +182,6 @@ fun EnablePermissionsContent(modifier: Modifier) {
         }
 
         Spacer(modifier = Modifier.weight(1f))
-        PrimaryButton(
-            label = stringResource(id = R.string.common_btn_continue),
-            onClick = {
-                if (notificationPermissionStates?.status != null && notificationPermissionStates.status != PermissionStatus.Granted) {
-                    showNotificationRational = true
-                } else {
-                    viewModel.popBack()
-                }
-            }
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
         Text(
             text = stringResource(R.string.enable_permission_footer),
             style = AppTheme.appTypography.label3,
@@ -209,7 +200,13 @@ fun EnablePermissionsContent(modifier: Modifier) {
             },
             onContinue = {
                 showNotificationRational = false
-                notificationPermissionStates?.launchPermissionRequest()
+                if (notificationPermissionStates?.status is PermissionStatus.Denied &&
+                    !notificationPermissionStates.status.shouldShowRationale
+                ) {
+                    (context as Activity).openAppSettings()
+                } else {
+                    notificationPermissionStates?.launchPermissionRequest()
+                }
             }
         )
     }

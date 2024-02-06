@@ -16,6 +16,11 @@ object AppDestinations {
         override val path: String = "home"
     }
 
+    val settings = object : AppRoute {
+        override val arguments: List<NamedNavArgument> = emptyList()
+        override val path: String = "settings"
+    }
+
     val intro = object : AppRoute {
         override val arguments: List<NamedNavArgument> = emptyList()
         override val path: String = "intro"

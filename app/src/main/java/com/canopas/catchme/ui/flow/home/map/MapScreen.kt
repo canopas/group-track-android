@@ -56,6 +56,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.catchme.R
 import com.canopas.catchme.data.utils.hasAllPermission
 import com.canopas.catchme.data.utils.hasFineLocationPermission
+import com.canopas.catchme.data.utils.hasNotificationPermission
 import com.canopas.catchme.ui.flow.home.map.component.AddMemberBtn
 import com.canopas.catchme.ui.flow.home.map.component.MapMarker
 import com.canopas.catchme.ui.flow.home.map.component.MapUserItem
@@ -234,8 +235,9 @@ fun MapScreenContent(modifier: Modifier) {
 fun PermissionFooter(onClick: () -> Unit) {
     val context = LocalContext.current
     val hasLocationPermission = context.hasFineLocationPermission
+    val hasNotificationPermission = context.hasNotificationPermission
 
-    val title = if (!hasLocationPermission) {
+    val title = if (!hasLocationPermission || !hasNotificationPermission) {
         stringResource(id = R.string.home_permission_footer_title)
     } else {
         stringResource(id = R.string.home_permission_footer_missing_location_permission_title)

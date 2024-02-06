@@ -54,4 +54,10 @@ class SpaceInvitationService @Inject constructor(
         val invitation = result.documents.firstOrNull()?.toObject(ApiSpaceInvitation::class.java)
         return invitation?.takeIf { !it.isExpired }
     }
+
+    suspend fun deleteInvitations(spaceId: String) {
+        spaceInvitationRef.whereEqualTo("space_id", spaceId).get().await().documents.forEach {
+            it.reference.delete().await()
+        }
+    }
 }

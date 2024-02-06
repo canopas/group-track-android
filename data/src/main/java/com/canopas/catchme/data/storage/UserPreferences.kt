@@ -56,7 +56,7 @@ class UserPreferences @Inject constructor(
         return preferencesDataStore.data.first()[PreferencesKey.ONBOARD_SHOWN] ?: false
     }
 
-    suspend fun setOnboardShown(value: Boolean) {
+    fun setOnboardShown(value: Boolean) = runBlocking {
         preferencesDataStore.edit { preferences ->
             preferences[PreferencesKey.ONBOARD_SHOWN] = value
         }

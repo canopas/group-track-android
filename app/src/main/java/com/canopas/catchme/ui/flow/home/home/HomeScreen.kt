@@ -54,6 +54,7 @@ import com.canopas.catchme.ui.flow.home.space.create.CreateSpaceHomeScreen
 import com.canopas.catchme.ui.flow.home.space.create.SpaceInvite
 import com.canopas.catchme.ui.flow.home.space.join.JoinSpaceScreen
 import com.canopas.catchme.ui.flow.permission.EnablePermissionsScreen
+import com.canopas.catchme.ui.flow.settings.SettingsScreen
 import com.canopas.catchme.ui.navigation.AppDestinations
 import com.canopas.catchme.ui.navigation.AppNavigator
 import com.canopas.catchme.ui.navigation.slideComposable
@@ -147,6 +148,7 @@ fun HomeTopBar() {
             modifier = Modifier,
             visible = !state.showSpaceSelectionPopup
         ) {
+            viewModel.navigateToSettings()
         }
 
         SpaceSelectionMenu(modifier = Modifier.weight(1f))
@@ -237,6 +239,10 @@ fun HomeScreenContent(navController: NavHostController) {
 
         slideComposable(AppDestinations.enablePermissions.path) {
             EnablePermissionsScreen()
+        }
+
+        slideComposable(AppDestinations.settings.path) {
+            SettingsScreen()
         }
     }
 }

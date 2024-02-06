@@ -12,6 +12,7 @@
     <string name="common_btn_ok">Okay</string>
     <string name="common_label_congratulations">Congratulations!</string>
     <string name="common_btn_add">Add</string>
+    <string name="common_btn_cancel">Cancel</string>
     <string name="common_unknown">Unknown</string>
 
 
@@ -100,6 +101,19 @@
     <string name="home_permission_footer_subtitle">Allow CatchMe to access your location data.</string>
     <string name="home_permission_footer_missing_location_permission_title">Location sharing is currently not possible</string>
     <string name="home_permission_footer_missing_location_permission_subtitle">Some permissions are missing - grant access</string>
+    <string name="settings_title">Settings</string>
+    <string name="setting_profile">Profile</string>
+    <string name="setting_space_settings">%s settings</string>
+    <string name="setting_general_settings">General settings</string>
+    <string name="setting_btn_sign_out">Sign out</string>
+    <string name="settings_btn_delete_account">Delete account</string>
+    <string name="setting_sign_out_dialogue_title_text">See you soon!</string>
+    <string name="setting_sign_out_dialogue_confirm_btn_text">Sign out</string>
+    <string name="setting_sign_out_dialogue_message_text">Are you sure you want to sign out?</string>
+
+    <string name="setting_delete_account_dialogue_title_text">Sorry to see you go!</string>
+    <string name="setting_delete_account_dialogue_confirm_btn_text">Delete Account</string>
+    <string name="setting_delete_account_dialogue_message_text">Deleting your account is permanent and you will lose all your CatchMe data. Are you sure you want to delete your account permanently?</string>
 
     <string-array name="home_create_space_name_suggestion">
         <item>Family</item>
