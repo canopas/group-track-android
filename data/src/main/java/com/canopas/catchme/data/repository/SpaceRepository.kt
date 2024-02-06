@@ -66,7 +66,7 @@ class SpaceRepository @Inject constructor(
         }
     }
 
-    private suspend fun getCurrentSpace(): ApiSpace? {
+    suspend fun getCurrentSpace(): ApiSpace? {
         val spaceId = currentSpaceId
 
         if (spaceId.isEmpty()) {
@@ -116,5 +116,23 @@ class SpaceRepository @Inject constructor(
 
     suspend fun enableLocation(spaceId: String, userId: String, locationEnabled: Boolean) {
         spaceService.enableLocation(spaceId, userId, locationEnabled)
+    }
+
+    suspend fun deleteUserSpaces() {
+        val userId = authService.currentUser?.id ?: ""
+        val allSpace = getUserSpaces(userId).firstOrNull()?.filterNotNull() ?: emptyList()
+        val ownSpace = allSpace.filter { it.admin_id == userId }
+        val joinedSpace = allSpace.filter { it.admin_id != userId }
+
+        ownSpace.forEach { space ->
+            invitationService.deleteInvitations(space.id)
+            spaceService.deleteSpace(space.id)
+        }
+
+        joinedSpace.forEach { space ->
+            spaceService.removeUserFromSpace(space.id, userId)
+        }
+
+        locationService.deleteLocations(userId)
     }
 }

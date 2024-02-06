@@ -78,7 +78,7 @@ fun ShareSpaceCodeOnboard() {
         Spacer(modifier = Modifier.height(10.dp))
         PrimaryTextButton(
             label = stringResource(R.string.common_btn_skip),
-            onClick = { viewModel.navigateToPermission() }
+            onClick = { viewModel.navigateToHome() }
         )
     }
 }

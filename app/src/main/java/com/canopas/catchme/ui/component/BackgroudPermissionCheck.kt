@@ -80,7 +80,7 @@ fun ShowBackgroundLocationRequestDialog(
         ) {
             Column(
                 Modifier
-                    .background(AppTheme.colorScheme.surface)
+                    .background(AppTheme.colorScheme.containerNormalOnSurface)
                     .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {

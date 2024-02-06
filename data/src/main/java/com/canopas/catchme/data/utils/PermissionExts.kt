@@ -34,7 +34,7 @@ val Context.isBackgroundLocationPermissionGranted get() = hasBackgroundLocationP
 val Context.hasFineLocationPermission
     get() = checkPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
 
-private val Context.hasCoarseLocationPermission
+val Context.hasCoarseLocationPermission
     get() = checkPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
 
 private val Context.hasBackgroundLocationPermission
@@ -43,3 +43,13 @@ private val Context.hasBackgroundLocationPermission
     } else {
         true
     }
+
+val Context.hasNotificationPermission
+    get() =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            checkPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            true
+        }
+
+val Context.hasAllPermission get() = isLocationPermissionGranted && hasNotificationPermission

@@ -34,7 +34,7 @@ fun UserProfile(
                 shape = RoundedCornerShape(16.dp)
             )
             .background(
-                AppTheme.colorScheme.primary.copy(alpha = 0.7f),
+                AppTheme.colorScheme.primary,
                 shape = RoundedCornerShape(16.dp)
             ),
         contentAlignment = Alignment.Center

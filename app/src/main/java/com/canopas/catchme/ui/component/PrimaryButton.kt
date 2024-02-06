@@ -24,7 +24,9 @@ fun PrimaryButton(
     label: String,
     onClick: () -> Unit,
     enabled: Boolean = true,
-    showLoader: Boolean = false
+    showLoader: Boolean = false,
+    containerColor: Color = AppTheme.colorScheme.primary,
+    contentColor: Color = AppTheme.colorScheme.onPrimary
 ) {
     Button(
         onClick = onClick,
@@ -32,19 +34,20 @@ fun PrimaryButton(
             .fillMaxWidth(fraction = 0.9f),
         shape = RoundedCornerShape(50),
         colors = ButtonDefaults.buttonColors(
-            containerColor = AppTheme.colorScheme.primary
+            containerColor = containerColor
         ),
         enabled = enabled
     ) {
         if (showLoader) {
-            AppProgressIndicator(color = AppTheme.colorScheme.onPrimary)
+            AppProgressIndicator(color = contentColor)
             Spacer(modifier = Modifier.width(4.dp))
         }
 
         Text(
             text = label,
-            style = AppTheme.appTypography.subTitle2.copy(color = AppTheme.colorScheme.onPrimary),
-            textAlign = TextAlign.Center
+            style = AppTheme.appTypography.subTitle2.copy(color = contentColor),
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(vertical = 6.dp)
         )
     }
 }
@@ -54,7 +57,9 @@ fun PrimaryTextButton(
     modifier: Modifier = Modifier,
     label: String,
     onClick: () -> Unit,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    showLoader: Boolean = false,
+    contentColor: Color = AppTheme.colorScheme.primary
 ) {
     TextButton(
         onClick = onClick,
@@ -63,10 +68,14 @@ fun PrimaryTextButton(
         shape = RoundedCornerShape(50),
         colors = ButtonDefaults.buttonColors(
             containerColor = AppTheme.colorScheme.surface,
-            contentColor = AppTheme.colorScheme.primary
+            contentColor = contentColor
         ),
         enabled = enabled
     ) {
+        if (showLoader) {
+            AppProgressIndicator(color = contentColor)
+            Spacer(modifier = Modifier.width(4.dp))
+        }
         Text(
             text = label,
             style = AppTheme.appTypography.subTitle2,

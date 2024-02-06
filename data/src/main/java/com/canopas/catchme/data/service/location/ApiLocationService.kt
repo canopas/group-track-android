@@ -44,4 +44,10 @@ class ApiLocationService @Inject constructor(
             .whereGreaterThanOrEqualTo("created_at", from)
             .whereLessThan("created_at", to)
             .orderBy("created_at", Query.Direction.DESCENDING).limit(8)
+
+    suspend fun deleteLocations(userId: String) {
+        locationRef.whereEqualTo("user_id", userId).get().await().documents.forEach {
+            it.reference.delete().await()
+        }
+    }
 }

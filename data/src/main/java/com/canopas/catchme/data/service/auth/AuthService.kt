@@ -122,4 +122,23 @@ class AuthService @Inject constructor(
         userRef.document(user.id).set(user).await()
         currentUser = user
     }
+
+    fun signOut() {
+        currentUser = null
+        currentUserSession = null
+        userPreferences.setOnboardShown(false)
+        userPreferences.currentSpace = ""
+    }
+
+    suspend fun deleteAccount() {
+        val currentUser = currentUser ?: return
+        userRef.document(currentUser.id).delete().await()
+        sessionRef.whereEqualTo("user_id", currentUser.id).get().await().documents.forEach {
+            it.reference.delete().await()
+        }
+        signOut()
+    }
+
+    suspend fun getUser(): ApiUser? =
+        userRef.document(currentUser?.id ?: "").get().await().toObject(ApiUser::class.java)
 }

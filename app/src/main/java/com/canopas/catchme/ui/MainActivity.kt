@@ -21,7 +21,6 @@ import com.canopas.catchme.ui.flow.auth.verification.PhoneVerificationScreen
 import com.canopas.catchme.ui.flow.home.home.HomeScreen
 import com.canopas.catchme.ui.flow.intro.IntroScreen
 import com.canopas.catchme.ui.flow.onboard.OnboardScreen
-import com.canopas.catchme.ui.flow.permission.EnablePermissionsScreen
 import com.canopas.catchme.ui.navigation.AppDestinations
 import com.canopas.catchme.ui.navigation.AppNavigator
 import com.canopas.catchme.ui.navigation.KEY_RESULT
@@ -92,9 +91,6 @@ fun MainApp() {
 
         slideComposable(AppDestinations.OtpVerificationNavigation.path) {
             PhoneVerificationScreen()
-        }
-        slideComposable(AppDestinations.enablePermissions.path) {
-            EnablePermissionsScreen()
         }
 
         slideComposable(AppDestinations.home.path) {

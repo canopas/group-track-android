@@ -1,6 +1,7 @@
 package com.canopas.catchme.ui.flow.permission
 
 import android.Manifest
+import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -14,13 +15,21 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -36,20 +46,68 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.catchme.R
-import com.canopas.catchme.ui.component.PrimaryButton
+import com.canopas.catchme.data.utils.openAppSettings
 import com.canopas.catchme.ui.theme.AppTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.shouldShowRationale
+
+@Composable
+fun EnablePermissionsScreen() {
+    Scaffold(topBar = { EnablePermissionsAppBar() }) {
+        EnablePermissionsContent(Modifier.padding(it))
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun EnablePermissionsAppBar() {
+    val viewModel = hiltViewModel<EnablePermissionViewModel>()
+
+    TopAppBar(
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = AppTheme.colorScheme.surface
+        ),
+        title = {
+            Text(
+                text = stringResource(id = R.string.enable_permission_title),
+                style = AppTheme.appTypography.header3
+            )
+        },
+        navigationIcon = {
+            IconButton(
+                onClick = {
+                    viewModel.popBack()
+                },
+                modifier = Modifier
+            ) {
+                Icon(
+                    Icons.Filled.ArrowBack,
+                    contentDescription = null,
+                    tint = AppTheme.colorScheme.textSecondary
+                )
+            }
+        }
+    )
+}
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun EnablePermissionsScreen() {
+fun EnablePermissionsContent(modifier: Modifier) {
     val viewModel = hiltViewModel<EnablePermissionViewModel>()
+    val context = LocalContext.current
     val locationPermissionStates = rememberMultiplePermissionsState(
         listOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION)
     )
+
+    val bgLocationPermissionStates = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        rememberPermissionState(Manifest.permission.ACCESS_BACKGROUND_LOCATION) { granted ->
+        }
+    } else {
+        null
+    }
 
     val notificationPermissionStates = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS)
@@ -61,29 +119,22 @@ fun EnablePermissionsScreen() {
         mutableStateOf(false)
     }
 
+    val scrollState = rememberScrollState()
     Column(
-        Modifier
+        modifier
             .fillMaxSize()
+            .verticalScroll(scrollState)
             .background(AppTheme.colorScheme.surface)
-            .padding(vertical = 40.dp),
+            .padding(vertical = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(40.dp))
-        Text(
-            text = stringResource(R.string.enable_permission_title),
-            style = AppTheme.appTypography.header1,
-
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 28.dp)
-        )
         Text(
             text = stringResource(R.string.enable_permission_subtitle),
             style = AppTheme.appTypography.label1.copy(color = AppTheme.colorScheme.textSecondary),
 
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 28.dp)
+                .padding(horizontal = 16.dp)
                 .padding(top = 2.dp)
         )
 
@@ -100,13 +151,30 @@ fun EnablePermissionsScreen() {
             }
         )
 
+        PermissionContent(
+            title = stringResource(R.string.enable_permission_background_location_access_title),
+            description = stringResource(R.string.enable_permission_background_location_access_desc),
+            isGranted = bgLocationPermissionStates?.status == PermissionStatus.Granted,
+            onClick = {
+                if (bgLocationPermissionStates?.status?.shouldShowRationale == true) {
+                    (context as Activity).openAppSettings()
+                } else {
+                    bgLocationPermissionStates?.launchPermissionRequest()
+                }
+            }
+        )
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             PermissionContent(
                 title = stringResource(R.string.enable_permission_notification_access_title),
                 description = stringResource(R.string.enable_permission_notification_access_desc),
                 isGranted = notificationPermissionStates?.status == PermissionStatus.Granted,
                 onClick = {
-                    if (notificationPermissionStates?.status != PermissionStatus.Granted) {
+                    if (notificationPermissionStates?.status is PermissionStatus.Denied ||
+                        notificationPermissionStates?.status?.shouldShowRationale == true
+                    ) {
+                        showNotificationRational = true
+                    } else if (notificationPermissionStates?.status != PermissionStatus.Granted) {
                         notificationPermissionStates?.launchPermissionRequest()
                     }
                 }
@@ -114,19 +182,6 @@ fun EnablePermissionsScreen() {
         }
 
         Spacer(modifier = Modifier.weight(1f))
-        PrimaryButton(
-            label = stringResource(id = R.string.common_btn_continue),
-            onClick = {
-                if (notificationPermissionStates?.status != null && notificationPermissionStates.status != PermissionStatus.Granted) {
-                    showNotificationRational = true
-                } else {
-                    viewModel.navigationToHome()
-                }
-            },
-            enabled = locationPermissionStates.allPermissionsGranted
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
         Text(
             text = stringResource(R.string.enable_permission_footer),
             style = AppTheme.appTypography.label3,
@@ -141,11 +196,17 @@ fun EnablePermissionsScreen() {
         NotificationPermissionRationaleDialog(
             onSkip = {
                 showNotificationRational = false
-                viewModel.navigationToHome()
+                viewModel.popBack()
             },
             onContinue = {
                 showNotificationRational = false
-                notificationPermissionStates?.launchPermissionRequest()
+                if (notificationPermissionStates?.status is PermissionStatus.Denied &&
+                    !notificationPermissionStates.status.shouldShowRationale
+                ) {
+                    (context as Activity).openAppSettings()
+                } else {
+                    notificationPermissionStates?.launchPermissionRequest()
+                }
             }
         )
     }
@@ -178,7 +239,7 @@ private fun PermissionContent(
     isGranted: Boolean = false,
     onClick: () -> Unit = {}
 ) {
-    Row(modifier = Modifier.padding(horizontal = 28.dp, vertical = 10.dp)) {
+    Row(modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
         Box(
             modifier = Modifier
                 .clip(CircleShape)
@@ -199,21 +260,20 @@ private fun PermissionContent(
             }
         }
 
-        Column {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 20.dp, end = 16.dp)
+        ) {
             Text(
                 text = title.uppercase(),
-                style = AppTheme.appTypography.body1.copy(fontWeight = FontWeight.SemiBold),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 28.dp)
+                style = AppTheme.appTypography.body1.copy(fontWeight = FontWeight.SemiBold)
+
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = description,
-                style = AppTheme.appTypography.body3.copy(color = AppTheme.colorScheme.textSecondary),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 28.dp)
+                style = AppTheme.appTypography.body2.copy(color = AppTheme.colorScheme.textSecondary)
             )
         }
     }

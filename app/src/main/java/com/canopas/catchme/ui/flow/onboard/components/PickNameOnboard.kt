@@ -46,7 +46,7 @@ fun PickNameOnboard() {
             .fillMaxSize()
             .background(AppTheme.colorScheme.surface)
             .verticalScroll(scrollState)
-            .padding(top = 80.dp)
+            .padding(top = 80.dp, bottom = 40.dp)
     ) {
         Spacer(modifier = Modifier.height(30.dp))
         TitleContent()
@@ -66,7 +66,7 @@ fun PickNameOnboard() {
         ) {
             viewModel.onLastNameChange(it)
         }
-        Spacer(modifier = Modifier.height(60.dp))
+        Spacer(modifier = Modifier.weight(1f))
         PrimaryButton(
             label = stringResource(R.string.common_btn_next),
             modifier = Modifier.align(Alignment.CenterHorizontally),
@@ -74,7 +74,7 @@ fun PickNameOnboard() {
                 keyboard?.hide()
                 viewModel.navigateToSpaceInfo()
             },
-            enabled = state.firstName.trim().isNotEmpty() && state.lastName.trim().isNotEmpty(),
+            enabled = state.firstName.trim().isNotEmpty(),
             showLoader = state.updatingUserName
         )
     }

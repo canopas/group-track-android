@@ -7,6 +7,7 @@ import android.location.Location
 import android.os.Build
 import com.canopas.catchme.data.receiver.location.ACTION_LOCATION_UPDATE
 import com.canopas.catchme.data.receiver.location.LocationUpdateReceiver
+import com.canopas.catchme.data.utils.hasCoarseLocationPermission
 import com.canopas.catchme.data.utils.hasFineLocationPermission
 import com.canopas.catchme.data.utils.isBackgroundLocationPermissionGranted
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -33,7 +34,10 @@ class LocationManager @Inject constructor(@ApplicationContext private val contex
         request = createRequest()
     }
 
-    suspend fun getLastLocation(): Location? = locationClient.lastLocation.await()
+    suspend fun getLastLocation(): Location? {
+        if (!context.hasCoarseLocationPermission) return null
+        return locationClient.lastLocation.await()
+    }
 
     private val locationUpdatePendingIntent: PendingIntent by lazy {
         val intent = Intent(context, LocationUpdateReceiver::class.java)

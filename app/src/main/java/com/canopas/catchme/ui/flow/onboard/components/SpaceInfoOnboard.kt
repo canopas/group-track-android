@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.catchme.R
 import com.canopas.catchme.ui.component.PrimaryButton
+import com.canopas.catchme.ui.component.PrimaryTextButton
 import com.canopas.catchme.ui.flow.onboard.OnboardViewModel
 import com.canopas.catchme.ui.theme.AppTheme
 
@@ -41,7 +42,7 @@ fun SpaceInfoOnboard() {
         TitleContent(state.firstName)
         Spacer(modifier = Modifier.weight(0.5f))
         Image(
-            painter = painterResource(id = R.drawable.ic_onboard_space_intro),
+            painter = painterResource(id = R.drawable.ic_empty_location_history),
             contentDescription = null,
             modifier = Modifier
                 .fillMaxWidth()
@@ -54,14 +55,20 @@ fun SpaceInfoOnboard() {
         PrimaryButton(label = stringResource(R.string.common_btn_continue), onClick = {
             viewModel.navigateToJoinOrCreateSpace()
         })
-        Spacer(modifier = Modifier.height(20.dp))
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        PrimaryTextButton(
+            label = stringResource(R.string.common_btn_skip),
+            onClick = { viewModel.navigateToHome() }
+        )
     }
 }
 
 @Composable
 private fun TitleContent(firstName: String) {
     Text(
-        text = stringResource(R.string.onboard_space_info_title, firstName),
+        text = stringResource(R.string.onboard_space_info_title),
         style = AppTheme.appTypography.header1,
         textAlign = TextAlign.Center,
         modifier = Modifier

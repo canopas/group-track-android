@@ -75,4 +75,22 @@ class ApiSpaceService @Inject constructor(
 
     suspend fun getMemberBySpaceId(spaceId: String) =
         spaceMemberRef.whereEqualTo("space_id", spaceId).snapshotFlow(ApiSpaceMember::class.java)
+
+    suspend fun deleteMembers(spaceId: String) {
+        spaceMemberRef.whereEqualTo("space_id", spaceId).get().await().documents.forEach { doc ->
+            doc.reference.delete().await()
+        }
+    }
+
+    suspend fun deleteSpace(spaceId: String) {
+        deleteMembers(spaceId)
+        spaceRef.document(spaceId).delete().await()
+    }
+
+    suspend fun removeUserFromSpace(spaceId: String, userId: String) {
+        spaceMemberRef.whereEqualTo("space_id", spaceId)
+            .whereEqualTo("user_id", userId).get().await().documents.forEach {
+                it.reference.delete().await()
+            }
+    }
 }
