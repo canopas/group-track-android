@@ -89,7 +89,7 @@ fun MapScreen() {
 
     val permissionState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
     LaunchedEffect(permissionState) {
-        snapshotFlow { permissionState.status == PermissionStatus.Granted && state.currentCameraPosition == null }
+        snapshotFlow { permissionState.status == PermissionStatus.Granted && state.defaultCameraPosition == null }
             .collect {
                 if (it) {
                     viewModel.startLocationTracking()
@@ -132,8 +132,8 @@ fun MapScreenContent(modifier: Modifier) {
     val viewModel = hiltViewModel<MapViewModel>()
     val state by viewModel.state.collectAsState()
 
-    val userLocation = remember(state.currentCameraPosition) {
-        val location = state.currentCameraPosition
+    val userLocation = remember(state.defaultCameraPosition) {
+        val location = state.defaultCameraPosition
         LatLng(location?.latitude ?: 0.0, location?.longitude ?: 0.0)
     }
 
