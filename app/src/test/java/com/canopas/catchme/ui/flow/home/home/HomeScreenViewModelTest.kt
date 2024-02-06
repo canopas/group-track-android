@@ -54,7 +54,6 @@ class HomeScreenViewModelTest {
     private val userPreferences = mock<UserPreferences>()
     private val authService = mock<AuthService>()
 
-
     private val testDispatcher = AppDispatcher(IO = UnconfinedTestDispatcher())
 
     private lateinit var viewModel: HomeScreenViewModel
