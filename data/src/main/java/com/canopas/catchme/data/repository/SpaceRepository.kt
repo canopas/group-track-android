@@ -15,9 +15,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.toList
 import javax.inject.Inject
 
 class SpaceRepository @Inject constructor(
@@ -51,6 +50,7 @@ class SpaceRepository @Inject constructor(
     suspend fun getAllSpaceInfo(): Flow<List<SpaceInfo>> {
         val userId = authService.currentUser?.id ?: ""
         return getUserSpaces(userId).flatMapLatest { spaces ->
+            if (spaces.isEmpty()) return@flatMapLatest flowOf(emptyList())
             val flows = spaces.filterNotNull().map { space ->
                 spaceService.getMemberBySpaceId(space.id)
                     .map { members ->
@@ -92,6 +92,7 @@ class SpaceRepository @Inject constructor(
         if (currentSpaceId.isEmpty()) return emptyFlow()
         return spaceService.getMemberBySpaceId(currentSpaceId)
             .flatMapLatest { members ->
+                if (members.isEmpty()) return@flatMapLatest flowOf(emptyList())
                 val flows = members
                     .mapNotNull { member ->
                         val user = userService.getUser(member.user_id)

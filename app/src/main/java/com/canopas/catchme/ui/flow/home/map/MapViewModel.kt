@@ -38,7 +38,7 @@ class MapViewModel @Inject constructor(
         viewModelScope.launch {
             _state.value = _state.value.copy(currentUserId = userPreferences.currentUser?.id)
             withContext(appDispatcher.IO) {
-                _state.emit(_state.value.copy(currentCameraPosition = locationManager.getLastLocation()))
+                _state.emit(_state.value.copy(defaultCameraPosition = locationManager.getLastLocation()))
             }
             userPreferences.currentSpaceState.collectLatest {
                 locationJob?.cancel()
@@ -54,7 +54,7 @@ class MapViewModel @Inject constructor(
                 _state.emit(
                     _state.value.copy(
                         members = it,
-                        currentCameraPosition = currentLocation
+                        defaultCameraPosition = currentLocation
                     )
                 )
             }
@@ -98,7 +98,7 @@ class MapViewModel @Inject constructor(
     fun startLocationTracking() {
         viewModelScope.launch(appDispatcher.IO) {
             val currentLocation = locationManager.getLastLocation()
-            _state.emit(_state.value.copy(currentCameraPosition = currentLocation))
+            _state.emit(_state.value.copy(defaultCameraPosition = currentLocation))
             locationManager.startService()
         }
     }
@@ -107,7 +107,7 @@ class MapViewModel @Inject constructor(
 data class MapScreenState(
     val members: List<UserInfo> = emptyList(),
     val currentUserId: String? = "",
-    val currentCameraPosition: Location? = null,
+    val defaultCameraPosition: Location? = null,
     val selectedUser: UserInfo? = null,
     val showUserDetails: Boolean = false,
     val loadingInviteCode: Boolean = false,

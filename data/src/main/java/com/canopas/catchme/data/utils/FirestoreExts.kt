@@ -13,6 +13,8 @@ fun <T> Query.snapshotFlow(dataType: Class<T>): Flow<List<T>> = callbackFlow {
         }
         if (value != null) {
             trySend(value.toObjects(dataType))
+        } else {
+            trySend(emptyList())
         }
     }
     awaitClose {
