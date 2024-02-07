@@ -1,0 +1,49 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSpaceAdmin() {
+       let spaceId = request.resource.data.space_id;
+       let adminId = get(/databases/$(database)/documents/spaces/$(spaceId)).data.admin_id;
+       return request.auth.uid == adminId;
+     }
+
+   function isSpaceMember() {
+       let docId = request.resource.id;
+       let spaceId = request.resource.data.space_id;
+       let memberId = request.auth.uid;
+      // let member = get(/databases/$(database)/documents/space_members/$(docId)).data;
+      // return member.space_id == spaceId && member.user_id == memberId;
+      return true;
+     }
+
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+
+    match /users/{docId} {
+      allow write: if request.auth.uid == request.resource.data.id;
+      allow read;
+    }
+
+    match /user_sessions/{docId} {
+      allow read, write: if request.auth.uid == request.resource.data.user_id;
+    }
+
+    match /user_locations/{docId} {
+        allow write: if request.auth.uid == resource.data.user_id;
+        allow read;
+    }
+
+    match /spaces/{docId} {
+       allow write: if request.auth.uid == request.resource.data.admin_id;
+       allow read: if isSpaceMember();
+    }
+
+    match /space_members/{docId} {
+        allow write: if isSpaceAdmin() || request.auth.uid == resource.data.user_id;
+        allow read: if isSpaceAdmin() || isSpaceMember();
+    }
+  }
+}
