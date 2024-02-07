@@ -18,6 +18,7 @@ data class ApiUser(
     val last_name: String? = null,
     val profile_image: String? = null,
     val location_enabled: Boolean = true,
+    val space_ids: List<String>? = null,
     val provider_firebase_id_token: String? = null,
     val created_at: Long? = System.currentTimeMillis()
 ) {

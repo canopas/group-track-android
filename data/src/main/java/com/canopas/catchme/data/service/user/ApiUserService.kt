@@ -9,6 +9,7 @@ import com.canopas.catchme.data.utils.Device
 import com.canopas.catchme.data.utils.FirestoreConst
 import com.canopas.catchme.data.utils.FirestoreConst.FIRESTORE_COLLECTION_USERS
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -89,5 +90,9 @@ class ApiUserService @Inject constructor(
 
     suspend fun updateUser(user: ApiUser) {
         userRef.document(user.id).set(user).await()
+    }
+
+    suspend fun addSpaceId(userId: String, spaceId: String) {
+        userRef.document(userId).update("space_ids", FieldValue.arrayUnion(spaceId)).await()
     }
 }

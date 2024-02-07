@@ -5,6 +5,7 @@ import com.canopas.catchme.data.models.space.ApiSpaceMember
 import com.canopas.catchme.data.models.space.SPACE_MEMBER_ROLE_ADMIN
 import com.canopas.catchme.data.models.space.SPACE_MEMBER_ROLE_MEMBER
 import com.canopas.catchme.data.service.auth.AuthService
+import com.canopas.catchme.data.service.user.ApiUserService
 import com.canopas.catchme.data.utils.FirestoreConst
 import com.canopas.catchme.data.utils.FirestoreConst.FIRESTORE_COLLECTION_SPACES
 import com.canopas.catchme.data.utils.FirestoreConst.FIRESTORE_COLLECTION_SPACE_MEMBERS
@@ -17,7 +18,8 @@ import javax.inject.Singleton
 @Singleton
 class ApiSpaceService @Inject constructor(
     private val db: FirebaseFirestore,
-    private val authService: AuthService
+    private val authService: AuthService,
+    private val apiUserService: ApiUserService
 ) {
     private val spaceRef = db.collection(FIRESTORE_COLLECTION_SPACES)
     private fun spaceMemberRef(spaceId: String) =
@@ -36,9 +38,8 @@ class ApiSpaceService @Inject constructor(
     suspend fun joinSpace(spaceId: String, role: Int = SPACE_MEMBER_ROLE_MEMBER) {
         val userId = authService.currentUser?.id ?: ""
         spaceMemberRef(spaceId)
-            .document().also {
+            .document(userId).also {
                 val member = ApiSpaceMember(
-                    id = it.id,
                     space_id = spaceId,
                     user_id = userId,
                     role = role,
@@ -46,6 +47,7 @@ class ApiSpaceService @Inject constructor(
                 )
                 it.set(member).await()
             }
+        apiUserService.addSpaceId(userId, spaceId)
     }
 
     suspend fun enableLocation(spaceId: String, userId: String, enable: Boolean) {
