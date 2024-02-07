@@ -1,6 +1,7 @@
 package com.canopas.catchme.data.models.user
 
 import androidx.annotation.Keep
+import com.google.firebase.firestore.Exclude
 import java.util.UUID
 
 const val LOGIN_TYPE_GOOGLE = 1
@@ -20,6 +21,7 @@ data class ApiUser(
     val provider_firebase_id_token: String? = null,
     val created_at: Long? = System.currentTimeMillis()
 ) {
+    @get:Exclude
     val fullName: String get() = "$first_name $last_name"
 }
 

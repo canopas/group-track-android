@@ -1,6 +1,7 @@
 package com.canopas.catchme.data.models.space
 
 import androidx.annotation.Keep
+import com.google.firebase.firestore.Exclude
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
@@ -32,6 +33,7 @@ data class ApiSpaceInvitation(
     val code: String = "",
     val created_at: Long? = System.currentTimeMillis()
 ) {
+    @get:Exclude
     val isExpired: Boolean
         get() {
             if (created_at == null) return true

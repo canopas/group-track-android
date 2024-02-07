@@ -11,9 +11,27 @@ import javax.inject.Singleton
 
 @Singleton
 class ApiLocationService @Inject constructor(
-    private val db: FirebaseFirestore
+    private val db: FirebaseFirestore,
+    private val locationManager: LocationManager
 ) {
     private val locationRef = db.collection(FirestoreConst.FIRESTORE_COLLECTION_USER_LOCATIONS)
+
+    suspend fun saveLastKnownLocation(
+        userId: String,
+    ) {
+        val lastLocation = locationManager.getLastLocation() ?: return
+        val docRef = locationRef.document()
+
+        val location = ApiLocation(
+            id = docRef.id,
+            user_id = userId,
+            latitude = lastLocation.latitude,
+            longitude = lastLocation.longitude,
+            created_at = System.currentTimeMillis()
+        )
+
+        locationRef.document(location.id).set(location).await()
+    }
 
     suspend fun saveCurrentLocation(
         userId: String,

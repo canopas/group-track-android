@@ -4,6 +4,7 @@ import com.canopas.catchme.data.models.user.ApiUser
 import com.canopas.catchme.data.models.user.ApiUserSession
 import com.canopas.catchme.data.models.user.LOGIN_TYPE_GOOGLE
 import com.canopas.catchme.data.models.user.LOGIN_TYPE_PHONE
+import com.canopas.catchme.data.service.location.ApiLocationService
 import com.canopas.catchme.data.storage.UserPreferences
 import com.canopas.catchme.data.utils.Device
 import com.canopas.catchme.data.utils.FirestoreConst.FIRESTORE_COLLECTION_USERS
@@ -19,7 +20,8 @@ import javax.inject.Singleton
 class AuthService @Inject constructor(
     db: FirebaseFirestore,
     private val device: Device,
-    private val userPreferences: UserPreferences
+    private val userPreferences: UserPreferences,
+    private val locationService: ApiLocationService
 ) {
     private val userRef = db.collection(FIRESTORE_COLLECTION_USERS)
     private val sessionRef = db.collection(FIRESTORE_COLLECTION_USER_SESSIONS)
@@ -68,6 +70,7 @@ class AuthService @Inject constructor(
             userDocRef.set(user).await()
             sessionDocRef.set(session).await()
             saveUser(user, session)
+            locationService.saveLastKnownLocation(user.id)
         } else {
             val docId = snapshot!!.id
             val sessionDocRef = sessionRef.document()
