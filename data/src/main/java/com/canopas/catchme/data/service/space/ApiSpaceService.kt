@@ -23,7 +23,6 @@ class ApiSpaceService @Inject constructor(
     private fun spaceMemberRef(spaceId: String) =
         spaceRef.document(spaceId).collection(FirestoreConst.FIRESTORE_COLLECTION_SPACE_MEMBERS)
 
-
     suspend fun createSpace(spaceName: String): String {
         val docRef = spaceRef.document()
         val spaceId = docRef.id

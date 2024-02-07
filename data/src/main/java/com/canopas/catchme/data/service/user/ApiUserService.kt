@@ -21,7 +21,8 @@ class ApiUserService @Inject constructor(
     private val locationService: ApiLocationService
 ) {
     private val userRef = db.collection(FIRESTORE_COLLECTION_USERS)
-    private val sessionRef = db.collection(FirestoreConst.FIRESTORE_COLLECTION_USER_SESSIONS)
+    private fun sessionRef(userId: String) =
+        userRef.document(userId).collection(FirestoreConst.FIRESTORE_COLLECTION_USER_SESSIONS)
 
     suspend fun getUser(userId: String): ApiUser? {
         return userRef.document(userId).get().await().toObject(ApiUser::class.java)
@@ -31,17 +32,16 @@ class ApiUserService @Inject constructor(
         uid: String?,
         firebaseToken: String?,
         account: GoogleSignInAccount? = null,
-        phoneNumber: String? = null,
+        phoneNumber: String? = null
     ): Triple<Boolean, ApiUser, ApiUserSession> {
-
         val savedUser = if (uid.isNullOrEmpty()) null else getUser(uid)
         val isExists = savedUser != null
 
         if (isExists) {
-            val sessionDocRef = sessionRef.document()
+            val sessionDocRef = sessionRef(savedUser!!.id).document()
             val session = ApiUserSession(
                 id = sessionDocRef.id,
-                user_id = savedUser!!.id,
+                user_id = savedUser.id,
                 device_id = device.getId(),
                 device_name = device.deviceName(),
                 session_active = true,
@@ -61,7 +61,9 @@ class ApiUserService @Inject constructor(
                 provider_firebase_id_token = firebaseToken,
                 profile_image = account?.photoUrl?.toString()
             )
-            val sessionDocRef = sessionRef.document()
+            userRef.document(uid).set(user).await()
+
+            val sessionDocRef = sessionRef(user.id).document()
             val session = ApiUserSession(
                 id = sessionDocRef.id,
                 user_id = user.id,
@@ -72,7 +74,6 @@ class ApiUserService @Inject constructor(
                 battery_status = null
             )
 
-            userRef.document().set(user).await()
             sessionDocRef.set(session).await()
             locationService.saveLastKnownLocation(user.id)
             return Triple(true, user, session)
@@ -80,7 +81,7 @@ class ApiUserService @Inject constructor(
     }
 
     suspend fun deleteUser(userId: String) {
-        sessionRef.whereEqualTo("user_id", userId).get().await().documents.forEach {
+        sessionRef(userId).whereEqualTo("user_id", userId).get().await().documents.forEach {
             it.reference.delete().await()
         }
         userRef.document(userId).delete().await()
@@ -89,5 +90,4 @@ class ApiUserService @Inject constructor(
     suspend fun updateUser(user: ApiUser) {
         userRef.document(user.id).set(user).await()
     }
-
 }

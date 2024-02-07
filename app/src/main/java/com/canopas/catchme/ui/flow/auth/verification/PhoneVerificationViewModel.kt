@@ -68,7 +68,8 @@ class PhoneVerificationViewModel @Inject constructor(
 
             val isNewUser = authService.verifiedPhoneLogin(
                 firebaseAuth.currentUserUid,
-                firebaseIdToken, _state.value.phone
+                firebaseIdToken,
+                _state.value.phone
             )
             appNavigator.navigateBack(
                 route = AppDestinations.signIn.path,

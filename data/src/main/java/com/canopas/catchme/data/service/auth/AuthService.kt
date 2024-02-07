@@ -11,7 +11,7 @@ import javax.inject.Singleton
 @Singleton
 class AuthService @Inject constructor(
     private val userPreferences: UserPreferences,
-    private val apiUserService: ApiUserService,
+    private val apiUserService: ApiUserService
 ) {
     suspend fun verifiedPhoneLogin(
         uid: String?,
@@ -33,9 +33,8 @@ class AuthService @Inject constructor(
         uid: String?,
         firebaseToken: String?,
         account: GoogleSignInAccount? = null,
-        phoneNumber: String? = null,
+        phoneNumber: String? = null
     ): Boolean {
-
         val (isNewUser, user, session) =
             apiUserService.saveUser(uid, firebaseToken, account, phoneNumber)
         saveUser(user, session)

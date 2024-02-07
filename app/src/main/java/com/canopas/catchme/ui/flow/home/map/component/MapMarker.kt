@@ -39,7 +39,7 @@ fun MapMarker(
         keys = arrayOf(user.id, isSelected),
         state = markerState,
         title = user.fullName,
-        zIndex = if(isSelected) 1f else 0f,
+        zIndex = if (isSelected) 1f else 0f,
         anchor = Offset(0.0f, 1f),
         onClick = {
             onClick()
