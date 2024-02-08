@@ -36,14 +36,21 @@ class CreateSpaceHomeViewModel @Inject constructor(
             _state.emit(_state.value.copy(creatingSpace = true))
             val invitationCode = spaceRepository.createSpaceAndGetInviteCode(_state.value.spaceName)
             appNavigator.navigateTo(
-                AppDestinations.SpaceInvitation.spaceInvitation(invitationCode, _state.value.spaceName).path,
+                AppDestinations.SpaceInvitation.spaceInvitation(
+                    invitationCode,
+                    _state.value.spaceName
+                ).path,
                 AppDestinations.createSpace.path,
                 inclusive = true
             )
         } catch (e: Exception) {
             Timber.e(e, "Unable to create space")
-            _state.emit(_state.value.copy(error = e.localizedMessage))
+            _state.emit(_state.value.copy(creatingSpace = false, error = e.localizedMessage))
         }
+    }
+
+    fun resetErrorState() {
+        _state.value = _state.value.copy(error = null)
     }
 }
 

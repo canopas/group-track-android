@@ -19,7 +19,7 @@ import javax.inject.Inject
 class FirebaseAuthService @Inject constructor(
     private val firebaseAuth: FirebaseAuth
 ) {
-    val currentUserUid = firebaseAuth.currentUser?.uid
+    val currentUserUid get() = firebaseAuth.currentUser?.uid
 
     fun verifyPhoneNumber(
         context: Context,

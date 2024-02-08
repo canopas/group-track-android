@@ -70,10 +70,11 @@ class SignInMethodViewModelTest {
     fun `proceedGoogleSignIn should invoke verifiedGoogleLogin`() = runTest {
         val account = mock<GoogleSignInAccount>()
         whenever(account.idToken).thenReturn("token")
+        whenever(firebaseAuth.currentUserUid).thenReturn("uid")
         whenever(firebaseAuth.signInWithGoogleAuthCredential("token"))
             .thenReturn("firebaseToken")
         viewModel.proceedGoogleSignIn(account)
-        verify(authService).verifiedGoogleLogin("firebaseToken", account)
+        verify(authService).verifiedGoogleLogin("uid", "firebaseToken", account)
     }
 
     @Test
@@ -82,7 +83,9 @@ class SignInMethodViewModelTest {
         whenever(account.idToken).thenReturn("token")
         whenever(firebaseAuth.signInWithGoogleAuthCredential("token"))
             .thenReturn("firebaseToken")
-        whenever(authService.verifiedGoogleLogin("firebaseToken", account))
+        whenever(firebaseAuth.currentUserUid).thenReturn("uid")
+
+        whenever(authService.verifiedGoogleLogin("uid", "firebaseToken", account))
             .thenReturn(false)
         viewModel.proceedGoogleSignIn(account)
         verify(navigator).navigateTo("home", "sign-in", true)
@@ -92,9 +95,11 @@ class SignInMethodViewModelTest {
     fun `proceedGoogleSignIn should navigate to onboard screen`() = runTest {
         val account = mock<GoogleSignInAccount>()
         whenever(account.idToken).thenReturn("token")
+        whenever(firebaseAuth.currentUserUid).thenReturn("uid")
         whenever(firebaseAuth.signInWithGoogleAuthCredential("token"))
             .thenReturn("firebaseToken")
-        whenever(authService.verifiedGoogleLogin("firebaseToken", account))
+
+        whenever(authService.verifiedGoogleLogin("uid", "firebaseToken", account))
             .thenReturn(true)
         viewModel.proceedGoogleSignIn(account)
         verify(navigator).navigateTo("onboard", "sign-in", true)

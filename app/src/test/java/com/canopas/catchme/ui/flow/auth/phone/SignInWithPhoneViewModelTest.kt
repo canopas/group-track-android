@@ -61,10 +61,13 @@ class SignInWithPhoneViewModelTest {
         val context = mock<Context>()
         val credential = mock<PhoneAuthCredential>()
         viewModel.onPhoneChange("1234567890")
+        whenever(firebaseAuth.currentUserUid).thenReturn("uid")
         whenever(firebaseAuth.verifyPhoneNumber(context, "1234567890"))
             .thenReturn(flowOf(PhoneAuthState.VerificationCompleted(credential)))
         whenever(firebaseAuth.signInWithPhoneAuthCredential(credential)).thenReturn("firebaseIdToken")
-        whenever(authService.verifiedPhoneLogin("firebaseIdToken", "1234567890")).thenReturn(true)
+        whenever(authService.verifiedPhoneLogin("uid", "firebaseIdToken", "1234567890")).thenReturn(
+            true
+        )
         viewModel.verifyPhoneNumber(context)
         assert(!viewModel.state.value.verifying)
     }
@@ -74,10 +77,13 @@ class SignInWithPhoneViewModelTest {
         val context = mock<Context>()
         val credential = mock<PhoneAuthCredential>()
         viewModel.onPhoneChange("1234567890")
+        whenever(firebaseAuth.currentUserUid).thenReturn("uid")
         whenever(firebaseAuth.verifyPhoneNumber(context, "1234567890"))
             .thenReturn(flowOf(PhoneAuthState.VerificationCompleted(credential)))
         whenever(firebaseAuth.signInWithPhoneAuthCredential(credential)).thenReturn("firebaseIdToken")
-        whenever(authService.verifiedPhoneLogin("firebaseIdToken", "1234567890")).thenReturn(true)
+        whenever(authService.verifiedPhoneLogin("uid", "firebaseIdToken", "1234567890")).thenReturn(
+            true
+        )
 
         viewModel.verifyPhoneNumber(context)
         verify(navigator).navigateBack(
@@ -91,12 +97,15 @@ class SignInWithPhoneViewModelTest {
         val context = mock<Context>()
         val credential = mock<PhoneAuthCredential>()
         viewModel.onPhoneChange("1234567890")
+        whenever(firebaseAuth.currentUserUid).thenReturn("uid")
         whenever(firebaseAuth.verifyPhoneNumber(context, "1234567890"))
             .thenReturn(flowOf(PhoneAuthState.VerificationCompleted(credential)))
         whenever(firebaseAuth.signInWithPhoneAuthCredential(credential)).thenReturn("firebaseIdToken")
-        whenever(authService.verifiedPhoneLogin("firebaseIdToken", "1234567890")).thenReturn(true)
+        whenever(authService.verifiedPhoneLogin("uid", "firebaseIdToken", "1234567890")).thenReturn(
+            true
+        )
         viewModel.verifyPhoneNumber(context)
-        verify(authService).verifiedPhoneLogin("firebaseIdToken", "1234567890")
+        verify(authService).verifiedPhoneLogin("uid", "firebaseIdToken", "1234567890")
     }
 
     @Test

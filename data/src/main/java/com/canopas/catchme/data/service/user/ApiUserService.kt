@@ -46,24 +46,22 @@ class ApiUserService @Inject constructor(
                 device_id = device.getId(),
                 device_name = device.deviceName(),
                 session_active = true,
-                app_version = device.versionCode,
-                battery_status = null
+                app_version = device.versionCode
             )
             sessionDocRef.set(session).await()
             return Triple(false, savedUser, session)
         } else {
             val user = ApiUser(
                 id = uid!!,
-                email = account?.email,
-                phone = phoneNumber,
+                email = account?.email ?: "",
+                phone = phoneNumber ?: "",
                 auth_type = if (account != null) LOGIN_TYPE_GOOGLE else LOGIN_TYPE_PHONE,
-                first_name = account?.givenName,
-                last_name = account?.familyName,
+                first_name = account?.givenName ?: "",
+                last_name = account?.familyName ?: "",
                 provider_firebase_id_token = firebaseToken,
-                profile_image = account?.photoUrl?.toString()
+                profile_image = account?.photoUrl?.toString() ?: ""
             )
             userRef.document(uid).set(user).await()
-
             val sessionDocRef = sessionRef(user.id).document()
             val session = ApiUserSession(
                 id = sessionDocRef.id,
@@ -71,10 +69,8 @@ class ApiUserService @Inject constructor(
                 device_id = device.getId(),
                 device_name = device.deviceName(),
                 session_active = true,
-                app_version = device.versionCode,
-                battery_status = null
+                app_version = device.versionCode
             )
-
             sessionDocRef.set(session).await()
             locationService.saveLastKnownLocation(user.id)
             return Triple(true, user, session)
