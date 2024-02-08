@@ -133,6 +133,12 @@ class OnboardViewModel @Inject constructor(
             }
 
             val space = spaceRepository.getSpace(invitation.space_id)
+            val joinedSpaces = currentUser?.space_ids ?: emptyList()
+
+            if (space != null && space.id in joinedSpaces) {
+                navigateToHome()
+                return@launch
+            }
 
             if (space != null) {
                 spaceRepository.joinSpace(invitation.space_id)
@@ -172,6 +178,7 @@ class OnboardViewModel @Inject constructor(
     fun resetErrorState() {
         _state.value = _state.value.copy(
             error = null,
+            alreadySpaceMember = false,
             errorInvalidInviteCode = false
         )
     }
@@ -197,6 +204,7 @@ data class OnboardScreenState(
     val creatingSpace: Boolean = false,
     val verifyingInviteCode: Boolean = false,
     val errorInvalidInviteCode: Boolean = false,
+    val alreadySpaceMember: Boolean = false,
     val error: String? = null
 )
 

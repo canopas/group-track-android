@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.canopas.catchme.data.models.space.ApiSpace
 import com.canopas.catchme.data.repository.SpaceRepository
+import com.canopas.catchme.data.service.auth.AuthService
 import com.canopas.catchme.data.service.space.SpaceInvitationService
 import com.canopas.catchme.data.utils.AppDispatcher
 import com.canopas.catchme.ui.navigation.HomeNavigator
@@ -19,7 +20,8 @@ class JoinSpaceViewModel @Inject constructor(
     private val appNavigator: HomeNavigator,
     private val appDispatcher: AppDispatcher,
     private val invitationService: SpaceInvitationService,
-    private val spaceRepository: SpaceRepository
+    private val spaceRepository: SpaceRepository,
+    private val authService: AuthService
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(JoinSpaceState())
@@ -49,6 +51,13 @@ class JoinSpaceViewModel @Inject constructor(
             }
 
             val spaceId = invitation.space_id
+            val joinedSpaces = authService.currentUser?.space_ids ?: emptyList()
+
+            if (spaceId in joinedSpaces) {
+                popBackStack()
+                return@launch
+            }
+
             spaceRepository.joinSpace(spaceId)
             val space = spaceRepository.getSpace(spaceId)
 
