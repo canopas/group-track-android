@@ -21,7 +21,6 @@ class IntroViewModelTest {
     private val userPreferences = mock<UserPreferences>()
     private val navigator = mock<AppNavigator>()
 
-
     @Test
     fun `completedIntro should set IntroShown to true`() = runTest {
         whenever(userPreferences.currentUser).thenReturn(mock())
