@@ -4,13 +4,13 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import com.canopas.catchme.ui.navigation.AppDestinations.SpaceInvitation.KEY_INVITE_CODE
 import com.canopas.catchme.ui.navigation.AppDestinations.SpaceInvitation.KEY_SPACE_NAME
-import com.canopas.catchme.ui.navigation.HomeNavigator
+import com.canopas.catchme.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
 class SpaceInviteCodeViewModel @Inject constructor(
-    private val appNavigator: HomeNavigator,
+    private val appNavigator: AppNavigator,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 

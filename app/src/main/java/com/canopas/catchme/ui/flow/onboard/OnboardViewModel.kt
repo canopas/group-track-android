@@ -9,7 +9,7 @@ import com.canopas.catchme.data.service.space.SpaceInvitationService
 import com.canopas.catchme.data.storage.UserPreferences
 import com.canopas.catchme.data.utils.AppDispatcher
 import com.canopas.catchme.ui.navigation.AppDestinations
-import com.canopas.catchme.ui.navigation.MainNavigator
+import com.canopas.catchme.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,7 +23,7 @@ class OnboardViewModel @Inject constructor(
     private val appDispatcher: AppDispatcher,
     private val spaceRepository: SpaceRepository,
     private val userPreferences: UserPreferences,
-    private val navigator: MainNavigator,
+    private val navigator: AppNavigator,
     private val invitationService: SpaceInvitationService
 ) : ViewModel() {
 

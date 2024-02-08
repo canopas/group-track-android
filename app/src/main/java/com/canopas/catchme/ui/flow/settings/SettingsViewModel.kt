@@ -7,8 +7,7 @@ import com.canopas.catchme.data.repository.SpaceRepository
 import com.canopas.catchme.data.service.auth.AuthService
 import com.canopas.catchme.data.utils.AppDispatcher
 import com.canopas.catchme.ui.navigation.AppDestinations
-import com.canopas.catchme.ui.navigation.HomeNavigator
-import com.canopas.catchme.ui.navigation.MainNavigator
+import com.canopas.catchme.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,8 +16,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val navigator: HomeNavigator,
-    private val appNavigator: MainNavigator,
+    private val navigator: AppNavigator,
     private val authService: AuthService,
     private val appDispatcher: AppDispatcher,
     private val spaceRepository: SpaceRepository
@@ -58,7 +56,7 @@ class SettingsViewModel @Inject constructor(
     fun signOutUser() = viewModelScope.launch(appDispatcher.IO) {
         _state.emit(_state.value.copy(signingOut = true, openSignOutDialog = false))
         authService.signOut()
-        appNavigator.navigateTo(
+        navigator.navigateTo(
             AppDestinations.signIn.path,
             AppDestinations.home.path,
             true
@@ -70,7 +68,7 @@ class SettingsViewModel @Inject constructor(
         _state.emit(_state.value.copy(deletingAccount = true, openDeleteAccountDialog = false))
         spaceRepository.deleteUserSpaces()
         authService.deleteAccount()
-        appNavigator.navigateTo(
+        navigator.navigateTo(
             AppDestinations.signIn.path,
             AppDestinations.home.path,
             true

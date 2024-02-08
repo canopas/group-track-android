@@ -4,9 +4,10 @@ import com.canopas.catchme.MainCoroutineRule
 import com.canopas.catchme.data.models.space.ApiSpace
 import com.canopas.catchme.data.models.space.ApiSpaceInvitation
 import com.canopas.catchme.data.repository.SpaceRepository
+import com.canopas.catchme.data.service.auth.AuthService
 import com.canopas.catchme.data.service.space.SpaceInvitationService
 import com.canopas.catchme.data.utils.AppDispatcher
-import com.canopas.catchme.ui.navigation.HomeNavigator
+import com.canopas.catchme.ui.navigation.AppNavigator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -28,7 +29,8 @@ class JoinSpaceViewModelTest {
     val coroutineRule = MainCoroutineRule()
 
     private val spaceRepository = mock<SpaceRepository>()
-    private val appNavigator = mock<HomeNavigator>()
+    private val appNavigator = mock<AppNavigator>()
+    private val authService = mock<AuthService>()
     private val invitationService = mock<SpaceInvitationService>()
 
     private val testDispatcher = AppDispatcher(IO = UnconfinedTestDispatcher())
@@ -41,7 +43,8 @@ class JoinSpaceViewModelTest {
             appNavigator = appNavigator,
             appDispatcher = testDispatcher,
             invitationService = invitationService,
-            spaceRepository = spaceRepository
+            spaceRepository = spaceRepository,
+            authService = authService
         )
     }
 

@@ -3,7 +3,7 @@ package com.canopas.catchme.ui.flow.home.space.create
 import androidx.lifecycle.SavedStateHandle
 import com.canopas.catchme.ui.navigation.AppDestinations
 import com.canopas.catchme.ui.navigation.AppDestinations.SpaceInvitation.KEY_INVITE_CODE
-import com.canopas.catchme.ui.navigation.HomeNavigator
+import com.canopas.catchme.ui.navigation.AppNavigator
 import org.junit.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -12,7 +12,7 @@ import org.mockito.kotlin.whenever
 class SpaceInviteCodeViewModelTest {
 
     private val savedStateHandle = mock<SavedStateHandle>()
-    private val appNavigator = mock<HomeNavigator>()
+    private val appNavigator = mock<AppNavigator>()
 
     @Test
     fun `popBackStack should call navigateBack on appNavigator`() {

@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.canopas.catchme.data.storage.UserPreferences
 import com.canopas.catchme.ui.navigation.AppDestinations
-import com.canopas.catchme.ui.navigation.MainNavigator
+import com.canopas.catchme.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -12,7 +12,7 @@ import javax.inject.Inject
 @HiltViewModel
 class IntroViewModel @Inject constructor(
     private val userPreferences: UserPreferences,
-    private val navigator: MainNavigator
+    private val navigator: AppNavigator
 ) : ViewModel() {
 
     init {

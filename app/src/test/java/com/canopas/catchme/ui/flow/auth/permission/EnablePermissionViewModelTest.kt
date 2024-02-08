@@ -1,14 +1,14 @@
 package com.canopas.catchme.ui.flow.auth.permission
 
 import com.canopas.catchme.ui.flow.permission.EnablePermissionViewModel
-import com.canopas.catchme.ui.navigation.HomeNavigator
+import com.canopas.catchme.ui.navigation.AppNavigator
 import org.junit.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 
 class EnablePermissionViewModelTest {
 
-    private val appNavigator = mock<HomeNavigator>()
+    private val appNavigator = mock<AppNavigator>()
 
     private val viewModel = EnablePermissionViewModel(appNavigator)
 

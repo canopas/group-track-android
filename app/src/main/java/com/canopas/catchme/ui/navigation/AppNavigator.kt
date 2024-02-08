@@ -15,12 +15,7 @@ const val RESULT_OKAY = 1
 const val RESULT_CANCEL = 0
 
 @Singleton
-class HomeNavigator @Inject constructor() : AppNavigator()
-
-@Singleton
-class MainNavigator @Inject constructor() : AppNavigator()
-
-abstract class AppNavigator {
+class AppNavigator @Inject constructor() {
 
     private val _navigationChannel =
         MutableSharedFlow<NavAction>(extraBufferCapacity = 1)

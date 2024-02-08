@@ -9,8 +9,7 @@ import com.canopas.catchme.data.service.location.LocationManager
 import com.canopas.catchme.data.storage.UserPreferences
 import com.canopas.catchme.data.utils.AppDispatcher
 import com.canopas.catchme.ui.navigation.AppDestinations
-import com.canopas.catchme.ui.navigation.HomeNavigator
-import com.canopas.catchme.ui.navigation.MainNavigator
+import com.canopas.catchme.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,8 +20,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeScreenViewModel @Inject constructor(
-    private val navigator: HomeNavigator,
-    private val mainNavigator: MainNavigator,
+    private val navigator: AppNavigator,
     private val locationManager: LocationManager,
     private val spaceRepository: SpaceRepository,
     private val userPreferences: UserPreferences,
@@ -44,7 +42,7 @@ class HomeScreenViewModel @Inject constructor(
         val user = authService.getUser()
         if (user == null) {
             authService.signOut()
-            mainNavigator.navigateTo(
+            navigator.navigateTo(
                 AppDestinations.signIn.path,
                 AppDestinations.home.path,
                 true

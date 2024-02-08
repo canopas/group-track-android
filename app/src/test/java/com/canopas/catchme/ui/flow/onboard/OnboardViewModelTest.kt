@@ -9,7 +9,7 @@ import com.canopas.catchme.data.service.auth.AuthService
 import com.canopas.catchme.data.service.space.SpaceInvitationService
 import com.canopas.catchme.data.storage.UserPreferences
 import com.canopas.catchme.data.utils.AppDispatcher
-import com.canopas.catchme.ui.navigation.MainNavigator
+import com.canopas.catchme.ui.navigation.AppNavigator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -36,7 +36,7 @@ class OnboardViewModelTest {
     private val userService = mock<AuthService>()
     private val userPreferences = mock<UserPreferences>()
     private val spaceRepository = mock<SpaceRepository>()
-    private val navigator = mock<MainNavigator>()
+    private val navigator = mock<AppNavigator>()
     private val invitationService = mock<SpaceInvitationService>()
 
     private val testDispatcher = AppDispatcher(IO = UnconfinedTestDispatcher())

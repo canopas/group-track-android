@@ -2,7 +2,7 @@ package com.canopas.catchme.ui.flow.intro
 
 import com.canopas.catchme.MainCoroutineRule
 import com.canopas.catchme.data.storage.UserPreferences
-import com.canopas.catchme.ui.navigation.MainNavigator
+import com.canopas.catchme.ui.navigation.AppNavigator
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
@@ -20,7 +20,7 @@ class IntroViewModelTest {
     private lateinit var viewModel: IntroViewModel
 
     private val userPreferences = mock<UserPreferences>()
-    private val navigator = mock<MainNavigator>()
+    private val navigator = mock<AppNavigator>()
 
     @Test
     fun `should navigate to sign-in screen if intro is shown and current user is null`() = runTest {

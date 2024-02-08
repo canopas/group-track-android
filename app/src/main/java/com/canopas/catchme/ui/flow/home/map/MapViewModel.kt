@@ -9,7 +9,7 @@ import com.canopas.catchme.data.service.location.LocationManager
 import com.canopas.catchme.data.storage.UserPreferences
 import com.canopas.catchme.data.utils.AppDispatcher
 import com.canopas.catchme.ui.navigation.AppDestinations
-import com.canopas.catchme.ui.navigation.HomeNavigator
+import com.canopas.catchme.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,7 +26,7 @@ class MapViewModel @Inject constructor(
     private val userPreferences: UserPreferences,
     private val locationManager: LocationManager,
     private val appDispatcher: AppDispatcher,
-    private val navigator: HomeNavigator
+    private val navigator: AppNavigator
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(MapScreenState())
