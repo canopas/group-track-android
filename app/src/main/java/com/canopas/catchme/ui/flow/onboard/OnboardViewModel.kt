@@ -103,7 +103,7 @@ class OnboardViewModel @Inject constructor(
             )
         } catch (e: Exception) {
             Timber.e(e, "Unable to create space")
-            _state.emit(_state.value.copy(error = e.localizedMessage))
+            _state.emit(_state.value.copy(creatingSpace = false, error = e.localizedMessage))
         }
     }
 

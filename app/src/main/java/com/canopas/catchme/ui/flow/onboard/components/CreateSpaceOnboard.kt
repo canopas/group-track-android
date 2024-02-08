@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.catchme.R
+import com.canopas.catchme.ui.component.AppBanner
 import com.canopas.catchme.ui.component.CreateSpace
 import com.canopas.catchme.ui.flow.onboard.OnboardItems
 import com.canopas.catchme.ui.flow.onboard.OnboardViewModel
@@ -69,6 +70,12 @@ fun CreateSpaceOnboard() {
             onSpaceNameChanged = { spaceName = it }
         ) {
             viewModel.createSpace(spaceName)
+        }
+    }
+
+    if (state.error != null) {
+        AppBanner(msg = state.error!!) {
+            viewModel.resetErrorState()
         }
     }
 }

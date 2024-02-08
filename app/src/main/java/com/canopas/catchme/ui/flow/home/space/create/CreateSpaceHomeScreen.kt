@@ -14,6 +14,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.canopas.catchme.ui.component.AppBanner
 import com.canopas.catchme.ui.component.CreateSpace
 import com.canopas.catchme.ui.theme.AppTheme
 
@@ -22,6 +23,13 @@ import com.canopas.catchme.ui.theme.AppTheme
 fun CreateSpaceHomeScreen() {
     val viewModel = hiltViewModel<CreateSpaceHomeViewModel>()
     val state by viewModel.state.collectAsState()
+
+    if (state.error != null) {
+        AppBanner(msg = state.error!!) {
+            viewModel.resetErrorState()
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(

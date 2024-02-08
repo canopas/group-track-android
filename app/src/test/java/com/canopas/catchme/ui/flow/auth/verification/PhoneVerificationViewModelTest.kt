@@ -24,7 +24,6 @@ import org.junit.Test
 import org.mockito.kotlin.clearInvocations
 import org.mockito.kotlin.doSuspendableAnswer
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
@@ -126,11 +125,12 @@ class PhoneVerificationViewModelTest {
                 "12356"
             )
         ).thenReturn("firebaseIdToken")
+        whenever(firebaseAuth.currentUserUid).thenReturn("uid")
 
         viewModel.updateOTP("12356")
         viewModel.verifyOTP()
 
-        verify(authService).verifiedPhoneLogin("firebaseIdToken", "1234567890")
+        verify(authService).verifiedPhoneLogin("uid", "firebaseIdToken", "1234567890")
     }
 
     @Test
@@ -141,7 +141,10 @@ class PhoneVerificationViewModelTest {
                 "12356"
             )
         ).thenReturn("firebaseIdToken")
-        whenever(authService.verifiedPhoneLogin("firebaseIdToken", "1234567890")).thenReturn(false)
+        whenever(firebaseAuth.currentUserUid).thenReturn("uid")
+        whenever(authService.verifiedPhoneLogin("uid", "firebaseIdToken", "1234567890")).thenReturn(
+            false
+        )
 
         viewModel.updateOTP("12356")
         viewModel.verifyOTP()
@@ -189,7 +192,8 @@ class PhoneVerificationViewModelTest {
         val credential = mock<PhoneAuthCredential>()
         whenever(firebaseAuth.verifyPhoneNumber(context, "1234567890"))
             .thenReturn(flowOf(PhoneAuthState.VerificationCompleted(credential)))
-        whenever(authService.verifiedPhoneLogin("firebaseIdToken", "1234567890")).thenReturn(false)
+        whenever(firebaseAuth.currentUserUid).thenReturn("uid")
+        whenever(authService.verifiedPhoneLogin("uid", "firebaseIdToken", "1234567890")).thenReturn(false)
 
         whenever(firebaseAuth.signInWithPhoneAuthCredential(credential)).thenReturn("firebaseIdToken")
         viewModel.resendCode(context)
@@ -205,11 +209,12 @@ class PhoneVerificationViewModelTest {
         val credential = mock<PhoneAuthCredential>()
         whenever(firebaseAuth.verifyPhoneNumber(context, "1234567890"))
             .thenReturn(flowOf(PhoneAuthState.VerificationCompleted(credential)))
+        whenever(firebaseAuth.currentUserUid).thenReturn("uid")
         whenever(firebaseAuth.signInWithPhoneAuthCredential(credential)).thenReturn("firebaseIdToken")
-        whenever(authService.verifiedPhoneLogin("firebaseIdToken", "1234567890")).thenReturn(true)
+        whenever(authService.verifiedPhoneLogin("uid", "firebaseIdToken", "1234567890")).thenReturn(true)
 
         viewModel.resendCode(context)
-        verify(authService).verifiedPhoneLogin("firebaseIdToken", "1234567890")
+        verify(authService).verifiedPhoneLogin("uid", "firebaseIdToken", "1234567890")
     }
 
     @Test

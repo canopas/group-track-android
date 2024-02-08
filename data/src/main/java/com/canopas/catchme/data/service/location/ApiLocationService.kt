@@ -11,9 +11,28 @@ import javax.inject.Singleton
 
 @Singleton
 class ApiLocationService @Inject constructor(
-    private val db: FirebaseFirestore
+    db: FirebaseFirestore,
+    private val locationManager: LocationManager
 ) {
-    private val locationRef = db.collection(FirestoreConst.FIRESTORE_COLLECTION_USER_LOCATIONS)
+    private val userRef = db.collection(FirestoreConst.FIRESTORE_COLLECTION_USERS)
+    private fun locationRef(userId: String) = userRef.document(userId).collection(FirestoreConst.FIRESTORE_COLLECTION_USER_LOCATIONS)
+
+    suspend fun saveLastKnownLocation(
+        userId: String
+    ) {
+        val lastLocation = locationManager.getLastLocation() ?: return
+        val docRef = locationRef(userId).document()
+
+        val location = ApiLocation(
+            id = docRef.id,
+            user_id = userId,
+            latitude = lastLocation.latitude,
+            longitude = lastLocation.longitude,
+            created_at = System.currentTimeMillis()
+        )
+
+        docRef.set(location).await()
+    }
 
     suspend fun saveCurrentLocation(
         userId: String,
@@ -21,7 +40,7 @@ class ApiLocationService @Inject constructor(
         longitude: Double,
         recordedAt: Long
     ) {
-        val docRef = locationRef.document()
+        val docRef = locationRef(userId).document()
 
         val location = ApiLocation(
             id = docRef.id,
@@ -31,22 +50,22 @@ class ApiLocationService @Inject constructor(
             created_at = recordedAt
         )
 
-        locationRef.document(location.id).set(location).await()
+        docRef.set(location).await()
     }
 
     suspend fun getCurrentLocation(userId: String) =
-        locationRef.whereEqualTo("user_id", userId)
+        locationRef(userId).whereEqualTo("user_id", userId)
             .orderBy("created_at", Query.Direction.DESCENDING).limit(1)
             .snapshotFlow(ApiLocation::class.java)
 
     fun getLocationHistoryQuery(userId: String, from: Long, to: Long) =
-        locationRef.whereEqualTo("user_id", userId)
+        locationRef(userId).whereEqualTo("user_id", userId)
             .whereGreaterThanOrEqualTo("created_at", from)
             .whereLessThan("created_at", to)
             .orderBy("created_at", Query.Direction.DESCENDING).limit(8)
 
     suspend fun deleteLocations(userId: String) {
-        locationRef.whereEqualTo("user_id", userId).get().await().documents.forEach {
+        locationRef(userId).whereEqualTo("user_id", userId).get().await().documents.forEach {
             it.reference.delete().await()
         }
     }

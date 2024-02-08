@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.callbackFlow
 fun <T> Query.snapshotFlow(dataType: Class<T>): Flow<List<T>> = callbackFlow {
     val listenerRegistration = addSnapshotListener { value, error ->
         if (error != null) {
+            trySend(emptyList())
             close()
             return@addSnapshotListener
         }

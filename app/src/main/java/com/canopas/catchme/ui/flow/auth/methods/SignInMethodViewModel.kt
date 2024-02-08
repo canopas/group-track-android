@@ -37,7 +37,11 @@ class SignInMethodViewModel @Inject constructor(
             _state.emit(_state.value.copy(showGoogleLoading = true))
             try {
                 val firebaseToken = firebaseAuth.signInWithGoogleAuthCredential(account.idToken)
-                val isNewUSer = authService.verifiedGoogleLogin(firebaseToken, account)
+                val isNewUSer = authService.verifiedGoogleLogin(
+                    firebaseAuth.currentUserUid,
+                    firebaseToken,
+                    account
+                )
                 onSignUp(isNewUSer)
                 _state.emit(_state.value.copy(showGoogleLoading = false))
             } catch (e: Exception) {

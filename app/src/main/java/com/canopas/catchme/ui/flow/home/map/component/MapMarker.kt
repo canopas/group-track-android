@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -40,6 +39,7 @@ fun MapMarker(
         keys = arrayOf(user.id, isSelected),
         state = markerState,
         title = user.fullName,
+        zIndex = if (isSelected) 1f else 0f,
         anchor = Offset(0.0f, 1f),
         onClick = {
             onClick()
