@@ -57,6 +57,7 @@ class HomeScreenViewModelTest {
     private lateinit var viewModel: HomeScreenViewModel
 
     private fun setUp() {
+        whenever(userPreferences.currentUser).thenReturn(user1)
         viewModel = HomeScreenViewModel(
             navigator = navigator,
             locationManager = locationManager,
