@@ -15,32 +15,6 @@ class IntroViewModel @Inject constructor(
     private val navigator: AppNavigator
 ) : ViewModel() {
 
-    init {
-        viewModelScope.launch {
-            if (userPreferences.isIntroShown()) {
-                if (userPreferences.currentUser == null) {
-                    navigator.navigateTo(
-                        AppDestinations.signIn.path,
-                        popUpToRoute = AppDestinations.intro.path,
-                        inclusive = true
-                    )
-                } else if (!userPreferences.isOnboardShown()) {
-                    navigator.navigateTo(
-                        AppDestinations.onboard.path,
-                        popUpToRoute = AppDestinations.intro.path,
-                        inclusive = true
-                    )
-                } else {
-                    navigator.navigateTo(
-                        AppDestinations.home.path,
-                        popUpToRoute = AppDestinations.intro.path,
-                        inclusive = true
-                    )
-                }
-            }
-        }
-    }
-
     fun completedIntro() = viewModelScope.launch {
         userPreferences.setIntroShown(true)
         navigator.navigateTo(

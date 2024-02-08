@@ -34,8 +34,10 @@ class HomeScreenViewModel @Inject constructor(
     val state: StateFlow<HomeScreenState> = _state
 
     init {
-        updateUser()
-        getAllSpaces()
+        if (userPreferences.currentUser != null) {
+            updateUser()
+            getAllSpaces()
+        }
     }
 
     private fun updateUser() = viewModelScope.launch(appDispatcher.IO) {
