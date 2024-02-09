@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -186,7 +187,7 @@ fun MapScreenContent(modifier: Modifier) {
                 LazyRow(
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
-                        .padding(bottom = 10.dp)
+                        .padding(bottom = 10.dp).widthIn(max = 600.dp)
                         .fillMaxWidth()
                         .shadow(10.dp, shape = RoundedCornerShape(6.dp))
                         .background(AppTheme.colorScheme.surface, shape = RoundedCornerShape(6.dp))
