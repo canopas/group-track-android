@@ -46,6 +46,6 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: CatchMe APK
-          path: CatchMe*.apk
+          name: YourSpace APK
+          path: YourSpace*.apk
           retention-days: 2
