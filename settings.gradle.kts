@@ -13,6 +13,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "CatchMe"
+rootProject.name = "YourSpace"
 include(":app")
 include(":data")

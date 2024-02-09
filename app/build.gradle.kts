@@ -14,7 +14,7 @@ var versionMinor = 0
 var versionBuild = 0
 
 android {
-    namespace = "com.canopas.catchme"
+    namespace = "com.canopas.yourspace"
     compileSdk = 34
 
     if (System.getenv("CI_RUN_NUMBER") != null) {
@@ -26,12 +26,12 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.canopas.catchme"
+        applicationId = "com.canopas.yourspace"
         minSdk = 21
         targetSdk = 34
         versionCode = versionMajor * 1000000 + versionMinor * 10000 + versionBuild
         versionName = "$versionMajor.$versionMinor.$versionBuild"
-        setProperty("archivesBaseName", "CatchMe-$versionName-$versionCode")
+        setProperty("archivesBaseName", "YourSpace-$versionName-$versionCode")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -57,17 +57,17 @@ android {
             }
         } else {
             create("release") {
-                keyAlias = "catchme"
-                keyPassword = "catchme"
+                keyAlias = "yourspace"
+                keyPassword = "yourspace"
                 storeFile = file("debug.keystore")
-                storePassword = "catchme"
+                storePassword = "yourspace"
             }
         }
         getByName("debug") {
-            keyAlias = "catchme"
-            keyPassword = "catchme"
+            keyAlias = "yourspace"
+            keyPassword = "yourspace"
             storeFile = file("debug.keystore")
-            storePassword = "catchme"
+            storePassword = "yourspace"
         }
     }
 

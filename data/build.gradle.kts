@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.canopas.catchme.data"
+    namespace = "com.canopas.yourspace.data"
     compileSdk = 34
 
     defaultConfig {
