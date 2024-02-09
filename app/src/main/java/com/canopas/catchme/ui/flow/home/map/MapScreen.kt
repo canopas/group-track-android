@@ -148,26 +148,14 @@ fun MapScreenContent(modifier: Modifier) {
         }
     }
 
-    LaunchedEffect(userLocation, state.selectedUser) {
-        if (state.selectedUser != null) {
-            val location = state.selectedUser?.location
-            if (location != null) {
-                val latLng = LatLng(location.latitude, location.longitude)
-                cameraPositionState.animate(
-                    CameraUpdateFactory.newLatLngZoom(
-                        latLng,
-                        DEFAULT_CAMERA_ZOOM_FOR_SELECTED_USER
-                    )
-                )
-            }
-        } else {
-            cameraPositionState.animate(
-                CameraUpdateFactory.newLatLngZoom(
-                    userLocation,
-                    DEFAULT_CAMERA_ZOOM
-                )
+    LaunchedEffect(userLocation) {
+        val location = state.selectedUser?.location
+        cameraPositionState.animate(
+            CameraUpdateFactory.newLatLngZoom(
+                userLocation,
+                if (location != null) DEFAULT_CAMERA_ZOOM_FOR_SELECTED_USER else DEFAULT_CAMERA_ZOOM
             )
-        }
+        )
     }
 
     Box(modifier = modifier.fillMaxSize()) {
