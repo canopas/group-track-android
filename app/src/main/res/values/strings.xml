@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">CatchMe</string>
+    <string name="app_name">YourSpace</string>
     <string name="common_btn_next">Next</string>
     <string name="common_btn_continue">Continue</string>
     <string name="common_label_or">Or</string>
@@ -57,27 +57,27 @@
     <string name="onboard_join_space_subtitle">Here\'s presenting those eagerly waiting:</string>
     <string name="onboard_space_invalid_invite_code">It appears the code is no longer valid or has expired. Please review and enter a valid code.</string>
     <string name="enable_permission_title">Enable Permissions</string>
-    <string name="enable_permission_subtitle">For an effective user experience on CatchMe, it\'s necessary to enable these permissions.</string>
+    <string name="enable_permission_subtitle">For an effective user experience on YourSpace, it\'s necessary to enable these permissions.</string>
     <string name="enable_permission_footer">We prioritize the security of your information and want to assure you that we do not share your data with any third-party entities.</string>
 
     <string name="enable_permission_location_access_title">Location access</string>
     <string name="enable_permission_location_access_desc">For seamless sharing of your live location with a trusted contact requires permission for location access.</string>
 
     <string name="enable_permission_background_location_access_title">Background Location access</string>
-    <string name="enable_permission_background_location_access_desc">Granting background location permission allows you to effortlessly stay connected with trusted ones, ensuring seamless coordination and peace of mind in knowing their whereabouts.\n\nGo to settings > CatchMe app info > Location permission > select <b>"Allow all the time"</b></string>
+    <string name="enable_permission_background_location_access_desc">Granting background location permission allows you to effortlessly stay connected with trusted ones, ensuring seamless coordination and peace of mind in knowing their whereabouts.\n\nGo to settings > YourSpace app info > Location permission > select <b>"Allow all the time"</b></string>
 
     <string name="enable_permission_notification_access_title">Notification access</string>
     <string name="enable_permission_notification_access_desc">Stay connected and receive timely updates by enabling notification permission for check-ins, alerts, and messages from your trusted one.</string>
     <string name="enable_permission_btn_enable">Enable permission</string>
-    <string name="enable_permission_rational_msg">To receive timely updates, check-ins, and alerts from CatchMe, grant notification access. We respect your privacy and will only use notifications to enhance your experience. Enable now for seamless communication!</string>
+    <string name="enable_permission_rational_msg">To receive timely updates, check-ins, and alerts from YourSpace, grant notification access. We respect your privacy and will only use notifications to enhance your experience. Enable now for seamless communication!</string>
     <string name="enable_permission_rational_title">Enable Notification Access</string>
     <string name="home_tab_label_home">Home</string>
     <string name="home_tab_label_activities">Activities</string>
     <string name="home_tab_label_places">Places</string>
     <string name="common_background_access_permission_title">Background Location Access Required</string>
-    <string name="common_background_access_permission_message">CatchMe\'s location-sharing feature works correctly when it can access your location all the time. This ensures it gives you accurate, real-time updates.</string>
+    <string name="common_background_access_permission_message">YourSpace\'s location-sharing feature works correctly when it can access your location all the time. This ensures it gives you accurate, real-time updates.</string>
     <string name="common_background_access_permission_steps">Go to settings > select <b>"Allow all the time"</b></string>
-    <string name="common_background_access_permission_rational_steps">Go to settings > CatchMe app info > Location permission > select <b>"Allow all the time"</b></string>
+    <string name="common_background_access_permission_rational_steps">Go to settings > YourSpace app info > Location permission > select <b>"Allow all the time"</b></string>
     <string name="common_background_access_permission_btn">Go to Settings</string>
     <string name="home_space_selection_menu_default_text">Select a space</string>
     <string name="home_space_selection_space_item_subtitle_members">By %s • %s members</string>
@@ -98,7 +98,7 @@
     <string name="member_detail_location_history">Location History</string>
     <string name="member_detail_empty_location_history">No Location History Found!</string>
     <string name="home_permission_footer_title">Stay closed to your loved one</string>
-    <string name="home_permission_footer_subtitle">Allow CatchMe to access your location data.</string>
+    <string name="home_permission_footer_subtitle">Allow YourSpace to access your location data.</string>
     <string name="home_permission_footer_missing_location_permission_title">Location sharing is currently not possible</string>
     <string name="home_permission_footer_missing_location_permission_subtitle">Some permissions are missing - grant access</string>
     <string name="settings_title">Settings</string>
@@ -113,7 +113,7 @@
 
     <string name="setting_delete_account_dialogue_title_text">Sorry to see you go!</string>
     <string name="setting_delete_account_dialogue_confirm_btn_text">Delete Account</string>
-    <string name="setting_delete_account_dialogue_message_text">Deleting your account is permanent and you will lose all your CatchMe data. Are you sure you want to delete your account permanently?</string>
+    <string name="setting_delete_account_dialogue_message_text">Deleting your account is permanent and you will lose all your data. Are you sure you want to delete your account permanently?</string>
 
     <string-array name="home_create_space_name_suggestion">
         <item>Family</item>
