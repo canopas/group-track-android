@@ -3,13 +3,14 @@ package com.canopas.catchme.ui.flow.home.map
 import android.location.Location
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.canopas.catchme.data.models.location.toLocation
 import com.canopas.catchme.data.models.user.UserInfo
 import com.canopas.catchme.data.repository.SpaceRepository
 import com.canopas.catchme.data.service.location.LocationManager
 import com.canopas.catchme.data.storage.UserPreferences
 import com.canopas.catchme.data.utils.AppDispatcher
 import com.canopas.catchme.ui.navigation.AppDestinations
-import com.canopas.catchme.ui.navigation.HomeNavigator
+import com.canopas.catchme.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,7 +27,7 @@ class MapViewModel @Inject constructor(
     private val userPreferences: UserPreferences,
     private val locationManager: LocationManager,
     private val appDispatcher: AppDispatcher,
-    private val navigator: HomeNavigator
+    private val navigator: AppNavigator
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(MapScreenState())
@@ -50,11 +51,9 @@ class MapViewModel @Inject constructor(
     private fun listenMemberLocation() {
         locationJob = viewModelScope.launch(appDispatcher.IO) {
             spaceRepository.getMemberWithLocation().collectLatest {
-                val currentLocation = locationManager.getLastLocation()
                 _state.emit(
                     _state.value.copy(
-                        members = it,
-                        defaultCameraPosition = currentLocation
+                        members = it
                     )
                 )
             }
@@ -66,7 +65,14 @@ class MapViewModel @Inject constructor(
         if (selectedUser != null && selectedUser.user.id == userInfo.user.id) {
             dismissMemberDetail()
         } else {
-            _state.emit(_state.value.copy(selectedUser = userInfo, showUserDetails = true))
+            val selectedLocation = userInfo.location?.toLocation()
+            _state.emit(
+                _state.value.copy(
+                    selectedUser = userInfo,
+                    defaultCameraPosition = selectedLocation,
+                    showUserDetails = true
+                )
+            )
         }
     }
 

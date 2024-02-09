@@ -5,7 +5,7 @@ import com.canopas.catchme.data.service.auth.AuthService
 import com.canopas.catchme.data.service.auth.FirebaseAuthService
 import com.canopas.catchme.data.storage.UserPreferences
 import com.canopas.catchme.data.utils.AppDispatcher
-import com.canopas.catchme.ui.navigation.MainNavigator
+import com.canopas.catchme.ui.navigation.AppNavigator
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -30,7 +30,7 @@ class SignInMethodViewModelTest {
 
     private lateinit var viewModel: SignInMethodViewModel
 
-    private val navigator = mock<MainNavigator>()
+    private val navigator = mock<AppNavigator>()
     private val firebaseAuth = mock<FirebaseAuthService>()
     private val authService = mock<AuthService>()
     private val userPreferences = mock<UserPreferences>()

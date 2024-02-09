@@ -13,8 +13,7 @@ import com.canopas.catchme.data.utils.AppDispatcher
 import com.canopas.catchme.ui.flow.home.home.HomeViewModelTestData.space_info1
 import com.canopas.catchme.ui.flow.home.home.HomeViewModelTestData.space_info2
 import com.canopas.catchme.ui.flow.home.home.HomeViewModelTestData.user1
-import com.canopas.catchme.ui.navigation.HomeNavigator
-import com.canopas.catchme.ui.navigation.MainNavigator
+import com.canopas.catchme.ui.navigation.AppNavigator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -47,8 +46,7 @@ class HomeScreenViewModelTest {
     @get:Rule
     val coroutineRule = MainCoroutineRule()
 
-    private val navigator = mock<HomeNavigator>()
-    private val mainNavigator = mock<MainNavigator>()
+    private val navigator = mock<AppNavigator>()
     private val locationManager = mock<LocationManager>()
     private val spaceRepository = mock<SpaceRepository>()
     private val userPreferences = mock<UserPreferences>()
@@ -59,9 +57,9 @@ class HomeScreenViewModelTest {
     private lateinit var viewModel: HomeScreenViewModel
 
     private fun setUp() {
+        whenever(userPreferences.currentUser).thenReturn(user1)
         viewModel = HomeScreenViewModel(
             navigator = navigator,
-            mainNavigator = mainNavigator,
             locationManager = locationManager,
             spaceRepository = spaceRepository,
             userPreferences = userPreferences,

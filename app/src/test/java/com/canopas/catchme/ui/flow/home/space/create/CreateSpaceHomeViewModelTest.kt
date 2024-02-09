@@ -3,7 +3,7 @@ package com.canopas.catchme.ui.flow.home.space.create
 import com.canopas.catchme.MainCoroutineRule
 import com.canopas.catchme.data.repository.SpaceRepository
 import com.canopas.catchme.data.utils.AppDispatcher
-import com.canopas.catchme.ui.navigation.HomeNavigator
+import com.canopas.catchme.ui.navigation.AppNavigator
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -21,7 +21,7 @@ class CreateSpaceHomeViewModelTest {
 
     private val spaceRepository = mock<SpaceRepository>()
     private val testDispatcher = AppDispatcher(IO = UnconfinedTestDispatcher())
-    private val appNavigator = mock<HomeNavigator>()
+    private val appNavigator = mock<AppNavigator>()
 
     private lateinit var viewModel: CreateSpaceHomeViewModel
 

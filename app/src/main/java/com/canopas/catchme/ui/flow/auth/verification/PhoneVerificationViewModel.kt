@@ -12,8 +12,8 @@ import com.canopas.catchme.ui.flow.auth.phone.EXTRA_RESULT_IS_NEW_USER
 import com.canopas.catchme.ui.navigation.AppDestinations
 import com.canopas.catchme.ui.navigation.AppDestinations.OtpVerificationNavigation.KEY_PHONE_NO
 import com.canopas.catchme.ui.navigation.AppDestinations.OtpVerificationNavigation.KEY_VERIFICATION_ID
+import com.canopas.catchme.ui.navigation.AppNavigator
 import com.canopas.catchme.ui.navigation.KEY_RESULT
-import com.canopas.catchme.ui.navigation.MainNavigator
 import com.canopas.catchme.ui.navigation.RESULT_OKAY
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,7 +25,7 @@ import javax.inject.Inject
 @HiltViewModel
 class PhoneVerificationViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val appNavigator: MainNavigator,
+    private val appNavigator: AppNavigator,
     private val firebaseAuth: FirebaseAuthService,
     private val authService: AuthService,
     private val dispatcher: AppDispatcher

@@ -11,3 +11,8 @@ data class ApiLocation(
     val longitude: Double = 0.0,
     val created_at: Long? = System.currentTimeMillis()
 )
+
+fun ApiLocation.toLocation() = android.location.Location("").apply {
+    latitude = this@toLocation.latitude
+    longitude = this@toLocation.longitude
+}
