@@ -20,7 +20,7 @@ import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
 
-const val PREF_USER_PREFERENCES = "catch_me_user_preferences"
+const val PREF_USER_PREFERENCES = "your_space_user_preferences"
 
 @Singleton
 class UserPreferences @Inject constructor(

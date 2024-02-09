@@ -32,13 +32,13 @@ class MainViewModel @Inject constructor(
                         popUpToRoute = AppDestinations.intro.path,
                         inclusive = true
                     )
-                } else {
-                    navigator.navigateTo(
-                        AppDestinations.home.path,
-                        popUpToRoute = AppDestinations.intro.path,
-                        inclusive = true
-                    )
                 }
+            } else {
+                navigator.navigateTo(
+                    AppDestinations.intro.path,
+                    popUpToRoute = AppDestinations.home.path,
+                    inclusive = true
+                )
             }
         }
     }
