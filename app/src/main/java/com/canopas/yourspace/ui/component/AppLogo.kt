@@ -18,7 +18,7 @@ import com.canopas.yourspace.ui.theme.KalamBoldFont
 @Composable
 fun AppLogo(colorTint: Color = colorScheme.primary) {
     Icon(
-        painter = painterResource(id = R.drawable.app_logo_white_outlined),
+        painter = painterResource(id = R.drawable.app_logo),
         contentDescription = "app_log",
         modifier = Modifier.size(50.dp),
         tint = colorTint
