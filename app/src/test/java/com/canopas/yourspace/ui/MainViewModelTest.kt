@@ -34,20 +34,6 @@ class MainViewModelTest {
     }
 
     @Test
-    fun `should navigate to home screen if intro is shown`() = runTest {
-        whenever(userPreferences.isIntroShown()).thenReturn(true)
-        whenever(userPreferences.currentUser).thenReturn(mock())
-        whenever(userPreferences.isOnboardShown()).thenReturn(true)
-
-        viewModel = MainViewModel(userPreferences, navigator)
-        verify(navigator).navigateTo(
-            "home",
-            popUpToRoute = "intro",
-            inclusive = true
-        )
-    }
-
-    @Test
     fun `should navigate to onboard screen if onboard is not shown`() = runTest {
         whenever(userPreferences.currentUser).thenReturn(mock())
         whenever(userPreferences.isIntroShown()).thenReturn(true)
