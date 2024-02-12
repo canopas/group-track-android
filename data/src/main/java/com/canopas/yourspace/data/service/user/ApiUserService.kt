@@ -5,9 +5,9 @@ import com.canopas.yourspace.data.models.user.ApiUserSession
 import com.canopas.yourspace.data.models.user.LOGIN_TYPE_GOOGLE
 import com.canopas.yourspace.data.models.user.LOGIN_TYPE_PHONE
 import com.canopas.yourspace.data.service.location.ApiLocationService
+import com.canopas.yourspace.data.utils.Config
+import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_USERS
 import com.canopas.yourspace.data.utils.Device
-import com.canopas.yourspace.data.utils.FirestoreConst
-import com.canopas.yourspace.data.utils.FirestoreConst.FIRESTORE_COLLECTION_USERS
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -23,7 +23,7 @@ class ApiUserService @Inject constructor(
 ) {
     private val userRef = db.collection(FIRESTORE_COLLECTION_USERS)
     private fun sessionRef(userId: String) =
-        userRef.document(userId).collection(FirestoreConst.FIRESTORE_COLLECTION_USER_SESSIONS)
+        userRef.document(userId).collection(Config.FIRESTORE_COLLECTION_USER_SESSIONS)
 
     suspend fun getUser(userId: String): ApiUser? {
         return userRef.document(userId).get().await().toObject(ApiUser::class.java)

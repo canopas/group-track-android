@@ -2,6 +2,7 @@ package com.canopas.yourspace.ui.flow.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.canopas.yourspace.data.models.space.ApiSpace
 import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
@@ -12,6 +13,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,7 +29,10 @@ class SettingsViewModel @Inject constructor(
 
     init {
         getUser()
+        getCurrentSpace()
     }
+
+
 
     private fun getUser() = viewModelScope.launch(appDispatcher.IO) {
         val user = authService.currentUser
@@ -40,6 +45,16 @@ class SettingsViewModel @Inject constructor(
             }
         }
     }
+
+    private fun getCurrentSpace()= viewModelScope.launch(appDispatcher.IO) {
+        try {
+            val space = spaceRepository.getCurrentSpace()
+            _state.emit(_state.value.copy(selectedSpace = space))
+        }catch (e:Exception){
+            Timber.d(e,"Failed to get current space")
+        }
+    }
+
 
     fun popBackStack() {
         navigator.navigateBack()
@@ -79,6 +94,7 @@ class SettingsViewModel @Inject constructor(
 
 data class SettingsScreenState(
     val user: ApiUser? = null,
+    val selectedSpace: ApiSpace? = null,
     var openSignOutDialog: Boolean = false,
     var openDeleteAccountDialog: Boolean = false,
     var deletingAccount: Boolean = false,
