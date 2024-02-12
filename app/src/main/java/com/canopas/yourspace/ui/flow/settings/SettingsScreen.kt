@@ -10,8 +10,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -53,7 +55,6 @@ import com.canopas.yourspace.data.utils.Config
 import com.canopas.yourspace.ui.component.AppAlertDialog
 import com.canopas.yourspace.ui.component.motionClickEvent
 import com.canopas.yourspace.ui.theme.AppTheme
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -98,7 +99,6 @@ private fun SettingsContent(modifier: Modifier) {
             .padding(bottom = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
         Text(
             text = stringResource(id = R.string.setting_profile),
             style = AppTheme.appTypography.header3,
@@ -118,33 +118,33 @@ private fun SettingsContent(modifier: Modifier) {
             )
         }
 
-        state.selectedSpace?.let { space ->
-            SpaceSettingsContent(space)
-            Divider(
-                modifier = Modifier
-                    .padding(bottom = 16.dp)
-                    .fillMaxWidth(),
-                color = AppTheme.colorScheme.outline
-            )
-        }
+//        state.selectedSpace?.let { space ->
+//            SpaceSettingsContent(space)
+//            Divider(
+//                modifier = Modifier
+//                    .padding(bottom = 16.dp)
+//                    .fillMaxWidth(),
+//                color = AppTheme.colorScheme.outline
+//            )
+//        }
 
         OtherSettingsContent(viewModel)
-        Divider(
-            modifier = Modifier
-                .padding(bottom = 16.dp)
-                .fillMaxWidth(),
-            color = AppTheme.colorScheme.outline
-        )
+        Spacer(modifier = Modifier.height(16.dp))
+//        Divider(
+//            modifier = Modifier
+//                .padding(bottom = 16.dp)
+//                .fillMaxWidth(),
+//            color = AppTheme.colorScheme.outline
+//        )
         Text(
             text = stringResource(id = R.string.setting_app_version, BuildConfig.VERSION_NAME),
             style = AppTheme.appTypography.label3,
-            color = AppTheme.colorScheme.textSecondary,
+            color = AppTheme.colorScheme.textSecondary
         )
 
         if (state.openSignOutDialog) {
             ShowSignOutDialog(viewModel)
         }
-
     }
 }
 
@@ -169,12 +169,10 @@ private fun OtherSettingsContent(viewModel: SettingsViewModel) {
         }
     )
 
-
     SettingsItem(
         label = stringResource(id = R.string.setting_about_us),
         icon = R.drawable.ic_settings_about_us,
         onClick = {
-
         }
     )
 
@@ -212,7 +210,6 @@ private fun SpaceSettingsContent(space: ApiSpace) {
         onClick = {}
     )
 
-
     SettingsItem(
         label = stringResource(id = R.string.setting_space_management),
         icon = R.drawable.ic_settings_space_managment,
@@ -224,9 +221,7 @@ private fun SpaceSettingsContent(space: ApiSpace) {
         icon = R.drawable.ic_settings_location_sharing,
         onClick = {}
     )
-
 }
-
 
 @Composable
 private fun SettingsItem(label: String, icon: Int, onClick: () -> Unit) {
@@ -245,7 +240,7 @@ private fun SettingsItem(label: String, icon: Int, onClick: () -> Unit) {
             contentDescription = "",
             modifier = Modifier
                 .padding(end = 16.dp)
-                .size(38.dp),
+                .size(38.dp)
         )
         Text(
             text = label,
@@ -277,19 +272,6 @@ fun ShowSignOutDialog(viewModel: SettingsViewModel) {
 }
 
 @Composable
-fun ShowDeleteAccountDialog(viewModel: SettingsViewModel) {
-    AppAlertDialog(
-        title = stringResource(R.string.setting_delete_account_dialogue_title_text),
-        subTitle = stringResource(R.string.setting_delete_account_dialogue_message_text),
-        confirmBtnText = stringResource(R.string.setting_delete_account_dialogue_confirm_btn_text),
-        dismissBtnText = stringResource(R.string.common_btn_cancel),
-        onConfirmClick = { viewModel.deleteAccount() },
-        onDismissClick = { viewModel.showDeleteAccountConfirmation(false) },
-        isConfirmDestructive = true
-    )
-}
-
-@Composable
 fun ProfileView(user: ApiUser, onClick: () -> Unit) {
     val userName = user.fullName
     val profileImageUrl = user.profile_image ?: ""
@@ -301,7 +283,8 @@ fun ProfileView(user: ApiUser, onClick: () -> Unit) {
             .motionClickEvent {
                 onClick()
             }
-            .padding(vertical = 12.dp, horizontal = 16.dp)
+            .padding(horizontal = 16.dp)
+            .padding(top = 12.dp, bottom = 16.dp)
     ) {
         ProfileImageView(
             data = profileImageUrl,

@@ -5,10 +5,13 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -37,14 +40,15 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
+import com.canopas.yourspace.ui.component.AppAlertDialog
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.AppProgressIndicator
+import com.canopas.yourspace.ui.component.PrimaryTextButton
 import com.canopas.yourspace.ui.flow.settings.profile.component.UserProfileView
 import com.canopas.yourspace.ui.theme.AppTheme
 
 @Composable
 fun EditProfileScreen() {
-
     Scaffold(
         topBar = {
             EditProfileToolbar()
@@ -52,8 +56,6 @@ fun EditProfileScreen() {
     ) {
         EditProfileScreenContent(Modifier.padding(it))
     }
-
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -107,7 +109,6 @@ private fun EditProfileScreenContent(modifier: Modifier) {
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-
         Column(
             modifier
                 .fillMaxSize()
@@ -127,11 +128,72 @@ private fun EditProfileScreenContent(modifier: Modifier) {
                 },
                 state.showProfileChooser
             )
-        }
 
+            Spacer(modifier = Modifier.height(35.dp))
+
+            UserTextField(
+                label = stringResource(R.string.edit_profile_first_name_label),
+                text = state.firstName ?: "",
+                onValueChange = {
+                    viewModel.onFirstNameChanged(it.trimStart())
+                }
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            UserTextField(
+                label = stringResource(R.string.edit_profile_last_name_label),
+                text = state.lastName ?: "",
+                onValueChange = {
+                    viewModel.onLastNameChanged(it.trimStart())
+                }
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            UserTextField(
+                label = stringResource(R.string.edit_profile_email_label),
+                text = state.email ?: "",
+                enabled = state.enableEmail,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Done
+                ),
+                onValueChange = { viewModel.onEmailChanged(it.trimStart()) }
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            UserTextField(
+                label = stringResource(R.string.edit_profile_phone_label),
+                text = state.phone ?: "",
+                enabled = state.enablePhone,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Phone,
+                    imeAction = ImeAction.Done
+                ),
+                onValueChange = { viewModel.onPhoneChanged(it.trimStart()) }
+            )
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            PrimaryTextButton(
+                label = stringResource(id = R.string.settings_btn_delete_account),
+                onClick = {
+                    viewModel.showDeleteAccountConfirmation(true)
+                },
+                contentColor = AppTheme.colorScheme.alertColor,
+                showLoader = state.deletingAccount,
+                modifier = Modifier.fillMaxWidth().align(Alignment.CenterHorizontally)
+            )
+        }
 
         if (state.loading) {
             AppProgressIndicator()
+        }
+
+        if (state.showDeleteAccountConfirmation) {
+            ShowDeleteAccountDialog(viewModel)
         }
 
         if (state.error != null) {
@@ -139,10 +201,20 @@ private fun EditProfileScreenContent(modifier: Modifier) {
                 viewModel.resetErrorState()
             }
         }
-
     }
 }
 
+@Composable
+fun ShowDeleteAccountDialog(viewModel: EditProfileViewModel) {
+    AppAlertDialog(
+        title = stringResource(R.string.setting_delete_account_dialogue_title_text),
+        subTitle = stringResource(R.string.setting_delete_account_dialogue_message_text),
+        confirmBtnText = stringResource(R.string.setting_delete_account_dialogue_confirm_btn_text),
+        dismissBtnText = stringResource(R.string.common_btn_cancel),
+        onConfirmClick = { viewModel.deleteAccount() },
+        onDismissClick = { viewModel.showDeleteAccountConfirmation(false) },
+        isConfirmDestructive = true
+    )
 }
 
 @Composable
@@ -173,9 +245,9 @@ private fun UserTextField(
             style = AppTheme.appTypography.body2
         )
 
-        CustomTextField(
-            text = text,
-            onTextChange = { onValueChange(it) },
+        BasicTextField(
+            value = text,
+            onValueChange = { onValueChange(it) },
             enabled = enabled,
             maxLines = 1,
             interactionSource = interactionSource,
@@ -195,7 +267,7 @@ private fun UserTextField(
             Modifier
                 .fillMaxWidth()
                 .padding(top = 4.dp),
-           color = AppTheme.colorScheme.outline
+            color = outlineColor
         )
     }
 }

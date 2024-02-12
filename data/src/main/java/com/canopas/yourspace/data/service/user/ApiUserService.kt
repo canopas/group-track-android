@@ -8,6 +8,7 @@ import com.canopas.yourspace.data.service.location.ApiLocationService
 import com.canopas.yourspace.data.utils.Config
 import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_USERS
 import com.canopas.yourspace.data.utils.Device
+import com.canopas.yourspace.data.utils.snapshotFlow
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -28,6 +29,9 @@ class ApiUserService @Inject constructor(
     suspend fun getUser(userId: String): ApiUser? {
         return userRef.document(userId).get().await().toObject(ApiUser::class.java)
     }
+
+    suspend fun getUserFlow(userId: String) =
+        userRef.document(userId).snapshotFlow(ApiUser::class.java)
 
     suspend fun saveUser(
         uid: String?,

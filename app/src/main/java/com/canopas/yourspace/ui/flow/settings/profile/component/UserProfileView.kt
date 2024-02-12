@@ -10,6 +10,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,6 +20,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,7 +35,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -42,7 +45,9 @@ import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
 import com.canopas.yourspace.R
+import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.ui.component.motionClickEvent
+import com.canopas.yourspace.ui.flow.settings.ProfileImageView
 import com.canopas.yourspace.ui.theme.AppTheme
 import java.io.File
 import java.io.FileOutputStream
@@ -61,8 +66,7 @@ fun UserProfileView(
 
     var imageUri by remember { mutableStateOf<Uri?>(null) }
 
-    val imageCropLauncher = rememberLauncherForActivityResult(contract = CropImageContract())
-    { result ->
+    val imageCropLauncher = rememberLauncherForActivityResult(contract = CropImageContract()) { result ->
         result.uriContent?.let {
             imageUri = it
             val fileName = "IMG_${System.currentTimeMillis()}.jpg"
@@ -127,33 +131,69 @@ fun UserProfileView(
         val setProfile =
             profileUrl ?: R.drawable.ic_user_profile_placeholder
 
-            Image(
-                painter = rememberAsyncImagePainter(
-                    ImageRequest.Builder(LocalContext.current).data(data = setProfile).build()
-                ),
-                modifier = Modifier.fillMaxSize()
-                    .motionClickEvent {
-                        onProfileImageClicked()
-                    }
-                    .border(1.dp,AppTheme.colorScheme.textPrimary, CircleShape)
-                    .background(AppTheme.colorScheme.containerHigh)
-                    .padding(if (profileUrl == null) 32.dp else 0.dp),
-                contentScale = ContentScale.Crop,
-                contentDescription = "ProfileImage"
-            )
-
         Image(
-            painter = painterResource(id = R.drawable.ic_edit_user_profile),
-            contentDescription = null,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .size(32.dp)
-                .motionClickEvent { onProfileImageClicked() }
+            painter = rememberAsyncImagePainter(
+                ImageRequest.Builder(LocalContext.current).data(data = setProfile).build()
+            ),
+            modifier = Modifier.fillMaxSize()
+                .border(1.dp, AppTheme.colorScheme.textPrimary, CircleShape)
+                .background(AppTheme.colorScheme.containerHigh, CircleShape)
+                .padding(if (profileUrl == null) 32.dp else 0.dp),
+            contentScale = ContentScale.Crop,
+            contentDescription = "ProfileImage"
         )
 
+//        Image(
+//            painter = painterResource(id = R.drawable.ic_edit_user_profile),
+//            contentDescription = null,
+//            modifier = Modifier
+//                .align(Alignment.BottomEnd)
+//                .size(32.dp)
+//                .motionClickEvent { onProfileImageClicked() }
+//        )
     }
+}
 
+@Composable
+fun ProfileView(user: ApiUser, onClick: () -> Unit) {
+    val userName = user.fullName
+    val profileImageUrl = user.profile_image ?: ""
 
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .motionClickEvent {
+                onClick()
+            }
+            .padding(vertical = 12.dp, horizontal = 16.dp)
+    ) {
+        ProfileImageView(
+            data = profileImageUrl,
+            modifier = Modifier
+                .size(100.dp)
+                .border(1.dp, AppTheme.colorScheme.textDisabled, CircleShape),
+            char = user.fullName.firstOrNull().toString()
+        )
+
+        Column(
+            modifier = Modifier
+                .padding(start = 16.dp)
+                .weight(1f)
+        ) {
+            Text(
+                text = userName ?: "",
+                style = AppTheme.appTypography.subTitle2,
+                color = AppTheme.colorScheme.textPrimary
+            )
+        }
+        Icon(
+            Icons.Default.KeyboardArrowRight,
+            contentDescription = "Consulting Image",
+            modifier = Modifier.padding(horizontal = 8.dp),
+            tint = AppTheme.colorScheme.textSecondary
+        )
+    }
 }
 
 @Composable

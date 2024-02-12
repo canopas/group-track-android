@@ -27,8 +27,6 @@ data class ApiUser(
 
     @get:Exclude
     val firstChar: String get() = fullName.trim().firstOrNull()?.toString() ?: "?"
-
-
 }
 
 @Keep

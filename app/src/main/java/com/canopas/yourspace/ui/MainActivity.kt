@@ -122,8 +122,8 @@ fun MainApp() {
         slideComposable(AppDestinations.settings.path) {
             SettingsScreen()
         }
-        
-        slideComposable(AppDestinations.editProfile.path){
+
+        slideComposable(AppDestinations.editProfile.path) {
             EditProfileScreen()
         }
     }

@@ -126,6 +126,10 @@
     <string name="edit_profile_image_chooser_camera_text">Camera</string>
     <string name="edit_profile_image_chooser_gallery_text">Gallery</string>
     <string name="edit_profile_image_chooser_remove_photo_text">Remove Photo</string>
+    <string name="edit_profile_first_name_label">First Name</string>
+    <string name="edit_profile_last_name_label">Last Name</string>
+    <string name="edit_profile_email_label">Email</string>
+    <string name="edit_profile_phone_label">Phone</string>
 
     <string-array name="home_create_space_name_suggestion">
         <item>Family</item>
