@@ -1,11 +1,19 @@
-<a href="https://canopas.com/contact"><img src="./screenshots/cta_banner.png" width="100%"></a>
+<p align="center"> <a href="https://canopas.com/contact"><img src="./screenshots/cta_banner.png"></a></p>
 
-<h1 align="center">Your Space</h1>
-<h3 align="center">Stay connected, Anywhere!</h3>
+<p align="center">  If you are interested in building apps or designing products, please let us know. We'd love to hear from you!</p>
+
+<p align="center"> <a href="https://canopas.com/contact"><img src="./screenshots/cta_btn.png"></a></p>
+
+
+
+
+
 
 <img src="./screenshots/cover_image.png" />
 
-# Overview
+# YourSpace - Stay connected, Anywhere!
+
+## Overview
 Welcome to YourSpace, an open-source Android application designed to enhance family safety through real-time location sharing and communication features. YourSpace aims to provide peace of mind by ensuring the safety of your loved ones and facilitating seamless communication regardless of their location.
 
 YourSpace adopts the MVVM architecture pattern and leverages Jetpack Compose for building modern UIs declaratively. This architecture ensures a clear separation of concerns, making the codebase more maintainable and testable. Jetpack Compose simplifies UI development by allowing developers to define UI elements and their behavior in a more intuitive way, resulting in a seamless user experience.
@@ -14,7 +22,7 @@ Download now and elevate your family's safety today!
 
 <a href="https://play.google.com/store/apps/details?id="><img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png" height=60px /></a>
 
-# Features
+## Features
 YourSpace is currently in active development 🚧, with plans to incorporate additional features shortly. Some of the core features include:
 
 - Real-time Location Sharing: Keep track of your family members' whereabouts in real-time, ensuring their safety and providing peace of mind.
@@ -26,11 +34,11 @@ YourSpace is currently in active development 🚧, with plans to incorporate add
 - Check-Ins: Allow family members to check in to indicate their safe arrival at a destination.
 - SOS Help Alert: Quickly send an SOS alert to trusted contacts in case of emergencies, ensuring prompt assistance when needed.
 
-# Screenshots
+## Screenshots
 
 <img src="./screenshots/yourspace_ss_1.png" height="400" /> <img src="./screenshots/yourspace_ss_2.png" height="400" /> <img src="./screenshots/yourspace_ss_3.png" height="400" /> <img src="./screenshots/yourspace_ss_4.png" height="400" /> 
 
-# Requirements
+## Requirements
 Make sure you have the latest stable version of Android Studio installed.
 You can then proceed by either cloning this repository or importing the project directly into Android Studio, following the steps provided in the [documentation](https://developer.android.com/jetpack/compose/setup#sample).
 
@@ -50,7 +58,7 @@ For more information, refer to the [Firebase documentation](https://firebase.goo
 YourSpace uses the following Firebase services, Make sure you enable them in your Firebase project:
 - Authentication (Phone, Google)
 - Firestore (To store user data)
-# Tech stack
+## Tech stack
 
 YourSpace utilizes the latest Android technologies and adheres to industry best practices. Below is the current tech stack used in the development process:
 
@@ -62,17 +70,17 @@ YourSpace utilizes the latest Android technologies and adheres to industry best 
 - DataStore
 - Hilt
 
-# Contribution
+## Contribution
 Currently, we are not accepting any contributions.
 
-# Credits
+## Credits
 YourSpace is owned and maintained by the [Canopas team](https://canopas.com/). You can follow them on Twitter at [@canopassoftware](https://twitter.com/canopassoftware) for project updates and releases.
 
 If you are interested in building apps or designing products, please let us know. We'd love to hear from you!
 
 <a href="https://canopas.com/contact"><img src="./screenshots/cta_btn.png"></a>
 
-# License
+## License
 
 YourSpace is licensed under the Apache License, Version 2.0. 
 
