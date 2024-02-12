@@ -1,9 +1,12 @@
-#CTA <a href="https://canopas.com/contact"><img src="./screenshots/cta_banner.png"></a>
+<a href="https://canopas.com/contact"><img src="./screenshots/cta_banner.png" width="100%"></a>
+
+If you are interested in building apps or designing products, please let us know. We'd love to hear from you!
+
 <a href="https://canopas.com/contact"><img src="./screenshots/cta_btn.png"></a>
 
 <img src="./screenshots/cover_image.png" />
 
-# YourSpace 
+# YourSpace
 #### Stay connected, Anywhere!
 
 An android application for Family safety and location sharing.
@@ -36,7 +39,7 @@ MAPS_API_KEY=your_map_api_key
 ```
 
 ### Firebase Setup
-To enable Firebase services, you will need to create a new project in the [Firebase Console](https://console.firebase.google.com/). 
+To enable Firebase services, you will need to create a new project in the [Firebase Console](https://console.firebase.google.com/).
 Use the `applicationId` value specified in the `app/build.gradle` file of the app as the Android package name.
 Once the project is created, you will need to add the `google-services.json` file to the app module.
 For more information, refer to the [Firebase documentation](https://firebase.google.com/docs/android/setup).
@@ -74,4 +77,3 @@ Let us know if you are interested in building Apps or Designing Products.
 
 ## License
 All the code is available under the MIT license. See [LICENSE]("").
-
