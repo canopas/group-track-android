@@ -1,12 +1,5 @@
 <p align="center"> <a href="https://canopas.com/contact"><img src="./screenshots/cta_banner.png"></a></p>
 
-<p align="center">  If you are interested in building apps or designing products, please let us know. We'd love to hear from you!</p>
-
-<p align="center"> <a href="https://canopas.com/contact"><img src="./screenshots/cta_btn.png"></a></p>
-
-
-
-
 # YourSpace - Stay connected, Anywhere!
 
 <img src="./screenshots/cover_image.png" />
