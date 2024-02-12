@@ -114,6 +114,22 @@
     <string name="setting_delete_account_dialogue_title_text">Sorry to see you go!</string>
     <string name="setting_delete_account_dialogue_confirm_btn_text">Delete Account</string>
     <string name="setting_delete_account_dialogue_message_text">Deleting your account is permanent and you will lose all your data. Are you sure you want to delete your account permanently?</string>
+    <string name="setting_space_notifications">Notifications</string>
+    <string name="setting_space_management">Space settings</string>
+    <string name="setting_location_sharing">Location Sharing</string>
+    <string name="setting_other">Other</string>
+    <string name="setting_privacy">Privacy Policy</string>
+    <string name="setting_about_us">About Us</string>
+    <string name="setting_app_version">App version: %s</string>
+    <string name="edit_profile_title">Edit profile</string>
+    <string name="edit_profile_toolbar_save_text">Save</string>
+    <string name="edit_profile_image_chooser_camera_text">Camera</string>
+    <string name="edit_profile_image_chooser_gallery_text">Gallery</string>
+    <string name="edit_profile_image_chooser_remove_photo_text">Remove Photo</string>
+    <string name="edit_profile_first_name_label">First Name</string>
+    <string name="edit_profile_last_name_label">Last Name</string>
+    <string name="edit_profile_email_label">Email</string>
+    <string name="edit_profile_phone_label">Phone</string>
 
     <string-array name="home_create_space_name_suggestion">
         <item>Family</item>

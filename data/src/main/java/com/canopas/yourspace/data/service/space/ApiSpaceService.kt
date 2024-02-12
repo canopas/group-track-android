@@ -6,9 +6,9 @@ import com.canopas.yourspace.data.models.space.SPACE_MEMBER_ROLE_ADMIN
 import com.canopas.yourspace.data.models.space.SPACE_MEMBER_ROLE_MEMBER
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.user.ApiUserService
-import com.canopas.yourspace.data.utils.FirestoreConst
-import com.canopas.yourspace.data.utils.FirestoreConst.FIRESTORE_COLLECTION_SPACES
-import com.canopas.yourspace.data.utils.FirestoreConst.FIRESTORE_COLLECTION_SPACE_MEMBERS
+import com.canopas.yourspace.data.utils.Config
+import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_SPACES
+import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_SPACE_MEMBERS
 import com.canopas.yourspace.data.utils.snapshotFlow
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -23,7 +23,7 @@ class ApiSpaceService @Inject constructor(
 ) {
     private val spaceRef = db.collection(FIRESTORE_COLLECTION_SPACES)
     private fun spaceMemberRef(spaceId: String) =
-        spaceRef.document(spaceId).collection(FirestoreConst.FIRESTORE_COLLECTION_SPACE_MEMBERS)
+        spaceRef.document(spaceId).collection(Config.FIRESTORE_COLLECTION_SPACE_MEMBERS)
 
     suspend fun createSpace(spaceName: String): String {
         val docRef = spaceRef.document()

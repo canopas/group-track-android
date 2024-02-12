@@ -26,6 +26,7 @@ import com.canopas.yourspace.ui.flow.intro.IntroScreen
 import com.canopas.yourspace.ui.flow.onboard.OnboardScreen
 import com.canopas.yourspace.ui.flow.permission.EnablePermissionsScreen
 import com.canopas.yourspace.ui.flow.settings.SettingsScreen
+import com.canopas.yourspace.ui.flow.settings.profile.EditProfileScreen
 import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import com.canopas.yourspace.ui.navigation.KEY_RESULT
@@ -120,6 +121,10 @@ fun MainApp() {
 
         slideComposable(AppDestinations.settings.path) {
             SettingsScreen()
+        }
+
+        slideComposable(AppDestinations.editProfile.path) {
+            EditProfileScreen()
         }
     }
 }

@@ -31,7 +31,7 @@ service cloud.firestore {
                 request.resource.data.get('space_ids', []) is list;
 
            allow update: if isAuthorized() && request.auth.uid == resource.data.id &&
-                request.resource.data.diff(resource.data).affectedKeys().hasAny(['first_name', 'last_name', 'profile_image', 'location_enabled', 'space_ids']) &&
+                request.resource.data.diff(resource.data).affectedKeys().hasAny(['first_name', 'last_name', 'profile_image', 'location_enabled', 'space_ids','phone', 'email']) &&
                 request.resource.data.first_name is string &&
                 request.resource.data.get('last_name', '') is string &&
                 request.resource.data.location_enabled is bool &&

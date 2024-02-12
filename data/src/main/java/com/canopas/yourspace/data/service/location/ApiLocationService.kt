@@ -1,7 +1,7 @@
 package com.canopas.yourspace.data.service.location
 
 import com.canopas.yourspace.data.models.location.ApiLocation
-import com.canopas.yourspace.data.utils.FirestoreConst
+import com.canopas.yourspace.data.utils.Config
 import com.canopas.yourspace.data.utils.snapshotFlow
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -14,8 +14,8 @@ class ApiLocationService @Inject constructor(
     db: FirebaseFirestore,
     private val locationManager: LocationManager
 ) {
-    private val userRef = db.collection(FirestoreConst.FIRESTORE_COLLECTION_USERS)
-    private fun locationRef(userId: String) = userRef.document(userId).collection(FirestoreConst.FIRESTORE_COLLECTION_USER_LOCATIONS)
+    private val userRef = db.collection(Config.FIRESTORE_COLLECTION_USERS)
+    private fun locationRef(userId: String) = userRef.document(userId).collection(Config.FIRESTORE_COLLECTION_USER_LOCATIONS)
 
     suspend fun saveLastKnownLocation(
         userId: String
