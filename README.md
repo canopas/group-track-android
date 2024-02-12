@@ -20,9 +20,7 @@ We are actively working on completing these features to enhance the overall func
 
 # Screenshots
 
-<img src="./screenshots/yourspace_ss_1.png" height="540" /> <img src="./screenshots/yourspace_ss_2.png" height="540" /> 
-
-<img src="./screenshots/yourspace_ss_3.png" height="540" /> <img src="./screenshots/yourspace_ss_4.png" height="540" /> 
+<img src="./screenshots/yourspace_ss_1.png" height="400" /> <img src="./screenshots/yourspace_ss_2.png" height="400" /> <img src="./screenshots/yourspace_ss_3.png" height="400" /> <img src="./screenshots/yourspace_ss_4.png" height="400" /> 
 
 # Requirements
 Make sure you have the latest stable version of Android Studio installed.
@@ -57,6 +55,7 @@ While many of the features listed below are either not yet implemented or are st
 - Geo-fencing
 - Communicate with your loved one
 - Check-Ins
+- SOS Help Alert
 
 # Tech stack
 
