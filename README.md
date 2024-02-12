@@ -5,18 +5,26 @@
 
 <img src="./screenshots/cover_image.png" />
 
-An android application for Family safety and location sharing.
-Keep your loved ones safe with YourSpace, the go-to app for family safety.
-Stay connected with Real-Time Location Sharing.
+# Overview
+Welcome to YourSpace, an open-source Android application designed to enhance family safety through real-time location sharing and communication features. YourSpace aims to provide peace of mind by ensuring the safety of your loved ones and facilitating seamless communication regardless of their location.
+
+YourSpace adopts the MVVM architecture pattern and leverages Jetpack Compose for building modern UIs declaratively. This architecture ensures a clear separation of concerns, making the codebase more maintainable and testable. Jetpack Compose simplifies UI development by allowing developers to define UI elements and their behavior in a more intuitive way, resulting in a seamless user experience.
 
 Download now and elevate your family's safety today!
 
-
 <a href="https://play.google.com/store/apps/details?id="><img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png" height=60px /></a>
 
-# Status: 🚧 In progress 🚧
-YourSpace is still in development, and certain screens have not been fully implemented yet.
-We are actively working on completing these features to enhance the overall functionality of the platform.
+# Features
+YourSpace is currently in active development 🚧, with plans to incorporate additional features shortly. Some of the core features include:
+
+- Real-time Location Sharing: Keep track of your family members' whereabouts in real-time, ensuring their safety and providing peace of mind.
+- Create/Join Space: Establish or join a trusted space with your loved ones, enabling secure communication and sharing of location information within the group.
+- Detailed Location History: Access detailed location history to monitor the movements of your family members over time.
+- Real-time Alerts: Receive instant alerts for important events such as entering or leaving designated areas, ensuring timely notifications.
+- Geo-fencing: Set up geo-fences to define safe areas and receive alerts when family members enter or leave these areas.
+- Communicate Securely: Engage in secure communication with your loved ones within the app, ensuring privacy and confidentiality of conversations.
+- Check-Ins: Allow family members to check in to indicate their safe arrival at a destination.
+- SOS Help Alert: Quickly send an SOS alert to trusted contacts in case of emergencies, ensuring prompt assistance when needed.
 
 # Screenshots
 
@@ -42,21 +50,6 @@ For more information, refer to the [Firebase documentation](https://firebase.goo
 YourSpace uses the following Firebase services, Make sure you enable them in your Firebase project:
 - Authentication (Phone, Google)
 - Firestore (To store user data)
-
-# Features
-
-We are currently in the process of implementing the core features of our system, with plans to incorporate additional features shortly.
-While many of the features listed below are either not yet implemented or are still undergoing refinement to ensure stability, we are working diligently to finalize them soon.
-
-- Real-time location sharing
-- Create/Join Space of your trusted one
-- Detailed location history
-- Real-Time Alerts
-- Geo-fencing
-- Communicate with your loved one
-- Check-Ins
-- SOS Help Alert
-
 # Tech stack
 
 YourSpace utilizes the latest Android technologies and adheres to industry best practices. Below is the current tech stack used in the development process:
@@ -80,6 +73,9 @@ If you are interested in building apps or designing products, please let us know
 <a href="https://canopas.com/contact"><img src="./screenshots/cta_btn.png"></a>
 
 # License
+
+YourSpace is licensed under the Apache License, Version 2.0. 
+
 ```
 Copyright 2024 Canopas Software LLP
 
@@ -95,3 +91,5 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ```
+
+
