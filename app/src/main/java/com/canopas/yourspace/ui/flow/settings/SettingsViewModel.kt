@@ -90,6 +90,10 @@ class SettingsViewModel @Inject constructor(
         )
         _state.emit(_state.value.copy(deletingAccount = false))
     }
+
+    fun editProfile() {
+        navigator.navigateTo(AppDestinations.editProfile.path)
+    }
 }
 
 data class SettingsScreenState(

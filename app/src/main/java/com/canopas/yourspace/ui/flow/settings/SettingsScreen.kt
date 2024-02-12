@@ -51,6 +51,7 @@ import com.canopas.yourspace.data.models.space.ApiSpace
 import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.utils.Config
 import com.canopas.yourspace.ui.component.AppAlertDialog
+import com.canopas.yourspace.ui.component.motionClickEvent
 import com.canopas.yourspace.ui.theme.AppTheme
 
 
@@ -108,7 +109,7 @@ private fun SettingsContent(modifier: Modifier) {
                 .padding(start = 16.dp, top = 12.dp, bottom = 16.dp)
         )
         state.user?.let {
-            ProfileView(user = it)
+            ProfileView(user = it) { viewModel.editProfile() }
             Divider(
                 modifier = Modifier
                     .padding(bottom = 18.dp)
@@ -187,7 +188,7 @@ private fun OtherSettingsContent(viewModel: SettingsViewModel) {
 }
 
 private fun openUrl(context: Activity, url: String) {
-    val intent = Intent(Intent.ACTION_VIEW).apply{
+    val intent = Intent(Intent.ACTION_VIEW).apply {
         data = Uri.parse(url)
     }
     context.startActivity(intent)
@@ -289,7 +290,7 @@ fun ShowDeleteAccountDialog(viewModel: SettingsViewModel) {
 }
 
 @Composable
-fun ProfileView(user: ApiUser) {
+fun ProfileView(user: ApiUser, onClick: () -> Unit) {
     val userName = user.fullName
     val profileImageUrl = user.profile_image ?: ""
 
@@ -297,6 +298,9 @@ fun ProfileView(user: ApiUser) {
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
+            .motionClickEvent {
+                onClick()
+            }
             .padding(vertical = 12.dp, horizontal = 16.dp)
     ) {
         ProfileImageView(

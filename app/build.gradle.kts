@@ -169,5 +169,8 @@ dependencies {
     // Paging
     implementation("androidx.paging:paging-compose:3.2.1")
 
+    //Image cropper
+    implementation("com.vanniktech:android-image-cropper:4.5.0")
+
     implementation(project(":data"))
 }
