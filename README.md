@@ -7,11 +7,11 @@
 
 
 
-
+# YourSpace - Stay connected, Anywhere!
 
 <img src="./screenshots/cover_image.png" />
 
-# YourSpace - Stay connected, Anywhere!
+
 
 ## Overview
 Welcome to YourSpace, an open-source Android application designed to enhance family safety through real-time location sharing and communication features. YourSpace aims to provide peace of mind by ensuring the safety of your loved ones and facilitating seamless communication regardless of their location.
