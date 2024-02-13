@@ -74,6 +74,8 @@
     <string name="home_tab_label_home">Home</string>
     <string name="home_tab_label_activities">Activities</string>
     <string name="home_tab_label_places">Places</string>
+    <string name="common_enable_location_service_title">Turn on location/GPS</string>
+    <string name="common_enable_location_service_message">Your location/GPS setting must be turned on for YourSpace to work. Please turn on location/GPS in the settings</string>
     <string name="common_background_access_permission_title">Location Access Required</string>
     <string name="common_background_access_permission_message">YourSpace\'s location-sharing feature works correctly when it can access your location all the time. This ensures it gives you accurate, real-time updates.</string>
     <string name="common_background_access_permission_steps">Go to settings > select <b>"Allow all the time"</b></string>
@@ -99,6 +101,7 @@
     <string name="member_detail_empty_location_history">No Location History Found!</string>
     <string name="home_permission_footer_title">Stay closed to your loved one</string>
     <string name="home_permission_footer_subtitle">Allow YourSpace to access your location data.</string>
+    <string name="home_permission_footer_location_off_subtitle">Device location/GPS is off. Please turn it on!</string>
     <string name="home_permission_footer_missing_location_permission_title">Location sharing is currently not possible</string>
     <string name="home_permission_footer_missing_location_permission_subtitle">Some permissions are missing - grant access</string>
     <string name="settings_title">Settings</string>

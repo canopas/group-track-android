@@ -132,20 +132,25 @@ class EditProfileViewModel @Inject constructor(
     }
 
     fun deleteAccount() = viewModelScope.launch(appDispatcher.IO) {
-        _state.emit(
-            _state.value.copy(
-                deletingAccount = true,
-                showDeleteAccountConfirmation = false
+        try {
+            _state.emit(
+                _state.value.copy(
+                    deletingAccount = true,
+                    showDeleteAccountConfirmation = false
+                )
             )
-        )
-        spaceRepository.deleteUserSpaces()
-        authService.deleteAccount()
-        navigator.navigateTo(
-            AppDestinations.signIn.path,
-            AppDestinations.home.path,
-            true
-        )
-        _state.emit(_state.value.copy(deletingAccount = false))
+            spaceRepository.deleteUserSpaces()
+            authService.deleteAccount()
+            navigator.navigateTo(
+                AppDestinations.signIn.path,
+                AppDestinations.home.path,
+                true
+            )
+            _state.emit(_state.value.copy(deletingAccount = false))
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to delete account")
+            _state.emit(_state.value.copy(deletingAccount = false, error = e.message))
+        }
     }
 }
 
