@@ -40,13 +40,14 @@ fun MapMarker(
     )
     var painter: AsyncImagePainter? = null
 
-    if (!user.profile_image.isNullOrEmpty())
+    if (!user.profile_image.isNullOrEmpty()) {
         painter = rememberAsyncImagePainter(
             ImageRequest.Builder(LocalContext.current).data(
                 user.profile_image
             ).allowHardware(false)
                 .build()
         )
+    }
 
     MarkerComposable(
         keys = arrayOf(user.id, isSelected, painter?.state ?: 0),
@@ -78,7 +79,6 @@ fun MarkerContent(user: ApiUser, isSelected: Boolean, painter: AsyncImagePainter
             .padding(5.dp),
         contentAlignment = Alignment.Center
     ) {
-
         UserProfile(
             modifier = Modifier
                 .fillMaxSize(),

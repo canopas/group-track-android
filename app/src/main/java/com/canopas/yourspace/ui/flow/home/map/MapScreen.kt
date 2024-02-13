@@ -223,7 +223,7 @@ fun MapScreenContent(modifier: Modifier) {
 fun PermissionFooter(onClick: () -> Unit) {
     val context = LocalContext.current
     val hasLocationPermission = context.hasFineLocationPermission
-    val hasNotificationPermission = true //context.hasNotificationPermission
+    val hasNotificationPermission = true // context.hasNotificationPermission
 
     val title = if (!hasLocationPermission || !hasNotificationPermission) {
         stringResource(id = R.string.home_permission_footer_title)
