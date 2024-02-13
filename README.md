@@ -28,10 +28,19 @@ YourSpace ensures your loved ones' well-being with:
 - SOS Help Alert
 
 ## Screenshots
-Create/Join Space               |  Share Location    |  Location History              
-:-------------------------:|:-------------------------:|:-------------------------:
-![](./screenshots/yourspace_ss_2.png?raw=true)|![](./screenshots/yourspace_ss_1.png?raw=true)|![](./screenshots/yourspace_ss_4.png?raw=true)
 
+<table>
+  <tr>
+  <th width="33%" >Create/Join Space</th>
+  <th  width="33%" >Share Location</th>
+   <th  width="33%" >Location History</th>
+  </tr>
+    <tr>
+  <td><img src="./screenshots/yourspace_ss_2.png" /></td>
+  <td> <img src="./screenshots/yourspace_ss_1.png"  /> </td>
+  <td> <img src="./screenshots/yourspace_ss_4.png" /> </td>
+  </tr>  
+</table>
 
 ## Requirements
 Make sure you have the latest stable version of Android Studio installed.
