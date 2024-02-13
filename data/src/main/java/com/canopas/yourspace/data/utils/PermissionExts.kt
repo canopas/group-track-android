@@ -52,4 +52,4 @@ val Context.hasNotificationPermission
             true
         }
 
-val Context.hasAllPermission get() = isLocationPermissionGranted && hasNotificationPermission
+val Context.hasAllPermission get() = isLocationPermissionGranted

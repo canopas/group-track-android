@@ -57,7 +57,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.utils.hasAllPermission
 import com.canopas.yourspace.data.utils.hasFineLocationPermission
-import com.canopas.yourspace.data.utils.hasNotificationPermission
 import com.canopas.yourspace.ui.flow.home.map.component.AddMemberBtn
 import com.canopas.yourspace.ui.flow.home.map.component.MapMarker
 import com.canopas.yourspace.ui.flow.home.map.component.MapUserItem
@@ -224,7 +223,7 @@ fun MapScreenContent(modifier: Modifier) {
 fun PermissionFooter(onClick: () -> Unit) {
     val context = LocalContext.current
     val hasLocationPermission = context.hasFineLocationPermission
-    val hasNotificationPermission = context.hasNotificationPermission
+    val hasNotificationPermission = true //context.hasNotificationPermission
 
     val title = if (!hasLocationPermission || !hasNotificationPermission) {
         stringResource(id = R.string.home_permission_footer_title)
@@ -241,7 +240,6 @@ fun PermissionFooter(onClick: () -> Unit) {
 
     Row(
         modifier = Modifier
-            .height(72.dp)
             .clickable { onClick() }
             .background(color = AppTheme.colorScheme.secondary)
             .padding(16.dp),

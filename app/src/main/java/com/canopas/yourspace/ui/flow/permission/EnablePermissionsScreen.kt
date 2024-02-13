@@ -47,6 +47,8 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.utils.openAppSettings
+import com.canopas.yourspace.ui.component.AppBanner
+import com.canopas.yourspace.ui.component.ShowBackgroundLocationRequestDialog
 import com.canopas.yourspace.ui.theme.AppTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
@@ -102,12 +104,7 @@ fun EnablePermissionsContent(modifier: Modifier) {
         listOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION)
     )
 
-    val bgLocationPermissionStates = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        rememberPermissionState(Manifest.permission.ACCESS_BACKGROUND_LOCATION) { granted ->
-        }
-    } else {
-        null
-    }
+    val bgLocationPermissionStates = rememberPermissionState(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
 
     val notificationPermissionStates = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS)
@@ -118,6 +115,23 @@ fun EnablePermissionsContent(modifier: Modifier) {
     var showNotificationRational by remember {
         mutableStateOf(false)
     }
+
+    var showRequiredLocationAccessBanner by remember {
+        mutableStateOf(false)
+    }
+
+    var showBgLocationRational by remember {
+        mutableStateOf(false)
+    }
+
+    var shouldAskedForLocation by remember {
+        mutableStateOf(false)
+    }
+
+    var showLocationRational by remember {
+        mutableStateOf(false)
+    }
+
 
     val scrollState = rememberScrollState()
     Column(
@@ -145,7 +159,12 @@ fun EnablePermissionsContent(modifier: Modifier) {
             description = stringResource(R.string.enable_permission_location_access_desc),
             isGranted = locationPermissionStates.allPermissionsGranted,
             onClick = {
-                if (!locationPermissionStates.allPermissionsGranted) {
+                if (!locationPermissionStates.allPermissionsGranted &&
+                    !locationPermissionStates.shouldShowRationale && shouldAskedForLocation
+                ) {
+                    showLocationRational = true
+                } else if (!locationPermissionStates.allPermissionsGranted) {
+                    shouldAskedForLocation = true
                     locationPermissionStates.launchMultiplePermissionRequest()
                 }
             }
@@ -154,32 +173,38 @@ fun EnablePermissionsContent(modifier: Modifier) {
         PermissionContent(
             title = stringResource(R.string.enable_permission_background_location_access_title),
             description = stringResource(R.string.enable_permission_background_location_access_desc),
-            isGranted = bgLocationPermissionStates?.status == PermissionStatus.Granted,
+            isGranted = bgLocationPermissionStates.status == PermissionStatus.Granted,
             onClick = {
-                if (bgLocationPermissionStates?.status?.shouldShowRationale == true) {
-                    (context as Activity).openAppSettings()
+                if (locationPermissionStates.allPermissionsGranted) {
+                    if (bgLocationPermissionStates.status != PermissionStatus.Granted) {
+                        bgLocationPermissionStates.launchPermissionRequest()
+                    } else if (bgLocationPermissionStates.status is PermissionStatus.Denied &&
+                        !bgLocationPermissionStates.status.shouldShowRationale
+                    ) {
+                        showBgLocationRational = true
+                    }
                 } else {
-                    bgLocationPermissionStates?.launchPermissionRequest()
+                    showRequiredLocationAccessBanner = true
                 }
             }
         )
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            PermissionContent(
-                title = stringResource(R.string.enable_permission_notification_access_title),
-                description = stringResource(R.string.enable_permission_notification_access_desc),
-                isGranted = notificationPermissionStates?.status == PermissionStatus.Granted,
-                onClick = {
-                    if (notificationPermissionStates?.status is PermissionStatus.Denied ||
-                        notificationPermissionStates?.status?.shouldShowRationale == true
-                    ) {
-                        showNotificationRational = true
-                    } else if (notificationPermissionStates?.status != PermissionStatus.Granted) {
-                        notificationPermissionStates?.launchPermissionRequest()
-                    }
-                }
-            )
-        }
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+//            PermissionContent(
+//                title = stringResource(R.string.enable_permission_notification_access_title),
+//                description = stringResource(R.string.enable_permission_notification_access_desc),
+//                isGranted = notificationPermissionStates?.status == PermissionStatus.Granted,
+//                onClick = {
+//                    if (notificationPermissionStates?.status is PermissionStatus.Denied ||
+//                        notificationPermissionStates?.status?.shouldShowRationale == true
+//                    ) {
+//                        showNotificationRational = true
+//                    } else if (notificationPermissionStates?.status != PermissionStatus.Granted) {
+//                        notificationPermissionStates?.launchPermissionRequest()
+//                    }
+//                }
+//            )
+//        }
 
         Spacer(modifier = Modifier.weight(1f))
         Text(
@@ -210,6 +235,42 @@ fun EnablePermissionsContent(modifier: Modifier) {
             }
         )
     }
+
+    if (showRequiredLocationAccessBanner) {
+        AppBanner(msg = stringResource(id = R.string.enable_permission_background_location_access_required_location_permisison_msg)) {
+            showRequiredLocationAccessBanner = false
+        }
+    }
+
+    if (showBgLocationRational) {
+        ShowBackgroundLocationRequestDialog(
+            locationPermissionStates = bgLocationPermissionStates,
+            onDismiss = {
+                showBgLocationRational = false
+            },
+            goToSettings = {
+                if (bgLocationPermissionStates.status.shouldShowRationale) {
+                    (context as Activity).openAppSettings()
+                } else {
+                    bgLocationPermissionStates.launchPermissionRequest()
+                }
+                showBgLocationRational = false
+            }
+        )
+    }
+
+    if (showLocationRational) {
+        ShowBackgroundLocationRequestDialog(
+            locationPermissionStates = locationPermissionStates.permissions.first(),
+            onDismiss = {
+                showLocationRational = false
+            },
+            goToSettings = {
+                (context as Activity).openAppSettings()
+                showLocationRational = false
+            }
+        )
+    }
 }
 
 @Composable
@@ -220,16 +281,16 @@ fun NotificationPermissionRationaleDialog(
     AlertDialog(onDismissRequest = onSkip, title = {
         Text(text = stringResource(id = R.string.enable_permission_rational_title))
     }, text = {
-            Text(text = stringResource(id = R.string.enable_permission_rational_msg))
-        }, confirmButton = {
-            TextButton(onClick = onContinue) {
-                Text(stringResource(id = R.string.enable_permission_btn_enable))
-            }
-        }, dismissButton = {
-            TextButton(onClick = onSkip) {
-                Text(stringResource(id = R.string.common_btn_skip))
-            }
-        }, properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false))
+        Text(text = stringResource(id = R.string.enable_permission_rational_msg))
+    }, confirmButton = {
+        TextButton(onClick = onContinue) {
+            Text(stringResource(id = R.string.enable_permission_btn_enable))
+        }
+    }, dismissButton = {
+        TextButton(onClick = onSkip) {
+            Text(stringResource(id = R.string.common_btn_skip))
+        }
+    }, properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false))
 }
 
 @Composable
