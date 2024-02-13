@@ -1,9 +1,9 @@
 <p align="center"> <a href="https://canopas.com/contact"><img src="./screenshots/cta_banner.png"></a></p>
 
 # YourSpace - Stay connected, Anywhere!
+Enhancing family safety and communication with real-time location sharing and modern UIs.
 
 <img src="./screenshots/cover_image.png" />
-
 
 
 ## Overview
@@ -11,29 +11,33 @@ Welcome to YourSpace, an open-source Android application designed to enhance fam
 
 YourSpace adopts the MVVM architecture pattern and leverages Jetpack Compose for building modern UIs declaratively. This architecture ensures a clear separation of concerns, making the codebase more maintainable and testable. Jetpack Compose simplifies UI development by allowing developers to define UI elements and their behavior in a more intuitive way, resulting in a seamless user experience.
 
-Download now and elevate your family's safety today!
+## Download App
+<a href="https://play.google.com/store/apps/details?id=com.canopas.yourspace"><img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" width="200"></img></a>
 
-<a href="https://play.google.com/store/apps/details?id="><img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png" height=60px /></a>
 
 ## Features
-YourSpace is currently in active development 🚧, with plans to incorporate additional features shortly. Some of the core features include:
+YourSpace is currently in active development 🚧, with plans to incorporate additional features shortly.
 
-- Real-time Location Sharing: Keep track of your family members' whereabouts in real-time, ensuring their safety and providing peace of mind.
-- Create/Join Space: Establish or join a trusted space with your loved ones, enabling secure communication and sharing of location information within the group.
-- Detailed Location History: Access detailed location history to monitor the movements of your family members over time.
-- Real-time Alerts: Receive instant alerts for important events such as entering or leaving designated areas, ensuring timely notifications.
-- Geo-fencing: Set up geo-fences to define safe areas and receive alerts when family members enter or leave these areas.
-- Communicate Securely: Engage in secure communication with your loved ones within the app, ensuring privacy and confidentiality of conversations.
-- Check-Ins: Allow family members to check in to indicate their safe arrival at a destination.
-- SOS Help Alert: Quickly send an SOS alert to trusted contacts in case of emergencies, ensuring prompt assistance when needed.
+YourSpace ensures your loved ones' well-being with:
+
+- [X] Real-time Location Sharing
+- Secure Communication
+- Geo-fencing
+- Real-time Alerts
+- Check-Ins
+- SOS Help Alert
 
 ## Screenshots
+Create/Join Space               |  Share Location    |  Location History              
+:-------------------------:|:-------------------------:|:-------------------------:
+![](./screenshots/yourspace_ss_2.png?raw=true)|![](./screenshots/yourspace_ss_1.png?raw=true)|![](./screenshots/yourspace_ss_4.png?raw=true)
 
-<img src="./screenshots/yourspace_ss_1.png" height="400" /> <img src="./screenshots/yourspace_ss_2.png" height="400" /> <img src="./screenshots/yourspace_ss_3.png" height="400" /> <img src="./screenshots/yourspace_ss_4.png" height="400" /> 
 
 ## Requirements
 Make sure you have the latest stable version of Android Studio installed.
 You can then proceed by either cloning this repository or importing the project directly into Android Studio, following the steps provided in the [documentation](https://developer.android.com/jetpack/compose/setup#sample).
+<details>
+     <summary> Click to expand </summary>
 
 ### Google Maps SDK
 To enable the MapView functionality, obtaining an API key as instructed in the [documentation](https://developers.google.com/maps/documentation/android-sdk/get-api-key) is required. This key should then be included in the local.properties file as follows:
@@ -51,6 +55,8 @@ For more information, refer to the [Firebase documentation](https://firebase.goo
 YourSpace uses the following Firebase services, Make sure you enable them in your Firebase project:
 - Authentication (Phone, Google)
 - Firestore (To store user data)
+</details>
+
 ## Tech stack
 
 YourSpace utilizes the latest Android technologies and adheres to industry best practices. Below is the current tech stack used in the development process:
@@ -67,15 +73,13 @@ YourSpace utilizes the latest Android technologies and adheres to industry best 
 Currently, we are not accepting any contributions.
 
 ## Credits
-YourSpace is owned and maintained by the [Canopas team](https://canopas.com/). You can follow them on Twitter at [@canopassoftware](https://twitter.com/canopassoftware) for project updates and releases.
-
-If you are interested in building apps or designing products, please let us know. We'd love to hear from you!
+YourSpace is owned and maintained by the [Canopas team](https://canopas.com/). You can follow them on Twitter at [@canopassoftware](https://twitter.com/canopassoftware) for project updates and releases. If you are interested in building apps or designing products, please let us know. We'd love to hear from you!
 
 <a href="https://canopas.com/contact"><img src="./screenshots/cta_btn.png"></a>
 
 ## License
 
-YourSpace is licensed under the Apache License, Version 2.0. 
+YourSpace is licensed under the Apache License, Version 2.0.
 
 ```
 Copyright 2024 Canopas Software LLP
@@ -92,5 +96,3 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ```
-
-
