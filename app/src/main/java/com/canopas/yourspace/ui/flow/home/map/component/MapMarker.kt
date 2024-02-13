@@ -11,7 +11,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.canopas.yourspace.data.models.location.ApiLocation
 import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.ui.component.UserProfile
@@ -34,9 +38,19 @@ fun MapMarker(
             location.longitude
         )
     )
+    var painter: AsyncImagePainter? = null
+
+    if (!user.profile_image.isNullOrEmpty()) {
+        painter = rememberAsyncImagePainter(
+            ImageRequest.Builder(LocalContext.current).data(
+                user.profile_image
+            ).allowHardware(false)
+                .build()
+        )
+    }
 
     MarkerComposable(
-        keys = arrayOf(user.id, isSelected),
+        keys = arrayOf(user.id, isSelected, painter?.state ?: 0),
         state = markerState,
         title = user.fullName,
         zIndex = if (isSelected) 1f else 0f,
@@ -46,14 +60,14 @@ fun MapMarker(
             true
         }
     ) {
-        MarkerContent(user = user, isSelected)
+        MarkerContent(user = user, isSelected, painter = painter)
     }
 }
 
 @Composable
-fun MarkerContent(user: ApiUser, isSelected: Boolean) {
-    val profileUrl = user.profile_image
+fun MarkerContent(user: ApiUser, isSelected: Boolean, painter: AsyncImagePainter?) {
     val shape = RoundedCornerShape(16.dp, 16.dp, 16.dp, 3.dp)
+
     Box(
         modifier = Modifier
             .size(64.dp)
@@ -68,7 +82,8 @@ fun MarkerContent(user: ApiUser, isSelected: Boolean) {
         UserProfile(
             modifier = Modifier
                 .fillMaxSize(),
-            user = user
+            user = user,
+            imagePainter = painter
         )
     }
 }

@@ -73,6 +73,36 @@ fun ShowBackgroundLocationRequestDialog(
     goToSettings: () -> Unit
 ) {
     val shouldShowRational = locationPermissionStates?.status?.shouldShowRationale ?: false
+    PermissionDialog(
+        title = stringResource(id = R.string.common_background_access_permission_title),
+        subTitle1 = stringResource(id = R.string.common_background_access_permission_message),
+        subTitle2 = stringResource(id = if (shouldShowRational) R.string.common_background_access_permission_rational_steps else R.string.common_background_access_permission_steps),
+        onDismiss = onDismiss,
+        goToSettings = goToSettings
+    )
+}
+
+@Composable
+fun ShowEnableLocationDialog(
+    onDismiss: () -> Unit,
+    goToSettings: () -> Unit
+) {
+    PermissionDialog(
+        title = stringResource(id = R.string.common_enable_location_service_title),
+        subTitle1 = stringResource(id = R.string.common_enable_location_service_message),
+        onDismiss = onDismiss,
+        goToSettings = goToSettings
+    )
+}
+
+@Composable
+fun PermissionDialog(
+    title: String,
+    subTitle1: String,
+    subTitle2: String? = null,
+    onDismiss: () -> Unit,
+    goToSettings: () -> Unit
+) {
     Dialog(onDismissRequest = onDismiss) {
         Card(
             shape = RoundedCornerShape(10.dp),
@@ -85,7 +115,7 @@ fun ShowBackgroundLocationRequestDialog(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = stringResource(id = R.string.common_background_access_permission_title),
+                    text = title,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .padding(top = 5.dp)
@@ -93,7 +123,7 @@ fun ShowBackgroundLocationRequestDialog(
                     style = AppTheme.appTypography.header1
                 )
                 Text(
-                    text = stringResource(id = R.string.common_background_access_permission_message),
+                    text = subTitle1,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .padding(vertical = 10.dp)
@@ -101,14 +131,16 @@ fun ShowBackgroundLocationRequestDialog(
                     style = AppTheme.appTypography.body2
                 )
 
-                Text(
-                    text = stringResource(id = if (shouldShowRational) R.string.common_background_access_permission_rational_steps else R.string.common_background_access_permission_steps),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .padding(vertical = 10.dp)
-                        .fillMaxWidth(),
-                    style = AppTheme.appTypography.body3
-                )
+                if (subTitle2 != null) {
+                    Text(
+                        text = subTitle2 ?: "",
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .padding(vertical = 10.dp)
+                            .fillMaxWidth(),
+                        style = AppTheme.appTypography.body3
+                    )
+                }
 
                 PrimaryButton(
                     modifier = Modifier

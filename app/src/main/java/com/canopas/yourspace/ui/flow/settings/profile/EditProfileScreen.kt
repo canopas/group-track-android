@@ -49,12 +49,20 @@ import com.canopas.yourspace.ui.theme.AppTheme
 
 @Composable
 fun EditProfileScreen() {
+    val viewModel = hiltViewModel<EditProfileViewModel>()
+    val state by viewModel.state.collectAsState()
     Scaffold(
         topBar = {
             EditProfileToolbar()
         }
     ) {
         EditProfileScreenContent(Modifier.padding(it))
+    }
+
+    if (state.error != null) {
+        AppBanner(msg = state.error!!) {
+            viewModel.resetErrorState()
+        }
     }
 }
 
@@ -184,7 +192,7 @@ private fun EditProfileScreenContent(modifier: Modifier) {
                 },
                 contentColor = AppTheme.colorScheme.alertColor,
                 showLoader = state.deletingAccount,
-                modifier = Modifier.fillMaxWidth().align(Alignment.CenterHorizontally)
+                modifier = Modifier.align(Alignment.CenterHorizontally)
             )
         }
 
@@ -194,12 +202,6 @@ private fun EditProfileScreenContent(modifier: Modifier) {
 
         if (state.showDeleteAccountConfirmation) {
             ShowDeleteAccountDialog(viewModel)
-        }
-
-        if (state.error != null) {
-            AppBanner(msg = state.error!!) {
-                viewModel.resetErrorState()
-            }
         }
     }
 }

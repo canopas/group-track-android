@@ -118,11 +118,11 @@ fun HomeTopBar() {
 
         SpaceSelectionMenu(modifier = Modifier.weight(1f))
 
-        MapControl(
-            icon = R.drawable.ic_messages,
-            visible = !state.showSpaceSelectionPopup
-        ) {
-        }
+//        MapControl(
+//            icon = R.drawable.ic_messages,
+//            visible = !state.showSpaceSelectionPopup
+//        ) {
+//        }
 
         Box {
             if (state.showSpaceSelectionPopup) {

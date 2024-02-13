@@ -42,7 +42,7 @@ service cloud.firestore {
                          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.space_ids.hasAny(resource.data.space_ids));
 
         match /user_locations/{docId} {
-            allow read: if isAuthorized() && readUserLocation();
+            allow read: if isAuthorized() && (request.auth.uid == resource.data.user_id || readUserLocation());
             allow update: if false;
             allow delete: if isAuthorized() && request.auth.uid == resource.data.user_id;
             allow create: if isAuthorized() && request.auth.uid == request.resource.data.user_id &&

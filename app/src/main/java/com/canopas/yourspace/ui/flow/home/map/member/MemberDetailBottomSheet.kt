@@ -381,24 +381,24 @@ fun UserInfoContent(userInfo: UserInfo) {
             }
         }
 
-        Box(
-            modifier = Modifier
-                .size(38.dp)
-                .background(
-                    color = AppTheme.colorScheme.containerNormal,
-                    shape = CircleShape
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_messages),
-                contentDescription = "",
-                tint = AppTheme.colorScheme.textSecondary,
-                modifier = Modifier
-                    .size(24.dp)
-                    .padding(2.dp)
-            )
-        }
+//        Box(
+//            modifier = Modifier
+//                .size(38.dp)
+//                .background(
+//                    color = AppTheme.colorScheme.containerNormal,
+//                    shape = CircleShape
+//                ),
+//            contentAlignment = Alignment.Center
+//        ) {
+//            Icon(
+//                painter = painterResource(id = R.drawable.ic_messages),
+//                contentDescription = "",
+//                tint = AppTheme.colorScheme.textSecondary,
+//                modifier = Modifier
+//                    .size(24.dp)
+//                    .padding(2.dp)
+//            )
+//        }
     }
 }
 

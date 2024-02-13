@@ -173,6 +173,7 @@ private fun OtherSettingsContent(viewModel: SettingsViewModel) {
         label = stringResource(id = R.string.setting_about_us),
         icon = R.drawable.ic_settings_about_us,
         onClick = {
+            openUrl(context as Activity, Config.PRIVACY_POLICY_URL)
         }
     )
 

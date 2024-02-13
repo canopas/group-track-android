@@ -41,8 +41,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,12 +59,15 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.utils.hasAllPermission
 import com.canopas.yourspace.data.utils.hasFineLocationPermission
-import com.canopas.yourspace.data.utils.hasNotificationPermission
+import com.canopas.yourspace.data.utils.isLocationPermissionGranted
+import com.canopas.yourspace.ui.component.ShowEnableLocationDialog
 import com.canopas.yourspace.ui.flow.home.map.component.AddMemberBtn
 import com.canopas.yourspace.ui.flow.home.map.component.MapMarker
 import com.canopas.yourspace.ui.flow.home.map.component.MapUserItem
 import com.canopas.yourspace.ui.flow.home.map.member.MemberDetailBottomSheetContent
 import com.canopas.yourspace.ui.theme.AppTheme
+import com.canopas.yourspace.utils.isLocationServiceEnabled
+import com.canopas.yourspace.utils.openLocationSettings
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState
@@ -187,7 +192,8 @@ fun MapScreenContent(modifier: Modifier) {
                 LazyRow(
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
-                        .padding(bottom = 10.dp).widthIn(max = 600.dp)
+                        .padding(bottom = 10.dp)
+                        .widthIn(max = 600.dp)
                         .fillMaxWidth()
                         .shadow(10.dp, shape = RoundedCornerShape(6.dp))
                         .background(AppTheme.colorScheme.surface, shape = RoundedCornerShape(6.dp))
@@ -207,8 +213,9 @@ fun MapScreenContent(modifier: Modifier) {
                 }
             }
 
+            val context = LocalContext.current
             AnimatedVisibility(
-                visible = !LocalContext.current.hasAllPermission,
+                visible = !context.hasAllPermission || !context.isLocationServiceEnabled(),
                 enter = slideInVertically(tween(100)) { it },
                 exit = slideOutVertically(tween(100)) { it }
             ) {
@@ -224,26 +231,39 @@ fun MapScreenContent(modifier: Modifier) {
 fun PermissionFooter(onClick: () -> Unit) {
     val context = LocalContext.current
     val hasLocationPermission = context.hasFineLocationPermission
-    val hasNotificationPermission = context.hasNotificationPermission
 
-    val title = if (!hasLocationPermission || !hasNotificationPermission) {
-        stringResource(id = R.string.home_permission_footer_title)
+    val locationEnabled = if (context.isLocationPermissionGranted) {
+        context.isLocationServiceEnabled()
     } else {
-        stringResource(id = R.string.home_permission_footer_missing_location_permission_title)
+        true
     }
 
+    val title =
+        stringResource(id = R.string.home_permission_footer_missing_location_permission_title)
+
     val subTitle =
-        if (!hasLocationPermission) {
+        if (!locationEnabled) {
+            stringResource(id = R.string.home_permission_footer_location_off_subtitle)
+        } else if (!hasLocationPermission) {
             stringResource(id = R.string.home_permission_footer_subtitle)
         } else {
             stringResource(id = R.string.home_permission_footer_missing_location_permission_subtitle)
         }
 
+    var showTurnOnLocationPopup by remember {
+        mutableStateOf(false)
+    }
+
     Row(
         modifier = Modifier
-            .height(72.dp)
-            .clickable { onClick() }
-            .background(color = AppTheme.colorScheme.secondary)
+            .clickable {
+                if (!locationEnabled) {
+                    showTurnOnLocationPopup = true
+                } else {
+                    onClick()
+                }
+            }
+            .background(color = if (!locationEnabled) AppTheme.colorScheme.alertColor else AppTheme.colorScheme.secondary)
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -268,6 +288,18 @@ fun PermissionFooter(onClick: () -> Unit) {
             Icons.Default.KeyboardArrowRight,
             contentDescription = "",
             tint = AppTheme.colorScheme.textInversePrimary
+        )
+    }
+
+    if (showTurnOnLocationPopup) {
+        ShowEnableLocationDialog(
+            onDismiss = {
+                showTurnOnLocationPopup = false
+            },
+            goToSettings = {
+                showTurnOnLocationPopup = false
+                context.openLocationSettings()
+            }
         )
     }
 }
