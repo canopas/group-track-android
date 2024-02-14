@@ -134,6 +134,5 @@ class SpaceRepository @Inject constructor(
             spaceService.removeUserFromSpace(space.id, userId)
         }
 
-        locationService.deleteLocations(userId)
     }
 }

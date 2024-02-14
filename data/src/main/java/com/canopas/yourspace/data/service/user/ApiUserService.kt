@@ -82,9 +82,6 @@ class ApiUserService @Inject constructor(
     }
 
     suspend fun deleteUser(userId: String) {
-        sessionRef(userId).whereEqualTo("user_id", userId).get().await().documents.forEach {
-            it.reference.delete().await()
-        }
         userRef.document(userId).delete().await()
     }
 

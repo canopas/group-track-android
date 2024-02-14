@@ -5,13 +5,16 @@ import com.canopas.yourspace.data.models.user.ApiUserSession
 import com.canopas.yourspace.data.service.user.ApiUserService
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class AuthService @Inject constructor(
     private val userPreferences: UserPreferences,
-    private val apiUserService: ApiUserService
+    private val apiUserService: ApiUserService,
+    private val firebaseAuth: FirebaseAuth
 ) {
     suspend fun verifiedPhoneLogin(
         uid: String?,
@@ -80,11 +83,13 @@ class AuthService @Inject constructor(
         currentUserSession = null
         userPreferences.setOnboardShown(false)
         userPreferences.currentSpace = ""
+        firebaseAuth.signOut()
     }
 
     suspend fun deleteAccount() {
         val currentUser = currentUser ?: return
         apiUserService.deleteUser(currentUser.id)
+        firebaseAuth.currentUser?.delete()?.await()
         signOut()
     }
 
