@@ -118,27 +118,24 @@ private fun SettingsContent(modifier: Modifier) {
             )
         }
 
-//        state.selectedSpace?.let { space ->
-//            SpaceSettingsContent(space)
-//            Divider(
-//                modifier = Modifier
-//                    .padding(bottom = 16.dp)
-//                    .fillMaxWidth(),
-//                color = AppTheme.colorScheme.outline
-//            )
-//        }
+        state.selectedSpace?.let { space ->
+            SpaceSettingsContent(space) {
+                viewModel.navigateToSpaceSettings()
+            }
+            Divider(
+                modifier = Modifier
+                    .padding(bottom = 16.dp)
+                    .fillMaxWidth(),
+                color = AppTheme.colorScheme.outline
+            )
+        }
 
         OtherSettingsContent(viewModel)
         Spacer(modifier = Modifier.height(16.dp))
-//        Divider(
-//            modifier = Modifier
-//                .padding(bottom = 16.dp)
-//                .fillMaxWidth(),
-//            color = AppTheme.colorScheme.outline
-//        )
+
         Text(
             text = stringResource(id = R.string.setting_app_version, BuildConfig.VERSION_NAME),
-            style = AppTheme.appTypography.label3,
+            style = AppTheme.appTypography.label2,
             color = AppTheme.colorScheme.textSecondary
         )
 
@@ -194,34 +191,35 @@ private fun openUrl(context: Activity, url: String) {
 }
 
 @Composable
-private fun SpaceSettingsContent(space: ApiSpace) {
-    Text(
-        text = stringResource(id = R.string.setting_space_settings, space.name),
-        style = AppTheme.appTypography.header3,
-        color = AppTheme.colorScheme.textPrimary,
-        textAlign = TextAlign.Start,
+private fun SpaceSettingsContent(
+    space: ApiSpace,
+    openSpaceSettings: () -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, bottom = 16.dp)
-    )
-
-    SettingsItem(
-        label = stringResource(id = R.string.setting_space_notifications),
-        icon = R.drawable.ic_settings_notification,
-        onClick = {}
-    )
-
-    SettingsItem(
-        label = stringResource(id = R.string.setting_space_management),
-        icon = R.drawable.ic_settings_space_managment,
-        onClick = {}
-    )
-
-    SettingsItem(
-        label = stringResource(id = R.string.setting_location_sharing),
-        icon = R.drawable.ic_settings_location_sharing,
-        onClick = {}
-    )
+            .motionClickEvent {
+                openSpaceSettings()
+            }
+            .padding(bottom = 16.dp)
+            .padding(horizontal = 16.dp)
+    ) {
+        Text(
+            text = stringResource(id = R.string.setting_space_settings, space.name),
+            style = AppTheme.appTypography.header3,
+            color = AppTheme.colorScheme.textPrimary,
+            textAlign = TextAlign.Start,
+            modifier = Modifier
+                .weight(1f)
+        )
+        Icon(
+            Icons.Default.KeyboardArrowRight,
+            contentDescription = "",
+            modifier = Modifier.padding(horizontal = 8.dp),
+            tint = AppTheme.colorScheme.textSecondary
+        )
+    }
 }
 
 @Composable
@@ -234,7 +232,6 @@ private fun SettingsItem(label: String, icon: Int, onClick: () -> Unit) {
                 onClick()
             }
             .padding(horizontal = 16.dp, vertical = 10.dp)
-
     ) {
         Image(
             painter = painterResource(id = icon),
@@ -252,7 +249,7 @@ private fun SettingsItem(label: String, icon: Int, onClick: () -> Unit) {
 
         Icon(
             Icons.Default.KeyboardArrowRight,
-            contentDescription = "Consulting Image",
+            contentDescription = "",
             modifier = Modifier.padding(horizontal = 8.dp),
             tint = AppTheme.colorScheme.textSecondary
         )
@@ -308,7 +305,7 @@ fun ProfileView(user: ApiUser, onClick: () -> Unit) {
         }
         Icon(
             Icons.Default.KeyboardArrowRight,
-            contentDescription = "Consulting Image",
+            contentDescription = "",
             modifier = Modifier.padding(horizontal = 8.dp),
             tint = AppTheme.colorScheme.textSecondary
         )

@@ -21,9 +21,28 @@ object AppDestinations {
         override val path: String = "settings"
     }
 
+
     val editProfile = object : AppRoute {
         override val arguments: List<NamedNavArgument> = emptyList()
         override val path: String = "edit-profile"
+    }
+
+    object SpaceProfileScreen {
+        const val KEY_SPACE_ID = "space_id"
+
+        private const val PATH = "space-settings"
+        const val path = "$PATH/{$KEY_SPACE_ID}"
+
+        fun spaceSettings(
+            spaceId: String,
+        ) = object : AppRoute {
+
+            override val arguments = listOf(
+                navArgument(KEY_SPACE_ID) { type = NavType.StringType },
+            )
+
+            override val path = "$PATH/$spaceId"
+        }
     }
 
     val intro = object : AppRoute {

@@ -220,7 +220,7 @@ fun ShowDeleteAccountDialog(viewModel: EditProfileViewModel) {
 }
 
 @Composable
-private fun UserTextField(
+fun UserTextField(
     label: String,
     text: String,
     enabled: Boolean = true,

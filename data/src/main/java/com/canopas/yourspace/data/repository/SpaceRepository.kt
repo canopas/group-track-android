@@ -66,6 +66,20 @@ class SpaceRepository @Inject constructor(
         }
     }
 
+    suspend fun getSpaceInfo(spaceId: String): SpaceInfo? {
+        val currentSpace = getCurrentSpace() ?: return null
+        val members = spaceService.getMemberBySpaceId(currentSpace.id)
+            .map { members ->
+                members.mapNotNull { member ->
+                    val user = userService.getUser(member.user_id)
+                    user?.let { UserInfo(user, isLocationEnable = member.location_enabled) }
+                }
+            }.firstOrNull() ?: emptyList()
+
+        return SpaceInfo(currentSpace, members)
+    }
+
+
     suspend fun getCurrentSpace(): ApiSpace? {
         val spaceId = currentSpaceId
 

@@ -133,6 +133,13 @@
     <string name="edit_profile_last_name_label">Last Name</string>
     <string name="edit_profile_email_label">Email</string>
     <string name="edit_profile_phone_label">Phone</string>
+    <string name="space_setting_title_details">Space details</string>
+    <string name="space_setting_title_your_location">Your location sharing</string>
+    <string name="space_setting_title_members_location_status">Space member status</string>
+    <string name="space_setting_hint_space_name">Space Name</string>
+    <string name="space_setting_no_members">No members in %s</string>
+    <string name="space_settings_btn_delete_space">Delete Space</string>
+    <string name="space_settings_btn_leave_space">Leave Space</string>
 
     <string-array name="home_create_space_name_suggestion">
         <item>Family</item>
