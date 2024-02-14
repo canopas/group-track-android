@@ -62,6 +62,12 @@ class UserPreferences @Inject constructor(
         }
     }
 
+    var currentUserSessionState = preferencesDataStore.data.map { preferences ->
+        preferencesDataStore.data.first()[KEY_USER_SESSION_JSON]?.let {
+            return@let userSessionJsonAdapter.fromJson(it)
+        }
+    }
+
     var currentUser: ApiUser?
         get() = runBlocking {
             preferencesDataStore.data.first()[KEY_USER_JSON]?.let {

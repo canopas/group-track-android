@@ -4,20 +4,23 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.window.DialogProperties
 import com.canopas.yourspace.ui.theme.AppTheme
 
 @Composable
 fun AppAlertDialog(
     title: String?,
     subTitle: String,
-    confirmBtnText: String?,
-    dismissBtnText: String?,
+    confirmBtnText: String? = null,
+    dismissBtnText: String? = null,
     onConfirmClick: (() -> Unit)? = null,
     onDismissClick: (() -> Unit)? = null,
-    isConfirmDestructive: Boolean = false
+    isConfirmDestructive: Boolean = false,
+    properties: DialogProperties? = null
 ) {
     AlertDialog(
         onDismissRequest = {},
+        properties = properties ?: DialogProperties(),
         containerColor = AppTheme.colorScheme.containerNormalOnSurface,
         title = {
             if (title != null) {

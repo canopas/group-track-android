@@ -32,7 +32,7 @@ data class ApiUser(
 @Keep
 data class ApiUserSession(
     val id: String = UUID.randomUUID().toString(),
-    val user_id: String,
+    val user_id: String = "",
     val device_id: String? = "",
     val fcm_token: String? = "",
     val device_name: String? = "",
