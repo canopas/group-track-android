@@ -89,4 +89,5 @@ class AuthService @Inject constructor(
     }
 
     suspend fun getUser(): ApiUser? = apiUserService.getUser(currentUser?.id ?: "")
+    suspend fun getUserFlow() = apiUserService.getUserFlow(currentUser?.id ?: "")
 }

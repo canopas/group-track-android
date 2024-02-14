@@ -36,7 +36,12 @@ class OnboardViewModel @Inject constructor(
         val user = authService.currentUser
         _state.value = _state.value.copy(
             firstName = user?.first_name ?: "",
-            lastName = user?.last_name ?: ""
+            lastName = user?.last_name ?: "",
+            currentStep = if (user?.first_name.isNullOrEmpty()) {
+                OnboardItems.PickName
+            } else {
+                OnboardItems.SpaceIntro
+            }
         )
     }
 

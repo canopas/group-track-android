@@ -1,7 +1,7 @@
 package com.canopas.yourspace.data.service.space
 
 import com.canopas.yourspace.data.models.space.ApiSpaceInvitation
-import com.canopas.yourspace.data.utils.FirestoreConst
+import com.canopas.yourspace.data.utils.Config
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -12,7 +12,7 @@ class SpaceInvitationService @Inject constructor(
     private val db: FirebaseFirestore
 ) {
     private val spaceInvitationRef =
-        db.collection(FirestoreConst.FIRESTORE_COLLECTION_SPACE_INVITATION)
+        db.collection(Config.FIRESTORE_COLLECTION_SPACE_INVITATION)
 
     suspend fun createInvitation(spaceId: String): String {
         val invitationCode = generateInvitationCode()
