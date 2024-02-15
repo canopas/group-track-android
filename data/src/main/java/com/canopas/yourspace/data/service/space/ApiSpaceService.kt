@@ -91,4 +91,8 @@ class ApiSpaceService @Inject constructor(
                 it.reference.delete().await()
             }
     }
+
+    suspend fun updateSpace(space: ApiSpace) {
+        spaceRef.document(space.id).set(space).await()
+    }
 }

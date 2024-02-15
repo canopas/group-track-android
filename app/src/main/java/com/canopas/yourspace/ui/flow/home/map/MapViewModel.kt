@@ -50,22 +50,26 @@ class MapViewModel @Inject constructor(
 
     private fun listenMemberLocation() {
         locationJob = viewModelScope.launch(appDispatcher.IO) {
-            spaceRepository.getMemberWithLocation().collectLatest {
+            spaceRepository.getMemberWithLocation().collectLatest { members ->
                 var currentCameraPosition = _state.value.defaultCameraPosition
                 val selectedUser = _state.value.selectedUser
                 if (selectedUser != null) {
                     val updatedLocation =
-                        it.find { it.user.id == selectedUser.user.id }?.location?.toLocation()
+                        members.find { it.user.id == selectedUser.user.id }?.location?.toLocation()
                     if (updatedLocation != null) {
                         currentCameraPosition = updatedLocation
                     }
                 }
+
                 _state.emit(
                     _state.value.copy(
-                        members = it,
+                        members = members,
                         defaultCameraPosition = currentCameraPosition
                     )
                 )
+                if (members.isEmpty() && _state.value.showUserDetails) {
+                    dismissMemberDetail()
+                }
             }
         }
     }
