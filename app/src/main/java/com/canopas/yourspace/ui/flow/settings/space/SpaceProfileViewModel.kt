@@ -25,7 +25,7 @@ class SpaceProfileViewModel @Inject constructor(
     private val appDispatcher: AppDispatcher
 ) : ViewModel() {
 
-    val spaceID =
+    private val spaceID =
         savedStateHandle.get<String>(AppDestinations.SpaceProfileScreen.KEY_SPACE_ID) ?: ""
 
     private val _state = MutableStateFlow(SpaceProfileState())
@@ -97,27 +97,25 @@ class SpaceProfileViewModel @Inject constructor(
         val isLocationStateUpdated = locationEnabled != _state.value.locationEnabled
         val isNameUpdated = space.name != _state.value.spaceName?.trim()
 
-        viewModelScope.launch(appDispatcher.IO) {
-            try {
-                _state.emit(_state.value.copy(saving = true))
-                if (isNameUpdated) {
-                    spaceRepository.updateSpace(
-                        space.copy(name = _state.value.spaceName?.trim() ?: "")
-                    )
-                }
-                if (isLocationStateUpdated) {
-                    spaceRepository.enableLocation(
-                        spaceID,
-                        authService.currentUser?.id ?: "",
-                        _state.value.locationEnabled
-                    )
-                }
-                _state.emit(_state.value.copy(saving = false))
-                navigator.navigateBack()
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to save space")
-                _state.emit(_state.value.copy(saving = false, error = e.message))
+        try {
+            _state.emit(_state.value.copy(saving = true))
+            if (isNameUpdated) {
+                spaceRepository.updateSpace(
+                    space.copy(name = _state.value.spaceName?.trim() ?: "")
+                )
             }
+            if (isLocationStateUpdated) {
+                spaceRepository.enableLocation(
+                    spaceID,
+                    authService.currentUser?.id ?: "",
+                    _state.value.locationEnabled
+                )
+            }
+            _state.emit(_state.value.copy(saving = false))
+            navigator.navigateBack()
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to save space")
+            _state.emit(_state.value.copy(saving = false, error = e.message))
         }
     }
 
