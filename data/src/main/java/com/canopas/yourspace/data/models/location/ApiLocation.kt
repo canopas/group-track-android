@@ -16,3 +16,9 @@ fun ApiLocation.toLocation() = android.location.Location("").apply {
     latitude = this@toLocation.latitude
     longitude = this@toLocation.longitude
 }
+
+fun android.location.Location.toApiLocation(userId: String) = ApiLocation(
+    user_id = userId,
+    latitude = latitude,
+    longitude = longitude
+)

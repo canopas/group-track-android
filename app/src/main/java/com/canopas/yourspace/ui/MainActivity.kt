@@ -67,13 +67,14 @@ fun MainApp() {
     val viewModel = hiltViewModel<MainViewModel>()
     val sessionExpired by viewModel.sessionExpiredState.collectAsState()
 
+    val initialRoute by viewModel.initialRoute.collectAsState()
     if (sessionExpired) {
         SessionExpiredAlertPopup()
     }
 
     AppNavigator(navController = navController, viewModel.navActions)
 
-    NavHost(navController = navController, startDestination = AppDestinations.home.path) {
+    NavHost(navController = navController, startDestination = initialRoute) {
         slideComposable(AppDestinations.intro.path) {
             IntroScreen()
         }

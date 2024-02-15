@@ -39,7 +39,7 @@ fun SpaceInfoOnboard() {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(40.dp))
-        TitleContent(state.firstName)
+        TitleContent()
         Spacer(modifier = Modifier.weight(0.5f))
         Image(
             painter = painterResource(id = R.drawable.ic_empty_location_history),
@@ -66,7 +66,7 @@ fun SpaceInfoOnboard() {
 }
 
 @Composable
-private fun TitleContent(firstName: String) {
+private fun TitleContent() {
     Text(
         text = stringResource(R.string.onboard_space_info_title),
         style = AppTheme.appTypography.header1,

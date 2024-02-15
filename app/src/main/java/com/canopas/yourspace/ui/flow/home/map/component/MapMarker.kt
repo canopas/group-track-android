@@ -22,6 +22,7 @@ import com.canopas.yourspace.ui.component.UserProfile
 import com.canopas.yourspace.ui.theme.AppTheme
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.MarkerComposable
+import com.google.maps.android.compose.MarkerState
 
 @Composable
 fun MapMarker(
@@ -30,9 +31,7 @@ fun MapMarker(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    // val iconState = rememberMarkerIconState(user)
-    val markerState = rememberMarkerState(
-        user = user,
+    val markerState = MarkerState(
         position = LatLng(
             location.latitude,
             location.longitude

@@ -57,6 +57,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
+import com.canopas.yourspace.data.models.location.toApiLocation
 import com.canopas.yourspace.data.utils.hasAllPermission
 import com.canopas.yourspace.data.utils.hasFineLocationPermission
 import com.canopas.yourspace.data.utils.isLocationPermissionGranted
@@ -331,13 +332,25 @@ private fun MapView(
             mapToolbarEnabled = false
         )
     ) {
-        state.members.filter { it.location != null && it.isLocationEnable }.forEach {
-            MapMarker(
-                user = it.user,
-                location = it.location!!,
-                isSelected = it.user.id == state.selectedUser?.user?.id
-            ) {
-                viewModel.showMemberDetail(it)
+        if (state.members.isNotEmpty()) {
+            state.members.filter { it.location != null && it.isLocationEnable }.forEach {
+                MapMarker(
+                    user = it.user,
+                    location = it.location!!,
+                    isSelected = it.user.id == state.selectedUser?.user?.id
+                ) {
+                    viewModel.showMemberDetail(it)
+                }
+            }
+        } else {
+            val location = state.defaultCameraPosition
+            val currentUser = state.currentUser
+            if (location != null && currentUser != null) {
+                MapMarker(
+                    user = currentUser,
+                    location = location.toApiLocation(currentUser.id),
+                    isSelected = currentUser.id == state.selectedUser?.user?.id
+                ) {}
             }
         }
     }
