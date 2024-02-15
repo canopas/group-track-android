@@ -133,7 +133,5 @@ class SpaceRepository @Inject constructor(
         joinedSpace.forEach { space ->
             spaceService.removeUserFromSpace(space.id, userId)
         }
-
-        locationService.deleteLocations(userId)
     }
 }
