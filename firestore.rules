@@ -142,5 +142,57 @@ service cloud.firestore {
                            request.resource.data.code.size() == 6 &&
                            request.resource.data.created_at is int;
         }
+
+
+       match /space_threads/{docId} {
+            allow read: if isAuthorized() && (isSpaceAdmin(resource.data.space_id) || isSpaceMember(resource.data.space_id));
+            allow delete: if isAuthorized() && isSpaceAdmin(resource.data.space_id);
+            allow update: if false;
+            allow create: if isAuthorized() && (isSpaceAdmin(request.resource.data.space_id)) &&
+                           request.resource.data.keys().hasAll(["id", "space_id", "admin_id", "created_at"]) &&
+                           request.resource.data.id is string &&
+                           request.resource.data.space_id is string &&
+                           request.resource.data.admin_id is string &&
+                           request.resource.data.created_at is int;
+
+       }
+       function isThreadMember(threadId) {
+           let isMember = exists(/databases/$(database)/documents/spaces_threads/$(threadId)/thread_members/$(request.auth.uid));
+           return isMember;
+       }
+
+       function isThreadAdmin(threadId) {
+           return get(/databases/$(database)/documents/space_thread/$(threadId)).data.admin_id;
+       }
+
+       match /{path=**}/thread_members/{member} {
+           allow read: if isAuthorized() && (request.auth.uid == resource.data.user_id || isThreadMember(resource.data.thread_id));
+           allow write: if false;
+       }
+
+       match /space_threads/{threadId}/thread_members/{member} {
+           allow read: if isAuthorized() && (request.auth.uid == resource.data.user_id || isThreadMember(threadId));
+           allow delete: if isAuthorized() && (request.auth.uid == resource.data.user_id || isThreadAdmin(threadId));
+           allow update: if false;
+           allow create: if isAuthorized() && (request.auth.uid == request.resource.data.user_id || isThreadAdmin(threadId)) &&
+                         request.resource.data.keys().hasAll(["id", "thread_id", "user_id", "created_at"]) &&
+                         request.resource.data.id is string &&
+                         request.resource.data.thread_id is string &&
+                         request.resource.data.user_id is string &&
+                         request.resource.data.created_at is int;
+       }
+
+       match /space_threads/{threadId}/thread_messages/{docId} {
+              allow read: if isAuthorized() && isThreadMember(threadId);
+              allow delete: if isAuthorized() && (isSpaceAdmin(resource.data.space_id));
+              allow update: if false;
+              allow create: if isAuthorized() && isThreadMember(threadId) &&
+                             request.resource.data.keys().hasAll(["id", "thread_id", "sender_id", "message", "created_at"]) &&
+                             request.resource.data.id is string &&
+                             request.resource.data.thread_id is string &&
+                             request.resource.data.sender_id is string &&
+                             request.resource.data.message is string &&
+                             request.resource.data.created_at is int;
+      }
   }
 }
