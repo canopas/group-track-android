@@ -143,8 +143,7 @@ class EditProfileViewModel @Inject constructor(
             authService.deleteAccount()
             navigator.navigateTo(
                 AppDestinations.signIn.path,
-                AppDestinations.home.path,
-                true
+                clearStack = true
             )
             _state.emit(_state.value.copy(deletingAccount = false))
         } catch (e: Exception) {

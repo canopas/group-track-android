@@ -39,14 +39,14 @@ class AppNavigator @Inject constructor() {
         route: String,
         popUpToRoute: String? = null,
         inclusive: Boolean = false,
-        isSingleTop: Boolean = false
+        clearStack: Boolean = false
     ) {
         _navigationChannel.tryEmit(
             NavAction.NavigateTo(
                 route = route,
                 popUpToRoute = popUpToRoute,
                 inclusive = inclusive,
-                isSingleTop = isSingleTop
+                clearStack = clearStack
             )
         )
     }
@@ -64,7 +64,7 @@ sealed class NavAction {
         val route: String,
         val popUpToRoute: String? = null,
         val inclusive: Boolean = false,
-        val isSingleTop: Boolean = false
+        val clearStack: Boolean = false
     ) : NavAction()
 }
 
@@ -99,9 +99,12 @@ fun AppNavigator(navController: NavHostController, navActions: SharedFlow<NavAct
 
                 is NavAction.NavigateTo -> {
                     navController.navigate(navAction.route) {
-                        launchSingleTop = navAction.isSingleTop
-                        navAction.popUpToRoute?.let { popUpToRoute ->
-                            popUpTo(popUpToRoute) { inclusive = navAction.inclusive }
+                        if (navAction.clearStack) {
+                            popUpTo(navController.graph.id) { inclusive = true }
+                        } else {
+                            navAction.popUpToRoute?.let { popUpToRoute ->
+                                popUpTo(popUpToRoute) { inclusive = navAction.inclusive }
+                            }
                         }
                     }
                 }

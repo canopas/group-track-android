@@ -32,28 +32,19 @@ class MainViewModel @Inject constructor(
     private val _sessionExpiredState = MutableStateFlow(false)
     val sessionExpiredState = _sessionExpiredState.asStateFlow()
 
+    private val _initialRoute = MutableStateFlow(AppDestinations.home.path)
+    val initialRoute = _initialRoute.asStateFlow()
+
     init {
         viewModelScope.launch {
             if (userPreferences.isIntroShown()) {
                 if (userPreferences.currentUser == null) {
-                    navigator.navigateTo(
-                        AppDestinations.signIn.path,
-                        popUpToRoute = AppDestinations.intro.path,
-                        inclusive = true
-                    )
+                    _initialRoute.value = AppDestinations.signIn.path
                 } else if (!userPreferences.isOnboardShown()) {
-                    navigator.navigateTo(
-                        AppDestinations.onboard.path,
-                        popUpToRoute = AppDestinations.intro.path,
-                        inclusive = true
-                    )
+                    _initialRoute.value = AppDestinations.onboard.path
                 }
             } else {
-                navigator.navigateTo(
-                    AppDestinations.intro.path,
-                    popUpToRoute = AppDestinations.home.path,
-                    inclusive = true
-                )
+                _initialRoute.value = AppDestinations.intro.path
             }
             userPreferences.currentUserSessionState.collectLatest { userSession ->
                 listenSessionJob?.cancel()
@@ -78,8 +69,7 @@ class MainViewModel @Inject constructor(
         authService.signOut()
         navigator.navigateTo(
             AppDestinations.signIn.path,
-            AppDestinations.home.path,
-            true
+            clearStack = true
         )
         _sessionExpiredState.emit(false)
     }

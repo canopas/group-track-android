@@ -104,7 +104,7 @@ fun SpaceSelectionMenu(modifier: Modifier) {
 fun SpaceSelectionPopup(
     show: Boolean,
     spaces: List<SpaceInfo>,
-    selectSpaceId: String,
+    selectSpaceId: String?,
     onSpaceSelected: (String) -> Unit = {},
     onCreateSpace: () -> Unit = {},
     onJoinSpace: () -> Unit = {}

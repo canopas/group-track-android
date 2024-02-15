@@ -56,17 +56,12 @@ class SettingsViewModel @Inject constructor(
         _state.value = _state.value.copy(openSignOutDialog = show)
     }
 
-    fun showDeleteAccountConfirmation(show: Boolean) {
-        _state.value = _state.value.copy(openDeleteAccountDialog = show)
-    }
-
     fun signOutUser() = viewModelScope.launch(appDispatcher.IO) {
         _state.emit(_state.value.copy(signingOut = true, openSignOutDialog = false))
         authService.signOut()
         navigator.navigateTo(
             AppDestinations.signIn.path,
-            AppDestinations.home.path,
-            true
+            clearStack = true
         )
         _state.emit(_state.value.copy(signingOut = false))
     }

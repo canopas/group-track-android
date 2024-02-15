@@ -1,6 +1,8 @@
 package com.canopas.yourspace.ui.flow.onboard.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -10,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Divider
@@ -17,9 +20,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -82,6 +88,12 @@ fun PickNameOnboard() {
 
 @Composable
 private fun PickNameTextField(title: String, value: String, onValueChanged: (String) -> Unit) {
+    val focusManager = LocalFocusManager.current
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
+    val outlineColor =
+        if (isFocused) AppTheme.colorScheme.primary else AppTheme.colorScheme.outline
+
     Text(
         text = title.uppercase(),
         style = AppTheme.appTypography.subTitle2
@@ -112,15 +124,21 @@ private fun PickNameTextField(title: String, value: String, onValueChanged: (Str
             },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Text,
-                imeAction = ImeAction.Next
+                imeAction = ImeAction.Done
             ),
-            singleLine = true
+            keyboardActions = KeyboardActions(onDone = {
+                focusManager.clearFocus()
+            }),
+            singleLine = true,
+            maxLines = 1,
+            interactionSource = interactionSource,
+            cursorBrush = SolidColor(AppTheme.colorScheme.primary)
         )
 
         Divider(
             Modifier.align(Alignment.BottomCenter),
             thickness = 1.dp,
-            color = AppTheme.colorScheme.outline
+            color = outlineColor
         )
     }
 }
