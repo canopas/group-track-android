@@ -123,7 +123,7 @@ fun SpaceSelectionPopup(
                     clip = false
                 )
                 .background(
-                    color = AppTheme.colorScheme.surface,
+                    color = AppTheme.colorScheme.containerNormalOnSurface,
                     shape = RoundedCornerShape(bottomStart = 10.dp, bottomEnd = 10.dp)
                 )
                 .padding(16.dp)

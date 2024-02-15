@@ -70,8 +70,12 @@ service cloud.firestore {
                                          request.resource.data.app_version is int &&
                                          request.resource.data.created_at is int;
                allow delete: if isAuthorized() && request.auth.uid == resource.data.user_id;
-               allow update: if false;
+               allow update: if isAuthorized() && request.auth.uid == resource.data.user_id;
             }
+        }
+
+        match /users/{docId}/user_sessions/{document=**} {
+             allow read: if isAuthorized() && request.auth.uid == docId;
         }
 
         function isSpaceAdmin(spaceId) {

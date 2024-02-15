@@ -9,10 +9,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import com.canopas.yourspace.R
+import com.canopas.yourspace.ui.component.AppAlertDialog
 import com.canopas.yourspace.ui.flow.auth.methods.SignInMethodViewModel
 import com.canopas.yourspace.ui.flow.auth.methods.SignInMethodsScreen
 import com.canopas.yourspace.ui.flow.auth.phone.EXTRA_RESULT_IS_NEW_USER
@@ -59,6 +65,11 @@ class MainActivity : ComponentActivity() {
 fun MainApp() {
     val navController = rememberNavController()
     val viewModel = hiltViewModel<MainViewModel>()
+    val sessionExpired by viewModel.sessionExpiredState.collectAsState()
+
+    if (sessionExpired) {
+        SessionExpiredAlertPopup()
+    }
 
     AppNavigator(navController = navController, viewModel.navActions)
 
@@ -132,4 +143,19 @@ fun MainApp() {
             SpaceProfileScreen()
         }
     }
+}
+
+@Composable
+fun SessionExpiredAlertPopup() {
+    val viewModel = hiltViewModel<MainViewModel>()
+
+    AppAlertDialog(
+        title = stringResource(id = R.string.common_session_expired_title),
+        subTitle = stringResource(id = R.string.common_session_expired_message),
+        confirmBtnText = stringResource(id = R.string.common_btn_ok),
+        onConfirmClick = {
+            viewModel.signOut()
+        },
+        properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
+    )
 }

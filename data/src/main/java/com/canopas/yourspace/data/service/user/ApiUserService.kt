@@ -33,6 +33,9 @@ class ApiUserService @Inject constructor(
     suspend fun getUserFlow(userId: String) =
         userRef.document(userId).snapshotFlow(ApiUser::class.java)
 
+    suspend fun getUserSessionFlow(userId: String, sessionId: String) =
+        sessionRef(userId).document(sessionId).snapshotFlow(ApiUserSession::class.java)
+
     suspend fun saveUser(
         uid: String?,
         firebaseToken: String?,
@@ -52,6 +55,7 @@ class ApiUserService @Inject constructor(
                 session_active = true,
                 app_version = device.versionCode
             )
+            deactivateOldSessions(savedUser.id)
             sessionDocRef.set(session).await()
             return Triple(false, savedUser, session)
         } else {
@@ -78,6 +82,12 @@ class ApiUserService @Inject constructor(
             sessionDocRef.set(session).await()
             locationService.saveLastKnownLocation(user.id)
             return Triple(true, user, session)
+        }
+    }
+
+    private suspend fun deactivateOldSessions(userId: String) {
+        sessionRef(userId).whereEqualTo("session_active", true).get().await().documents.forEach {
+            it.reference.update("session_active", false).await()
         }
     }
 
