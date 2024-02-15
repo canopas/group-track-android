@@ -133,6 +133,8 @@
     <string name="edit_profile_last_name_label">Last Name</string>
     <string name="edit_profile_email_label">Email</string>
     <string name="edit_profile_phone_label">Phone</string>
+    <string name="common_session_expired_title">You\'ve been logged out</string>
+    <string name="common_session_expired_message">You need to sign in again to continue using the application.</string>
 
     <string-array name="home_create_space_name_suggestion">
         <item>Family</item>
