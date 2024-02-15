@@ -66,7 +66,7 @@ class SpaceRepository @Inject constructor(
         }
     }
 
-    suspend fun getSpaceInfo(spaceId: String): SpaceInfo? {
+    suspend fun getCurrentSpaceInfo(): SpaceInfo? {
         val currentSpace = getCurrentSpace() ?: return null
         val members = spaceService.getMemberBySpaceId(currentSpace.id)
             .map { members ->
@@ -78,7 +78,6 @@ class SpaceRepository @Inject constructor(
 
         return SpaceInfo(currentSpace, members)
     }
-
 
     suspend fun getCurrentSpace(): ApiSpace? {
         val spaceId = currentSpaceId
@@ -140,8 +139,7 @@ class SpaceRepository @Inject constructor(
         val joinedSpace = allSpace.filter { it.admin_id != userId }
 
         ownSpace.forEach { space ->
-            invitationService.deleteInvitations(space.id)
-            spaceService.deleteSpace(space.id)
+            deleteSpace(space.id)
         }
 
         joinedSpace.forEach { space ->
@@ -149,5 +147,26 @@ class SpaceRepository @Inject constructor(
         }
 
         locationService.deleteLocations(userId)
+    }
+
+    suspend fun deleteSpace(spaceId: String) {
+        invitationService.deleteInvitations(spaceId)
+        spaceService.deleteSpace(spaceId)
+        val userId = authService.currentUser?.id ?: ""
+        currentSpaceId =
+            getUserSpaces(userId).firstOrNull()?.sortedBy { it?.created_at }?.firstOrNull()?.id
+                ?: ""
+    }
+
+    suspend fun leaveSpace(spaceId: String) {
+        val userId = authService.currentUser?.id ?: ""
+        spaceService.removeUserFromSpace(spaceId, userId)
+        currentSpaceId =
+            getUserSpaces(userId).firstOrNull()?.sortedBy { it?.created_at }?.firstOrNull()?.id
+                ?: ""
+    }
+
+    suspend fun updateSpace(newSpace: ApiSpace) {
+        spaceService.updateSpace(newSpace)
     }
 }

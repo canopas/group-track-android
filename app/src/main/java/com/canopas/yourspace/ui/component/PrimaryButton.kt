@@ -59,7 +59,9 @@ fun PrimaryTextButton(
     onClick: () -> Unit,
     enabled: Boolean = true,
     showLoader: Boolean = false,
-    contentColor: Color = AppTheme.colorScheme.primary
+    icon: @Composable (() -> Unit)? = null,
+    contentColor: Color = AppTheme.colorScheme.primary,
+    containerColor: Color = AppTheme.colorScheme.surface
 ) {
     TextButton(
         onClick = onClick,
@@ -67,7 +69,7 @@ fun PrimaryTextButton(
             .fillMaxWidth(fraction = 0.9f),
         shape = RoundedCornerShape(50),
         colors = ButtonDefaults.buttonColors(
-            containerColor = AppTheme.colorScheme.surface,
+            containerColor = containerColor,
             contentColor = contentColor
         ),
         enabled = enabled
@@ -76,6 +78,11 @@ fun PrimaryTextButton(
             AppProgressIndicator(color = contentColor)
             Spacer(modifier = Modifier.width(4.dp))
         }
+        if (icon != null && !showLoader) {
+            icon()
+            Spacer(modifier = Modifier.width(4.dp))
+        }
+
         Text(
             text = label,
             style = AppTheme.appTypography.subTitle2,

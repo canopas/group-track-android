@@ -18,6 +18,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -35,12 +37,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.user.UserInfo
+import com.canopas.yourspace.ui.component.AppAlertDialog
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.AppProgressIndicator
 import com.canopas.yourspace.ui.component.PrimaryTextButton
@@ -58,21 +63,54 @@ fun SpaceProfileScreen() {
             SpaceProfileToolbar()
         }
     ) {
-
         Box(
             modifier = Modifier
                 .padding(it)
-                .fillMaxSize(), contentAlignment = Alignment.Center
+                .fillMaxSize(),
+            contentAlignment = Alignment.Center
         ) {
             SpaceProfileContent()
-            if (state.isLoading)
+            if (state.isLoading) {
                 AppProgressIndicator()
+            }
         }
     }
     if (state.error != null) {
         AppBanner(msg = state.error!!) {
             viewModel.resetErrorState()
         }
+    }
+
+    if (state.showDeleteSpaceConfirmation) {
+        AppAlertDialog(
+            title = stringResource(id = R.string.space_settings_btn_delete_space),
+            subTitle = stringResource(id = R.string.space_settings_delete_confrim_message),
+            confirmBtnText = stringResource(id = R.string.space_settings_delete_confrim_btn),
+            dismissBtnText = stringResource(id = R.string.common_btn_cancel),
+            isConfirmDestructive = true,
+            onDismissClick = {
+                viewModel.showDeleteSpaceConfirmation(false)
+            },
+            onConfirmClick = {
+                viewModel.deleteSpace()
+            }
+        )
+    }
+
+    if (state.showLeaveSpaceConfirmation) {
+        AppAlertDialog(
+            title = stringResource(id = R.string.space_settings_btn_leave_space),
+            subTitle = stringResource(id = R.string.space_settings_leave_confrim_message),
+            confirmBtnText = stringResource(id = R.string.space_settings_leave_confrim_btn),
+            dismissBtnText = stringResource(id = R.string.common_btn_cancel),
+            isConfirmDestructive = true,
+            onDismissClick = {
+                viewModel.showLeaveSpaceConfirmation(false)
+            },
+            onConfirmClick = {
+                viewModel.leaveSpace()
+            }
+        )
     }
 }
 
@@ -112,7 +150,7 @@ private fun SpaceProfileToolbar() {
                         indication = rememberRipple(bounded = false),
                         enabled = state.allowSave,
                         onClick = {
-                            viewModel.saveUser()
+                            viewModel.saveSpace()
                         }
                     )
             )
@@ -133,12 +171,12 @@ private fun SpaceProfileContent() {
                 .verticalScroll(scrollState)
                 .padding(bottom = 80.dp)
         ) {
-
             Header(title = stringResource(id = R.string.space_setting_title_details))
 
             UserTextField(
                 label = stringResource(R.string.space_setting_hint_space_name),
                 text = state.spaceName ?: "",
+                enabled = state.isAdmin,
                 onValueChange = {
                     viewModel.onNameChanged(it.trimStart())
                 }
@@ -155,7 +193,8 @@ private fun SpaceProfileContent() {
                     enable = true,
                     onCheckedChange = {
                         viewModel.onLocationEnabledChanged(it)
-                    })
+                    }
+                )
             }
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -166,16 +205,14 @@ private fun SpaceProfileContent() {
                     ?: emptyList()
 
             if (others.isNotEmpty()) {
-                repeat(10) {
-                    others.forEach {
-                        UserItem(
-                            userInfo = it,
-                            isChecked = it.isLocationEnable,
-                            enable = false,
-                            onCheckedChange = {
-
-                            })
-                    }
+                others.forEach {
+                    UserItem(
+                        userInfo = it,
+                        isChecked = it.isLocationEnable,
+                        enable = false,
+                        onCheckedChange = {
+                        }
+                    )
                 }
             } else {
                 Spacer(modifier = Modifier.height(24.dp))
@@ -195,13 +232,13 @@ private fun SpaceProfileContent() {
             }
         }
         if (state.spaceInfo != null && state.currentUserId == state.spaceInfo?.space?.admin_id) {
-
             FooterButton(
                 title = stringResource(id = R.string.space_settings_btn_delete_space),
                 onClick = {
                     viewModel.showDeleteSpaceConfirmation(true)
                 },
                 showLoader = state.deletingSpace,
+                icon = Icons.Default.Delete
             )
         }
 
@@ -212,8 +249,8 @@ private fun SpaceProfileContent() {
                     viewModel.showLeaveSpaceConfirmation(true)
                 },
                 showLoader = state.leavingSpace,
+                icon = Icons.Default.ExitToApp
             )
-
         }
     }
 }
@@ -221,22 +258,25 @@ private fun SpaceProfileContent() {
 @Composable
 private fun BoxScope.FooterButton(
     title: String,
+    icon: ImageVector,
     showLoader: Boolean,
     onClick: () -> Unit
 ) {
     Box(
-        modifier = Modifier.align(Alignment.BottomCenter)
+        modifier = Modifier
+            .align(Alignment.BottomCenter)
             .fillMaxWidth()
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        AppTheme.colorScheme.surface.copy(alpha = 0.4f),
+                        AppTheme.colorScheme.surface.copy(alpha = 0.1f),
+                        AppTheme.colorScheme.surface.copy(alpha = 0.9f),
                         AppTheme.colorScheme.surface,
-                        AppTheme.colorScheme.surface,
+                        AppTheme.colorScheme.surface
                     )
                 )
             )
-            .padding(bottom = 20.dp),
+            .padding(bottom = 16.dp, top = 10.dp),
         contentAlignment = Alignment.Center
     ) {
         PrimaryTextButton(
@@ -244,6 +284,14 @@ private fun BoxScope.FooterButton(
             onClick = onClick,
             contentColor = AppTheme.colorScheme.alertColor,
             showLoader = showLoader,
+            containerColor = Color.Transparent,
+            icon = {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = "",
+                    modifier = Modifier.size(20.dp)
+                )
+            }
         )
     }
 }
@@ -258,7 +306,7 @@ private fun UserItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         UserProfile(modifier = Modifier.size(50.dp), user = userInfo.user)
@@ -277,7 +325,7 @@ private fun UserItem(
             enabled = enable,
             colors = SwitchDefaults.colors(
                 checkedThumbColor = AppTheme.colorScheme.onPrimary,
-                uncheckedThumbColor = AppTheme.colorScheme.onPrimary,
+                uncheckedThumbColor = AppTheme.colorScheme.onPrimary
             ),
             onCheckedChange = {
                 onCheckedChange(it)

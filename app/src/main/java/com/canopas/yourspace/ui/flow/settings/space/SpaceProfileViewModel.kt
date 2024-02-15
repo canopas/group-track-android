@@ -38,16 +38,18 @@ class SpaceProfileViewModel @Inject constructor(
     private fun fetchSpaceDetail() = viewModelScope.launch(appDispatcher.IO) {
         _state.emit(_state.value.copy(isLoading = true))
         try {
-
-            val spaceInfo = spaceRepository.getSpaceInfo(spaceID)
+            val spaceInfo = spaceRepository.getCurrentSpaceInfo()
             val locationEnabled =
                 spaceInfo?.members?.firstOrNull { it.user.id == authService.currentUser?.id }?.isLocationEnable
                     ?: false
             _state.emit(
                 _state.value.copy(
-                    isLoading = false, spaceInfo = spaceInfo,
+                    isLoading = false,
+                    spaceInfo = spaceInfo,
                     currentUserId = authService.currentUser?.id,
-                    spaceName = spaceInfo?.space?.name, locationEnabled = locationEnabled
+                    isAdmin = spaceInfo?.space?.admin_id == authService.currentUser?.id,
+                    spaceName = spaceInfo?.space?.name,
+                    locationEnabled = locationEnabled
                 )
             )
         } catch (e: Exception) {
@@ -77,7 +79,6 @@ class SpaceProfileViewModel @Inject constructor(
             spaceName != _state.value.spaceName || locationEnabled != _state.value.locationEnabled
 
         _state.value = state.value.copy(allowSave = validFirstName && changes)
-
     }
 
     fun onLocationEnabledChanged(enable: Boolean) {
@@ -85,8 +86,39 @@ class SpaceProfileViewModel @Inject constructor(
         onChange()
     }
 
-    fun saveUser() {
+    fun saveSpace() = viewModelScope.launch(appDispatcher.IO) {
+        if (state.value.saving) return@launch
+        val space = _state.value.spaceInfo?.space ?: return@launch
 
+        val locationEnabled =
+            _state.value.spaceInfo?.members?.firstOrNull { it.user.id == authService.currentUser?.id }?.isLocationEnable
+                ?: false
+
+        val isLocationStateUpdated = locationEnabled != _state.value.locationEnabled
+        val isNameUpdated = space.name != _state.value.spaceName?.trim()
+
+        viewModelScope.launch(appDispatcher.IO) {
+            try {
+                _state.emit(_state.value.copy(saving = true))
+                if (isNameUpdated) {
+                    spaceRepository.updateSpace(
+                        space.copy(name = _state.value.spaceName?.trim() ?: "")
+                    )
+                }
+                if (isLocationStateUpdated) {
+                    spaceRepository.enableLocation(
+                        spaceID,
+                        authService.currentUser?.id ?: "",
+                        _state.value.locationEnabled
+                    )
+                }
+                _state.emit(_state.value.copy(saving = false))
+                navigator.navigateBack()
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to save space")
+                _state.emit(_state.value.copy(saving = false, error = e.message))
+            }
+        }
     }
 
     fun resetErrorState() {
@@ -101,11 +133,56 @@ class SpaceProfileViewModel @Inject constructor(
         _state.value = state.value.copy(showLeaveSpaceConfirmation = show)
     }
 
+    fun deleteSpace() = viewModelScope.launch(appDispatcher.IO) {
+        try {
+            _state.emit(
+                _state.value.copy(
+                    deletingSpace = true,
+                    showDeleteSpaceConfirmation = false
+                )
+            )
+            spaceRepository.deleteSpace(spaceID)
+            navigator.navigateBack(AppDestinations.home.path)
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to delete space")
+            _state.emit(
+                _state.value.copy(
+                    error = e.message,
+                    deletingSpace = false,
+                    showDeleteSpaceConfirmation = false
+                )
+            )
+        }
+    }
+
+    fun leaveSpace() = viewModelScope.launch(appDispatcher.IO) {
+        try {
+            _state.emit(
+                _state.value.copy(
+                    leavingSpace = true,
+                    showLeaveSpaceConfirmation = false
+                )
+            )
+            spaceRepository.leaveSpace(spaceID)
+            navigator.navigateBack(AppDestinations.home.path)
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to leave space")
+            _state.emit(
+                _state.value.copy(
+                    error = e.message,
+                    leavingSpace = false,
+                    showLeaveSpaceConfirmation = false
+                )
+            )
+        }
+    }
 }
 
 data class SpaceProfileState(
     val isLoading: Boolean = false,
+    val saving: Boolean = false,
     val currentUserId: String? = null,
+    val isAdmin: Boolean = false,
     val spaceInfo: SpaceInfo? = null,
     val spaceName: String? = null,
     val deletingSpace: Boolean = false,
