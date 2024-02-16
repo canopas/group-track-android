@@ -2,13 +2,15 @@ package com.canopas.yourspace.data.service.messages
 
 import com.canopas.yourspace.data.models.messages.ApiThread
 import com.canopas.yourspace.data.models.messages.ApiThreadMember
+import com.canopas.yourspace.data.models.messages.ApiThreadMessage
 import com.canopas.yourspace.data.utils.Config
 import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_SPACE_THREADS
+import com.canopas.yourspace.data.utils.snapshotFlow
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
-class MessagesService @Inject constructor(
+class ApiMessagesService @Inject constructor(
     private val db: FirebaseFirestore
 ) {
 
@@ -44,7 +46,20 @@ class MessagesService @Inject constructor(
         docRef.set(member).await()
     }
 
+    suspend fun getMessages(threadId: String) = threadMessagesRef(threadId).snapshotFlow(ApiThreadMessage::class.java)
 
+    suspend fun getMembers(threadId: String) = threadMemberRef(threadId).snapshotFlow(ApiThreadMember::class.java)
 
+    suspend fun sendMessage(threadId: String, senderId: String, message: String) {
+        val docRef = threadMessagesRef(threadId).document()
+        val threadMessage = ApiThreadMessage(
+            id = docRef.id,
+            thread_id = threadId,
+            sender_id = senderId,
+            message = message,
+            created_at = System.currentTimeMillis()
+        )
+        docRef.set(threadMessage).await()
+    }
 
 }

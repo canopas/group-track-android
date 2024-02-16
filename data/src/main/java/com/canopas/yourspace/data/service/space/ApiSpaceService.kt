@@ -5,7 +5,7 @@ import com.canopas.yourspace.data.models.space.ApiSpaceMember
 import com.canopas.yourspace.data.models.space.SPACE_MEMBER_ROLE_ADMIN
 import com.canopas.yourspace.data.models.space.SPACE_MEMBER_ROLE_MEMBER
 import com.canopas.yourspace.data.service.auth.AuthService
-import com.canopas.yourspace.data.service.messages.MessagesService
+import com.canopas.yourspace.data.service.messages.ApiMessagesService
 import com.canopas.yourspace.data.service.user.ApiUserService
 import com.canopas.yourspace.data.utils.Config
 import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_SPACES
@@ -21,7 +21,7 @@ class ApiSpaceService @Inject constructor(
     private val db: FirebaseFirestore,
     private val authService: AuthService,
     private val apiUserService: ApiUserService,
-    private val messagesService: MessagesService
+    private val messagesService: ApiMessagesService
 ) {
     private val spaceRef = db.collection(FIRESTORE_COLLECTION_SPACES)
     private fun spaceMemberRef(spaceId: String) =
@@ -34,7 +34,6 @@ class ApiSpaceService @Inject constructor(
         val space = ApiSpace(id = spaceId, name = spaceName, admin_id = userId)
         docRef.set(space).await()
         joinSpace(spaceId, SPACE_MEMBER_ROLE_ADMIN)
-        messagesService.createThread(spaceId, userId)
         return spaceId
     }
 
@@ -52,10 +51,6 @@ class ApiSpaceService @Inject constructor(
             }
 
         apiUserService.addSpaceId(userId, spaceId)
-
-        if (role == SPACE_MEMBER_ROLE_MEMBER) {
-            messagesService.joinThread(spaceId, userId)
-        }
     }
 
     suspend fun enableLocation(spaceId: String, userId: String, enable: Boolean) {

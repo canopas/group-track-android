@@ -25,5 +25,6 @@ data class ApiThreadMessage(
     val thread_id: String,
     val sender_id: String,
     val message: String,
+    val read_by: List<String> = emptyList(),
     val created_at: Long,
 )

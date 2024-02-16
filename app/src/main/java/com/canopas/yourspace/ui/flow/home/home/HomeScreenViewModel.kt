@@ -165,6 +165,10 @@ class HomeScreenViewModel @Inject constructor(
     fun navigateToSettings() {
         navigator.navigateTo(AppDestinations.settings.path)
     }
+
+    fun navigateToThreads() {
+        navigator.navigateTo(AppDestinations.spaceThreads.path)
+    }
 }
 
 data class HomeScreenState(

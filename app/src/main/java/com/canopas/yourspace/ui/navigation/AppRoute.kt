@@ -133,4 +133,9 @@ object AppDestinations {
             override val path = "$PATH/$inviteCode/$spaceName"
         }
     }
+
+    val spaceThreads = object : AppRoute {
+        override val arguments: List<NamedNavArgument> = emptyList()
+        override val path: String = "space-threads"
+    }
 }

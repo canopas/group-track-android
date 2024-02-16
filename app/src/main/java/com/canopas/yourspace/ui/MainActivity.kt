@@ -29,6 +29,7 @@ import com.canopas.yourspace.ui.flow.home.space.create.CreateSpaceHomeScreen
 import com.canopas.yourspace.ui.flow.home.space.create.SpaceInvite
 import com.canopas.yourspace.ui.flow.home.space.join.JoinSpaceScreen
 import com.canopas.yourspace.ui.flow.intro.IntroScreen
+import com.canopas.yourspace.ui.flow.messages.thread.ThreadsScreen
 import com.canopas.yourspace.ui.flow.onboard.OnboardScreen
 import com.canopas.yourspace.ui.flow.permission.EnablePermissionsScreen
 import com.canopas.yourspace.ui.flow.settings.SettingsScreen
@@ -141,6 +142,10 @@ fun MainApp() {
 
         slideComposable(AppDestinations.SpaceProfileScreen.path) {
             SpaceProfileScreen()
+        }
+
+        slideComposable(AppDestinations.spaceThreads.path) {
+            ThreadsScreen()
         }
     }
 }

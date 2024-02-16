@@ -146,6 +146,7 @@
     <string name="space_settings_delete_confrim_message">Confirming will permanently delete this space and associated data. This action cannot be undone.</string>
     <string name="space_settings_leave_confrim_btn">Leave</string>
     <string name="space_settings_leave_confrim_message">Are you sure you want to leave this space? You will no longer be able to view or share location with members of this space.</string>
+    <string name="threads_screen_subtitle_messages">Messages</string>
 
     <string-array name="home_create_space_name_suggestion">
         <item>Family</item>
