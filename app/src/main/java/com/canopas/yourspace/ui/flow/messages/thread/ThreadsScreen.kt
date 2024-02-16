@@ -36,12 +36,12 @@ fun ThreadsScreen() {
 
                     Column {
                         Text(
-                            text = state.currentSpace?.name ?: "",
+                            text = state.currentSpace?.space?.name ?: "",
                             style = AppTheme.appTypography.header3
                         )
                         Text(
                             text = stringResource(id = R.string.threads_screen_subtitle_messages),
-                            style = AppTheme.appTypography.subTitle2
+                            style = AppTheme.appTypography.body3
                         )
                     }
                 },

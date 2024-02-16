@@ -166,6 +166,7 @@ class HomeScreenViewModel @Inject constructor(
     }
 
     fun navigateToThreads() {
+        if (spaceRepository.currentSpaceId.isEmpty()) return
         navigator.navigateTo(AppDestinations.spaceThreads.path)
     }
 }
