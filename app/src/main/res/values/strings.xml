@@ -147,6 +147,10 @@
     <string name="space_settings_leave_confrim_btn">Leave</string>
     <string name="space_settings_leave_confrim_message">Are you sure you want to leave this space? You will no longer be able to view or share location with members of this space.</string>
     <string name="threads_screen_subtitle_messages">Messages</string>
+    <string name="threads_screen_no_members_title">Add members to send messages</string>
+    <string name="threads_screen_no_members_subtitle">At least one member needs to join your space to be able to chat.</string>
+    <string name="thread_screen_add_new_member">Add a new member</string>
+    <string name="threads_screen_no_threads">Tap on \'+\' to send new message to anyone in your space</string>
 
     <string-array name="home_create_space_name_suggestion">
         <item>Family</item>

@@ -14,5 +14,4 @@ object Config {
     const val FIRESTORE_COLLECTION_THREAD_MEMBERS = "thread_members"
 
     const val FIRESTORE_COLLECTION_USER_LOCATIONS = "user_locations"
-
 }
