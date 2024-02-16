@@ -1,4 +1,3 @@
-<p align="center"> <a href="https://canopas.com/contact"><img src="./screenshots/cta_banner.png"></a></p>
 <p align="center"> <a href="https://canopas.com/contact"><img src="./screenshots/cta_banner2.png"></a></p>
 
 # YourSpace - Stay connected, Anywhere!
