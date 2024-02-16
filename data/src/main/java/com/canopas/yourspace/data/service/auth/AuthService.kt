@@ -6,7 +6,6 @@ import com.canopas.yourspace.data.service.user.ApiUserService
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -89,7 +88,6 @@ class AuthService @Inject constructor(
     suspend fun deleteAccount() {
         val currentUser = currentUser ?: return
         apiUserService.deleteUser(currentUser.id)
-        firebaseAuth.currentUser?.delete()?.await()
         signOut()
     }
 

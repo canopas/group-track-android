@@ -14,7 +14,6 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
@@ -42,44 +41,32 @@ class MainViewModelTest {
     }
 
     @Test
-    fun `should navigate to sign-in screen if intro is shown and current user is null`() = runTest {
+    fun `should update initialRoute state to sign-in if user is null`() = runTest {
         whenever(userPreferences.isIntroShown()).thenReturn(true)
         whenever(userPreferences.currentUser).thenReturn(null)
         whenever(userPreferences.currentUserSessionState).thenReturn(flowOf())
         setup()
-        verify(navigator).navigateTo(
-            "sign-in",
-            popUpToRoute = "intro",
-            inclusive = true
-        )
+        assert(viewModel.initialRoute.value == "sign-in")
     }
 
     @Test
-    fun `should navigate to onboard screen if onboard is not shown`() = runTest {
+    fun `should update initialRoute state to onboard if onboard is not shown`() = runTest {
         whenever(userPreferences.currentUser).thenReturn(mock())
         whenever(userPreferences.isIntroShown()).thenReturn(true)
         whenever(userPreferences.isOnboardShown()).thenReturn(false)
         whenever(userPreferences.currentUserSessionState).thenReturn(flowOf())
         setup()
-        verify(navigator).navigateTo(
-            "onboard",
-            popUpToRoute = "intro",
-            inclusive = true
-        )
+        assert(viewModel.initialRoute.value == "onboard")
     }
 
     @Test
-    fun `should not navigate to onboard screen if onboard is shown`() = runTest {
+    fun `should not update initialRoute state to onboard if onboard is shown`() = runTest {
         whenever(userPreferences.currentUser).thenReturn(mock())
         whenever(userPreferences.isIntroShown()).thenReturn(true)
         whenever(userPreferences.isOnboardShown()).thenReturn(true)
         whenever(userPreferences.currentUserSessionState).thenReturn(flowOf())
         setup()
-        verify(navigator, times(0)).navigateTo(
-            "onboard",
-            popUpToRoute = "intro",
-            inclusive = true
-        )
+        assert(viewModel.initialRoute.value != "onboard")
     }
 
     @Test
@@ -137,8 +124,7 @@ class MainViewModelTest {
         viewModel.signOut()
         verify(navigator).navigateTo(
             "sign-in",
-            "home",
-            true
+            clearStack = true
         )
     }
 

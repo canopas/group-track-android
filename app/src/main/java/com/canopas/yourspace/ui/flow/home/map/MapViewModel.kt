@@ -4,6 +4,7 @@ import android.location.Location
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.canopas.yourspace.data.models.location.toLocation
+import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.models.user.UserInfo
 import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.location.LocationManager
@@ -37,7 +38,7 @@ class MapViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            _state.value = _state.value.copy(currentUserId = userPreferences.currentUser?.id)
+            _state.value = _state.value.copy(currentUser = userPreferences.currentUser)
             withContext(appDispatcher.IO) {
                 _state.emit(_state.value.copy(defaultCameraPosition = locationManager.getLastLocation()))
             }
@@ -126,7 +127,7 @@ class MapViewModel @Inject constructor(
 
 data class MapScreenState(
     val members: List<UserInfo> = emptyList(),
-    val currentUserId: String? = "",
+    val currentUser: ApiUser? = null,
     val defaultCameraPosition: Location? = null,
     val selectedUser: UserInfo? = null,
     val showUserDetails: Boolean = false,

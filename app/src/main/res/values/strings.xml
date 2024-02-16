@@ -16,7 +16,7 @@
     <string name="common_unknown">Unknown</string>
 
 
-    <string name="common_share_invite_code_message">Let\'s stay connected! Use invite code %s to join my Space. Download the app: [link].</string>
+    <string name="common_share_invite_code_message">Let\'s stay connected! Use invite code %s to join my Space.\n<a href="https://play.google.com/store/apps/details?id=com.canopas.yourspace">Download the app</a>.</string>
 
     <string name="intro_content_one">Share your location seamlessly, connecting with just a click.</string>
     <string name="intro_content_two">Stay in the know with instant alerts – whether loved ones enter or leave.</string>
@@ -36,7 +36,7 @@
     <string name="onboard_pick_name_title">What\'s your name?</string>
     <string name="onboard_pick_name_label_first_name">First name</string>
     <string name="onboard_pick_name_label_last_name">Last name</string>
-    <string name="onboard_space_info_title">Connect, Share, Explore. Join Your Trusted Space for Safe Location Sharing.</string>
+    <string name="onboard_space_info_title">Connect, Share, Explore.\nJoin Your Trusted Space for Safe Location Sharing.</string>
     <string name="onboard_space_info_subtitle">A Space is your exclusive and private area, just for you and your family.</string>
     <string name="onboard_space_join_title">Ready to connect? Input your invite code for Space entry.</string>
     <string name="onboard_space_join_subtitle">Get the code from the Space creator to join.</string>

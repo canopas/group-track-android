@@ -28,8 +28,6 @@ class HomeScreenViewModel @Inject constructor(
     private val appDispatcher: AppDispatcher
 ) : ViewModel() {
 
-    val navActions = navigator.navigationChannel
-
     private val _state = MutableStateFlow(HomeScreenState())
     val state: StateFlow<HomeScreenState> = _state
 
@@ -46,8 +44,7 @@ class HomeScreenViewModel @Inject constructor(
             authService.signOut()
             navigator.navigateTo(
                 AppDestinations.signIn.path,
-                AppDestinations.home.path,
-                true
+                clearStack = true
             )
         } else {
             authService.saveUser(user)
@@ -66,7 +63,7 @@ class HomeScreenViewModel @Inject constructor(
         try {
             _state.emit(_state.value.copy(isLoadingSpaces = _state.value.spaces.isEmpty()))
             spaceRepository.getAllSpaceInfo().collectLatest { spaces ->
-                if (spaceRepository.currentSpaceId.isEmpty()) {
+                if (spaceRepository.currentSpaceId.isEmpty() && spaces.isNotEmpty()) {
                     spaceRepository.currentSpaceId = spaces.firstOrNull()?.space?.id ?: ""
                 }
                 val tempSpaces = spaces.toMutableList()
@@ -145,10 +142,12 @@ class HomeScreenViewModel @Inject constructor(
 
     fun toggleLocation() = viewModelScope.launch(appDispatcher.IO) {
         try {
+            val userId = userPreferences.currentUser?.id ?: return@launch
+            val spaceId = spaceRepository.currentSpaceId ?: return@launch
+            if (spaceId.isEmpty()) return@launch
             _state.emit(_state.value.copy(enablingLocation = true))
             val locationEnabled = !_state.value.locationEnabled
-            val spaceId = _state.value.selectedSpaceId
-            val userId = userPreferences.currentUser?.id ?: return@launch
+
             spaceRepository.enableLocation(spaceId, userId, locationEnabled)
             _state.emit(
                 _state.value.copy(
@@ -174,7 +173,7 @@ class HomeScreenViewModel @Inject constructor(
 data class HomeScreenState(
     val currentTab: Int = 0,
     val spaces: List<SpaceInfo> = emptyList(),
-    val selectedSpaceId: String = "",
+    val selectedSpaceId: String? = "",
     val selectedSpace: SpaceInfo? = null,
     val isLoadingSpaces: Boolean = false,
     val showSpaceSelectionPopup: Boolean = false,
