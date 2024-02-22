@@ -22,7 +22,7 @@ class ApiMessagesService @Inject constructor(
     private fun threadMessagesRef(threadId: String) =
         threadRef.document(threadId).collection(Config.FIRESTORE_COLLECTION_THREAD_MESSAGES)
 
-    suspend fun createThread(spaceId: String, adminId: String) {
+    suspend fun createThread(spaceId: String, adminId: String):String {
         val docRef = threadRef.document()
         val threadId = docRef.id
         val thread = ApiThread(
@@ -33,6 +33,7 @@ class ApiMessagesService @Inject constructor(
         )
         docRef.set(thread).await()
         joinThread(threadId, adminId)
+        return threadId
     }
 
     suspend fun joinThread(threadId: String, userId: String) {

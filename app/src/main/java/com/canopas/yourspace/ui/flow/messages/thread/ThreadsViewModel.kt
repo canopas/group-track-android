@@ -79,7 +79,7 @@ class ThreadsViewModel @Inject constructor(
     }
 
     fun createNewThread() {
-
+navigator.navigateTo(AppDestinations.ThreadMessages.messages().path)
     }
 }
 
