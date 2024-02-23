@@ -40,12 +40,11 @@ fun ColumnScope.MessageList(
             .fillMaxSize()
             .weight(1f),
         contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
         reverseLayout = true
     ) {
         items(apiThreadMessages, key = { item -> item.id }) { message ->
             MessageContent(
-                message, by = members.first { it.user.id == message.sender_id },
+                message, by = members.firstOrNull { it.user.id == message.sender_id },
                 isSender = currentUserId == message.sender_id
             )
         }
@@ -56,12 +55,14 @@ fun ColumnScope.MessageList(
 @Composable
 fun MessageContent(
     message: ApiThreadMessage,
-    by: UserInfo,
+    by: UserInfo?,
     isSender: Boolean
 ) {
 
     Row(
-        Modifier.fillMaxWidth(),
+        Modifier
+            .padding(vertical = 8.dp)
+            .fillMaxWidth(),
         horizontalArrangement = if (isSender) {
             Arrangement.End
         } else {
@@ -69,7 +70,7 @@ fun MessageContent(
         },
         verticalAlignment = androidx.compose.ui.Alignment.Bottom
     ) {
-        if (!isSender) {
+        if (!isSender && by != null) {
             UserProfile(
                 modifier = Modifier
                     .padding(bottom = 12.dp)
@@ -94,7 +95,9 @@ fun MessageBubble(message: String, time: String, isSender: Boolean) {
         if (isSender) 0.dp else 20.dp,
         if (isSender) 20.dp else 0.dp
     )
-    Column(modifier = Modifier.wrapContentWidth().widthIn(max = screenWidth * 0.8f)){
+    Column(modifier = Modifier
+        .wrapContentWidth()
+        .widthIn(max = screenWidth * 0.8f)) {
         Text(
             text = message,
             style = AppTheme.appTypography.body1.copy(color = AppTheme.colorScheme.textPrimary),

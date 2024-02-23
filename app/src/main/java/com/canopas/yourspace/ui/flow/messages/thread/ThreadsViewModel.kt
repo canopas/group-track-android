@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.canopas.yourspace.data.models.messages.ThreadInfo
 import com.canopas.yourspace.data.models.space.SpaceInfo
+import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.messages.ApiMessagesService
@@ -13,6 +14,7 @@ import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -26,11 +28,12 @@ class ThreadsViewModel @Inject constructor(
     private val appDispatcher: AppDispatcher
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(ThreadsScreenState())
+    private val _state = MutableStateFlow(ThreadsScreenState(currentUser = authService.currentUser))
     val state = _state.asStateFlow()
 
     init {
         getCurrentSpace()
+
     }
 
     private fun getCurrentSpace() = viewModelScope.launch(appDispatcher.IO) {
@@ -38,16 +41,27 @@ class ThreadsViewModel @Inject constructor(
             _state.emit(_state.value.copy(loading = true))
             val space = spaceRepository.getCurrentSpaceInfo()
             val members = space?.members ?: emptyList()
-
+            listenThreads()
             _state.emit(
                 _state.value.copy(
-                    loading = false,
                     currentSpace = space,
                     hasMembers = members.size > 1
                 )
             )
         } catch (e: Exception) {
             Timber.e(e, "Failed to fetch current space")
+            _state.emit(_state.value.copy(error = e.message, loading = false))
+        }
+    }
+
+    private fun listenThreads() = viewModelScope.launch(appDispatcher.IO) {
+        val spaceId = spaceRepository.currentSpaceId
+        try {
+            messagesService.getThreadsWithLatestMessage(spaceId).collectLatest { threads ->
+                _state.emit(_state.value.copy(threadInfo = threads, loading = false))
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to listen threads")
             _state.emit(_state.value.copy(error = e.message, loading = false))
         }
     }
@@ -79,12 +93,17 @@ class ThreadsViewModel @Inject constructor(
     }
 
     fun createNewThread() {
-navigator.navigateTo(AppDestinations.ThreadMessages.messages().path)
+        navigator.navigateTo(AppDestinations.ThreadMessages.messages().path)
+    }
+
+    fun showMessages(threadInfo: ThreadInfo) {
+        navigator.navigateTo(AppDestinations.ThreadMessages.messages(threadInfo.thread.id).path)
     }
 }
 
 data class ThreadsScreenState(
     val loading: Boolean = false,
+    val currentUser: ApiUser? = null,
     val currentSpace: SpaceInfo? = null,
     val loadingInviteCode: Boolean = false,
     val inviteCode: String? = null,

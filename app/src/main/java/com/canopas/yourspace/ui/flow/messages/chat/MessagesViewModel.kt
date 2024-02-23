@@ -40,7 +40,6 @@ class MessagesViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     init {
-
         fetchSpaceInfo()
         listenThreadMessages()
     }

@@ -91,9 +91,7 @@ service cloud.firestore {
         match /spaces/{docId} {
            allow read: if true;
            allow delete: if isAuthorized() && request.auth.uid == resource.data.admin_id;
-           allow update: if isAuthorized() && request.auth.uid == resource.data.admin_id &&
-                         request.resource.data.diff(resource.data).affectedKeys().hasOnly(["name"]) &&
-                         request.resource.data.name is string;
+           allow update: if isAuthorized() && request.auth.uid == resource.data.admin_id;
            allow create: if isAuthorized() &&
                         request.resource.data.keys().hasAll(["id", "admin_id", "name", "created_at"]) &&
                         request.resource.data.id is string &&
@@ -127,12 +125,13 @@ service cloud.firestore {
         }
 
         match /space_invitations/{docId} {
-            allow read: if  isAuthorized();
-            allow delete: if  isAuthorized() && isSpaceAdmin(resource.data.space_id);
-            allow update: if  isAuthorized() && isSpaceAdmin(resource.data.space_id) &&
-                            request.resource.data.diff(resource.data).affectedKeys().hasOnly(["code"]) &&
+            allow read: if isAuthorized();
+            allow delete: if isAuthorized() && isSpaceAdmin(resource.data.space_id);
+            allow update: if isAuthorized() && isSpaceMember(resource.data.space_id) &&
+                            request.resource.data.diff(resource.data).affectedKeys().hasOnly(["code","created_at"]) &&
                             request.resource.data.code is string &&
-                            request.resource.data.code.length == 6;
+                            request.resource.data.code.size() == 6 &&
+                            request.resource.data.created_at is int;
 
             allow create: if isAuthorized() && isSpaceAdmin(request.resource.data.space_id) &&
                            request.resource.data.keys().hasAll(["id", "code", "space_id", "created_at"]) &&

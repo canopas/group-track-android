@@ -7,6 +7,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -124,9 +125,11 @@ fun MessagesContent(modifier: Modifier) {
     }
 
     Box(modifier = modifier.fillMaxSize()) {
-        Column {
-            MessageList(state.messages, state.threadMembers,
-                state.currentUserId)
+        Column(modifier = Modifier.fillMaxSize()) {
+            MessageList(
+                state.messages, state.threadMembers,
+                state.currentUserId
+            )
 
             NewMessageInput(state.newMessage,
                 onValueChanged = {
@@ -142,7 +145,8 @@ fun MessagesContent(modifier: Modifier) {
 
             MemberList(
                 state.currentSpace?.space?.name ?: "",
-                state.currentSpace?.members?.filter { it.user.id != state.currentUserId } ?: emptyList(),
+                state.currentSpace?.members?.filter { it.user.id != state.currentUserId }
+                    ?: emptyList(),
                 state.selectedMember,
                 state.selectAll,
                 onMemberSelect = {
