@@ -40,7 +40,9 @@ class MessagesViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     init {
-        fetchSpaceInfo()
+        if (_state.value.threadId.isEmpty()) {
+            fetchSpaceInfo()
+        }
         listenThreadMessages()
     }
 
@@ -62,7 +64,7 @@ class MessagesViewModel @Inject constructor(
             _state.emit(
                 _state.value.copy(
                     currentSpace = currentSpace,
-                    isNewThread = state.value.threadId.trim().isEmpty(),
+                    isNewThread = true,
                     isLoading = false,
                     selectAll = true,
                     selectedMember = selectedMember
@@ -126,7 +128,10 @@ class MessagesViewModel @Inject constructor(
                 val members = _state.value.selectedMember.map { it.user.id }.filter { it != userId }
                 val spaceId = _state.value.currentSpace?.space?.id ?: return@launch
                 threadId = messagesRepository.createThread(spaceId, userId, members)
-                _state.value = _state.value.copy(threadId = threadId, threadMembers = _state.value.selectedMember)
+                _state.value = _state.value.copy(
+                    threadId = threadId,
+                    threadMembers = _state.value.selectedMember
+                )
                 listenThreadMessages()
             }
 

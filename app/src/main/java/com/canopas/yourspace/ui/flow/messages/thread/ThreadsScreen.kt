@@ -10,9 +10,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
@@ -235,8 +237,7 @@ private fun ThreadItem(
 fun UnreadIndicator(count: Int) {
     Box(
         modifier = Modifier
-            .padding(top = 4.dp)
-            .size(16.dp)
+            .padding(top = 4.dp).height(16.dp).widthIn(min = 16.dp)
             .background(AppTheme.colorScheme.primary, shape = CircleShape),
         contentAlignment = Alignment.Center
     ) {
@@ -245,6 +246,7 @@ fun UnreadIndicator(count: Int) {
             style = AppTheme.appTypography.label3.copy(fontSize = 10.sp),
             color = AppTheme.colorScheme.onPrimary,
             textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 2.dp)
         )
     }
 }
