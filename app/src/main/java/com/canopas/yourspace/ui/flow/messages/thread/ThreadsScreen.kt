@@ -34,6 +34,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -44,6 +45,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.messages.ThreadInfo
 import com.canopas.yourspace.data.models.user.ApiUser
+import com.canopas.yourspace.data.models.user.UserInfo
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.AppProgressIndicator
 import com.canopas.yourspace.ui.component.PrimaryButton
@@ -51,6 +53,7 @@ import com.canopas.yourspace.ui.component.UserProfile
 import com.canopas.yourspace.ui.component.motionClickEvent
 import com.canopas.yourspace.ui.flow.messages.chat.toFormattedTitle
 import com.canopas.yourspace.ui.theme.AppTheme
+import com.canopas.yourspace.utils.formattedMessageTimeString
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -115,10 +118,13 @@ private fun ThreadsContent(modifier: Modifier) {
     val viewModel = hiltViewModel<ThreadsViewModel>()
     val state by viewModel.state.collectAsState()
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        if (state.loading) {
+        if (state.loadingSpace || state.loadingThreads) {
             AppProgressIndicator()
         } else if (state.hasMembers) {
-            ThreadList(state.threadInfo, state.currentUser) { viewModel.showMessages(it) }
+            ThreadList(
+                state.threadInfo, state.currentSpace?.members ?: emptyList(),
+                state.currentUser
+            ) { viewModel.showMessages(it) }
         } else {
             NoMemberEmptyContent(state.loadingInviteCode) {
                 viewModel.addMember()
@@ -130,6 +136,7 @@ private fun ThreadsContent(modifier: Modifier) {
 @Composable
 fun ThreadList(
     threadInfos: List<ThreadInfo>,
+    members: List<UserInfo>,
     currentUser: ApiUser?,
     onClick: (thread: ThreadInfo) -> Unit
 ) {
@@ -154,7 +161,11 @@ fun ThreadList(
             itemsIndexed(
                 threadInfos,
                 key = { index, item -> item.thread.id }) { index, threadInfo ->
-                ThreadItem(threadInfo, currentUser) { onClick(threadInfo) }
+                val threadMembers = members.filter { member ->
+                    threadInfo.thread.member_ids.contains(member.user.id) && member.user.id != currentUser?.id
+                }.map { it.user }
+
+                ThreadItem(threadInfo, threadMembers, currentUser) { onClick(threadInfo) }
                 if (index != threadInfos.size - 1) {
                     Divider(
                         modifier = Modifier
@@ -169,8 +180,13 @@ fun ThreadList(
 }
 
 @Composable
-private fun ThreadItem(threadInfo: ThreadInfo, currentUser: ApiUser?, onClick: () -> Unit) {
-    val members = threadInfo.members.filterNot { it.id == (currentUser?.id ?: "") }
+private fun ThreadItem(
+    threadInfo: ThreadInfo,
+    members: List<ApiUser>,
+    currentUser: ApiUser?,
+    onClick: () -> Unit
+) {
+    val message = threadInfo.messages.firstOrNull()
     Row(
         modifier = Modifier
             .fillMaxSize()
@@ -189,27 +205,47 @@ private fun ThreadItem(threadInfo: ThreadInfo, currentUser: ApiUser?, onClick: (
                 color = AppTheme.colorScheme.textPrimary
             )
             Text(
-                text = threadInfo.messages.firstOrNull()?.message ?: "",
+                text = message?.message ?: "",
                 style = AppTheme.appTypography.label2,
-                maxLines = 2,
+                maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 color = AppTheme.colorScheme.textSecondary
             )
         }
         Spacer(modifier = Modifier.width(16.dp))
-        Box(
-            modifier = Modifier
-                .size(20.dp)
-                .background(AppTheme.colorScheme.primary.copy(0.8f), shape = CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
+        Column(horizontalAlignment = Alignment.End) {
+            val hasUnreadMsg = message?.read_by?.contains(currentUser?.id) == false
             Text(
-                text = "3",
+                text = message?.created_at?.formattedMessageTimeString(
+                    LocalContext.current
+                ) ?: "",
                 style = AppTheme.appTypography.label3,
-                color = AppTheme.colorScheme.textPrimary,
-                textAlign = TextAlign.Center,
+                color = if(hasUnreadMsg) AppTheme.colorScheme.primary else AppTheme.colorScheme.textSecondary
             )
+
+            if (hasUnreadMsg) {
+                val count = threadInfo.messages.count { !it.read_by.contains(currentUser?.id) }
+                UnreadIndicator(count)
+            }
         }
+    }
+}
+
+@Composable
+fun UnreadIndicator(count: Int) {
+    Box(
+        modifier = Modifier
+            .padding(top = 4.dp)
+            .size(16.dp)
+            .background(AppTheme.colorScheme.primary, shape = CircleShape),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = if (count <= 10) count.toString() else "10+",
+            style = AppTheme.appTypography.label3.copy(fontSize = 10.sp),
+            color = AppTheme.colorScheme.onPrimary,
+            textAlign = TextAlign.Center,
+        )
     }
 }
 

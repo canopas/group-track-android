@@ -12,14 +12,7 @@ data class ApiThread(
     val id: String = UUID.randomUUID().toString(),
     val admin_id: String = "",
     val space_id: String = "",
-    val created_at: Long = System.currentTimeMillis()
-)
-
-@Keep
-data class ApiThreadMember(
-    val id: String = UUID.randomUUID().toString(),
-    val thread_id: String = "",
-    val user_id: String = "",
+    val member_ids:List<String> = emptyList(),
     val created_at: Long = System.currentTimeMillis()
 )
 

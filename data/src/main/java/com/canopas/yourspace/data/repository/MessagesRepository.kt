@@ -13,12 +13,9 @@ class MessagesRepository @Inject constructor(
 
     suspend fun createThread(spaceId: String, adminId: String, memberIds: List<String>): String {
         val threadId = apiMessagesService.createThread(spaceId, adminId)
-        memberIds.forEach { memberId ->
-            apiMessagesService.joinThread(threadId, memberId)
-        }
+        apiMessagesService.joinThread(threadId, memberIds)
         return threadId
     }
-
 
     suspend fun sendMessage(
         message: String,

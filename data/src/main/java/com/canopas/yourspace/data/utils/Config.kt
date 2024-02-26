@@ -11,7 +11,6 @@ object Config {
     const val FIRESTORE_COLLECTION_SPACE_INVITATION = "space_invitations"
     const val FIRESTORE_COLLECTION_SPACE_THREADS = "space_threads"
     const val FIRESTORE_COLLECTION_THREAD_MESSAGES = "thread_messages"
-    const val FIRESTORE_COLLECTION_THREAD_MEMBERS = "thread_members"
 
     const val FIRESTORE_COLLECTION_USER_LOCATIONS = "user_locations"
 }

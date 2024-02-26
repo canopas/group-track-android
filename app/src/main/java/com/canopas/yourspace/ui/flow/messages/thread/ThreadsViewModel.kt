@@ -33,36 +33,42 @@ class ThreadsViewModel @Inject constructor(
 
     init {
         getCurrentSpace()
-
+        listenThreads()
     }
 
     private fun getCurrentSpace() = viewModelScope.launch(appDispatcher.IO) {
         try {
-            _state.emit(_state.value.copy(loading = true))
+            _state.emit(_state.value.copy(loadingSpace = true))
             val space = spaceRepository.getCurrentSpaceInfo()
             val members = space?.members ?: emptyList()
-            listenThreads()
             _state.emit(
                 _state.value.copy(
                     currentSpace = space,
+                    loadingSpace = false,
                     hasMembers = members.size > 1
                 )
             )
         } catch (e: Exception) {
             Timber.e(e, "Failed to fetch current space")
-            _state.emit(_state.value.copy(error = e.message, loading = false))
+            _state.emit(_state.value.copy(error = e.message, loadingSpace = false))
         }
     }
 
     private fun listenThreads() = viewModelScope.launch(appDispatcher.IO) {
         val spaceId = spaceRepository.currentSpaceId
         try {
-            messagesService.getThreadsWithLatestMessage(spaceId).collectLatest { threads ->
-                _state.emit(_state.value.copy(threadInfo = threads, loading = false))
+            _state.emit(_state.value.copy(loadingThreads = state.value.threadInfo.isEmpty()))
+            messagesService.getThreadsWithLatestMessage(
+                spaceId,
+                userId = authService.currentUser!!.id
+            ).collectLatest { threads ->
+                val sortedList =
+                    threads.sortedByDescending { it.messages.firstOrNull()?.created_at ?: 0 }
+                _state.emit(_state.value.copy(threadInfo = sortedList, loadingThreads = false))
             }
         } catch (e: Exception) {
             Timber.e(e, "Failed to listen threads")
-            _state.emit(_state.value.copy(error = e.message, loading = false))
+            _state.emit(_state.value.copy(error = e.message, loadingThreads = false))
         }
     }
 
@@ -102,7 +108,8 @@ class ThreadsViewModel @Inject constructor(
 }
 
 data class ThreadsScreenState(
-    val loading: Boolean = false,
+    val loadingSpace: Boolean = false,
+    val loadingThreads: Boolean = false,
     val currentUser: ApiUser? = null,
     val currentSpace: SpaceInfo? = null,
     val loadingInviteCode: Boolean = false,
