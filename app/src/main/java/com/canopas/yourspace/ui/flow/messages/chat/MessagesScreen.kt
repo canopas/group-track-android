@@ -7,7 +7,6 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -43,6 +42,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.paging.LoadState
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.user.UserInfo
 import com.canopas.yourspace.ui.component.AppBanner
@@ -114,6 +115,7 @@ fun List<String>.toFormattedTitle(): String {
 fun MessagesContent(modifier: Modifier) {
     val viewModel = hiltViewModel<MessagesViewModel>()
     val state by viewModel.state.collectAsState()
+    val messages = viewModel.messages.collectAsLazyPagingItems()
 
     if (state.isLoading) {
         Box(
@@ -127,7 +129,8 @@ fun MessagesContent(modifier: Modifier) {
     Box(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             MessageList(
-                state.messages, state.threadMembers,
+                state.isLoading,
+                messages, state.threadMembers,
                 state.currentUserId
             )
 
@@ -136,6 +139,7 @@ fun MessagesContent(modifier: Modifier) {
                     viewModel.onMessageChanged(it)
                 }, onSend = {
                     viewModel.sendNewMessage()
+                    messages.refresh()
                 })
         }
 

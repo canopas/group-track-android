@@ -3,6 +3,9 @@ package com.canopas.yourspace.ui.flow.messages.chat
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.cachedIn
 import com.canopas.yourspace.data.models.messages.ApiThread
 import com.canopas.yourspace.data.models.messages.ApiThreadMessage
 import com.canopas.yourspace.data.models.messages.ThreadInfo
@@ -12,6 +15,8 @@ import com.canopas.yourspace.data.repository.MessagesRepository
 import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.ui.flow.home.map.member.LocationHistoryPagingSource
+import com.canopas.yourspace.ui.flow.messages.chat.components.MessagesPagingSource
 import com.canopas.yourspace.ui.navigation.AppDestinations.ThreadMessages.KEY_THREAD_ID
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -34,8 +39,6 @@ class MessagesViewModel @Inject constructor(
     private val appDispatcher: AppDispatcher
 ) : ViewModel() {
 
-    private var messagesJob: Job? = null
-
     //For new Thread
     private var threads: List<ApiThread>? = emptyList()
     private var threadId: String = savedStateHandle.get<String>(KEY_THREAD_ID) ?: ""
@@ -46,6 +49,17 @@ class MessagesViewModel @Inject constructor(
         )
     )
     val state = _state.asStateFlow()
+    private var _dataPagingSource: MessagesPagingSource? = null
+
+    val messages = Pager(
+        config = PagingConfig(1)
+    ) {
+        MessagesPagingSource(
+            query = messagesRepository.getMessagesQuery(threadId)
+        ).also {
+            _dataPagingSource = it
+        }
+    }.flow.cachedIn(viewModelScope)
 
     init {
         if (threadId.isEmpty()) {
@@ -54,9 +68,7 @@ class MessagesViewModel @Inject constructor(
             fetchThreadInfo()
         }
 
-        listenThreadMessages()
     }
-
 
     private fun fetchThreadInfo() = viewModelScope.launch(appDispatcher.IO) {
         if (threadId.isEmpty()) return@launch
@@ -79,15 +91,6 @@ class MessagesViewModel @Inject constructor(
         }
     }
 
-    private fun listenThreadMessages() {
-        if (threadId.isEmpty()) return
-        messagesJob?.cancel()
-        messagesJob = viewModelScope.launch(appDispatcher.IO) {
-            messagesRepository.getMessages(threadId).collectLatest { messages ->
-                _state.emit(_state.value.copy(messages = messages.sortedByDescending { it.created_at }))
-            }
-        }
-    }
 
     private fun fetchSpaceInfo() = viewModelScope.launch(appDispatcher.IO) {
         try {
@@ -169,18 +172,16 @@ class MessagesViewModel @Inject constructor(
             _state.value = state.value.copy(
                 thread = thread,
                 threadMembers = members.filter { member -> thread.member_ids.contains(member.user.id) },
-                messages = emptyList()
             )
             threadId = thread.id
-            listenThreadMessages()
+            _dataPagingSource?.invalidate()
         } else {
             _state.value = state.value.copy(
                 thread = null,
                 threadMembers = emptyList(),
-                messages = emptyList()
             )
             threadId = ""
-            messagesJob?.cancel()
+            _dataPagingSource?.invalidate()
         }
     }
 
@@ -202,7 +203,7 @@ class MessagesViewModel @Inject constructor(
                 _state.value = _state.value.copy(
                     threadMembers = _state.value.selectedMember
                 )
-                listenThreadMessages()
+
             }
 
             messagesRepository.sendMessage(
@@ -210,6 +211,7 @@ class MessagesViewModel @Inject constructor(
                 userId,
                 threadId,
             )
+            _dataPagingSource?.invalidate()
         } catch (e: Exception) {
             Timber.e(e, "Failed to send message")
             _state.emit(_state.value.copy(error = e.message))
@@ -226,7 +228,6 @@ data class MessagesScreenState(
     val threadMembers: List<UserInfo> = emptyList(),
     val selectedMember: List<UserInfo> = emptyList(),
     val selectAll: Boolean = true,
-    val messages: List<ApiThreadMessage> = emptyList(),
     val error: String? = null,
     val newMessage: String = "",
     val isNewThread: Boolean = false

@@ -7,6 +7,7 @@ import com.canopas.yourspace.data.models.user.UserInfo
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.messages.ApiMessagesService
 import com.canopas.yourspace.data.service.user.ApiUserService
+import com.google.firebase.firestore.Query
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -60,5 +61,7 @@ class MessagesRepository @Inject constructor(
                     .map { UserInfo(it) }
             ThreadInfo(it, members)
         }
+
+    fun getMessagesQuery(threadId: String) = apiMessagesService.getMessagesQuery(threadId)
 
 }

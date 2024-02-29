@@ -2,6 +2,7 @@ package com.canopas.yourspace.ui.flow.messages.chat.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,42 +16,64 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
 import com.canopas.yourspace.data.models.messages.ApiThreadMessage
 import com.canopas.yourspace.data.models.user.UserInfo
+import com.canopas.yourspace.ui.component.AppProgressIndicator
 import com.canopas.yourspace.ui.component.UserProfile
 import com.canopas.yourspace.ui.theme.AppTheme
-import timber.log.Timber
 
 @Composable
 fun ColumnScope.MessageList(
-    apiThreadMessages: List<ApiThreadMessage>,
+    loading:Boolean,
+    messages: LazyPagingItems<ApiThreadMessage>,
     members: List<UserInfo>,
     currentUserId: String
 ) {
-    LazyColumn(
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .weight(1f),
-        contentPadding = PaddingValues(16.dp),
-        reverseLayout = true
+        contentAlignment = Alignment.Center
     ) {
-        items(apiThreadMessages, key = { item -> item.id }) { message ->
-            val by = members.firstOrNull { it.user.id == message.sender_id }
 
-            if (by != null) {
-                MessageContent(
-                    message, by = by, showProfile = members.size > 2,
-                    isSender = currentUserId == message.sender_id
-                )
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
+            reverseLayout = true
+        ) {
+            items(messages.itemCount) { index ->
+                val message = messages[index]
+
+                val by =
+                    members.firstOrNull { message != null && it.user.id == message.sender_id }
+
+                if (by != null && message != null) {
+                    MessageContent(
+                        message, by = by, showProfile = members.size > 2,
+                        isSender = currentUserId == message.sender_id
+                    )
+                }
+            }
+
+            if (messages.loadState.append == LoadState.Loading && !loading){
+                item {
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.TopCenter
+                    ) { AppProgressIndicator() }
+                }
             }
         }
     }
@@ -110,7 +133,7 @@ fun MessageBubble(message: String, time: String, isSender: Boolean) {
             modifier = Modifier
                 .background(
                     color = if (isSender) {
-                        AppTheme.colorScheme.primary.copy(alpha = 0.8f)
+                        AppTheme.colorScheme.primary.copy(alpha = 0.7f)
                     } else {
                         AppTheme.colorScheme.containerNormalOnSurface
                     },
@@ -126,7 +149,7 @@ fun MessageBubble(message: String, time: String, isSender: Boolean) {
                 .padding(2.dp)
                 .align(
                     if (isSender) {
-                        androidx.compose.ui.Alignment.End
+                        Alignment.End
                     } else {
                         androidx.compose.ui.Alignment.Start
                     }

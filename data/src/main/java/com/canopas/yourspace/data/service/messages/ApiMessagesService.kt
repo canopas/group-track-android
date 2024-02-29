@@ -58,6 +58,8 @@ class ApiMessagesService @Inject constructor(
             .whereArrayContains("member_ids", userId)
             .snapshotFlow(ApiThread::class.java)
 
+    fun getMessagesQuery(threadId: String) = threadMessagesRef(threadId).limit(20)
+        .orderBy("created_at", Query.Direction.DESCENDING)
     fun getMessages(threadId: String) =
         threadMessagesRef(threadId).snapshotFlow(ApiThreadMessage::class.java)
 

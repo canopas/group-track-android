@@ -6,6 +6,7 @@ import com.canopas.yourspace.data.models.messages.ApiThreadMessage
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
 import kotlinx.coroutines.tasks.await
+import timber.log.Timber
 
 class MessagesPagingSource(private var query: Query) :
     PagingSource<QuerySnapshot, ApiThreadMessage>() {
@@ -23,9 +24,9 @@ class MessagesPagingSource(private var query: Query) :
                 val lastVisibleProduct = currentPage.documents[currentPage.size() - 1]
                 val nextPage = query.startAfter(lastVisibleProduct).get().await()
                 val lists = currentPage.toObjects(ApiThreadMessage::class.java)
-
+                Timber.d("XXX load: ${lists.size}")
                 LoadResult.Page(
-                    data = lists,
+                    data = lists.sortedByDescending { it.created_at },
                     prevKey = null,
                     nextKey = nextPage
                 )
