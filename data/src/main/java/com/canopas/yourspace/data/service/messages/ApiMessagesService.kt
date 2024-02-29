@@ -49,6 +49,10 @@ class ApiMessagesService @Inject constructor(
             .await()
     }
 
+    fun getThread(threadId: String) =
+        threadRef.document(threadId).snapshotFlow(ApiThread::class.java)
+
+
     fun getThreads(spaceId: String, userId: String) =
         threadRef.whereEqualTo("space_id", spaceId)
             .whereArrayContains("member_ids", userId)
@@ -78,7 +82,7 @@ class ApiMessagesService @Inject constructor(
                 threadMessagesRef(thread.id).orderBy("created_at", Query.Direction.DESCENDING)
                     .limit(15)
                     .snapshotFlow(ApiThreadMessage::class.java).map { latestMessages ->
-                        ThreadInfo(thread, latestMessages)
+                        ThreadInfo(thread, messages = latestMessages)
                     }
             }
             combine(flows) { it.toList() }

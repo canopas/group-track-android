@@ -158,7 +158,7 @@ fun ThreadList(
     } else {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(vertical = 16.dp)
+            contentPadding = PaddingValues(bottom = 40.dp)
         ) {
             itemsIndexed(
                 threadInfos,
@@ -222,7 +222,7 @@ private fun ThreadItem(
                     LocalContext.current
                 ) ?: "",
                 style = AppTheme.appTypography.label3,
-                color = if(hasUnreadMsg) AppTheme.colorScheme.primary else AppTheme.colorScheme.textSecondary
+                color = if (hasUnreadMsg) AppTheme.colorScheme.primary else AppTheme.colorScheme.textSecondary
             )
 
             if (hasUnreadMsg) {
@@ -237,7 +237,9 @@ private fun ThreadItem(
 fun UnreadIndicator(count: Int) {
     Box(
         modifier = Modifier
-            .padding(top = 4.dp).height(16.dp).widthIn(min = 16.dp)
+            .padding(top = 4.dp)
+            .height(16.dp)
+            .widthIn(min = 16.dp)
             .background(AppTheme.colorScheme.primary, shape = CircleShape),
         contentAlignment = Alignment.Center
     ) {

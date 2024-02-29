@@ -148,7 +148,7 @@ fun AllMemberItem(
             Text(
                 text = stringResource(id = R.string.messages_member_all),
                 style = TextStyle(
-                    color = Color.White,
+                    color = AppTheme.colorScheme.primary,
                     fontWeight = FontWeight.Normal,
                     fontSize = 20.sp
                 )

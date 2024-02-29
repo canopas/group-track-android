@@ -28,6 +28,7 @@ import com.canopas.yourspace.data.models.messages.ApiThreadMessage
 import com.canopas.yourspace.data.models.user.UserInfo
 import com.canopas.yourspace.ui.component.UserProfile
 import com.canopas.yourspace.ui.theme.AppTheme
+import timber.log.Timber
 
 @Composable
 fun ColumnScope.MessageList(
@@ -43,12 +44,15 @@ fun ColumnScope.MessageList(
         reverseLayout = true
     ) {
         items(apiThreadMessages, key = { item -> item.id }) { message ->
-            MessageContent(
-                message, by = members.firstOrNull { it.user.id == message.sender_id },
-                isSender = currentUserId == message.sender_id
-            )
-        }
+            val by = members.firstOrNull { it.user.id == message.sender_id }
 
+            if (by != null) {
+                MessageContent(
+                    message, by = by, showProfile = members.size > 2,
+                    isSender = currentUserId == message.sender_id
+                )
+            }
+        }
     }
 }
 
@@ -56,6 +60,7 @@ fun ColumnScope.MessageList(
 fun MessageContent(
     message: ApiThreadMessage,
     by: UserInfo?,
+    showProfile: Boolean,
     isSender: Boolean
 ) {
 
@@ -70,12 +75,11 @@ fun MessageContent(
         },
         verticalAlignment = androidx.compose.ui.Alignment.Bottom
     ) {
-        if (!isSender && by != null) {
+        if (!isSender && by != null && showProfile) {
             UserProfile(
                 modifier = Modifier
                     .padding(bottom = 12.dp)
-                    .size(50.dp)
-                    .clip(CircleShape),
+                    .size(50.dp),
                 user = by.user
             )
         }
@@ -95,9 +99,11 @@ fun MessageBubble(message: String, time: String, isSender: Boolean) {
         if (isSender) 0.dp else 20.dp,
         if (isSender) 20.dp else 0.dp
     )
-    Column(modifier = Modifier
-        .wrapContentWidth()
-        .widthIn(max = screenWidth * 0.8f)) {
+    Column(
+        modifier = Modifier
+            .wrapContentWidth()
+            .widthIn(max = screenWidth * 0.8f)
+    ) {
         Text(
             text = message,
             style = AppTheme.appTypography.body1.copy(color = AppTheme.colorScheme.textPrimary),

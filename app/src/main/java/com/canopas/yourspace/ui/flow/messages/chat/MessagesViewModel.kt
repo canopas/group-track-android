@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.canopas.yourspace.data.models.messages.ApiThread
 import com.canopas.yourspace.data.models.messages.ApiThreadMessage
+import com.canopas.yourspace.data.models.messages.ThreadInfo
 import com.canopas.yourspace.data.models.space.SpaceInfo
 import com.canopas.yourspace.data.models.user.UserInfo
 import com.canopas.yourspace.data.repository.MessagesRepository
@@ -14,9 +15,11 @@ import com.canopas.yourspace.data.utils.AppDispatcher
 import com.canopas.yourspace.ui.navigation.AppDestinations.ThreadMessages.KEY_THREAD_ID
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -31,25 +34,55 @@ class MessagesViewModel @Inject constructor(
     private val appDispatcher: AppDispatcher
 ) : ViewModel() {
 
+    private var messagesJob: Job? = null
+
+    //For new Thread
+    private var threads: List<ApiThread>? = emptyList()
+    private var threadId: String = savedStateHandle.get<String>(KEY_THREAD_ID) ?: ""
+
     private val _state = MutableStateFlow(
         MessagesScreenState(
-            threadId = savedStateHandle.get<String>(KEY_THREAD_ID) ?: "",
             currentUserId = authService.currentUser?.id ?: ""
         )
     )
     val state = _state.asStateFlow()
 
     init {
-        if (_state.value.threadId.isEmpty()) {
+        if (threadId.isEmpty()) {
             fetchSpaceInfo()
+        } else {
+            fetchThreadInfo()
         }
+
         listenThreadMessages()
     }
 
+
+    private fun fetchThreadInfo() = viewModelScope.launch(appDispatcher.IO) {
+        if (threadId.isEmpty()) return@launch
+        try {
+            _state.emit(_state.value.copy(isLoading = true))
+            messagesRepository.getThread(threadId).collectLatest { info ->
+                if (info == null) navigator.navigateBack()
+                val thread = info!!.thread
+                val members = info.members
+                _state.emit(
+                    _state.value.copy(
+                        isLoading = false, thread = thread,
+                        threadMembers = members, selectedMember = members
+                    )
+                )
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to fetch thread info")
+            _state.emit(_state.value.copy(error = e.message, isLoading = false))
+        }
+    }
+
     private fun listenThreadMessages() {
-        viewModelScope.launch(appDispatcher.IO) {
-            val threadId = _state.value.threadId
-            if (threadId.isEmpty()) return@launch
+        if (threadId.isEmpty()) return
+        messagesJob?.cancel()
+        messagesJob = viewModelScope.launch(appDispatcher.IO) {
             messagesRepository.getMessages(threadId).collectLatest { messages ->
                 _state.emit(_state.value.copy(messages = messages.sortedByDescending { it.created_at }))
             }
@@ -61,6 +94,12 @@ class MessagesViewModel @Inject constructor(
             _state.emit(_state.value.copy(isLoading = true))
             val currentSpace = spaceRepository.getCurrentSpaceInfo() ?: return@launch
             val selectedMember = currentSpace.members
+
+            val spaceId = currentSpace.space.id
+            val threads =
+                messagesRepository.getThreads(spaceId).firstOrNull() ?: emptyList()
+            this@MessagesViewModel.threads = threads
+
             _state.emit(
                 _state.value.copy(
                     currentSpace = currentSpace,
@@ -70,12 +109,12 @@ class MessagesViewModel @Inject constructor(
                     selectedMember = selectedMember
                 )
             )
+            selectExistingThread()
         } catch (e: Exception) {
             Timber.e(e, "Failed to fetch space info")
             _state.emit(_state.value.copy(error = e.message, isLoading = false))
         }
     }
-
 
     fun popBackStack() {
         navigator.navigateBack()
@@ -90,6 +129,7 @@ class MessagesViewModel @Inject constructor(
             selectedMember = _state.value.currentSpace?.members ?: emptyList(),
             selectAll = true
         )
+        selectExistingThread()
     }
 
     fun toggleMemberSelection(user: UserInfo) {
@@ -100,17 +140,48 @@ class MessagesViewModel @Inject constructor(
 
         val selectedMember =
             if (previousSelectedMember.contains(user)) {
-                previousSelectedMember.filter { it.user.id != user.user.id }
+                previousSelectedMember - user
             } else {
-                previousSelectedMember.plus(user)
+                previousSelectedMember + user
             }
-
         _state.value = _state.value.copy(
             selectedMember = selectedMember.ifEmpty {
                 _state.value.currentSpace?.members ?: emptyList()
             },
             selectAll = selectedMember.isEmpty()
         )
+
+        selectExistingThread()
+    }
+
+    private fun selectExistingThread() {
+        val selectedMember = _state.value.selectedMember
+        val selectedMemberIds =
+            (selectedMember.map { it.user.id } + _state.value.currentUserId).distinct()
+        val thread =
+            threads?.firstOrNull { it.member_ids.sorted() == selectedMemberIds.sorted() }
+
+        if (thread != null && state.value.thread?.id == thread.id) {
+            return
+        }
+        if (thread != null) {
+            val members = _state.value.currentSpace?.members ?: emptyList()
+            _state.value = state.value.copy(
+                thread = thread,
+                threadMembers = members.filter { member -> thread.member_ids.contains(member.user.id) },
+                messages = emptyList()
+            )
+            threadId = thread.id
+            listenThreadMessages()
+        } else {
+            _state.value = state.value.copy(
+                thread = null,
+                threadMembers = emptyList(),
+                messages = emptyList()
+            )
+            threadId = ""
+            messagesJob?.cancel()
+        }
     }
 
     fun onMessageChanged(message: String) {
@@ -121,15 +192,14 @@ class MessagesViewModel @Inject constructor(
         val message = _state.value.newMessage.trim()
         if (message.isEmpty()) return@launch
         val userId = authService.currentUser?.id ?: return@launch
+
         try {
             _state.emit(_state.value.copy(newMessage = "", isNewThread = false))
-            var threadId = _state.value.threadId
             if (threadId.isEmpty()) {
-                val members = _state.value.selectedMember.map { it.user.id }.filter { it != userId }
                 val spaceId = _state.value.currentSpace?.space?.id ?: return@launch
+                val members = _state.value.selectedMember.map { it.user.id }.filter { it != userId }
                 threadId = messagesRepository.createThread(spaceId, userId, members)
                 _state.value = _state.value.copy(
-                    threadId = threadId,
                     threadMembers = _state.value.selectedMember
                 )
                 listenThreadMessages()
@@ -152,7 +222,6 @@ data class MessagesScreenState(
     val isLoading: Boolean = false,
     val currentSpace: SpaceInfo? = null,
     val currentUserId: String = "",
-    val threadId: String = "",
     val thread: ApiThread? = null,
     val threadMembers: List<UserInfo> = emptyList(),
     val selectedMember: List<UserInfo> = emptyList(),
