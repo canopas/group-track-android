@@ -60,6 +60,7 @@ class ApiMessagesService @Inject constructor(
 
     fun getMessagesQuery(threadId: String) = threadMessagesRef(threadId).limit(20)
         .orderBy("created_at", Query.Direction.DESCENDING)
+
     fun getMessages(threadId: String) =
         threadMessagesRef(threadId).snapshotFlow(ApiThreadMessage::class.java)
 
@@ -82,7 +83,7 @@ class ApiMessagesService @Inject constructor(
             if (threads.isEmpty()) return@flatMapLatest flowOf(emptyList())
             val flows = threads.map { thread ->
                 threadMessagesRef(thread.id).orderBy("created_at", Query.Direction.DESCENDING)
-                    .limit(15)
+                    .limit(1)
                     .snapshotFlow(ApiThreadMessage::class.java).map { latestMessages ->
                         ThreadInfo(thread, messages = latestMessages)
                     }

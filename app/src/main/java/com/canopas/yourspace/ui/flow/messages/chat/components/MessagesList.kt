@@ -34,46 +34,39 @@ import com.canopas.yourspace.ui.theme.AppTheme
 
 @Composable
 fun ColumnScope.MessageList(
-    loading:Boolean,
+    loading: Boolean,
     messages: LazyPagingItems<ApiThreadMessage>,
     members: List<UserInfo>,
     currentUserId: String
 ) {
 
-    Box(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .weight(1f),
-        contentAlignment = Alignment.Center
+        contentPadding = PaddingValues(16.dp),
+        reverseLayout = true
     ) {
+        items(messages.itemCount, key = { messages[it]!!.id }) { index ->
+            val message = messages[index]
 
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
-            reverseLayout = true
-        ) {
-            items(messages.itemCount) { index ->
-                val message = messages[index]
+            val by =
+                members.firstOrNull { message != null && it.user.id == message.sender_id }
 
-                val by =
-                    members.firstOrNull { message != null && it.user.id == message.sender_id }
-
-                if (by != null && message != null) {
-                    MessageContent(
-                        message, by = by, showProfile = members.size > 2,
-                        isSender = currentUserId == message.sender_id
-                    )
-                }
+            if (by != null && message != null) {
+                MessageContent(
+                    message, by = by, showProfile = members.size > 2,
+                    isSender = currentUserId == message.sender_id
+                )
             }
+        }
 
-            if (messages.loadState.append == LoadState.Loading && !loading){
-                item {
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.TopCenter
-                    ) { AppProgressIndicator() }
-                }
+        if (messages.loadState.append == LoadState.Loading && !loading) {
+            item {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.TopCenter
+                ) { AppProgressIndicator() }
             }
         }
     }

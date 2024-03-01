@@ -41,8 +41,6 @@ class MessagesRepository @Inject constructor(
 
     }
 
-    suspend fun getMessages(threadId: String) = apiMessagesService.getMessages(threadId)
-
     suspend fun getThreads(spaceId: String): Flow<List<ApiThread>> {
         val userId = authService.currentUser?.id ?: return  emptyFlow()
         return apiMessagesService.getThreads(spaceId,userId)

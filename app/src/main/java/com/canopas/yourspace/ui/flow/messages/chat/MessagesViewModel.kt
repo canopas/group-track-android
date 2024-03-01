@@ -211,7 +211,7 @@ class MessagesViewModel @Inject constructor(
                 userId,
                 threadId,
             )
-            _dataPagingSource?.invalidate()
+           // _dataPagingSource?.invalidate()
         } catch (e: Exception) {
             Timber.e(e, "Failed to send message")
             _state.emit(_state.value.copy(error = e.message))

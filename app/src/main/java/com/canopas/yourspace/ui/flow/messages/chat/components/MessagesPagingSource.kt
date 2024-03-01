@@ -26,7 +26,7 @@ class MessagesPagingSource(private var query: Query) :
                 val lists = currentPage.toObjects(ApiThreadMessage::class.java)
                 Timber.d("XXX load: ${lists.size}")
                 LoadResult.Page(
-                    data = lists.sortedByDescending { it.created_at },
+                    data = lists,
                     prevKey = null,
                     nextKey = nextPage
                 )
