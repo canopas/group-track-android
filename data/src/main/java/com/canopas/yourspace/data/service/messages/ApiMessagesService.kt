@@ -52,20 +52,28 @@ class ApiMessagesService @Inject constructor(
     fun getThread(threadId: String) =
         threadRef.document(threadId).snapshotFlow(ApiThread::class.java)
 
-
     fun getThreads(spaceId: String, userId: String) =
         threadRef.whereEqualTo("space_id", spaceId)
             .whereArrayContains("member_ids", userId)
             .snapshotFlow(ApiThread::class.java)
 
-    fun getMessagesQuery(threadId: String) = threadMessagesRef(threadId).limit(20)
+    fun getLatestMessages(threadId: String, limit: Int) = threadMessagesRef(threadId)
         .orderBy("created_at", Query.Direction.DESCENDING)
+        .limit(limit.toLong()).snapshotFlow(ApiThreadMessage::class.java)
 
-    fun getMessages(threadId: String) =
-        threadMessagesRef(threadId).snapshotFlow(ApiThreadMessage::class.java)
+    fun getMessages(
+        threadId: String,
+        from: Long = System.currentTimeMillis(),
+        limit: Int = 20
+    ) = threadMessagesRef(threadId)
+        .orderBy("created_at", Query.Direction.DESCENDING)
+        .whereLessThan("created_at", from)
+        .limit(limit.toLong())
+        .snapshotFlow(ApiThreadMessage::class.java)
 
     suspend fun sendMessage(threadId: String, senderId: String, message: String) {
         val docRef = threadMessagesRef(threadId).document()
+
         val threadMessage = ApiThreadMessage(
             id = docRef.id,
             thread_id = threadId,
@@ -78,7 +86,10 @@ class ApiMessagesService @Inject constructor(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    suspend fun getThreadsWithLatestMessage(spaceId: String, userId: String): Flow<List<ThreadInfo>> {
+    suspend fun getThreadsWithLatestMessage(
+        spaceId: String,
+        userId: String
+    ): Flow<List<ThreadInfo>> {
         return getThreads(spaceId, userId).flatMapLatest { threads ->
             if (threads.isEmpty()) return@flatMapLatest flowOf(emptyList())
             val flows = threads.map { thread ->

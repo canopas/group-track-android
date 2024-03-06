@@ -31,7 +31,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -43,8 +42,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.paging.LoadState
-import androidx.paging.compose.collectAsLazyPagingItems
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.user.UserInfo
 import com.canopas.yourspace.ui.component.AppBanner
@@ -77,7 +74,7 @@ fun MessagesScreen() {
             )
         },
         contentColor = AppTheme.colorScheme.textPrimary,
-        containerColor = AppTheme.colorScheme.surface,
+        containerColor = AppTheme.colorScheme.surface
     ) {
         MessagesContent(modifier = Modifier.padding(it))
     }
@@ -87,7 +84,6 @@ fun MessagesScreen() {
             viewModel.resetErrorState()
         }
     }
-
 }
 
 @Composable
@@ -116,9 +112,8 @@ fun List<String>.toFormattedTitle(): String {
 fun MessagesContent(modifier: Modifier) {
     val viewModel = hiltViewModel<MessagesViewModel>()
     val state by viewModel.state.collectAsState()
-    val messages = viewModel.messages.collectAsLazyPagingItems()
 
-    if (state.isLoading) {
+    if (state.loading) {
         Box(
             modifier = modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
@@ -130,23 +125,30 @@ fun MessagesContent(modifier: Modifier) {
     Box(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             MessageList(
-                state.isLoading,
-                messages, state.threadMembers,
-                state.currentUserId
+                state.loading,
+                state.append,
+                state.messages,
+                state.threadMembers,
+                state.currentUserId,
+                loadMore = { viewModel.loadMore() }
             )
 
-            NewMessageInput(state.newMessage,
+            NewMessageInput(
+                state.newMessage,
                 onValueChanged = {
                     viewModel.onMessageChanged(it)
-                }, onSend = {
+                },
+                onSend = {
                     viewModel.sendNewMessage()
-                })
+                }
+            )
         }
 
-        AnimatedVisibility(visible = state.isNewThread,
+        AnimatedVisibility(
+            visible = state.isNewThread,
             enter = slideInVertically { -it },
-            exit = slideOutVertically { -it } + fadeOut()) {
-
+            exit = slideOutVertically { -it } + fadeOut()
+        ) {
             MemberList(
                 state.currentSpace?.space?.name ?: "",
                 state.currentSpace?.members?.filter { it.user.id != state.currentUserId }
@@ -166,7 +168,8 @@ fun MessagesContent(modifier: Modifier) {
 
 @Composable
 fun NewMessageInput(
-    message: String, onValueChanged: (String) -> Unit,
+    message: String,
+    onValueChanged: (String) -> Unit,
     onSend: () -> Unit
 ) {
     Row(
@@ -220,7 +223,7 @@ fun NewMessageInput(
                 containerColor = AppTheme.colorScheme.primary,
                 contentColor = AppTheme.colorScheme.onPrimary,
                 disabledContainerColor = AppTheme.colorScheme.containerNormalOnSurface,
-                disabledContentColor = AppTheme.colorScheme.textDisabled,
+                disabledContentColor = AppTheme.colorScheme.textDisabled
             ),
             enabled = message.trim().isNotEmpty(),
             content = {
@@ -231,12 +234,5 @@ fun NewMessageInput(
                 )
             }
         )
-
     }
 }
-
-
-
-
-
-

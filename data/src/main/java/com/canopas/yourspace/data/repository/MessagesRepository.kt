@@ -1,21 +1,14 @@
 package com.canopas.yourspace.data.repository
 
 import com.canopas.yourspace.data.models.messages.ApiThread
-import com.canopas.yourspace.data.models.messages.ApiThreadMessage
 import com.canopas.yourspace.data.models.messages.ThreadInfo
 import com.canopas.yourspace.data.models.user.UserInfo
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.messages.ApiMessagesService
 import com.canopas.yourspace.data.service.user.ApiUserService
-import com.google.firebase.firestore.Query
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
 import javax.inject.Inject
 
 class MessagesRepository @Inject constructor(
@@ -23,7 +16,7 @@ class MessagesRepository @Inject constructor(
     private val userService: ApiUserService,
     private val authService: AuthService
 
-    ) {
+) {
 
     suspend fun createThread(spaceId: String, adminId: String, memberIds: List<String>): String {
         val threadId = apiMessagesService.createThread(spaceId, adminId)
@@ -34,21 +27,19 @@ class MessagesRepository @Inject constructor(
     suspend fun sendMessage(
         message: String,
         senderId: String,
-        threadId: String,
+        threadId: String
     ) {
-
         apiMessagesService.sendMessage(threadId, senderId, message)
-
     }
 
     suspend fun getThreads(spaceId: String): Flow<List<ApiThread>> {
-        val userId = authService.currentUser?.id ?: return  emptyFlow()
-        return apiMessagesService.getThreads(spaceId,userId)
+        val userId = authService.currentUser?.id ?: return emptyFlow()
+        return apiMessagesService.getThreads(spaceId, userId)
     }
 
     suspend fun getThreadsWithMessages(spaceId: String): Flow<List<ThreadInfo>> {
-        val userId = authService.currentUser?.id ?: return  emptyFlow()
-        return apiMessagesService.getThreadsWithLatestMessage(spaceId,userId)
+        val userId = authService.currentUser?.id ?: return emptyFlow()
+        return apiMessagesService.getThreadsWithLatestMessage(spaceId, userId)
     }
 
     suspend fun getThread(threadId: String) =
@@ -60,6 +51,9 @@ class MessagesRepository @Inject constructor(
             ThreadInfo(it, members)
         }
 
-    fun getMessagesQuery(threadId: String) = apiMessagesService.getMessagesQuery(threadId)
+    fun getMessages(threadId: String, from: Long, limit: Int) =
+        apiMessagesService.getMessages(threadId, from, limit)
 
+    fun getLatestMessages(threadId: String, limit: Int) =
+        apiMessagesService.getLatestMessages(threadId, limit)
 }

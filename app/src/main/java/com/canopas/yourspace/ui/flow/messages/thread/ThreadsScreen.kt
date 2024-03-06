@@ -124,7 +124,8 @@ private fun ThreadsContent(modifier: Modifier) {
             AppProgressIndicator()
         } else if (state.hasMembers) {
             ThreadList(
-                state.threadInfo, state.currentSpace?.members ?: emptyList(),
+                state.threadInfo,
+                state.currentSpace?.members ?: emptyList(),
                 state.currentUser
             ) { viewModel.showMessages(it) }
         } else {
@@ -162,7 +163,8 @@ fun ThreadList(
         ) {
             itemsIndexed(
                 threadInfos,
-                key = { index, item -> item.thread.id }) { index, threadInfo ->
+                key = { index, item -> item.thread.id }
+            ) { index, threadInfo ->
                 val threadMembers = members.filter { member ->
                     threadInfo.thread.member_ids.contains(member.user.id) && member.user.id != currentUser?.id
                 }.map { it.user }
@@ -197,7 +199,6 @@ private fun ThreadItem(
             .padding(horizontal = 10.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-
         ThreadProfile(members)
         Spacer(modifier = Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) {

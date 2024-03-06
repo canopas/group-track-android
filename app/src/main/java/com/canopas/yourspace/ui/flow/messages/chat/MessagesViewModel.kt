@@ -3,31 +3,29 @@ package com.canopas.yourspace.ui.flow.messages.chat
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.cachedIn
 import com.canopas.yourspace.data.models.messages.ApiThread
 import com.canopas.yourspace.data.models.messages.ApiThreadMessage
-import com.canopas.yourspace.data.models.messages.ThreadInfo
 import com.canopas.yourspace.data.models.space.SpaceInfo
 import com.canopas.yourspace.data.models.user.UserInfo
 import com.canopas.yourspace.data.repository.MessagesRepository
 import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.utils.AppDispatcher
-import com.canopas.yourspace.ui.flow.home.map.member.LocationHistoryPagingSource
-import com.canopas.yourspace.ui.flow.messages.chat.components.MessagesPagingSource
 import com.canopas.yourspace.ui.navigation.AppDestinations.ThreadMessages.KEY_THREAD_ID
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
+
+private const val MESSAGE_PAGE_LIMIT = 20
 
 @HiltViewModel
 class MessagesViewModel @Inject constructor(
@@ -39,9 +37,10 @@ class MessagesViewModel @Inject constructor(
     private val appDispatcher: AppDispatcher
 ) : ViewModel() {
 
-    //For new Thread
+    // For new Thread
     private var threads: List<ApiThread>? = emptyList()
     private var threadId: String = savedStateHandle.get<String>(KEY_THREAD_ID) ?: ""
+    private var messagesJob: Job? = null
 
     private val _state = MutableStateFlow(
         MessagesScreenState(
@@ -49,52 +48,106 @@ class MessagesViewModel @Inject constructor(
         )
     )
     val state = _state.asStateFlow()
-    private var _dataPagingSource: MessagesPagingSource? = null
 
-    val messages = Pager(
-        config = PagingConfig(1)
-    ) {
-        MessagesPagingSource(
-            query = messagesRepository.getMessagesQuery(threadId)
-        ).also {
-            _dataPagingSource = it
-        }
-    }.flow.cachedIn(viewModelScope)
+    private var hasMoreData = true
+    private var loadingData = false
 
     init {
         if (threadId.isEmpty()) {
-            fetchSpaceInfo()
+            fetchSpaceForNewThread()
         } else {
-            fetchThreadInfo()
+            fetchThread(threadId)
         }
 
+        listenMessages()
     }
 
-    private fun fetchThreadInfo() = viewModelScope.launch(appDispatcher.IO) {
-        if (threadId.isEmpty()) return@launch
+    private fun listenMessages() {
+        if (threadId.isEmpty()) return
+        messagesJob?.cancel()
+        messagesJob = viewModelScope.launch(Dispatchers.IO) {
+            messagesRepository.getLatestMessages(threadId, MESSAGE_PAGE_LIMIT)
+                .collectLatest { messages ->
+                    val newMessages = state.value.messages + messages
+                    _state.emit(
+                        state.value.copy(
+                            messages = newMessages.distinct().sortedByDescending { it.created_at }
+                        )
+                    )
+                }
+        }
+    }
+
+    fun loadMore() = viewModelScope.launch(Dispatchers.IO) {
+        if (loadingData || !hasMoreData || threadId.isEmpty()) return@launch
+        loadingData = true
+        _state.emit(
+            state.value.copy(
+                loadingMessages = state.value.messages.isEmpty(),
+                append = true
+            )
+        )
         try {
-            _state.emit(_state.value.copy(isLoading = true))
+            val from = if (state.value.messages.isEmpty()) {
+                System.currentTimeMillis()
+            } else {
+                state.value.messages.minBy { it.created_at }.created_at
+            }
+            val newMessages = messagesRepository.getMessages(
+                threadId,
+                from = from,
+                limit = MESSAGE_PAGE_LIMIT
+            ).first()
+
+            hasMoreData = newMessages.isNotEmpty()
+
+            _state.emit(
+                state.value.copy(
+                    messages = (state.value.messages + newMessages).distinct()
+                        .sortedByDescending { it.created_at },
+                    append = false,
+                    loadingMessages = false,
+                    error = null
+                )
+            )
+            loadingData = false
+        } catch (e: Exception) {
+            Timber.e(e, "Error loading messages")
+            _state.emit(
+                state.value.copy(
+                    error = e.message,
+                    append = false,
+                    loadingMessages = false
+                )
+            )
+        }
+    }
+
+    private fun fetchThread(threadId: String) = viewModelScope.launch(appDispatcher.IO) {
+        try {
+            _state.emit(_state.value.copy(loading = true))
             messagesRepository.getThread(threadId).collectLatest { info ->
                 if (info == null) navigator.navigateBack()
                 val thread = info!!.thread
                 val members = info.members
                 _state.emit(
                     _state.value.copy(
-                        isLoading = false, thread = thread,
-                        threadMembers = members, selectedMember = members
+                        loading = false,
+                        thread = thread,
+                        threadMembers = members,
+                        selectedMember = members
                     )
                 )
             }
         } catch (e: Exception) {
             Timber.e(e, "Failed to fetch thread info")
-            _state.emit(_state.value.copy(error = e.message, isLoading = false))
+            _state.emit(_state.value.copy(error = e.message, loading = false))
         }
     }
 
-
-    private fun fetchSpaceInfo() = viewModelScope.launch(appDispatcher.IO) {
+    private fun fetchSpaceForNewThread() = viewModelScope.launch(appDispatcher.IO) {
         try {
-            _state.emit(_state.value.copy(isLoading = true))
+            _state.emit(_state.value.copy(loading = true))
             val currentSpace = spaceRepository.getCurrentSpaceInfo() ?: return@launch
             val selectedMember = currentSpace.members
 
@@ -107,7 +160,7 @@ class MessagesViewModel @Inject constructor(
                 _state.value.copy(
                     currentSpace = currentSpace,
                     isNewThread = true,
-                    isLoading = false,
+                    loading = false,
                     selectAll = true,
                     selectedMember = selectedMember
                 )
@@ -115,7 +168,7 @@ class MessagesViewModel @Inject constructor(
             selectExistingThread()
         } catch (e: Exception) {
             Timber.e(e, "Failed to fetch space info")
-            _state.emit(_state.value.copy(error = e.message, isLoading = false))
+            _state.emit(_state.value.copy(error = e.message, loading = false))
         }
     }
 
@@ -171,17 +224,19 @@ class MessagesViewModel @Inject constructor(
             val members = _state.value.currentSpace?.members ?: emptyList()
             _state.value = state.value.copy(
                 thread = thread,
-                threadMembers = members.filter { member -> thread.member_ids.contains(member.user.id) },
+                messages = emptyList(),
+                threadMembers = members.filter { member -> thread.member_ids.contains(member.user.id) }
             )
             threadId = thread.id
-            _dataPagingSource?.invalidate()
+            listenMessages()
         } else {
             _state.value = state.value.copy(
                 thread = null,
-                threadMembers = emptyList(),
+                messages = emptyList(),
+                threadMembers = emptyList()
             )
             threadId = ""
-            _dataPagingSource?.invalidate()
+            messagesJob?.cancel()
         }
     }
 
@@ -198,32 +253,27 @@ class MessagesViewModel @Inject constructor(
             _state.emit(_state.value.copy(newMessage = "", isNewThread = false))
             if (threadId.isEmpty()) {
                 val spaceId = _state.value.currentSpace?.space?.id ?: return@launch
-                val members = _state.value.selectedMember.map { it.user.id }.filter { it != userId }
+                val members =
+                    _state.value.selectedMember.map { it.user.id }.filter { it != userId }
                 threadId = messagesRepository.createThread(spaceId, userId, members)
-                _state.value = _state.value.copy(
-                    threadMembers = _state.value.selectedMember
-                )
-
+                _state.value = _state.value.copy(threadMembers = _state.value.selectedMember)
             }
 
-            messagesRepository.sendMessage(
-                message,
-                userId,
-                threadId,
-            )
-           // _dataPagingSource?.invalidate()
+            messagesRepository.sendMessage(message, userId, threadId)
         } catch (e: Exception) {
             Timber.e(e, "Failed to send message")
             _state.emit(_state.value.copy(error = e.message))
         }
     }
-
 }
 
 data class MessagesScreenState(
-    val isLoading: Boolean = false,
+    val loading: Boolean = false,
+    val loadingMessages: Boolean = false,
+    val append: Boolean = false,
     val currentSpace: SpaceInfo? = null,
     val currentUserId: String = "",
+    val messages: List<ApiThreadMessage> = emptyList(),
     val thread: ApiThread? = null,
     val threadMembers: List<UserInfo> = emptyList(),
     val selectedMember: List<UserInfo> = emptyList(),

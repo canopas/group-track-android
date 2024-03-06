@@ -183,7 +183,7 @@ private fun LocationHistoryItem(location: ApiLocation, index: Int, isLastItem: B
             address = latLng.getAddress(context) ?: ""
         }
     }
-    val lastUpdated = (location.created_at ?: 0L).formattedTimeAgoString(context )
+    val lastUpdated = (location.created_at ?: 0L).formattedTimeAgoString(context)
 
     Row(
         modifier = Modifier

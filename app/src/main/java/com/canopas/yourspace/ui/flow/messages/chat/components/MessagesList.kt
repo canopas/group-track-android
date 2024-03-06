@@ -16,52 +16,66 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Alignment.Companion
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
-import androidx.paging.LoadState
-import androidx.paging.compose.LazyPagingItems
 import com.canopas.yourspace.data.models.messages.ApiThreadMessage
 import com.canopas.yourspace.data.models.user.UserInfo
 import com.canopas.yourspace.ui.component.AppProgressIndicator
 import com.canopas.yourspace.ui.component.UserProfile
+import com.canopas.yourspace.ui.component.reachedBottom
 import com.canopas.yourspace.ui.theme.AppTheme
 
 @Composable
 fun ColumnScope.MessageList(
     loading: Boolean,
-    messages: LazyPagingItems<ApiThreadMessage>,
+    append: Boolean,
+    messages: List<ApiThreadMessage>,
     members: List<UserInfo>,
-    currentUserId: String
+    currentUserId: String,
+    loadMore: () -> Unit
 ) {
+    val lazyState = rememberLazyListState()
+    val reachedBottom by remember {
+        derivedStateOf { lazyState.reachedBottom() }
+    }
+    LaunchedEffect(reachedBottom) {
+        if (reachedBottom) loadMore()
+    }
 
     LazyColumn(
+        state = lazyState,
         modifier = Modifier
             .fillMaxSize()
             .weight(1f),
         contentPadding = PaddingValues(16.dp),
         reverseLayout = true
     ) {
-        items(messages.itemCount, key = { messages[it]!!.id }) { index ->
-            val message = messages[index]
-
+        items(messages) { message ->
             val by =
-                members.firstOrNull { message != null && it.user.id == message.sender_id }
+                members.firstOrNull { it.user.id == message.sender_id }
 
-            if (by != null && message != null) {
+            if (by != null) {
                 MessageContent(
-                    message, by = by, showProfile = members.size > 2,
+                    message,
+                    by = by,
+                    showProfile = members.size > 2,
                     isSender = currentUserId == message.sender_id
                 )
             }
         }
 
-        if (messages.loadState.append == LoadState.Loading && !loading) {
+        if (append && !loading) {
             item {
                 Box(
                     modifier = Modifier.fillMaxWidth(),
@@ -79,7 +93,6 @@ fun MessageContent(
     showProfile: Boolean,
     isSender: Boolean
 ) {
-
     Row(
         Modifier
             .padding(vertical = 8.dp)

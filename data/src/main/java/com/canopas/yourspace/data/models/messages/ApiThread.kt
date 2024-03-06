@@ -12,7 +12,7 @@ data class ApiThread(
     val id: String = UUID.randomUUID().toString(),
     val admin_id: String = "",
     val space_id: String = "",
-    val member_ids:List<String> = emptyList(),
+    val member_ids: List<String> = emptyList(),
     val created_at: Long = System.currentTimeMillis()
 )
 
@@ -28,5 +28,4 @@ data class ApiThreadMessage(
     @get:Exclude
     val formattedTime: String
         get() = SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date(created_at))
-
 }

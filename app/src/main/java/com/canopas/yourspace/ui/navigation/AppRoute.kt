@@ -147,15 +147,14 @@ object AppDestinations {
         const val path = "$PATH?$KEY_THREAD_ID={$KEY_THREAD_ID}"
 
         fun messages(
-            threadId: String? = "",
+            threadId: String? = ""
         ) = object : AppRoute {
 
             override val arguments = listOf(
-                navArgument(KEY_THREAD_ID) { type = NavType.StringType },
+                navArgument(KEY_THREAD_ID) { type = NavType.StringType }
             )
 
             override val path = "$PATH?$KEY_THREAD_ID=$threadId"
         }
     }
-
 }

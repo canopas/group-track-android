@@ -1,6 +1,5 @@
 package com.canopas.yourspace.data.models.messages
 
-import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.models.user.UserInfo
 
 data class ThreadInfo(
