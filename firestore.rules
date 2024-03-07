@@ -147,14 +147,15 @@ service cloud.firestore {
             allow read: if isAuthorized() && (isSpaceAdmin(resource.data.space_id) || isSpaceMember(resource.data.space_id));
             allow delete: if isAuthorized() && isSpaceAdmin(resource.data.space_id);
             allow update: if isAuthorized() && (isSpaceMember(request.resource.data.space_id)) &&
-                           request.resource.data.diff(resource.data).affectedKeys().hasOnly(["member_ids"]) &&
+                           request.resource.data.diff(resource.data).affectedKeys().hasOnly(["member_ids","read_by"]) &&
                            request.resource.data.member_ids is list;
             allow create: if isAuthorized() && (isSpaceMember(request.resource.data.space_id)) &&
-                           request.resource.data.keys().hasAll(["id", "space_id", "admin_id", "member_ids", "created_at"]) &&
+                           request.resource.data.keys().hasAll(["id", "space_id", "admin_id", "member_ids", "read_by", "created_at"]) &&
                            request.resource.data.id is string &&
                            request.resource.data.space_id is string &&
                            request.resource.data.admin_id is string &&
                            request.resource.data.member_ids is list &&
+                           request.resource.data.read_by is list &&
                            request.resource.data.created_at is int;
 
        }

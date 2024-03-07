@@ -13,6 +13,7 @@ data class ApiThread(
     val admin_id: String = "",
     val space_id: String = "",
     val member_ids: List<String> = emptyList(),
+    val read_by: List<String> = emptyList(),
     val created_at: Long = System.currentTimeMillis()
 )
 
@@ -22,7 +23,6 @@ data class ApiThreadMessage(
     val thread_id: String = "",
     val sender_id: String = "",
     val message: String = "",
-    val read_by: List<String> = emptyList(),
     val created_at: Long = System.currentTimeMillis()
 ) {
     @get:Exclude

@@ -142,6 +142,7 @@ class MessagesViewModel @Inject constructor(
                     }
                     val thread = info.thread
                     val members = info.members
+
                     _state.emit(
                         _state.value.copy(
                             loading = false,

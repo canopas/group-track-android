@@ -37,6 +37,7 @@ class ApiMessagesService @Inject constructor(
             space_id = spaceId,
             admin_id = adminId,
             member_ids = listOf(adminId),
+            read_by = listOf(adminId),
             created_at = System.currentTimeMillis()
         )
         docRef.set(thread).await()
@@ -79,10 +80,15 @@ class ApiMessagesService @Inject constructor(
             thread_id = threadId,
             sender_id = senderId,
             message = message,
-            read_by = listOf(senderId),
             created_at = System.currentTimeMillis()
         )
         docRef.set(threadMessage).await()
+    }
+
+    suspend fun resetThreadReadBy(threadId: String, userId: String) {
+        threadRef.document(threadId)
+            .update("read_by",  FieldValue.arrayUnion())
+            .await()
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
