@@ -61,7 +61,7 @@ fun MessagesScreen() {
             TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = AppTheme.colorScheme.surface),
                 title = {
-                    ToolbarTitle(state.selectedMember.filter { it.user.id != state.currentUserId })
+                    ToolbarTitle(state.selectedMember)
                 },
                 navigationIcon = {
                     IconButton(onClick = { viewModel.popBackStack() }) {

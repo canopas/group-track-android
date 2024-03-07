@@ -42,6 +42,7 @@ class MessagesViewModel @Inject constructor(
     private var threads: List<ApiThread>? = emptyList()
     private var threadId: String = savedStateHandle.get<String>(KEY_THREAD_ID) ?: ""
     private var messagesJob: Job? = null
+    private var threadJob: Job? = null
 
     private val _state = MutableStateFlow(
         MessagesScreenState(
@@ -125,28 +126,31 @@ class MessagesViewModel @Inject constructor(
         }
     }
 
-    private fun fetchThread(threadId: String) = viewModelScope.launch(appDispatcher.IO) {
-        try {
-            _state.emit(_state.value.copy(loading = true))
-            messagesRepository.getThread(threadId).collectLatest { info ->
-                if (info == null) {
-                    navigator.navigateBack()
-                    return@collectLatest
+    private fun fetchThread(threadId: String) {
+        threadJob?.cancel()
+        threadJob = viewModelScope.launch(appDispatcher.IO) {
+            _state.emit(_state.value.copy(loading = state.value.thread == null))
+            messagesRepository.getThread(threadId)
+                .catch { e ->
+                    Timber.e(e, "Failed to fetch thread info")
+                    _state.emit(_state.value.copy(error = e.message, loading = false))
                 }
-                val thread = info.thread
-                val members = info.members
-                _state.emit(
-                    _state.value.copy(
-                        loading = false,
-                        thread = thread,
-                        threadMembers = members,
-                        selectedMember = members
+                .collectLatest { info ->
+                    if (info == null) {
+                        navigator.navigateBack()
+                        return@collectLatest
+                    }
+                    val thread = info.thread
+                    val members = info.members
+                    _state.emit(
+                        _state.value.copy(
+                            loading = false,
+                            thread = thread,
+                            threadMembers = members,
+                            selectedMember = members.filter { it.user.id != state.value.currentUserId }
+                        )
                     )
-                )
-            }
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to fetch thread info")
-            _state.emit(_state.value.copy(error = e.message, loading = false))
+                }
         }
     }
 
@@ -167,7 +171,7 @@ class MessagesViewModel @Inject constructor(
                     isNewThread = true,
                     loading = false,
                     selectAll = true,
-                    selectedMember = selectedMember
+                    selectedMember = selectedMember.filter { it.user.id != state.value.currentUserId }
                 )
             )
             selectExistingThread()
@@ -187,7 +191,9 @@ class MessagesViewModel @Inject constructor(
 
     fun selectAllMember() {
         _state.value = _state.value.copy(
-            selectedMember = _state.value.currentSpace?.members ?: emptyList(),
+            selectedMember = _state.value.currentSpace?.members
+                ?.filter { it.user.id != state.value.currentUserId }
+                ?: emptyList(),
             selectAll = true
         )
         selectExistingThread()
@@ -205,14 +211,16 @@ class MessagesViewModel @Inject constructor(
             } else {
                 previousSelectedMember + user
             }
-        _state.value = _state.value.copy(
-            selectedMember = selectedMember.ifEmpty {
-                _state.value.currentSpace?.members ?: emptyList()
-            },
-            selectAll = selectedMember.isEmpty()
-        )
-
-        selectExistingThread()
+        if (selectedMember.isEmpty()) {
+            selectAllMember()
+        } else {
+            _state.value = _state.value.copy(
+                selectedMember = selectedMember,
+                selectAll = selectedMember.isEmpty()
+            )
+            selectExistingThread()
+        }
+        Timber.e("XXX selectedMember: ${selectedMember.size}")
     }
 
     private fun selectExistingThread() {
@@ -233,6 +241,7 @@ class MessagesViewModel @Inject constructor(
                 threadMembers = members.filter { member -> thread.member_ids.contains(member.user.id) }
             )
             threadId = thread.id
+            fetchThread(threadId)
             listenMessages()
         } else {
             _state.value = state.value.copy(
@@ -241,6 +250,7 @@ class MessagesViewModel @Inject constructor(
                 threadMembers = emptyList()
             )
             threadId = ""
+            threadJob?.cancel()
             messagesJob?.cancel()
         }
     }
