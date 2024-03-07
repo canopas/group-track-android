@@ -14,6 +14,7 @@ import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -56,19 +57,18 @@ class ThreadsViewModel @Inject constructor(
 
     private fun listenThreads() = viewModelScope.launch(appDispatcher.IO) {
         val spaceId = spaceRepository.currentSpaceId
-        try {
-            _state.emit(_state.value.copy(loadingThreads = state.value.threadInfo.isEmpty()))
-            messagesService.getThreadsWithLatestMessage(
-                spaceId,
-                userId = authService.currentUser!!.id
-            ).collectLatest { threads ->
-                val sortedList =
-                    threads.sortedByDescending { it.messages.firstOrNull()?.created_at ?: 0 }
-                _state.emit(_state.value.copy(threadInfo = sortedList, loadingThreads = false))
-            }
-        } catch (e: Exception) {
+
+        _state.emit(_state.value.copy(loadingThreads = state.value.threadInfo.isEmpty()))
+        messagesService.getThreadsWithLatestMessage(
+            spaceId,
+            userId = authService.currentUser!!.id
+        ).catch { e ->
             Timber.e(e, "Failed to listen threads")
             _state.emit(_state.value.copy(error = e.message, loadingThreads = false))
+        }.collectLatest { threads ->
+            val sortedList =
+                threads.sortedByDescending { it.messages.firstOrNull()?.created_at ?: 0 }
+            _state.emit(_state.value.copy(threadInfo = sortedList, loadingThreads = false))
         }
     }
 

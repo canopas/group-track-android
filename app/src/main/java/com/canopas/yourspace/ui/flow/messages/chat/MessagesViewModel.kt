@@ -18,6 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
@@ -67,6 +68,10 @@ class MessagesViewModel @Inject constructor(
         messagesJob?.cancel()
         messagesJob = viewModelScope.launch(Dispatchers.IO) {
             messagesRepository.getLatestMessages(threadId, MESSAGE_PAGE_LIMIT)
+                .catch { e ->
+                    Timber.e(e, "Error listening to messages")
+                    _state.emit(state.value.copy(error = e.message))
+                }
                 .collectLatest { messages ->
                     val newMessages = state.value.messages + messages
                     _state.emit(
@@ -88,11 +93,8 @@ class MessagesViewModel @Inject constructor(
             )
         )
         try {
-            val from = if (state.value.messages.isEmpty()) {
-                System.currentTimeMillis()
-            } else {
-                state.value.messages.minBy { it.created_at }.created_at
-            }
+            val from =
+                if (state.value.messages.isEmpty()) System.currentTimeMillis() else state.value.messages.minBy { it.created_at }.created_at
             val newMessages = messagesRepository.getMessages(
                 threadId,
                 from = from,
@@ -127,8 +129,11 @@ class MessagesViewModel @Inject constructor(
         try {
             _state.emit(_state.value.copy(loading = true))
             messagesRepository.getThread(threadId).collectLatest { info ->
-                if (info == null) navigator.navigateBack()
-                val thread = info!!.thread
+                if (info == null) {
+                    navigator.navigateBack()
+                    return@collectLatest
+                }
+                val thread = info.thread
                 val members = info.members
                 _state.emit(
                     _state.value.copy(
