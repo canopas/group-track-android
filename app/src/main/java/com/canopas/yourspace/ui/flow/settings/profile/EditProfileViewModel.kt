@@ -117,7 +117,7 @@ class EditProfileViewModel @Inject constructor(
             val storage = FirebaseStorage.getInstance()
             val storageRef = storage.reference
             val fileName = "IMG_${System.currentTimeMillis()}.jpg"
-            val imageRef = storageRef.child("profile_images/${user?.id}/${fileName}")
+            val imageRef = storageRef.child("profile_images/${user?.id}/$fileName")
             val uploadTask = imageRef.putFile(uri)
             uploadTask.addOnProgressListener {
                 _state.value = _state.value.copy(isImageUploadInProgress = true)

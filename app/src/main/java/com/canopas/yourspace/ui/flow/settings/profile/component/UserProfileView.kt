@@ -138,12 +138,13 @@ fun UserProfileView(
             contentDescription = "ProfileImage"
         )
 
-        Box(modifier = Modifier
-            .wrapContentSize()
-            .align(Alignment.BottomEnd)
-            .clip(CircleShape)
-            .border(1.dp, AppTheme.colorScheme.textPrimary, CircleShape)
-            .background(AppTheme.colorScheme.onPrimary, CircleShape)
+        Box(
+            modifier = Modifier
+                .wrapContentSize()
+                .align(Alignment.BottomEnd)
+                .clip(CircleShape)
+                .border(1.dp, AppTheme.colorScheme.textPrimary, CircleShape)
+                .background(AppTheme.colorScheme.onPrimary, CircleShape)
         ) {
             Icon(
                 Icons.Default.Edit,
