@@ -134,7 +134,8 @@ private fun EditProfileScreenContent(modifier: Modifier) {
                 dismissProfileChooser = {
                     viewModel.showProfileChooser(false)
                 },
-                state.showProfileChooser
+                state.showProfileChooser,
+                state.isImageUploadInProgress
             )
 
             Spacer(modifier = Modifier.height(35.dp))

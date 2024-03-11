@@ -1,5 +1,6 @@
 package com.canopas.yourspace.ui.flow.settings.profile
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.canopas.yourspace.data.models.user.ApiUser
@@ -10,12 +11,12 @@ import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.utils.AppDispatcher
 import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppNavigator
+import com.google.firebase.storage.FirebaseStorage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
@@ -45,7 +46,7 @@ class EditProfileViewModel @Inject constructor(
                 lastName = user?.last_name,
                 email = user?.email,
                 phone = user?.phone,
-                profileUrl = null,
+                profileUrl = user?.profile_image,
                 enablePhone = user?.auth_type != LOGIN_TYPE_PHONE,
                 enableEmail = user?.auth_type != LOGIN_TYPE_GOOGLE
             )
@@ -102,9 +103,41 @@ class EditProfileViewModel @Inject constructor(
         _state.value = _state.value.copy(showProfileChooser = show)
     }
 
-    fun onProfileImageChanged(profileUrl: File?) {
-        _state.value = _state.value.copy(profileUrl = profileUrl?.path)
-        onChange()
+    fun onProfileImageChanged(profileUri: Uri?) {
+        profileUri?.let { uri ->
+            uploadProfileImage(uri)
+        } ?: run {
+            _state.value = _state.value.copy(profileUrl = null)
+            onChange()
+        }
+    }
+
+    private fun uploadProfileImage(uri: Uri) = viewModelScope.launch(appDispatcher.IO) {
+        try {
+            val storage = FirebaseStorage.getInstance()
+            val storageRef = storage.reference
+            val fileName = "IMG_${System.currentTimeMillis()}.jpg"
+            val imageRef = storageRef.child("profile_images/${user?.id}/${fileName}")
+            val uploadTask = imageRef.putFile(uri)
+            uploadTask.addOnProgressListener {
+                _state.value = _state.value.copy(isImageUploadInProgress = true)
+            }.addOnSuccessListener {
+                imageRef.downloadUrl.addOnSuccessListener { uri ->
+                    _state.value = _state.value.copy(
+                        profileUrl = uri.toString(),
+                        isImageUploadInProgress = false
+                    )
+                    onChange()
+                }
+            }.addOnFailureListener {
+                Timber.e(it, "Failed to upload profile image")
+                _state.value = _state.value.copy(profileUrl = null, isImageUploadInProgress = false)
+                onChange()
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to upload profile image")
+            _state.emit(_state.value.copy(isImageUploadInProgress = false, error = e.message))
+        }
     }
 
     fun onFirstNameChanged(firstName: String) {
@@ -167,5 +200,6 @@ data class EditProfileState(
     val lastName: String? = null,
     val email: String? = null,
     val phone: String? = null,
-    val profileUrl: String? = null
+    val profileUrl: String? = null,
+    val isImageUploadInProgress: Boolean = false
 )

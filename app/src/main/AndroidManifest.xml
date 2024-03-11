@@ -44,6 +44,10 @@
             android:name=".data.receiver.location.LocationUpdateReceiver"
             android:exported="false"/>
 
+        <activity
+            android:name="com.canhub.cropper.CropImageActivity"
+            android:theme="@style/Base.Theme.AppCompat"
+            />
     </application>
 
 </manifest>
