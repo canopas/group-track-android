@@ -133,7 +133,9 @@ fun AppBanner(msg: Exception, customMsg: String? = null, onDismiss: (() -> Unit)
                     else -> {
                         Text(
                             text = customMsg ?: stringResource(R.string.unexpected_error_text),
-                            style = textStyle
+                            style = textStyle,
+                            maxLines = 4,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
