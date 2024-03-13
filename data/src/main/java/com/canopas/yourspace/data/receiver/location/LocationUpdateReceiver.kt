@@ -34,42 +34,33 @@ class LocationUpdateReceiver : BroadcastReceiver() {
             scope.launch {
                 try {
                     locationResult.locations.map { extractedLocation ->
-                        locationService.getLastLocation(authService.currentUser?.id ?: "")
-                            .let { lastLocation ->
-                                if (lastLocation != null) {
-                                    val distance = FloatArray(1)
-                                    Location.distanceBetween(
-                                        lastLocation.latitude,
-                                        lastLocation.longitude,
-                                        extractedLocation.latitude,
-                                        extractedLocation.longitude,
-                                        distance
-                                    )
-                                    // Verify if the distance is greater than 10 meters
-                                    if (distance[0] > MINIMUM_DISTANCE_TO_UPDATE_LOCATION) {
-                                        locationService.saveCurrentLocation(
-                                            authService.currentUser?.id ?: "",
-                                            extractedLocation.latitude,
-                                            extractedLocation.longitude,
-                                            Date().time
-                                        )
-                                    } else {
-                                        return@map
-                                    }
-                                } else {
-                                    locationService.saveCurrentLocation(
-                                        authService.currentUser?.id ?: "",
-                                        extractedLocation.latitude,
-                                        extractedLocation.longitude,
-                                        Date().time
-                                    )
-                                }
-                            }
+                        if (shouldSaveLocation(extractedLocation)) {
+                            locationService.saveCurrentLocation(
+                                authService.currentUser?.id ?: "",
+                                extractedLocation.latitude,
+                                extractedLocation.longitude,
+                                Date().time
+                            )
+                        }
                     }
                 } catch (e: Exception) {
                     Timber.e(e, "Error while saving location")
                 }
             }
         }
+    }
+
+    private suspend fun shouldSaveLocation(extractedLocation: Location): Boolean {
+        val lastLocation =
+            locationService.getLastLocation(authService.currentUser?.id ?: "") ?: return true
+        val distance = FloatArray(1)
+        Location.distanceBetween(
+            lastLocation.latitude,
+            lastLocation.longitude,
+            extractedLocation.latitude,
+            extractedLocation.longitude,
+            distance
+        )
+        return distance[0] > MINIMUM_DISTANCE_TO_UPDATE_LOCATION
     }
 }
