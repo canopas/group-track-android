@@ -58,6 +58,11 @@ class ApiLocationService @Inject constructor(
             .orderBy("created_at", Query.Direction.DESCENDING).limit(1)
             .snapshotFlow(ApiLocation::class.java)
 
+    suspend fun getLastLocation(userId: String) =
+        locationRef(userId).whereEqualTo("user_id", userId)
+            .orderBy("created_at", Query.Direction.DESCENDING).limit(1)
+            .get().await().documents.firstOrNull()?.toObject(ApiLocation::class.java)
+
     fun getLocationHistoryQuery(userId: String, from: Long, to: Long) =
         locationRef(userId).whereEqualTo("user_id", userId)
             .whereGreaterThanOrEqualTo("created_at", from)
