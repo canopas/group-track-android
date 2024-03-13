@@ -6,6 +6,7 @@ import android.content.Intent
 import android.location.Location
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.location.ApiLocationService
+import com.canopas.yourspace.data.service.location.LocationManager
 import com.google.android.gms.location.LocationResult
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -24,6 +25,9 @@ class LocationUpdateReceiver : BroadcastReceiver() {
 
     @Inject
     lateinit var locationService: ApiLocationService
+
+    @Inject
+    lateinit var locationManager: LocationManager
 
     @Inject
     lateinit var authService: AuthService
@@ -51,8 +55,7 @@ class LocationUpdateReceiver : BroadcastReceiver() {
     }
 
     private suspend fun shouldSaveLocation(extractedLocation: Location): Boolean {
-        val lastLocation =
-            locationService.getLastLocation(authService.currentUser?.id ?: "") ?: return true
+        val lastLocation = locationManager.getLastLocation() ?: return true
         val distance = FloatArray(1)
         Location.distanceBetween(
             lastLocation.latitude,
