@@ -60,14 +60,12 @@ class MessagesViewModel @Inject constructor(
         } else {
             fetchThread(threadId)
         }
-
-        listenMessages()
     }
 
     private fun listenMessages() {
         if (threadId.isEmpty()) return
         messagesJob?.cancel()
-        messagesJob = viewModelScope.launch(Dispatchers.IO) {
+        messagesJob = viewModelScope.launch(appDispatcher.IO) {
             messagesRepository.getLatestMessages(threadId, MESSAGE_PAGE_LIMIT)
                 .catch { e ->
                     Timber.e(e, "Error listening to messages")
@@ -75,6 +73,7 @@ class MessagesViewModel @Inject constructor(
                 }
                 .collectLatest { messages ->
                     val newMessages = state.value.messages + messages
+                    markMessagesAsSeen()
                     _state.emit(
                         state.value.copy(
                             messages = newMessages.distinct().sortedByDescending { it.created_at }
@@ -84,7 +83,25 @@ class MessagesViewModel @Inject constructor(
         }
     }
 
-    fun loadMore() = viewModelScope.launch(Dispatchers.IO) {
+
+    private fun markMessagesAsSeen() = viewModelScope.launch(appDispatcher.IO) {
+        try {
+            val unreadMessages = state.value.messages.distinct()
+                .filter { !it.seen_by.contains(state.value.currentUserId) }
+                .map { it.id }
+            if (unreadMessages.isNotEmpty()) {
+                messagesRepository.markMessagesAsSeen(
+                    threadId,
+                    unreadMessages,
+                    state.value.currentUserId
+                )
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Error marking messages as seen")
+        }
+    }
+
+    fun loadMore() = viewModelScope.launch(appDispatcher.IO) {
         if (loadingData || !hasMoreData || threadId.isEmpty()) return@launch
         loadingData = true
         _state.emit(
@@ -113,6 +130,7 @@ class MessagesViewModel @Inject constructor(
                     error = null
                 )
             )
+            markMessagesAsSeen()
             loadingData = false
         } catch (e: Exception) {
             Timber.e(e, "Error loading messages")
@@ -151,6 +169,7 @@ class MessagesViewModel @Inject constructor(
                             selectedMember = members.filter { it.user.id != state.value.currentUserId }
                         )
                     )
+                    if (messagesJob == null) listenMessages()
                 }
         }
     }
@@ -272,7 +291,11 @@ class MessagesViewModel @Inject constructor(
                 val members =
                     _state.value.selectedMember.map { it.user.id }.filter { it != userId }
                 threadId = messagesRepository.createThread(spaceId, userId, members)
-                _state.value = _state.value.copy(threadMembers = _state.value.selectedMember)
+                val threadMembers =
+                    state.value.currentSpace?.members?.filter { members.contains(it.user.id) || it.user.id == userId }
+                        ?: emptyList()
+                _state.emit(_state.value.copy(threadMembers = threadMembers))
+                listenMessages()
             }
 
             messagesRepository.sendMessage(message, userId, threadId)

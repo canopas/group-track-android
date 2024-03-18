@@ -216,8 +216,8 @@ private fun ThreadItem(
             )
         }
         Spacer(modifier = Modifier.width(16.dp))
-        Column(horizontalAlignment = Alignment.End) {
-            val hasUnreadMsg = message?.read_by?.contains(currentUser?.id) == false
+        Row(horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically){
+            val hasUnreadMsg = message?.seen_by?.contains(currentUser?.id) == false
             Text(
                 text = message?.created_at?.formattedMessageTimeString(
                     LocalContext.current
@@ -227,32 +227,15 @@ private fun ThreadItem(
             )
 
             if (hasUnreadMsg) {
-                val count = threadInfo.messages.count { !it.read_by.contains(currentUser?.id) }
-                UnreadIndicator(count)
+                Box(modifier = Modifier.padding(start = 4.dp).size(8.dp)
+                        .background(AppTheme.colorScheme.primary, shape = CircleShape),
+                )
+
             }
         }
     }
 }
 
-@Composable
-fun UnreadIndicator(count: Int) {
-    Box(
-        modifier = Modifier
-            .padding(top = 4.dp)
-            .height(16.dp)
-            .widthIn(min = 16.dp)
-            .background(AppTheme.colorScheme.primary, shape = CircleShape),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = if (count <= 10) count.toString() else "10+",
-            style = AppTheme.appTypography.label3.copy(fontSize = 10.sp),
-            color = AppTheme.colorScheme.onPrimary,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 2.dp)
-        )
-    }
-}
 
 @Composable
 fun ThreadProfile(members: List<ApiUser>) {
