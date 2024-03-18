@@ -154,6 +154,8 @@
     <string name="messages_member_all">All</string>
     <string name="messages_new_message_hint">Type message</string>
     <string name="messages_time_format_minutes">%s min</string>
+    <string name="messages_label_seen">Seen</string>
+    <string name="messages_label_seen_by">"Seen by %s"</string>
 
     <string-array name="home_create_space_name_suggestion">
         <item>Family</item>
