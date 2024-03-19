@@ -39,7 +39,8 @@ import com.canopas.yourspace.ui.component.UserProfile
 import com.canopas.yourspace.ui.component.reachedBottom
 import com.canopas.yourspace.ui.flow.messages.chat.toFormattedTitle
 import com.canopas.yourspace.ui.theme.AppTheme
-import timber.log.Timber
+
+import java.util.concurrent.TimeUnit
 
 @Composable
 fun ColumnScope.MessageList(
@@ -74,14 +75,17 @@ fun ColumnScope.MessageList(
                 members.filter { message.seen_by.contains(it.user.id) && it.user.id != currentUserId }
 
             if (by != null) {
+                val myLatestMsg =
+                    messages.firstOrNull { it.sender_id == currentUserId }?.id == message.id
                 MessageContent(
-                    previousMessage = if (index > 0) messages[index - 1] else null,
-                    nextMessage = if (index < messages.size - 1) messages[index + 1] else null,
+                    previousMessage = if (index < messages.size - 1) messages[index + 1] else null,
+                    nextMessage = if (index > 0) messages[index - 1] else null,
                     message,
                     by = by,
                     seenBy = seenBy,
                     isGroupChat = members.size > 2,
-                    isSender = currentUserId == message.sender_id
+                    isSender = currentUserId == message.sender_id,
+                    isLatestMsg = myLatestMsg
                 )
             }
         }
@@ -105,11 +109,15 @@ fun MessageContent(
     by: UserInfo?,
     seenBy: List<UserInfo>,
     isGroupChat: Boolean,
-    isSender: Boolean
+    isSender: Boolean,
+    isLatestMsg: Boolean,
 ) {
+
+    val showUserDetails = shouldShowUserDetails(previousMessage, message)
+
     Row(
         Modifier
-            .padding(vertical = 8.dp)
+            .padding(top = if (showUserDetails) 8.dp else 6.dp)
             .fillMaxWidth(),
         horizontalArrangement = if (isSender) {
             Arrangement.End
@@ -118,7 +126,7 @@ fun MessageContent(
         }
     ) {
 
-        if (!isSender && by != null && isGroupChat) {
+        if (!isSender && by != null && showUserDetails) {
             UserProfile(
                 modifier = Modifier
                     .padding(top = 12.dp)
@@ -126,13 +134,17 @@ fun MessageContent(
                 user = by.user
             )
         }
+
+        if (!isSender && !showUserDetails) {
+            Spacer(modifier = Modifier.width(50.dp))
+        }
+
         Spacer(modifier = Modifier.width(10.dp))
 
-        val timeLabel =
-            if (isSender || by == null || !isGroupChat) message.formattedTime else "${by.user.first_name} • ${message.formattedTime}"
+        val timeLabel = if (!showUserDetails) ""
+        else if (isSender || by == null || !isGroupChat) message.formattedTime else "${by.user.first_name} • ${message.formattedTime}"
 
-        val previousMsgHasSameSeenBy = previousMessage?.seen_by?.containsAll(message.seen_by) == false
-        val seenLabel = if (isSender && seenBy.isNotEmpty() && !previousMsgHasSameSeenBy) {
+        val seenLabel = if (isSender && seenBy.isNotEmpty() && isLatestMsg) {
             if (isGroupChat) {
                 stringResource(
                     R.string.messages_label_seen_by,
@@ -150,6 +162,14 @@ fun MessageContent(
             seenLabel = seenLabel, isSender = isSender
         )
     }
+}
+
+fun shouldShowUserDetails(previousMessage: ApiThreadMessage?, message: ApiThreadMessage): Boolean {
+    if (previousMessage == null) return true
+    val diff = message.created_at - previousMessage.created_at
+
+    // Check if the previous message is from the same sender and within a minute
+    return previousMessage.sender_id != message.sender_id || diff !in 0..TimeUnit.MINUTES.toMillis(1)
 }
 
 @Composable
@@ -171,16 +191,16 @@ fun MessageBubble(
     Column(
         modifier = Modifier
             .wrapContentWidth()
-            .widthIn(max = screenWidth * 0.8f)
+            .widthIn(max = screenWidth * 0.8f, min = 100.dp)
     ) {
-
-        Text(
-            text = timeLabel,
-            style = AppTheme.appTypography.label3.copy(color = AppTheme.colorScheme.textDisabled),
-            modifier = Modifier
-                .padding(2.dp)
-                .align(align)
-        )
+        if (timeLabel.isNotEmpty())
+            Text(
+                text = timeLabel,
+                style = AppTheme.appTypography.label3.copy(color = AppTheme.colorScheme.textDisabled),
+                modifier = Modifier
+                    .padding(2.dp)
+                    .align(align)
+            )
 
         Text(
             text = message,
@@ -196,7 +216,6 @@ fun MessageBubble(
                 )
                 .padding(horizontal = 16.dp, vertical = 12.dp)
                 .align(align)
-
         )
 
         if (seenLabel.isNotEmpty())
@@ -204,7 +223,8 @@ fun MessageBubble(
                 text = seenLabel,
                 style = AppTheme.appTypography.label3.copy(color = AppTheme.colorScheme.textDisabled),
                 modifier = Modifier
-                    .padding(2.dp).widthIn(max = screenWidth * 0.3f)
+                    .padding(2.dp)
+                    .widthIn(max = screenWidth * 0.3f)
                     .align(align),
                 overflow = TextOverflow.Ellipsis
             )

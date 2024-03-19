@@ -73,12 +73,12 @@ class MessagesViewModel @Inject constructor(
                 }
                 .collectLatest { messages ->
                     val newMessages = state.value.messages + messages
-                    markMessagesAsSeen()
-                    _state.emit(
+                    _state.value =
                         state.value.copy(
-                            messages = newMessages.distinct().sortedByDescending { it.created_at }
+                            messages = newMessages.distinctBy { it.id }
+                                .sortedByDescending { it.created_at }
                         )
-                    )
+                    markMessagesAsSeen()
                 }
         }
     }
@@ -123,7 +123,7 @@ class MessagesViewModel @Inject constructor(
 
             _state.emit(
                 state.value.copy(
-                    messages = (state.value.messages + newMessages).distinct()
+                    messages = (state.value.messages + newMessages).distinctBy { it.id }
                         .sortedByDescending { it.created_at },
                     append = false,
                     loadingMessages = false,
@@ -240,7 +240,6 @@ class MessagesViewModel @Inject constructor(
             )
             selectExistingThread()
         }
-        Timber.e("XXX selectedMember: ${selectedMember.size}")
     }
 
     private fun selectExistingThread() {
