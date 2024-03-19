@@ -1,5 +1,6 @@
 package com.canopas.yourspace.ui.flow.messages.chat.components
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,7 +29,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.canopas.yourspace.R
@@ -39,14 +42,16 @@ import com.canopas.yourspace.ui.component.UserProfile
 import com.canopas.yourspace.ui.component.reachedBottom
 import com.canopas.yourspace.ui.flow.messages.chat.toFormattedTitle
 import com.canopas.yourspace.ui.theme.AppTheme
+import com.canopas.yourspace.utils.formattedMessageDateHeader
 
 import java.util.concurrent.TimeUnit
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ColumnScope.MessageList(
     loading: Boolean,
     append: Boolean,
-    messages: List<ApiThreadMessage>,
+    messagesByDate: Map<Long, List<ApiThreadMessage>>,
     members: List<UserInfo>,
     currentUserId: String,
     loadMore: () -> Unit
@@ -67,25 +72,38 @@ fun ColumnScope.MessageList(
         contentPadding = PaddingValues(16.dp),
         reverseLayout = true
     ) {
-        itemsIndexed(messages) { index, message ->
-            val by =
-                members.firstOrNull { it.user.id == message.sender_id }
+        messagesByDate.forEach { section->
+            val messages = section.value
+            itemsIndexed(messages) { index, message ->
+                val by =
+                    members.firstOrNull { it.user.id == message.sender_id }
 
-            val seenBy =
-                members.filter { message.seen_by.contains(it.user.id) && it.user.id != currentUserId }
+                val seenBy =
+                    members.filter { message.seen_by.contains(it.user.id) && it.user.id != currentUserId }
 
-            if (by != null) {
-                val myLatestMsg =
-                    messages.firstOrNull { it.sender_id == currentUserId }?.id == message.id
-                MessageContent(
-                    previousMessage = if (index < messages.size - 1) messages[index + 1] else null,
-                    nextMessage = if (index > 0) messages[index - 1] else null,
-                    message,
-                    by = by,
-                    seenBy = seenBy,
-                    isGroupChat = members.size > 2,
-                    isSender = currentUserId == message.sender_id,
-                    isLatestMsg = myLatestMsg
+                if (by != null) {
+                    val myLatestMsg =
+                        messages.firstOrNull { it.sender_id == currentUserId }?.id == message.id
+                    MessageContent(
+                        previousMessage = if (index < messages.size - 1) messages[index + 1] else null,
+                        nextMessage = if (index > 0) messages[index - 1] else null,
+                        message,
+                        by = by,
+                        seenBy = seenBy,
+                        isGroupChat = members.size > 2,
+                        isSender = currentUserId == message.sender_id,
+                        isLatestMsg = myLatestMsg
+                    )
+                }
+            }
+            item {
+                Text(
+                    text = section.key.formattedMessageDateHeader(LocalContext.current),
+                    style = AppTheme.appTypography.label1.copy(color = AppTheme.colorScheme.textDisabled),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(AppTheme.colorScheme.surface)
+                        .padding(8.dp), textAlign = TextAlign.Center
                 )
             }
         }

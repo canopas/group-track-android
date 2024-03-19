@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.util.Calendar
 import javax.inject.Inject
 
 private const val MESSAGE_PAGE_LIMIT = 20
@@ -53,6 +54,8 @@ class MessagesViewModel @Inject constructor(
 
     private var hasMoreData = true
     private var loadingData = false
+    private val allMessages: List<ApiThreadMessage>
+        get() = state.value.messagesByDate.values.flatten()
 
     init {
         if (threadId.isEmpty()) {
@@ -72,11 +75,10 @@ class MessagesViewModel @Inject constructor(
                     _state.emit(state.value.copy(error = e.message))
                 }
                 .collectLatest { messages ->
-                    val newMessages = state.value.messages + messages
+                    val newMessages = allMessages + messages
                     _state.value =
                         state.value.copy(
-                            messages = newMessages.distinctBy { it.id }
-                                .sortedByDescending { it.created_at }
+                            messagesByDate = newMessages.groupMessagesByDate()
                         )
                     markMessagesAsSeen()
                 }
@@ -86,7 +88,7 @@ class MessagesViewModel @Inject constructor(
 
     private fun markMessagesAsSeen() = viewModelScope.launch(appDispatcher.IO) {
         try {
-            val unreadMessages = state.value.messages.distinct()
+            val unreadMessages = allMessages.distinct()
                 .filter { !it.seen_by.contains(state.value.currentUserId) }
                 .map { it.id }
             if (unreadMessages.isNotEmpty()) {
@@ -106,13 +108,13 @@ class MessagesViewModel @Inject constructor(
         loadingData = true
         _state.emit(
             state.value.copy(
-                loadingMessages = state.value.messages.isEmpty(),
+                loadingMessages = state.value.messagesByDate.isEmpty(),
                 append = true
             )
         )
         try {
             val from =
-                if (state.value.messages.isEmpty()) System.currentTimeMillis() else state.value.messages.minBy { it.created_at }.created_at
+                if (state.value.messagesByDate.isEmpty()) System.currentTimeMillis() else allMessages.minBy { it.created_at }.created_at
             val newMessages = messagesRepository.getMessages(
                 threadId,
                 from = from,
@@ -123,8 +125,7 @@ class MessagesViewModel @Inject constructor(
 
             _state.emit(
                 state.value.copy(
-                    messages = (state.value.messages + newMessages).distinctBy { it.id }
-                        .sortedByDescending { it.created_at },
+                    messagesByDate = (allMessages + newMessages).groupMessagesByDate(),
                     append = false,
                     loadingMessages = false,
                     error = null
@@ -256,7 +257,7 @@ class MessagesViewModel @Inject constructor(
             val members = _state.value.currentSpace?.members ?: emptyList()
             _state.value = state.value.copy(
                 thread = thread,
-                messages = emptyList(),
+                messagesByDate = emptyMap(),
                 threadMembers = members.filter { member -> thread.member_ids.contains(member.user.id) }
             )
             threadId = thread.id
@@ -265,7 +266,7 @@ class MessagesViewModel @Inject constructor(
         } else {
             _state.value = state.value.copy(
                 thread = null,
-                messages = emptyList(),
+                messagesByDate = emptyMap(),
                 threadMembers = emptyList()
             )
             threadId = ""
@@ -303,6 +304,32 @@ class MessagesViewModel @Inject constructor(
             _state.emit(_state.value.copy(error = e.message))
         }
     }
+
+    fun List<ApiThreadMessage>.groupMessagesByDate(): Map<Long, List<ApiThreadMessage>> {
+        val messages = this.distinctBy { it.id }.sortedByDescending { it.created_at }
+        val groupedMessages = mutableMapOf<Long, MutableList<ApiThreadMessage>>()
+
+        for (message in messages) {
+            val messageDate = getDayStartTimestamp(message.created_at)
+
+            if (!groupedMessages.containsKey(messageDate)) {
+                groupedMessages[messageDate] = mutableListOf()
+            }
+            groupedMessages[messageDate]?.add(message)
+        }
+
+        return groupedMessages
+    }
+
+    private fun getDayStartTimestamp(timestamp: Long): Long {
+        val calendar = Calendar.getInstance()
+        calendar.timeInMillis = timestamp
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        return calendar.timeInMillis
+    }
 }
 
 data class MessagesScreenState(
@@ -311,7 +338,7 @@ data class MessagesScreenState(
     val append: Boolean = false,
     val currentSpace: SpaceInfo? = null,
     val currentUserId: String = "",
-    val messages: List<ApiThreadMessage> = emptyList(),
+    val messagesByDate: Map<Long, List<ApiThreadMessage>> = emptyMap(),
     val thread: ApiThread? = null,
     val threadMembers: List<UserInfo> = emptyList(),
     val selectedMember: List<UserInfo> = emptyList(),
