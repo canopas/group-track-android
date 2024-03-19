@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -33,6 +34,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,6 +51,8 @@ import com.canopas.yourspace.ui.component.AppProgressIndicator
 import com.canopas.yourspace.ui.flow.messages.chat.components.MemberList
 import com.canopas.yourspace.ui.flow.messages.chat.components.MessageList
 import com.canopas.yourspace.ui.theme.AppTheme
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -112,6 +116,8 @@ fun List<String>.toFormattedTitle(): String {
 fun MessagesContent(modifier: Modifier) {
     val viewModel = hiltViewModel<MessagesViewModel>()
     val state by viewModel.state.collectAsState()
+    val lazyState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
 
     if (state.loading) {
         Box(
@@ -125,6 +131,7 @@ fun MessagesContent(modifier: Modifier) {
     Box(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             MessageList(
+                lazyState,
                 state.loading,
                 state.append,
                 state.messagesByDate,
@@ -140,6 +147,10 @@ fun MessagesContent(modifier: Modifier) {
                 },
                 onSend = {
                     viewModel.sendNewMessage()
+                    scope.launch {
+                        delay(200)
+                        lazyState.animateScrollToItem(0)
+                    }
                 }
             )
         }

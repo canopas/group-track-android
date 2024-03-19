@@ -17,12 +17,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyItemScope
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -49,6 +52,7 @@ import java.util.concurrent.TimeUnit
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ColumnScope.MessageList(
+    lazyState:LazyListState,
     loading: Boolean,
     append: Boolean,
     messagesByDate: Map<Long, List<ApiThreadMessage>>,
@@ -56,7 +60,7 @@ fun ColumnScope.MessageList(
     currentUserId: String,
     loadMore: () -> Unit
 ) {
-    val lazyState = rememberLazyListState()
+
     val reachedBottom by remember {
         derivedStateOf { lazyState.reachedBottom() }
     }
@@ -72,9 +76,10 @@ fun ColumnScope.MessageList(
         contentPadding = PaddingValues(16.dp),
         reverseLayout = true
     ) {
-        messagesByDate.forEach { section->
+        messagesByDate.forEach { section ->
             val messages = section.value
-            itemsIndexed(messages) { index, message ->
+
+            itemsIndexed(messages, key = { index, item -> item.id }) { index, message ->
                 val by =
                     members.firstOrNull { it.user.id == message.sender_id }
 
@@ -119,8 +124,9 @@ fun ColumnScope.MessageList(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun MessageContent(
+fun LazyItemScope.MessageContent(
     previousMessage: ApiThreadMessage?,
     nextMessage: ApiThreadMessage?,
     message: ApiThreadMessage,
@@ -136,7 +142,7 @@ fun MessageContent(
     Row(
         Modifier
             .padding(top = if (showUserDetails) 8.dp else 6.dp)
-            .fillMaxWidth(),
+            .fillMaxWidth().animateItemPlacement(),
         horizontalArrangement = if (isSender) {
             Arrangement.End
         } else {
