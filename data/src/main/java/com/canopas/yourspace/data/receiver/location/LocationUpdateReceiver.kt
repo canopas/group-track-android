@@ -69,10 +69,10 @@ class LocationUpdateReceiver : BroadcastReceiver() {
     }
 
     private fun isDayChanged(timestamp1: Long, timestamp2: Long): Boolean {
-        val calendar1 = Calendar.getInstance().apply { timeInMillis = timestamp1 }
-        val calendar2 = Calendar.getInstance().apply { timeInMillis = timestamp2 }
+        val firstTimestampCalendar = Calendar.getInstance().apply { timeInMillis = timestamp1 }
+        val secondTimestampCalendar = Calendar.getInstance().apply { timeInMillis = timestamp2 }
 
-        return calendar1.get(Calendar.DAY_OF_YEAR) != calendar2.get(Calendar.DAY_OF_YEAR) ||
-            calendar1.get(Calendar.YEAR) != calendar2.get(Calendar.YEAR)
+        return firstTimestampCalendar.get(Calendar.DAY_OF_YEAR) != secondTimestampCalendar.get(Calendar.DAY_OF_YEAR) ||
+            firstTimestampCalendar.get(Calendar.YEAR) != secondTimestampCalendar.get(Calendar.YEAR)
     }
 }

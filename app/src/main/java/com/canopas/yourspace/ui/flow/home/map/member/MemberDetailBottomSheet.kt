@@ -287,7 +287,7 @@ private fun LocationHistoryItem(
                     )
                 }
             }
-            location.created_at?.let {
+            location.createdAt?.let {
                 Text(
                     text = getFormattedCreatedAt(it),
                     style = AppTheme.appTypography.label2.copy(color = AppTheme.colorScheme.textSecondary),

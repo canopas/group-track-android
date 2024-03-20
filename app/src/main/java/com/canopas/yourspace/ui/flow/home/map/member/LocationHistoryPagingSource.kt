@@ -41,17 +41,16 @@ class LocationHistoryPagingSource(private var query: Query) :
         }
 
     private fun List<ApiLocation>.createLocationJourney(): List<LocationJourney> {
-        val locationJourney = emptyList<LocationJourney>().toMutableList()
-        val stickyLocation = emptyList<LocationJourney>().toMutableList()
+        val locationJourney = mutableListOf<LocationJourney>()
 
         if (isEmpty()) {
             return emptyList()
         }
 
-        stickyLocation.add(
+        var stickyLocation =
             LocationJourney(
                 id = this[0].id,
-                user_id = this[0].user_id,
+                userId = this[0].user_id,
                 fromLatitude = this[0].latitude,
                 fromLongitude = this[0].longitude,
                 toLatitude = null,
@@ -63,9 +62,9 @@ class LocationHistoryPagingSource(private var query: Query) :
                     null
                 ),
                 isSticky = true,
-                created_at = this[0].created_at
+                createdAt = this[0].created_at
             )
-        )
+
         for (i in indices) {
             val nextLocation = this.getOrNull(i + 1)
             val currentLocation = this[i]
@@ -74,7 +73,10 @@ class LocationHistoryPagingSource(private var query: Query) :
                 if (checkElapsedTimeIsMoreThanFiveMinutes(
                         currentLocation.created_at ?: currentTime,
                         nextLocation.created_at ?: currentTime
-                    )
+                    ) || isLoadedFirstTime.value || distanceBetweenLocations(
+                            currentLocation,
+                            nextLocation
+                        ) > 5000
                 ) {
                     val distance = distanceBetweenLocations(
                         currentLocation,
@@ -82,49 +84,47 @@ class LocationHistoryPagingSource(private var query: Query) :
                     )
                     val duration = durationBetweenLocationWithFormattedTime(
                         currentLocation.created_at,
-                        nextLocation.created_at
+                        stickyLocation.createdAt
                     )
                     if (isLoadedFirstTime.value) {
-                        locationJourney.add(stickyLocation.last())
+                        locationJourney.add(stickyLocation)
                         isLoadedFirstTime.value = false
+                    } else {
+                        locationJourney.add(
+                            LocationJourney(
+                                id = currentLocation.id,
+                                userId = currentLocation.user_id,
+                                fromLatitude = currentLocation.latitude,
+                                fromLongitude = currentLocation.longitude,
+                                toLatitude = nextLocation.latitude,
+                                toLongitude = nextLocation.longitude,
+                                routeDistance = distance,
+                                routeDuration = duration,
+                                currentLocationDuration = null,
+                                isSticky = false,
+                                createdAt = currentLocation.created_at
+                            )
+                        )
+                        locationJourney.add(
+                            LocationJourney(
+                                id = nextLocation.id,
+                                userId = nextLocation.user_id,
+                                fromLatitude = nextLocation.latitude,
+                                fromLongitude = nextLocation.longitude,
+                                toLatitude = null,
+                                toLongitude = null,
+                                routeDistance = null,
+                                routeDuration = null,
+                                currentLocationDuration = durationBetweenLocationWithFormattedTime(
+                                    currentLocation.created_at,
+                                    nextLocation.created_at
+                                ),
+                                isSticky = true,
+                                createdAt = nextLocation.created_at
+                            )
+                        )
                     }
-                    locationJourney.add(
-                        LocationJourney(
-                            id = currentLocation.id,
-                            user_id = currentLocation.user_id,
-                            fromLatitude = currentLocation.latitude,
-                            fromLongitude = currentLocation.longitude,
-                            toLatitude = nextLocation.latitude,
-                            toLongitude = nextLocation.longitude,
-                            routeDistance = distance,
-                            routeDuration = duration,
-                            currentLocationDuration = durationBetweenLocationWithFormattedTime(
-                                currentLocation.created_at,
-                                nextLocation.created_at
-                            ),
-                            isSticky = false,
-                            created_at = stickyLocation.last().created_at
-                        )
-                    )
-                    locationJourney.add(
-                        LocationJourney(
-                            id = currentLocation.id,
-                            user_id = currentLocation.user_id,
-                            fromLatitude = currentLocation.latitude,
-                            fromLongitude = currentLocation.longitude,
-                            toLatitude = null,
-                            toLongitude = null,
-                            routeDistance = null,
-                            routeDuration = null,
-                            currentLocationDuration = durationBetweenLocationWithFormattedTime(
-                                currentLocation.created_at,
-                                stickyLocation.last().created_at
-                            ),
-                            isSticky = true,
-                            created_at = currentLocation.created_at
-                        )
-                    )
-                    stickyLocation.add(locationJourney.last())
+                    stickyLocation = locationJourney.last()
                 }
             }
         }
