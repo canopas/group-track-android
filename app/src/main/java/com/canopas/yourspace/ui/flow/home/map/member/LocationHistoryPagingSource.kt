@@ -77,7 +77,8 @@ class LocationHistoryPagingSource(private var query: Query) :
                     )
                 ) {
                     val distance = distanceBetweenLocations(
-                        currentLocation, nextLocation
+                        currentLocation,
+                        nextLocation
                     )
                     val duration = durationBetweenLocationWithFormattedTime(
                         currentLocation.created_at,

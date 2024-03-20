@@ -63,7 +63,8 @@ class LocationUpdateReceiver : BroadcastReceiver() {
             distance
         )
         return distance[0] > MINIMUM_DISTANCE_TO_UPDATE_LOCATION || isDayChanged(
-            lastLocation.created_at ?: 0L, extractedLocation.time
+            lastLocation.created_at ?: 0L,
+            extractedLocation.time
         )
     }
 
@@ -72,6 +73,6 @@ class LocationUpdateReceiver : BroadcastReceiver() {
         val calendar2 = Calendar.getInstance().apply { timeInMillis = timestamp2 }
 
         return calendar1.get(Calendar.DAY_OF_YEAR) != calendar2.get(Calendar.DAY_OF_YEAR) ||
-                calendar1.get(Calendar.YEAR) != calendar2.get(Calendar.YEAR)
+            calendar1.get(Calendar.YEAR) != calendar2.get(Calendar.YEAR)
     }
 }

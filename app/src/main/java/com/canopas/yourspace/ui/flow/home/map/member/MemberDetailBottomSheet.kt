@@ -222,11 +222,15 @@ private fun LocationHistoryItem(
                 modifier = Modifier
                     .size(32.dp)
                     .background(
-                        color = if (location.isSticky) AppTheme.colorScheme.primary.copy(
-                            alpha = 0.5f
-                        ) else AppTheme.colorScheme.alertColor.copy(
-                            alpha = 0.5f
-                        ),
+                        color = if (location.isSticky) {
+                            AppTheme.colorScheme.primary.copy(
+                                alpha = 0.5f
+                            )
+                        } else {
+                            AppTheme.colorScheme.alertColor.copy(
+                                alpha = 0.5f
+                            )
+                        },
                         shape = CircleShape
                     ),
                 contentAlignment = Alignment.Center
@@ -276,7 +280,7 @@ private fun LocationHistoryItem(
                     )
                 } else {
                     Text(
-                        text = "${fromAddress}--->${toAddress}",
+                        text = "$fromAddress--->$toAddress",
                         style = AppTheme.appTypography.subTitle2.copy(color = AppTheme.colorScheme.textPrimary),
                         modifier = Modifier
                             .padding(16.dp)
@@ -351,7 +355,8 @@ fun Shimmer() {
                 durationMillis = 1000, // duration for the animation
                 easing = FastOutLinearInEasing
             )
-        ), label = ""
+        ),
+        label = ""
     )
     val brush = Brush.linearGradient(
         colors = gradient,
