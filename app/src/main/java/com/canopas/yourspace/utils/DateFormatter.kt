@@ -38,7 +38,7 @@ fun Long.formattedMessageTimeString(context: Context): String {
         elapsedTime < TimeUnit.DAYS.toMillis(1) ->
             SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date(this))
 
-        else -> SimpleDateFormat("h:mm a • d MMM", Locale.getDefault()).format(Date(this))
+        else -> SimpleDateFormat("d MMM", Locale.getDefault()).format(Date(this))
     }
 }
 

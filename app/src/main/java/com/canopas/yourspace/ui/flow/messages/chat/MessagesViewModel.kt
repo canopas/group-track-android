@@ -78,7 +78,10 @@ class MessagesViewModel @Inject constructor(
                     val newMessages = allMessages + messages
                     _state.value =
                         state.value.copy(
-                            messagesByDate = newMessages.groupMessagesByDate()
+                            messagesByDate = newMessages.filterMessagesSinceArchive(
+                                authService.currentUser!!.id,
+                                state.value.thread
+                            ).groupMessagesByDate()
                         )
                     markMessagesAsSeen()
                 }
@@ -125,7 +128,11 @@ class MessagesViewModel @Inject constructor(
 
             _state.emit(
                 state.value.copy(
-                    messagesByDate = (allMessages + newMessages).groupMessagesByDate(),
+                    messagesByDate = (allMessages + newMessages)
+                        .filterMessagesSinceArchive(
+                            authService.currentUser!!.id,
+                            state.value.thread
+                        ).groupMessagesByDate(),
                     append = false,
                     loadingMessages = false,
                     error = null
@@ -305,7 +312,7 @@ class MessagesViewModel @Inject constructor(
         }
     }
 
-    fun List<ApiThreadMessage>.groupMessagesByDate(): Map<Long, List<ApiThreadMessage>> {
+    private fun List<ApiThreadMessage>.groupMessagesByDate(): Map<Long, List<ApiThreadMessage>> {
         val messages = this.distinctBy { it.id }.sortedByDescending { it.created_at }
         val groupedMessages = mutableMapOf<Long, MutableList<ApiThreadMessage>>()
 
@@ -319,6 +326,16 @@ class MessagesViewModel @Inject constructor(
         }
 
         return groupedMessages
+    }
+
+    private fun List<ApiThreadMessage>.filterMessagesSinceArchive(
+        userId: String,
+        thread: ApiThread?
+    ): List<ApiThreadMessage> {
+        val archiveTimestamp = thread?.archived_for?.get(userId) ?: return this
+        return this.filter { message ->
+            message.created_at >= archiveTimestamp
+        }
     }
 
     private fun getDayStartTimestamp(timestamp: Long): Long {

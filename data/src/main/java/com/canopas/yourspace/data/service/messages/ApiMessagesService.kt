@@ -91,7 +91,11 @@ class ApiMessagesService @Inject constructor(
     suspend fun markMessagesAsSeen(threadId: String, messageIds: List<String>, userId: String) {
         db.runBatch { batch ->
             messageIds.forEach { id ->
-                batch.update(threadMessagesRef(threadId).document(id), "seen_by", FieldValue.arrayUnion(userId))
+                batch.update(
+                    threadMessagesRef(threadId).document(id),
+                    "seen_by",
+                    FieldValue.arrayUnion(userId)
+                )
             }
         }.await()
     }
@@ -111,6 +115,23 @@ class ApiMessagesService @Inject constructor(
                     }
             }
             combine(flows) { it.toList() }
+        }
+    }
+
+    suspend fun deleteThread(thread: ApiThread, userId: String) {
+        if (thread.admin_id == userId) {
+            threadRef.document(thread.id).delete().await()
+        } else if (thread.isGroup) {
+            threadRef.document(thread.id)
+                .update("member_ids", FieldValue.arrayRemove(userId))
+                .await()
+        } else {
+            val archivedMap =
+                thread.archived_for.toMutableMap()
+                    .apply { this[userId] = System.currentTimeMillis() }
+            threadRef.document(thread.id)
+                .update("archived_for", archivedMap)
+                .await()
         }
     }
 }

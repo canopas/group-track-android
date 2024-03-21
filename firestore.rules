@@ -145,10 +145,11 @@ service cloud.firestore {
 
        match /space_threads/{docId} {
             allow read: if isAuthorized() && (isSpaceAdmin(resource.data.space_id) || isSpaceMember(resource.data.space_id));
-            allow delete: if isAuthorized() && isSpaceAdmin(resource.data.space_id);
-            allow update: if isAuthorized() && (isSpaceMember(request.resource.data.space_id)) &&
-                           request.resource.data.diff(resource.data).affectedKeys().hasOnly(["member_ids"]) &&
-                           request.resource.data.member_ids is list;
+            allow delete: if isAuthorized() && isThreadAdmin(docId);
+            allow update: if isAuthorized() && isThreadMember(docId) &&
+                           request.resource.data.diff(resource.data).affectedKeys().hasAny(["member_ids","archived_for"]) &&
+                           request.resource.data.get('member_ids', []) is list &&
+                           request.resource.data.get('archived_for', {}) is map;
             allow create: if isAuthorized() && (isSpaceMember(request.resource.data.space_id)) &&
                            request.resource.data.keys().hasAll(["id", "space_id", "admin_id", "member_ids", "created_at"]) &&
                            request.resource.data.id is string &&
@@ -161,6 +162,11 @@ service cloud.firestore {
        function isThreadMember(threadId) {
            let memberIds = get(/databases/$(database)/documents/space_threads/$(threadId)).data.member_ids;
            return memberIds.hasAny([request.auth.uid]);
+       }
+
+       function isThreadAdmin(threadId) {
+           let adminId = get(/databases/$(database)/documents/space_threads/$(threadId)).data.admin_id;
+           return adminId == request.auth.uid;
        }
 
        match /{path=**}/thread_messages/{docId} {

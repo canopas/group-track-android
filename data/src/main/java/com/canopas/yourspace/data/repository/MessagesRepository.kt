@@ -37,11 +37,6 @@ class MessagesRepository @Inject constructor(
         return apiMessagesService.getThreads(spaceId, userId)
     }
 
-    suspend fun getThreadsWithMessages(spaceId: String): Flow<List<ThreadInfo>> {
-        val userId = authService.currentUser?.id ?: return emptyFlow()
-        return apiMessagesService.getThreadsWithLatestMessage(spaceId, userId)
-    }
-
     suspend fun getThread(threadId: String) =
         apiMessagesService.getThread(threadId).map {
             val thread = it ?: return@map null

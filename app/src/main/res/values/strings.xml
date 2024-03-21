@@ -157,6 +157,9 @@
     <string name="messages_time_format_minutes">%s min</string>
     <string name="messages_label_seen">Seen</string>
     <string name="messages_label_seen_by">"Seen by %s"</string>
+    <string name="threads_screen_delete_dialogue_title_text">Delete Thread?</string>
+    <string name="threads_screen_delete_dialogue_message_text">Are you sure you want to delete this thread? This action cannot be undone.</string>
+    <string name="threads_screen_delete_dialogue_delete_btn">Delete</string>
 
     <string-array name="home_create_space_name_suggestion">
         <item>Family</item>

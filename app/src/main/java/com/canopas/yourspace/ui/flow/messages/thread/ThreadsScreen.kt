@@ -1,9 +1,18 @@
 package com.canopas.yourspace.ui.flow.messages.thread
 
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.AnchoredDraggableState
+import androidx.compose.foundation.gestures.DraggableAnchors
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.anchoredDraggable
+import androidx.compose.foundation.gestures.animateTo
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -11,17 +20,20 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -34,13 +46,21 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -48,14 +68,18 @@ import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.messages.ThreadInfo
 import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.models.user.UserInfo
+import com.canopas.yourspace.ui.component.AppAlertDialog
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.AppProgressIndicator
 import com.canopas.yourspace.ui.component.PrimaryButton
 import com.canopas.yourspace.ui.component.UserProfile
 import com.canopas.yourspace.ui.component.motionClickEvent
 import com.canopas.yourspace.ui.flow.messages.chat.toFormattedTitle
+import com.canopas.yourspace.ui.flow.settings.SettingsViewModel
 import com.canopas.yourspace.ui.theme.AppTheme
 import com.canopas.yourspace.utils.formattedMessageTimeString
+import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -126,8 +150,10 @@ private fun ThreadsContent(modifier: Modifier) {
             ThreadList(
                 state.threadInfo,
                 state.currentSpace?.members ?: emptyList(),
-                state.currentUser
-            ) { viewModel.showMessages(it) }
+                deletingThread = state.deletingThread,
+                state.currentUser,
+                onClick = { viewModel.showMessages(it) },
+                deleteThread = { viewModel.deleteThread(it) })
         } else {
             NoMemberEmptyContent(state.loadingInviteCode) {
                 viewModel.addMember()
@@ -140,8 +166,10 @@ private fun ThreadsContent(modifier: Modifier) {
 fun ThreadList(
     threadInfos: List<ThreadInfo>,
     members: List<UserInfo>,
+    deletingThread: ThreadInfo?,
     currentUser: ApiUser?,
-    onClick: (thread: ThreadInfo) -> Unit
+    onClick: (thread: ThreadInfo) -> Unit,
+    deleteThread: (thread: ThreadInfo) -> Unit
 ) {
     if (threadInfos.isEmpty()) {
         Box(
@@ -169,7 +197,16 @@ fun ThreadList(
                     threadInfo.thread.member_ids.contains(member.user.id) && member.user.id != currentUser?.id
                 }.map { it.user }
 
-                ThreadItem(threadInfo, threadMembers, currentUser) { onClick(threadInfo) }
+                SwipeToDelete(deleting = deletingThread == threadInfo,
+                    content = {
+                        ThreadItem(threadInfo, threadMembers, currentUser) {
+                            onClick(
+                                threadInfo
+                            )
+                        }
+                    }, onDelete = {
+                        deleteThread(threadInfo)
+                    })
                 if (index != threadInfos.size - 1) {
                     Divider(
                         modifier = Modifier
@@ -183,8 +220,105 @@ fun ThreadList(
     }
 }
 
+enum class DragAnchors {
+    Center,
+    End,
+}
+
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun ThreadItem(
+private fun SwipeToDelete(
+    deleting: Boolean = false,
+    content: @Composable BoxScope.() -> Unit,
+    onDelete: () -> Unit = {}
+) {
+    val scope = rememberCoroutineScope()
+    val density = LocalDensity.current
+    val defaultActionSize = 80.dp
+    val endActionSizePx = with(density) { defaultActionSize.toPx() }
+    var showDeleteConfirmation by remember {
+        mutableStateOf(false)
+    }
+
+    val state = remember {
+        AnchoredDraggableState(
+            initialValue = DragAnchors.Center,
+            anchors = DraggableAnchors {
+                DragAnchors.Center at 0f
+                DragAnchors.End at endActionSizePx
+            },
+            positionalThreshold = { distance: Float -> distance * 0.5f },
+            velocityThreshold = { with(density) { 100.dp.toPx() } },
+            animationSpec = tween(),
+        )
+    }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color = AppTheme.colorScheme.alertColor)
+            .clip(RectangleShape)
+    ) {
+
+        IconButton(
+            onClick = { showDeleteConfirmation = true }, modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .padding(end = 16.dp),
+            enabled = !deleting
+        ) {
+            if (deleting) AppProgressIndicator()
+            else
+                Icon(
+                    imageVector = Icons.Default.Delete, contentDescription = null,
+                    tint = AppTheme.colorScheme.onPrimary
+                )
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.CenterStart)
+                .offset {
+                    IntOffset(
+                        x = -state
+                            .requireOffset()
+                            .roundToInt(),
+                        y = 0,
+                    )
+                }
+                .anchoredDraggable(state, Orientation.Horizontal, reverseDirection = true),
+            content = content
+        )
+    }
+
+    if (showDeleteConfirmation) {
+        ShowDeleteThreadDialog(onDelete = {
+            onDelete()
+            showDeleteConfirmation = false
+        }) {
+            scope.launch { state.animateTo(DragAnchors.Center) }
+            showDeleteConfirmation = false
+        }
+    }
+
+
+}
+
+@Composable
+fun ShowDeleteThreadDialog(onDelete: () -> Unit, onDismiss: () -> Unit) {
+    AppAlertDialog(
+        title = stringResource(R.string.threads_screen_delete_dialogue_title_text),
+        subTitle = stringResource(R.string.threads_screen_delete_dialogue_message_text),
+        confirmBtnText = stringResource(R.string.threads_screen_delete_dialogue_delete_btn),
+        dismissBtnText = stringResource(R.string.common_btn_cancel),
+        onConfirmClick = onDelete,
+        onDismissClick = onDismiss,
+        isConfirmDestructive = true
+    )
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun LazyItemScope.ThreadItem(
     threadInfo: ThreadInfo,
     members: List<ApiUser>,
     currentUser: ApiUser?,
@@ -195,6 +329,7 @@ private fun ThreadItem(
         modifier = Modifier
             .fillMaxSize()
             .background(AppTheme.colorScheme.surface)
+            .animateItemPlacement()
             .motionClickEvent { onClick() }
             .padding(horizontal = 10.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -216,7 +351,10 @@ private fun ThreadItem(
             )
         }
         Spacer(modifier = Modifier.width(16.dp))
-        Row(horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically){
+        Row(
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             val hasUnreadMsg = message?.seen_by?.contains(currentUser?.id) == false
             Text(
                 text = message?.created_at?.formattedMessageTimeString(
@@ -227,7 +365,10 @@ private fun ThreadItem(
             )
 
             if (hasUnreadMsg) {
-                Box(modifier = Modifier.padding(start = 4.dp).size(8.dp)
+                Box(
+                    modifier = Modifier
+                        .padding(start = 4.dp)
+                        .size(8.dp)
                         .background(AppTheme.colorScheme.primary, shape = CircleShape),
                 )
 

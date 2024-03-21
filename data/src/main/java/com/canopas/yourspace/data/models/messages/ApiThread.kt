@@ -13,8 +13,14 @@ data class ApiThread(
     val admin_id: String = "",
     val space_id: String = "",
     val member_ids: List<String> = emptyList(),
+    val archived_for: Map<String, Long> = emptyMap<String, Long>(),
     val created_at: Long = System.currentTimeMillis()
-)
+){
+    @get:Exclude
+    val isGroup: Boolean
+        get() = member_ids.size > 2
+
+}
 
 @Keep
 data class ApiThreadMessage(

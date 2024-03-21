@@ -2,6 +2,7 @@ package com.canopas.yourspace.ui.flow.messages.thread
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.canopas.yourspace.data.models.messages.ApiThread
 import com.canopas.yourspace.data.models.messages.ThreadInfo
 import com.canopas.yourspace.data.models.space.SpaceInfo
 import com.canopas.yourspace.data.models.user.ApiUser
@@ -67,7 +68,8 @@ class ThreadsViewModel @Inject constructor(
             _state.emit(_state.value.copy(error = e.message, loadingThreads = false))
         }.collectLatest { threads ->
             val sortedList =
-                threads.sortedByDescending { it.messages.firstOrNull()?.created_at ?: 0 }
+                threads.filterArchivedThreadsForUser(authService.currentUser!!.id)
+                    .sortedByDescending { it.messages.firstOrNull()?.created_at ?: 0 }
             _state.emit(_state.value.copy(threadInfo = sortedList, loadingThreads = false))
         }
     }
@@ -105,6 +107,29 @@ class ThreadsViewModel @Inject constructor(
     fun showMessages(threadInfo: ThreadInfo) {
         navigator.navigateTo(AppDestinations.ThreadMessages.messages(threadInfo.thread.id).path)
     }
+
+    fun deleteThread(threadInfo: ThreadInfo) = viewModelScope.launch(appDispatcher.IO) {
+        try {
+            _state.emit(_state.value.copy(deletingThread = threadInfo))
+            messagesService.deleteThread(threadInfo.thread, authService.currentUser!!.id)
+            _state.emit(_state.value.copy(deletingThread = null))
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to delete thread")
+            _state.emit(_state.value.copy(error = e.message, deletingThread = null))
+        }
+    }
+
+    private fun List<ThreadInfo>.filterArchivedThreadsForUser(userId: String): List<ThreadInfo> {
+        return this.filter { info ->
+            val archiveTimestamp = info.thread.archived_for[userId]
+            if (archiveTimestamp != null) {
+                val latestMessageTimestamp = info.messages.firstOrNull()?.created_at ?: 0
+                archiveTimestamp < latestMessageTimestamp
+            } else {
+                true
+            }
+        }
+    }
 }
 
 data class ThreadsScreenState(
@@ -116,5 +141,6 @@ data class ThreadsScreenState(
     val inviteCode: String? = null,
     val hasMembers: Boolean = false,
     val threadInfo: List<ThreadInfo> = emptyList(),
+    val deletingThread: ThreadInfo? = null,
     val error: String? = null
 )
