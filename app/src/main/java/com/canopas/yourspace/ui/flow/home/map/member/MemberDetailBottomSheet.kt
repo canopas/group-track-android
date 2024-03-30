@@ -18,8 +18,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.Divider
@@ -51,6 +52,7 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.location.ApiLocation
+import com.canopas.yourspace.data.models.location.UserState
 import com.canopas.yourspace.data.models.user.UserInfo
 import com.canopas.yourspace.ui.component.AppProgressIndicator
 import com.canopas.yourspace.ui.component.UserProfile
@@ -207,7 +209,11 @@ private fun LocationHistoryItem(location: ApiLocation, index: Int, isLastItem: B
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    if (address.isEmpty()) Icons.Outlined.Refresh else Icons.Default.LocationOn,
+                    when (location.user_state) {
+                        UserState.REST_POINT.value -> Icons.Default.LocationOn
+                        UserState.STEADY.value -> Icons.Default.Build
+                        else -> Icons.Default.KeyboardArrowRight
+                    },
                     contentDescription = "",
                     tint = AppTheme.colorScheme.surface,
                     modifier = Modifier
@@ -250,12 +256,22 @@ private fun LocationHistoryItem(location: ApiLocation, index: Int, isLastItem: B
                     modifier = Modifier.size(12.dp)
                 )
                 Text(
-                    text = lastUpdated,
+                    text = getFormattedCreatedAt(location.created_at ?: 0L),
                     style = AppTheme.appTypography.label2.copy(color = AppTheme.colorScheme.textSecondary)
                 )
             }
+            Text(
+                text = "Lat: ${location.latitude}, Lng: ${location.longitude}",
+                style = AppTheme.appTypography.label2.copy(color = AppTheme.colorScheme.textSecondary)
+            )
         }
     }
+}
+
+fun getFormattedCreatedAt(createdAt: Long): String {
+    val createdAtTime = Date(createdAt)
+    val createdAtFormat = SimpleDateFormat("d MMM HH:mm", Locale.getDefault())
+    return createdAtFormat.format(createdAtTime)
 }
 
 @Composable
