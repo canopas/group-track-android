@@ -4,7 +4,6 @@ import androidx.annotation.Keep
 import java.util.UUID
 
 enum class UserState(val value: Int) {
-    REST_POINT(0),
     STEADY(1),
     MOVING(2)
 }

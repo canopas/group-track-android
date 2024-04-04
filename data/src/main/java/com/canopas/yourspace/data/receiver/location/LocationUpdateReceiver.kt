@@ -5,16 +5,20 @@ import android.content.Context
 import android.content.Intent
 import android.location.Location
 import com.canopas.yourspace.data.models.location.ApiLocation
+import com.canopas.yourspace.data.models.location.LocationJourney
 import com.canopas.yourspace.data.models.location.UserState
 import com.canopas.yourspace.data.models.location.toLocation
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.location.ApiLocationService
+import com.canopas.yourspace.data.service.location.LocationJourneyService
 import com.canopas.yourspace.data.service.location.LocationManager
+import com.canopas.yourspace.data.utils.Config.RADIUS_TO_CHECK_USER_STATE
 import com.google.android.gms.location.LocationResult
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -30,6 +34,9 @@ class LocationUpdateReceiver : BroadcastReceiver() {
     lateinit var locationService: ApiLocationService
 
     @Inject
+    lateinit var locationJourneyService: LocationJourneyService
+
+    @Inject
     lateinit var locationManager: LocationManager
 
     @Inject
@@ -41,39 +48,19 @@ class LocationUpdateReceiver : BroadcastReceiver() {
             scope.launch {
                 try {
                     locationResult.locations.map { extractedLocation ->
+                        async {
+                            val lastLocation = getLastLocation()
+                            val userState = getUserState(extractedLocation, lastLocation)
 
-                        val lastFiveMinuteLocations = getLastFiveMinuteLocations()
-                        val lastLocation = lastLocation()
-
-                        var userState =
-                            if (lastFiveMinuteLocations.isNotEmpty() && lastFiveMinuteLocations.isMoving(
-                                    extractedLocation
-                                )
-                            ) {
-                                UserState.MOVING.value
-                            } else if (lastFiveMinuteLocations.isEmpty()) {
-                                UserState.STEADY.value
-                            } else {
-                                lastLocation?.let {
-                                    if (it.user_state == UserState.MOVING.value) {
-                                        UserState.REST_POINT.value
-                                    } else {
-                                        UserState.STEADY.value
-                                    }
-                                }
-                            }
-                        lastLocation?.let {
-                            if (it.user_state == null) {
-                                userState = UserState.REST_POINT.value
-                            }
+                            locationService.saveCurrentLocation(
+                                authService.currentUser?.id ?: "",
+                                extractedLocation.latitude,
+                                extractedLocation.longitude,
+                                Date().time,
+                                userState
+                            )
+                            saveLocationJourney(userState, extractedLocation, lastLocation)
                         }
-                        locationService.saveCurrentLocation(
-                            authService.currentUser?.id ?: "",
-                            extractedLocation.latitude,
-                            extractedLocation.longitude,
-                            Date().time,
-                            userState
-                        )
                     }
                 } catch (e: Exception) {
                     Timber.e(e, "Error while saving location")
@@ -82,8 +69,140 @@ class LocationUpdateReceiver : BroadcastReceiver() {
         }
     }
 
-    private suspend fun lastLocation(): ApiLocation? {
+    private suspend fun getUserState(extractedLocation: Location, lastLocation: ApiLocation?): Int? {
+        return scope.async {
+            try {
+                val lastFiveMinuteLocations = getLastFiveMinuteLocations()
+                return@async if (lastFiveMinuteLocations.isNotEmpty() && lastFiveMinuteLocations.isMoving(extractedLocation)) {
+                    UserState.MOVING.value
+                } else if (lastFiveMinuteLocations.isEmpty()) {
+                    null
+                } else {
+                    if (lastLocation?.user_state != UserState.STEADY.value) {
+                        UserState.STEADY.value
+                    } else {
+                        null
+                    }
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Error while fetching user state")
+                null
+            }
+        }.await()
+    }
+
+    private fun saveLocationJourney(
+        userState: Int?,
+        extractedLocation: Location,
+        lastLocation: ApiLocation?
+    ) {
+        try {
+            scope.launch {
+                val lastSteadyLocation = getLastSteadyLocation()
+                val lastMovingLocation = getLastMovingLocation()
+
+                if (userState != null) {
+                    when (userState) {
+                        UserState.STEADY.value -> {
+                            locationJourneyService.saveCurrentJourney(
+                                userId = authService.currentUser?.id ?: "",
+                                fromLatitude = extractedLocation.latitude,
+                                fromLongitude = extractedLocation.longitude,
+                                currentLocationDuration = extractedLocation.time - (
+                                    lastLocation?.created_at
+                                        ?: 0L
+                                    ),
+                                recordedAt = Date().time
+                            )
+                        }
+
+                        UserState.MOVING.value -> {
+                            var newJourney = LocationJourney(
+                                user_id = authService.currentUser?.id ?: "",
+                                from_latitude = lastSteadyLocation?.from_latitude
+                                    ?: extractedLocation.latitude,
+                                from_longitude = lastSteadyLocation?.from_longitude
+                                    ?: extractedLocation.longitude,
+                                to_latitude = extractedLocation.latitude,
+                                to_longitude = extractedLocation.longitude,
+                                route_distance = lastSteadyLocation?.toLocation()
+                                    ?.let { location ->
+                                        distanceBetween(
+                                            extractedLocation,
+                                            location
+                                        ).toDouble()
+                                    },
+                                route_duration = extractedLocation.time - (
+                                    lastSteadyLocation?.created_at
+                                        ?: 0L
+                                    ),
+                                current_location_duration = extractedLocation.time - (
+                                    lastSteadyLocation?.created_at
+                                        ?: 0L
+                                    ),
+                                created_at = Date().time
+                            )
+
+                            lastMovingLocation?.let {
+                                newJourney = newJourney.copy(id = it.id)
+                                updateLastMovingLocation(newJourney)
+                            } ?: run {
+                                locationJourneyService.saveCurrentJourney(
+                                    userId = newJourney.user_id,
+                                    fromLatitude = newJourney.from_latitude,
+                                    fromLongitude = newJourney.from_longitude,
+                                    toLatitude = newJourney.to_latitude,
+                                    toLongitude = newJourney.to_longitude,
+                                    routeDistance = newJourney.route_distance,
+                                    routeDuration = newJourney.route_duration,
+                                    currentLocationDuration = newJourney.current_location_duration,
+                                    recordedAt = newJourney.created_at ?: 0L
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    lastMovingLocation?.let {
+                        val timeDifference = extractedLocation.time - lastMovingLocation.created_at!!
+
+                        // If user is at the same location for more than 5 minutes, save the location as steady
+                        if (timeDifference > 5 * 60 * 1000) {
+                            locationJourneyService.saveCurrentJourney(
+                                userId = authService.currentUser?.id ?: "",
+                                fromLatitude = extractedLocation.latitude,
+                                fromLongitude = extractedLocation.longitude,
+                                currentLocationDuration = extractedLocation.time - (
+                                    lastLocation?.created_at
+                                        ?: 0L
+                                    ),
+                                recordedAt = Date().time
+                            )
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Error while saving location journey")
+        }
+    }
+
+    private suspend fun getLastLocation(): ApiLocation? {
         return locationService.getLastLocation(authService.currentUser?.id ?: "")
+    }
+
+    private suspend fun getLastSteadyLocation(): LocationJourney? {
+        return locationJourneyService.getLastSteadyLocation(authService.currentUser?.id ?: "")
+    }
+
+    private suspend fun getLastMovingLocation(): LocationJourney? {
+        return locationJourneyService.getLastMovingLocation(authService.currentUser?.id ?: "")
+    }
+
+    private fun updateLastMovingLocation(newJourney: LocationJourney) {
+        locationJourneyService.updateLastMovingLocation(
+            authService.currentUser?.id ?: "",
+            newJourney
+        )
     }
 
     private suspend fun getLastFiveMinuteLocations(): List<ApiLocation> {
@@ -99,7 +218,7 @@ class LocationUpdateReceiver : BroadcastReceiver() {
     private fun List<ApiLocation>.isMoving(currentLocation: Location): Boolean {
         return any {
             val distance = currentLocation.distanceTo(it.toLocation()).toDouble()
-            distance > 100
+            distance > RADIUS_TO_CHECK_USER_STATE
         }
     }
 

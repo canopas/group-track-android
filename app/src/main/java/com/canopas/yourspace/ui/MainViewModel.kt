@@ -1,6 +1,5 @@
 package com.canopas.yourspace.ui
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.canopas.yourspace.data.models.user.ApiUserSession
@@ -57,7 +56,6 @@ class MainViewModel @Inject constructor(
     private suspend fun listenUserSession(userSession: ApiUserSession?) {
         listenSessionJob = viewModelScope.launch(appDispatcher.IO) {
             userSession?.let {
-                Log.e("XXX", "User Session: ${it.user_id}")
                 apiUserService.getUserSessionFlow(it.user_id, it.id).collectLatest { session ->
                     if (session != null && !session.session_active) {
                         _sessionExpiredState.emit(true)

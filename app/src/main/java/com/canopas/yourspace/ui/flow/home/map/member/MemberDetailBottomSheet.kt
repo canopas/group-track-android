@@ -18,8 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -51,8 +50,8 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.canopas.yourspace.R
-import com.canopas.yourspace.data.models.location.ApiLocation
-import com.canopas.yourspace.data.models.location.UserState
+import com.canopas.yourspace.data.models.location.LocationJourney
+import com.canopas.yourspace.data.models.location.isSteadyLocation
 import com.canopas.yourspace.data.models.user.UserInfo
 import com.canopas.yourspace.ui.component.AppProgressIndicator
 import com.canopas.yourspace.ui.component.UserProfile
@@ -107,7 +106,7 @@ fun MemberDetailBottomSheetContent(
 
 @Composable
 fun LocationHistory(
-    locations: LazyPagingItems<ApiLocation>
+    locations: LazyPagingItems<LocationJourney>
 ) {
     Box {
         when {
@@ -176,14 +175,17 @@ private fun EmptyHistory() {
 }
 
 @Composable
-private fun LocationHistoryItem(location: ApiLocation, index: Int, isLastItem: Boolean) {
+private fun LocationHistoryItem(location: LocationJourney, index: Int, isLastItem: Boolean) {
     val context = LocalContext.current
     var address by remember { mutableStateOf("") }
+    var toAddress by remember { mutableStateOf("") }
     LaunchedEffect(location) {
         withContext(Dispatchers.IO) {
             val latLng =
-                LatLng(location.latitude, location.longitude)
+                LatLng(location.from_latitude, location.from_longitude)
+            val toLatLng = LatLng(location.to_latitude ?: 0.0, location.to_longitude ?: 0.0)
             address = latLng.getAddress(context) ?: ""
+            toAddress = toLatLng.getAddress(context) ?: ""
         }
     }
     val lastUpdated = getFormattedTimeString(context, location.created_at ?: 0L)
@@ -209,10 +211,9 @@ private fun LocationHistoryItem(location: ApiLocation, index: Int, isLastItem: B
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    when (location.user_state) {
-                        UserState.REST_POINT.value -> Icons.Default.LocationOn
-                        UserState.STEADY.value -> Icons.Default.Build
-                        else -> Icons.Default.KeyboardArrowRight
+                    when (location.isSteadyLocation()) {
+                        true -> Icons.Default.LocationOn
+                        else -> Icons.Default.Info
                     },
                     contentDescription = "",
                     tint = AppTheme.colorScheme.surface,
@@ -239,7 +240,11 @@ private fun LocationHistoryItem(location: ApiLocation, index: Int, isLastItem: B
                 .padding(start = 16.dp)
         ) {
             Text(
-                text = address,
+                text = if (location.isSteadyLocation()) {
+                    address
+                } else {
+                    "${address.take(20)}-->${toAddress.take(20)}"
+                },
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 style = AppTheme.appTypography.subTitle2.copy(color = AppTheme.colorScheme.textPrimary)
@@ -261,7 +266,7 @@ private fun LocationHistoryItem(location: ApiLocation, index: Int, isLastItem: B
                 )
             }
             Text(
-                text = "Lat: ${location.latitude}, Lng: ${location.longitude}",
+                text = "Lat: ${location.from_latitude}, Lng: ${location.from_latitude}",
                 style = AppTheme.appTypography.label2.copy(color = AppTheme.colorScheme.textSecondary)
             )
         }

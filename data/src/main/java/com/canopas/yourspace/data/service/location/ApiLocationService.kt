@@ -34,7 +34,7 @@ class ApiLocationService @Inject constructor(
             latitude = lastLocation.latitude,
             longitude = lastLocation.longitude,
             created_at = System.currentTimeMillis(),
-            user_state = UserState.REST_POINT.value
+            user_state = UserState.STEADY.value
         )
 
         docRef.set(location).await()
@@ -98,7 +98,7 @@ class ApiLocationService @Inject constructor(
                     locations.add(it)
                 }
             } catch (e: Exception) {
-                Timber.e(e, "Error while getting last fifth minute locations")
+                Timber.e(e, "Error while getting last $i minute locations")
             }
         }
 
