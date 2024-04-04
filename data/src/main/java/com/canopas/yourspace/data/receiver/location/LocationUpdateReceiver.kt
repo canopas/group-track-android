@@ -57,7 +57,7 @@ class LocationUpdateReceiver : BroadcastReceiver() {
                                 extractedLocation.latitude,
                                 extractedLocation.longitude,
                                 Date().time,
-                                userState
+                                userState = userState ?: UserState.STEADY.value
                             )
                             saveLocationJourney(userState, extractedLocation, lastLocation)
                         }
