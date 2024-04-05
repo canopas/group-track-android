@@ -54,18 +54,18 @@ class ApiLocationService @Inject constructor(
     }
 
     suspend fun getCurrentLocation(userId: String) =
-        locationRef(userId)
+        locationRef(userId).whereEqualTo("user_id", userId)
             .orderBy("created_at", Query.Direction.DESCENDING).limit(1)
             .snapshotFlow(ApiLocation::class.java)
 
     fun getLocationHistoryQuery(userId: String, from: Long, to: Long) =
-        locationRef(userId)
+        locationRef(userId).whereEqualTo("user_id", userId)
             .whereGreaterThanOrEqualTo("created_at", from)
             .whereLessThan("created_at", to)
             .orderBy("created_at", Query.Direction.DESCENDING).limit(8)
 
     suspend fun deleteLocations(userId: String) {
-        locationRef(userId).get().await().documents.forEach {
+        locationRef(userId).whereEqualTo("user_id", userId).get().await().documents.forEach {
             it.reference.delete().await()
         }
     }
