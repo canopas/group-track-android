@@ -55,7 +55,7 @@ import com.canopas.yourspace.data.models.user.UserInfo
 import com.canopas.yourspace.ui.component.AppProgressIndicator
 import com.canopas.yourspace.ui.component.UserProfile
 import com.canopas.yourspace.ui.theme.AppTheme
-import com.canopas.yourspace.utils.getAddress
+import com.canopas.yourspace.domain.utils.getAddress
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

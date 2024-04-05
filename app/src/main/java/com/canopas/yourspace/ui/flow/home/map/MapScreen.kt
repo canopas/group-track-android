@@ -67,8 +67,8 @@ import com.canopas.yourspace.ui.flow.home.map.component.MapMarker
 import com.canopas.yourspace.ui.flow.home.map.component.MapUserItem
 import com.canopas.yourspace.ui.flow.home.map.member.MemberDetailBottomSheetContent
 import com.canopas.yourspace.ui.theme.AppTheme
-import com.canopas.yourspace.utils.isLocationServiceEnabled
-import com.canopas.yourspace.utils.openLocationSettings
+import com.canopas.yourspace.domain.utils.isLocationServiceEnabled
+import com.canopas.yourspace.domain.utils.openLocationSettings
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState

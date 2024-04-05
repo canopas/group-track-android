@@ -1,4 +1,4 @@
-package com.canopas.yourspace.di
+package com.canopas.yourspace.domain.di
 
 import com.canopas.yourspace.BuildConfig
 import com.canopas.yourspace.data.utils.AppDispatcher
