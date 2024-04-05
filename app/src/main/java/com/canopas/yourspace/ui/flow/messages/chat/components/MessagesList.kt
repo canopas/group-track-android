@@ -39,12 +39,12 @@ import androidx.compose.ui.unit.dp
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.messages.ApiThreadMessage
 import com.canopas.yourspace.data.models.user.UserInfo
+import com.canopas.yourspace.domain.utils.formattedMessageDateHeader
 import com.canopas.yourspace.ui.component.AppProgressIndicator
 import com.canopas.yourspace.ui.component.UserProfile
 import com.canopas.yourspace.ui.component.reachedBottom
 import com.canopas.yourspace.ui.flow.messages.chat.toFormattedTitle
 import com.canopas.yourspace.ui.theme.AppTheme
-import com.canopas.yourspace.utils.formattedMessageDateHeader
 import kotlinx.coroutines.flow.distinctUntilChanged
 import java.util.concurrent.TimeUnit
 
