@@ -185,7 +185,7 @@ class LocationUpdateReceiver : BroadcastReceiver() {
                             extractedLocation.time - lastMovingLocation.created_at!!
 
                         // If user is at the same location for more than 5 minutes, save the location as steady
-                        if (timeDifference > 5 * 60 * 1000) {
+                        if (timeDifference > 5 * 60 * 1000 && lastJourneyLocation?.isSteadyLocation() != true) {
                             locationJourneyService.saveCurrentJourney(
                                 userId = authService.currentUser?.id ?: "",
                                 fromLatitude = extractedLocation.latitude,
