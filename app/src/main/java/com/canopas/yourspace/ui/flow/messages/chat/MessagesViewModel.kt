@@ -181,7 +181,6 @@ class MessagesViewModel @Inject constructor(
 
                     if (messagesJob == null) listenMessages()
                 }
-
         }
     }
 

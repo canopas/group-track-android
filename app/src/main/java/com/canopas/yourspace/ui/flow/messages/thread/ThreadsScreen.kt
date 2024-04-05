@@ -338,9 +338,11 @@ private fun LazyItemScope.ThreadItem(
         ThreadProfile(members)
         Spacer(modifier = Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) {
-            val threadTitle = if(members.isEmpty())
+            val threadTitle = if (members.isEmpty()) {
                 stringResource(id = R.string.common_unknown)
-                else members.map { it.first_name ?: "" }.toFormattedTitle()
+            } else {
+                members.map { it.first_name ?: "" }.toFormattedTitle()
+            }
 
             Text(
                 text = threadTitle,
@@ -392,7 +394,7 @@ fun ThreadProfile(members: List<ApiUser>) {
             )
     ) {
         when (members.size) {
-            0 ->  UserProfile(modifier = Modifier.fillMaxSize(), user = null, fontSize = 18.sp)
+            0 -> UserProfile(modifier = Modifier.fillMaxSize(), user = null, fontSize = 18.sp)
             1 -> {
                 members.firstOrNull()?.let {
                     UserProfile(modifier = Modifier.fillMaxSize(), user = it, fontSize = 18.sp)
