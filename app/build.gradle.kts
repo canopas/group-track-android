@@ -127,7 +127,6 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore-ktx:24.10.3")
     implementation("androidx.compose.foundation:foundation:1.6.4")
 
-
     // Test
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")

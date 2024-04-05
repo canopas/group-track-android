@@ -1,6 +1,5 @@
 package com.canopas.yourspace.data.utils
 
-import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.EventListener

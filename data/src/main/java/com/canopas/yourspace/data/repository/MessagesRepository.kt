@@ -52,7 +52,7 @@ class MessagesRepository @Inject constructor(
     fun getLatestMessages(threadId: String, limit: Int) =
         apiMessagesService.getLatestMessages(threadId, limit)
 
-    suspend  fun markMessagesAsSeen(threadId: String, messageIds:List<String>, currentUserId: String) {
+    suspend fun markMessagesAsSeen(threadId: String, messageIds: List<String>, currentUserId: String) {
         apiMessagesService.markMessagesAsSeen(threadId, messageIds, currentUserId)
     }
 }

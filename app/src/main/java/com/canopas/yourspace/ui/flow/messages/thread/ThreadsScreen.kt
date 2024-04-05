@@ -1,6 +1,5 @@
 package com.canopas.yourspace.ui.flow.messages.thread
 
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -19,12 +18,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -75,7 +72,6 @@ import com.canopas.yourspace.ui.component.PrimaryButton
 import com.canopas.yourspace.ui.component.UserProfile
 import com.canopas.yourspace.ui.component.motionClickEvent
 import com.canopas.yourspace.ui.flow.messages.chat.toFormattedTitle
-import com.canopas.yourspace.ui.flow.settings.SettingsViewModel
 import com.canopas.yourspace.ui.theme.AppTheme
 import com.canopas.yourspace.utils.formattedMessageTimeString
 import kotlinx.coroutines.launch
@@ -153,7 +149,8 @@ private fun ThreadsContent(modifier: Modifier) {
                 deletingThread = state.deletingThread,
                 state.currentUser,
                 onClick = { viewModel.showMessages(it) },
-                deleteThread = { viewModel.deleteThread(it) })
+                deleteThread = { viewModel.deleteThread(it) }
+            )
         } else {
             NoMemberEmptyContent(state.loadingInviteCode) {
                 viewModel.addMember()
@@ -197,16 +194,19 @@ fun ThreadList(
                     threadInfo.thread.member_ids.contains(member.user.id) && member.user.id != currentUser?.id
                 }.map { it.user }
 
-                SwipeToDelete(deleting = deletingThread == threadInfo,
+                SwipeToDelete(
+                    deleting = deletingThread == threadInfo,
                     content = {
                         ThreadItem(threadInfo, threadMembers, currentUser) {
                             onClick(
                                 threadInfo
                             )
                         }
-                    }, onDelete = {
+                    },
+                    onDelete = {
                         deleteThread(threadInfo)
-                    })
+                    }
+                )
                 if (index != threadInfos.size - 1) {
                     Divider(
                         modifier = Modifier
@@ -222,7 +222,7 @@ fun ThreadList(
 
 enum class DragAnchors {
     Center,
-    End,
+    End
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -249,7 +249,7 @@ private fun SwipeToDelete(
             },
             positionalThreshold = { distance: Float -> distance * 0.5f },
             velocityThreshold = { with(density) { 100.dp.toPx() } },
-            animationSpec = tween(),
+            animationSpec = tween()
         )
     }
     Box(
@@ -258,19 +258,22 @@ private fun SwipeToDelete(
             .background(color = AppTheme.colorScheme.alertColor)
             .clip(RectangleShape)
     ) {
-
         IconButton(
-            onClick = { showDeleteConfirmation = true }, modifier = Modifier
+            onClick = { showDeleteConfirmation = true },
+            modifier = Modifier
                 .align(Alignment.CenterEnd)
                 .padding(end = 16.dp),
             enabled = !deleting
         ) {
-            if (deleting) AppProgressIndicator()
-            else
+            if (deleting) {
+                AppProgressIndicator()
+            } else {
                 Icon(
-                    imageVector = Icons.Default.Delete, contentDescription = null,
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = null,
                     tint = AppTheme.colorScheme.onPrimary
                 )
+            }
         }
 
         Box(
@@ -282,7 +285,7 @@ private fun SwipeToDelete(
                         x = -state
                             .requireOffset()
                             .roundToInt(),
-                        y = 0,
+                        y = 0
                     )
                 }
                 .anchoredDraggable(state, Orientation.Horizontal, reverseDirection = true),
@@ -299,8 +302,6 @@ private fun SwipeToDelete(
             showDeleteConfirmation = false
         }
     }
-
-
 }
 
 @Composable
@@ -369,14 +370,12 @@ private fun LazyItemScope.ThreadItem(
                     modifier = Modifier
                         .padding(start = 4.dp)
                         .size(8.dp)
-                        .background(AppTheme.colorScheme.primary, shape = CircleShape),
+                        .background(AppTheme.colorScheme.primary, shape = CircleShape)
                 )
-
             }
         }
     }
 }
-
 
 @Composable
 fun ThreadProfile(members: List<ApiUser>) {

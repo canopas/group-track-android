@@ -14,9 +14,7 @@ import com.canopas.yourspace.data.utils.AppDispatcher
 import com.canopas.yourspace.ui.navigation.AppDestinations.ThreadMessages.KEY_THREAD_ID
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
@@ -89,7 +87,7 @@ class MessagesViewModel @Inject constructor(
         }
     }
 
-    private fun markMessagesAsSeen(messages:List<ApiThreadMessage>) = viewModelScope.launch(appDispatcher.IO) {
+    private fun markMessagesAsSeen(messages: List<ApiThreadMessage>) = viewModelScope.launch(appDispatcher.IO) {
         try {
             val unreadMessages = messages.distinct()
                 .filter { !it.seen_by.contains(state.value.currentUserId) }
@@ -125,7 +123,6 @@ class MessagesViewModel @Inject constructor(
                 from = from,
                 limit = MESSAGE_PAGE_LIMIT
             ).first()
-
 
             hasMoreData = newMessages.isNotEmpty()
 

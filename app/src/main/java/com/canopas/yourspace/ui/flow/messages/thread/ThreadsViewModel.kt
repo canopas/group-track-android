@@ -2,7 +2,6 @@ package com.canopas.yourspace.ui.flow.messages.thread
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.canopas.yourspace.data.models.messages.ApiThread
 import com.canopas.yourspace.data.models.messages.ThreadInfo
 import com.canopas.yourspace.data.models.space.SpaceInfo
 import com.canopas.yourspace.data.models.user.ApiUser

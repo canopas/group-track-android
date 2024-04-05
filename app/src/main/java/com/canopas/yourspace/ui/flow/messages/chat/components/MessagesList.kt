@@ -46,8 +46,6 @@ import com.canopas.yourspace.ui.flow.messages.chat.toFormattedTitle
 import com.canopas.yourspace.ui.theme.AppTheme
 import com.canopas.yourspace.utils.formattedMessageDateHeader
 import kotlinx.coroutines.flow.distinctUntilChanged
-import timber.log.Timber
-
 import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -61,7 +59,6 @@ fun ColumnScope.MessageList(
     currentUserId: String,
     loadMore: () -> Unit
 ) {
-
     val reachedBottom by remember {
         derivedStateOf { lazyState.reachedBottom() }
     }
@@ -107,7 +104,7 @@ fun ColumnScope.MessageList(
                     )
                 }
             }
-            if (members.isNotEmpty())
+            if (members.isNotEmpty()) {
                 item {
                     Text(
                         text = section.key.formattedMessageDateHeader(LocalContext.current),
@@ -115,9 +112,11 @@ fun ColumnScope.MessageList(
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(AppTheme.colorScheme.surface)
-                            .padding(8.dp), textAlign = TextAlign.Center
+                            .padding(8.dp),
+                        textAlign = TextAlign.Center
                     )
                 }
+            }
         }
 
         if (append && !loading) {
@@ -141,9 +140,8 @@ fun LazyItemScope.MessageContent(
     seenBy: List<UserInfo>,
     isGroupChat: Boolean,
     isSender: Boolean,
-    isLatestMsg: Boolean,
+    isLatestMsg: Boolean
 ) {
-
     val showUserDetails = shouldShowUserDetails(previousMessage, message)
 
     Row(
@@ -157,7 +155,6 @@ fun LazyItemScope.MessageContent(
             Arrangement.Start
         }
     ) {
-
         if (!isSender && by != null && showUserDetails) {
             UserProfile(
                 modifier = Modifier
@@ -173,8 +170,9 @@ fun LazyItemScope.MessageContent(
 
         Spacer(modifier = Modifier.width(10.dp))
 
-        val timeLabel = if (!showUserDetails) ""
-        else if (isSender || by == null || !isGroupChat) message.formattedTime else "${by.user.first_name} • ${message.formattedTime}"
+        val timeLabel = if (!showUserDetails) {
+            ""
+        } else if (isSender || by == null || !isGroupChat) message.formattedTime else "${by.user.first_name} • ${message.formattedTime}"
 
         val seenLabel = if (isSender && seenBy.isNotEmpty() && isLatestMsg) {
             if (isGroupChat) {
@@ -190,8 +188,10 @@ fun LazyItemScope.MessageContent(
         }
 
         MessageBubble(
-            message = message.message, timeLabel = timeLabel,
-            seenLabel = seenLabel, isSender = isSender
+            message = message.message,
+            timeLabel = timeLabel,
+            seenLabel = seenLabel,
+            isSender = isSender
         )
     }
 }
@@ -206,7 +206,8 @@ fun shouldShowUserDetails(previousMessage: ApiThreadMessage?, message: ApiThread
 
 @Composable
 fun MessageBubble(
-    message: String, timeLabel: String,
+    message: String,
+    timeLabel: String,
     seenLabel: String,
     isSender: Boolean
 ) {
@@ -225,7 +226,7 @@ fun MessageBubble(
             .wrapContentWidth()
             .widthIn(max = screenWidth * 0.8f, min = 100.dp)
     ) {
-        if (timeLabel.isNotEmpty())
+        if (timeLabel.isNotEmpty()) {
             Text(
                 text = timeLabel,
                 style = AppTheme.appTypography.label3.copy(color = AppTheme.colorScheme.textDisabled),
@@ -233,6 +234,7 @@ fun MessageBubble(
                     .padding(2.dp)
                     .align(align)
             )
+        }
 
         Text(
             text = message,
@@ -250,7 +252,7 @@ fun MessageBubble(
                 .align(align)
         )
 
-        if (seenLabel.isNotEmpty())
+        if (seenLabel.isNotEmpty()) {
             Text(
                 text = seenLabel,
                 style = AppTheme.appTypography.label3.copy(color = AppTheme.colorScheme.textDisabled),
@@ -260,5 +262,6 @@ fun MessageBubble(
                     .align(align),
                 overflow = TextOverflow.Ellipsis
             )
+        }
     }
 }
