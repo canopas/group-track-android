@@ -17,7 +17,7 @@ class LocationJourneyService @Inject constructor(
 ) {
     private val userRef = db.collection(Config.FIRESTORE_COLLECTION_USERS)
     private fun journeyRef(userId: String) =
-        userRef.document(userId).collection(Config.FIRESTORE_COLLECTION_USER_JOURNEYS)
+        userRef.document(userId.replace('/', '_')).collection(Config.FIRESTORE_COLLECTION_USER_JOURNEYS)
 
     suspend fun saveLastKnownJourney(
         userId: String
@@ -90,6 +90,15 @@ class LocationJourneyService @Inject constructor(
             Timber.e(e, "Error while getting last moving location")
             null
         }
+    }
+
+    suspend fun getLastJourneyLocation(userId: String) = try {
+        journeyRef(userId).whereEqualTo("user_id", userId)
+            .orderBy("created_at", Query.Direction.DESCENDING).limit(1)
+            .get().await().documents.firstOrNull()?.toObject(LocationJourney::class.java)
+    } catch (e: Exception) {
+        Timber.e(e, "Error while getting last location journey")
+        null
     }
 
     fun getJourneyHistoryQuery(userId: String, from: Long, to: Long) =

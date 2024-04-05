@@ -4,6 +4,7 @@ import com.canopas.yourspace.data.models.location.ApiLocation
 import com.canopas.yourspace.data.models.location.UserState
 import com.canopas.yourspace.data.utils.Config
 import com.canopas.yourspace.data.utils.snapshotFlow
+import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.flow.Flow
@@ -19,14 +20,22 @@ class ApiLocationService @Inject constructor(
     private val locationManager: LocationManager
 ) {
     private val userRef = db.collection(Config.FIRESTORE_COLLECTION_USERS)
-    private fun locationRef(userId: String) =
-        userRef.document(userId).collection(Config.FIRESTORE_COLLECTION_USER_LOCATIONS)
+    private fun locationRef(userId: String): CollectionReference? {
+        return try {
+            userRef.document(userId).collection(Config.FIRESTORE_COLLECTION_USER_LOCATIONS)
+        } catch (e: Exception) {
+            Timber.e(e, "Error while getting location reference")
+            null
+        }
+    }
 
     suspend fun saveLastKnownLocation(
         userId: String
     ) {
         val lastLocation = locationManager.getLastLocation() ?: return
-        val docRef = locationRef(userId).document()
+        val docRef = locationRef(userId)?.document()
+
+        docRef ?: return
 
         val location = ApiLocation(
             id = docRef.id,
@@ -47,7 +56,8 @@ class ApiLocationService @Inject constructor(
         recordedAt: Long,
         userState: Int?
     ) {
-        val docRef = locationRef(userId).document()
+        val docRef = locationRef(userId)?.document()
+        docRef ?: return
 
         val location = ApiLocation(
             id = docRef.id,
@@ -61,20 +71,14 @@ class ApiLocationService @Inject constructor(
         docRef.set(location).await()
     }
 
-    suspend fun getCurrentLocation(userId: String) =
-        locationRef(userId).whereEqualTo("user_id", userId)
-            .orderBy("created_at", Query.Direction.DESCENDING).limit(1)
-            .snapshotFlow(ApiLocation::class.java)
-
-    fun getLocationHistoryQuery(userId: String, from: Long, to: Long) =
-        locationRef(userId).whereEqualTo("user_id", userId)
-            .whereGreaterThanOrEqualTo("created_at", from)
-            .whereLessThan("created_at", to)
-            .orderBy("created_at", Query.Direction.DESCENDING).limit(50)
-
-    suspend fun deleteLocations(userId: String) {
-        locationRef(userId).whereEqualTo("user_id", userId).get().await().documents.forEach {
-            it.reference.delete().await()
+    suspend fun getCurrentLocation(userId: String): Flow<List<ApiLocation>>? {
+        return try {
+            locationRef(userId)?.whereEqualTo("user_id", userId)
+                ?.orderBy("created_at", Query.Direction.DESCENDING)?.limit(1)
+                ?.snapshotFlow(ApiLocation::class.java)
+        } catch (e: Exception) {
+            Timber.e(e, "Error while getting current location")
+            null
         }
     }
 
@@ -87,7 +91,8 @@ class ApiLocationService @Inject constructor(
                 val startTime = currentTime - (i + 1) * 60000
                 val endTime = startTime - 60000
 
-                val apiLocation = locationRef(userId)
+                val reference = locationRef(userId) ?: continue
+                val apiLocation = reference
                     .whereEqualTo("user_id", userId)
                     .whereGreaterThanOrEqualTo("created_at", endTime)
                     .whereLessThan("created_at", startTime)
@@ -107,12 +112,15 @@ class ApiLocationService @Inject constructor(
         }
     }
 
-    suspend fun getLastLocation(userId: String) = try {
-        locationRef(userId).whereEqualTo("user_id", userId)
-            .orderBy("created_at", Query.Direction.DESCENDING).limit(1)
-            .get().await().documents.firstOrNull()?.toObject(ApiLocation::class.java)
-    } catch (e: Exception) {
-        Timber.e(e, "Error while getting last location")
-        null
+    suspend fun getLastLocation(userId: String): ApiLocation? {
+        return try {
+            locationRef(userId)?.whereEqualTo("user_id", userId)
+                ?.orderBy("created_at", Query.Direction.DESCENDING)
+                ?.limit(1)
+                ?.get()?.await()?.documents?.firstOrNull()?.toObject(ApiLocation::class.java)
+        } catch (e: Exception) {
+            Timber.e(e, "Error while getting last location")
+            null
+        }
     }
 }

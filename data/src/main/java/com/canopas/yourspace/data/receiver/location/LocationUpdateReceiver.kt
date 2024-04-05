@@ -7,11 +7,13 @@ import android.location.Location
 import com.canopas.yourspace.data.models.location.ApiLocation
 import com.canopas.yourspace.data.models.location.LocationJourney
 import com.canopas.yourspace.data.models.location.UserState
+import com.canopas.yourspace.data.models.location.isSteadyLocation
 import com.canopas.yourspace.data.models.location.toLocation
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.location.ApiLocationService
 import com.canopas.yourspace.data.service.location.LocationJourneyService
 import com.canopas.yourspace.data.service.location.LocationManager
+import com.canopas.yourspace.data.utils.Config.DISTANCE_TO_CHECK_SUDDEN_LOCATION_CHANGE
 import com.canopas.yourspace.data.utils.Config.RADIUS_TO_CHECK_USER_STATE
 import com.google.android.gms.location.LocationResult
 import dagger.hilt.android.AndroidEntryPoint
@@ -69,11 +71,17 @@ class LocationUpdateReceiver : BroadcastReceiver() {
         }
     }
 
-    private suspend fun getUserState(extractedLocation: Location, lastLocation: ApiLocation?): Int? {
+    private suspend fun getUserState(
+        extractedLocation: Location,
+        lastLocation: ApiLocation?
+    ): Int? {
         return scope.async {
             try {
                 val lastFiveMinuteLocations = getLastFiveMinuteLocations()
-                return@async if (lastFiveMinuteLocations.isNotEmpty() && lastFiveMinuteLocations.isMoving(extractedLocation)) {
+                return@async if (lastFiveMinuteLocations.isNotEmpty() && lastFiveMinuteLocations.isMoving(
+                        extractedLocation
+                    )
+                ) {
                     UserState.MOVING.value
                 } else if (lastFiveMinuteLocations.isEmpty()) {
                     null
@@ -100,10 +108,20 @@ class LocationUpdateReceiver : BroadcastReceiver() {
             scope.launch {
                 val lastSteadyLocation = getLastSteadyLocation()
                 val lastMovingLocation = getLastMovingLocation()
+                val lastJourneyLocation = getLastJourneyLocation()
 
                 if (userState != null) {
                     when (userState) {
                         UserState.STEADY.value -> {
+                            val distance = lastSteadyLocation?.toLocation()?.let { location ->
+                                distanceBetween(
+                                    extractedLocation,
+                                    location
+                                ).toDouble()
+                            } ?: 0.0
+                            if (lastJourneyLocation?.isSteadyLocation() == true || distance < DISTANCE_TO_CHECK_SUDDEN_LOCATION_CHANGE) {
+                                return@launch
+                            }
                             locationJourneyService.saveCurrentJourney(
                                 userId = authService.currentUser?.id ?: "",
                                 fromLatitude = extractedLocation.latitude,
@@ -143,10 +161,10 @@ class LocationUpdateReceiver : BroadcastReceiver() {
                                 created_at = Date().time
                             )
 
-                            lastMovingLocation?.let {
-                                newJourney = newJourney.copy(id = it.id)
+                            if (lastMovingLocation != null && lastJourneyLocation?.isSteadyLocation() != true) {
+                                newJourney = newJourney.copy(id = lastMovingLocation.id)
                                 updateLastMovingLocation(newJourney)
-                            } ?: run {
+                            } else {
                                 locationJourneyService.saveCurrentJourney(
                                     userId = newJourney.user_id,
                                     fromLatitude = newJourney.from_latitude,
@@ -163,7 +181,8 @@ class LocationUpdateReceiver : BroadcastReceiver() {
                     }
                 } else {
                     lastMovingLocation?.let {
-                        val timeDifference = extractedLocation.time - lastMovingLocation.created_at!!
+                        val timeDifference =
+                            extractedLocation.time - lastMovingLocation.created_at!!
 
                         // If user is at the same location for more than 5 minutes, save the location as steady
                         if (timeDifference > 5 * 60 * 1000) {
@@ -188,6 +207,10 @@ class LocationUpdateReceiver : BroadcastReceiver() {
 
     private suspend fun getLastLocation(): ApiLocation? {
         return locationService.getLastLocation(authService.currentUser?.id ?: "")
+    }
+
+    private suspend fun getLastJourneyLocation(): LocationJourney? {
+        return locationJourneyService.getLastJourneyLocation(authService.currentUser?.id ?: "")
     }
 
     private suspend fun getLastSteadyLocation(): LocationJourney? {
