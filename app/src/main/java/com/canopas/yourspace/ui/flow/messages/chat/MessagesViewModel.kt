@@ -68,7 +68,7 @@ class MessagesViewModel @Inject constructor(
         if (threadId.isEmpty()) return
         messagesJob?.cancel()
         messagesJob = viewModelScope.launch(appDispatcher.IO) {
-            messagesRepository.getLatestMessages(threadId, MESSAGE_PAGE_LIMIT)
+            messagesRepository.getLatestMessages(threadId, 1)
                 .catch { e ->
                     Timber.e(e, "Error listening to messages")
                     _state.emit(state.value.copy(error = e.message))
@@ -156,6 +156,7 @@ class MessagesViewModel @Inject constructor(
         threadJob?.cancel()
         threadJob = viewModelScope.launch(appDispatcher.IO) {
             _state.emit(_state.value.copy(loading = state.value.thread == null))
+            loadMore()
             messagesRepository.getThread(threadId)
                 .catch { e ->
                     Timber.e(e, "Failed to fetch thread info")
@@ -177,8 +178,10 @@ class MessagesViewModel @Inject constructor(
                             selectedMember = members.filter { it.user.id != state.value.currentUserId }
                         )
                     )
+
                     if (messagesJob == null) listenMessages()
                 }
+
         }
     }
 
