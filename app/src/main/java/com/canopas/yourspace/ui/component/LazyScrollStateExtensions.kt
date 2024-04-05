@@ -2,7 +2,12 @@ package com.canopas.yourspace.ui.component
 
 import androidx.compose.foundation.lazy.LazyListState
 
-internal fun LazyListState.reachedBottom(buffer: Int = 2): Boolean {
-    val lastVisibleItem = this.layoutInfo.visibleItemsInfo.lastOrNull()
-    return lastVisibleItem?.index != 0 && lastVisibleItem?.index == this.layoutInfo.totalItemsCount - buffer
+internal fun LazyListState.reachedBottom(): Boolean {
+    val isScrollEnd =
+        layoutInfo.visibleItemsInfo.lastOrNull()?.index == layoutInfo.totalItemsCount - 1
+
+    val totalItemsNumber = layoutInfo.totalItemsCount
+    val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+
+    return isScrollEnd && lastVisibleItemIndex >= totalItemsNumber - 1
 }

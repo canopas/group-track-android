@@ -16,6 +16,7 @@ import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
@@ -83,17 +84,17 @@ class MessagesViewModel @Inject constructor(
                                 state.value.thread
                             ).groupMessagesByDate()
                         )
-                    markMessagesAsSeen()
+                    markMessagesAsSeen(messages)
                 }
         }
     }
 
-
-    private fun markMessagesAsSeen() = viewModelScope.launch(appDispatcher.IO) {
+    private fun markMessagesAsSeen(messages:List<ApiThreadMessage>) = viewModelScope.launch(appDispatcher.IO) {
         try {
-            val unreadMessages = allMessages.distinct()
+            val unreadMessages = messages.distinct()
                 .filter { !it.seen_by.contains(state.value.currentUserId) }
                 .map { it.id }
+
             if (unreadMessages.isNotEmpty()) {
                 messagesRepository.markMessagesAsSeen(
                     threadId,
@@ -118,11 +119,13 @@ class MessagesViewModel @Inject constructor(
         try {
             val from =
                 if (state.value.messagesByDate.isEmpty()) System.currentTimeMillis() else allMessages.minBy { it.created_at }.created_at
+
             val newMessages = messagesRepository.getMessages(
                 threadId,
                 from = from,
                 limit = MESSAGE_PAGE_LIMIT
             ).first()
+
 
             hasMoreData = newMessages.isNotEmpty()
 
@@ -138,7 +141,7 @@ class MessagesViewModel @Inject constructor(
                     error = null
                 )
             )
-            markMessagesAsSeen()
+            markMessagesAsSeen(newMessages)
             loadingData = false
         } catch (e: Exception) {
             Timber.e(e, "Error loading messages")

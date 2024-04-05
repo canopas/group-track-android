@@ -20,15 +20,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -46,13 +45,15 @@ import com.canopas.yourspace.ui.component.reachedBottom
 import com.canopas.yourspace.ui.flow.messages.chat.toFormattedTitle
 import com.canopas.yourspace.ui.theme.AppTheme
 import com.canopas.yourspace.utils.formattedMessageDateHeader
+import kotlinx.coroutines.flow.distinctUntilChanged
+import timber.log.Timber
 
 import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ColumnScope.MessageList(
-    lazyState:LazyListState,
+    lazyState: LazyListState,
     loading: Boolean,
     append: Boolean,
     messagesByDate: Map<Long, List<ApiThreadMessage>>,
@@ -64,8 +65,13 @@ fun ColumnScope.MessageList(
     val reachedBottom by remember {
         derivedStateOf { lazyState.reachedBottom() }
     }
+
     LaunchedEffect(reachedBottom) {
-        if (reachedBottom) loadMore()
+        snapshotFlow { reachedBottom }
+            .distinctUntilChanged()
+            .collect {
+                loadMore()
+            }
     }
 
     LazyColumn(
@@ -101,16 +107,17 @@ fun ColumnScope.MessageList(
                     )
                 }
             }
-            item {
-                Text(
-                    text = section.key.formattedMessageDateHeader(LocalContext.current),
-                    style = AppTheme.appTypography.label1.copy(color = AppTheme.colorScheme.textDisabled),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(AppTheme.colorScheme.surface)
-                        .padding(8.dp), textAlign = TextAlign.Center
-                )
-            }
+            if (members.isNotEmpty())
+                item {
+                    Text(
+                        text = section.key.formattedMessageDateHeader(LocalContext.current),
+                        style = AppTheme.appTypography.label1.copy(color = AppTheme.colorScheme.textDisabled),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(AppTheme.colorScheme.surface)
+                            .padding(8.dp), textAlign = TextAlign.Center
+                    )
+                }
         }
 
         if (append && !loading) {
@@ -142,7 +149,8 @@ fun LazyItemScope.MessageContent(
     Row(
         Modifier
             .padding(top = if (showUserDetails) 8.dp else 6.dp)
-            .fillMaxWidth().animateItemPlacement(),
+            .fillMaxWidth()
+            .animateItemPlacement(),
         horizontalArrangement = if (isSender) {
             Arrangement.End
         } else {

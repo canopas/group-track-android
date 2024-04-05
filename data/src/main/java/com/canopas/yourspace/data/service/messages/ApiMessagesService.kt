@@ -121,10 +121,6 @@ class ApiMessagesService @Inject constructor(
     suspend fun deleteThread(thread: ApiThread, userId: String) {
         if (thread.admin_id == userId) {
             threadRef.document(thread.id).delete().await()
-        } else if (thread.isGroup) {
-            threadRef.document(thread.id)
-                .update("member_ids", FieldValue.arrayRemove(userId))
-                .await()
         } else {
             val archivedMap =
                 thread.archived_for.toMutableMap()
