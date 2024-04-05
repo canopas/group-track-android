@@ -89,20 +89,17 @@ fun ColumnScope.MessageList(
                 val seenBy =
                     members.filter { message.seen_by.contains(it.user.id) && it.user.id != currentUserId }
 
-                if (by != null) {
-                    val myLatestMsg =
-                        messages.firstOrNull { it.sender_id == currentUserId }?.id == message.id
-                    MessageContent(
-                        previousMessage = if (index < messages.size - 1) messages[index + 1] else null,
-                        nextMessage = if (index > 0) messages[index - 1] else null,
-                        message,
-                        by = by,
-                        seenBy = seenBy,
-                        isGroupChat = members.size > 2,
-                        isSender = currentUserId == message.sender_id,
-                        isLatestMsg = myLatestMsg
-                    )
-                }
+                val myLatestMsg =
+                    messages.firstOrNull { it.sender_id == currentUserId }?.id == message.id
+                MessageContent(
+                    previousMessage = if (index < messages.size - 1) messages[index + 1] else null,
+                    message,
+                    by = by,
+                    seenBy = seenBy,
+                    isGroupChat = members.size > 2,
+                    isSender = currentUserId == message.sender_id,
+                    isLatestMsg = myLatestMsg
+                )
             }
             if (members.isNotEmpty()) {
                 item {
@@ -134,7 +131,6 @@ fun ColumnScope.MessageList(
 @Composable
 fun LazyItemScope.MessageContent(
     previousMessage: ApiThreadMessage?,
-    nextMessage: ApiThreadMessage?,
     message: ApiThreadMessage,
     by: UserInfo?,
     seenBy: List<UserInfo>,
@@ -155,12 +151,12 @@ fun LazyItemScope.MessageContent(
             Arrangement.Start
         }
     ) {
-        if (!isSender && by != null && showUserDetails) {
+        if (!isSender && showUserDetails) {
             UserProfile(
                 modifier = Modifier
                     .padding(top = 12.dp)
                     .size(50.dp),
-                user = by.user
+                user = by?.user
             )
         }
 
