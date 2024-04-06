@@ -110,6 +110,20 @@ class LocationUpdateReceiver : BroadcastReceiver() {
                 val lastMovingLocation = getLastMovingLocation()
                 val lastJourneyLocation = getLastJourneyLocation()
 
+                if (lastJourneyLocation == null) {
+                    locationJourneyService.saveCurrentJourney(
+                        userId = authService.currentUser?.id ?: "",
+                        fromLatitude = extractedLocation.latitude,
+                        fromLongitude = extractedLocation.longitude,
+                        currentLocationDuration = extractedLocation.time - (
+                            lastLocation?.created_at
+                                ?: 0L
+                            ),
+                        recordedAt = Date().time
+                    )
+                    return@launch
+                }
+
                 if (userState != null) {
                     when (userState) {
                         UserState.STEADY.value -> {
@@ -119,7 +133,7 @@ class LocationUpdateReceiver : BroadcastReceiver() {
                                     location
                                 ).toDouble()
                             } ?: 0.0
-                            if (lastJourneyLocation?.isSteadyLocation() == true || distance < DISTANCE_TO_CHECK_SUDDEN_LOCATION_CHANGE) {
+                            if (lastJourneyLocation.isSteadyLocation() || distance < DISTANCE_TO_CHECK_SUDDEN_LOCATION_CHANGE) {
                                 return@launch
                             }
                             locationJourneyService.saveCurrentJourney(
@@ -161,7 +175,7 @@ class LocationUpdateReceiver : BroadcastReceiver() {
                                 created_at = Date().time
                             )
 
-                            if (lastMovingLocation != null && lastJourneyLocation?.isSteadyLocation() != true) {
+                            if (lastMovingLocation != null && !lastJourneyLocation.isSteadyLocation()) {
                                 newJourney = newJourney.copy(id = lastMovingLocation.id)
                                 updateLastMovingLocation(newJourney)
                             } else {
@@ -185,7 +199,7 @@ class LocationUpdateReceiver : BroadcastReceiver() {
                             extractedLocation.time - lastMovingLocation.created_at!!
 
                         // If user is at the same location for more than 5 minutes, save the location as steady
-                        if (timeDifference > 5 * 60 * 1000 && lastJourneyLocation?.isSteadyLocation() != true) {
+                        if (timeDifference > 5 * 60 * 1000 && !lastJourneyLocation.isSteadyLocation()) {
                             locationJourneyService.saveCurrentJourney(
                                 userId = authService.currentUser?.id ?: "",
                                 fromLatitude = extractedLocation.latitude,
