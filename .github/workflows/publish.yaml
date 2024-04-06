@@ -21,7 +21,7 @@ jobs:
       - name: Set up ruby env
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 2.7.2
+          ruby-version: 3.3
           bundler-cache: true
 
       - name: Deploy internally
@@ -39,6 +39,6 @@ jobs:
           echo $GOOGLE_SERVICES_JSON_BASE64 | base64 -di > app/google-services.json
           echo $APKSIGN_KEYSTORE_BASE64 | base64 -di > release.keystore
           export APKSIGN_KEYSTORE=`pwd`/release.keystore
-          sudo gem install bundler fastlane
+          sudo gem install bundler -v 2.4.22
           echo $APP_PLAY_SERVICE_JSON > google_play_api_key.json
           bundle exec fastlane upload_internal
