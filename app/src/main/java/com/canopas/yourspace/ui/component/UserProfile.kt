@@ -15,6 +15,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImagePainter
@@ -26,22 +27,24 @@ import com.canopas.yourspace.ui.theme.AppTheme
 @Composable
 fun UserProfile(
     modifier: Modifier,
-    user: ApiUser,
+    user: ApiUser?,
+    shape: RoundedCornerShape = RoundedCornerShape(16.dp),
+    fontSize: TextUnit = 28.sp,
     imagePainter: AsyncImagePainter? = null
 ) {
-    val profileUrl = user.profile_image
+    val profileUrl = user?.profile_image
 
     Box(
         modifier = modifier
             .background(
                 AppTheme.colorScheme.surface,
-                shape = RoundedCornerShape(16.dp)
+                shape = shape
             )
             .background(
                 AppTheme.colorScheme.primary,
-                shape = RoundedCornerShape(16.dp)
+                shape = shape
             )
-            .clip(RoundedCornerShape(16.dp)),
+            .clip(shape),
         contentAlignment = Alignment.Center
     ) {
         if (!profileUrl.isNullOrEmpty()) {
@@ -58,11 +61,11 @@ fun UserProfile(
             )
         } else {
             Text(
-                text = user.fullName.take(1).uppercase(),
+                text = user?.fullName?.take(1)?.uppercase() ?: "?",
                 style = TextStyle(
                     color = Color.White,
                     fontWeight = FontWeight.Normal,
-                    fontSize = 28.sp
+                    fontSize = fontSize
                 )
             )
         }
