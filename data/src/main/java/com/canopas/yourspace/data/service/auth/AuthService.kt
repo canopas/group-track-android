@@ -6,6 +6,7 @@ import com.canopas.yourspace.data.service.user.ApiUserService
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -15,6 +16,16 @@ class AuthService @Inject constructor(
     private val apiUserService: ApiUserService,
     private val firebaseAuth: FirebaseAuth
 ) {
+    private val authStateChangeListeners = HashSet<AuthStateChangeListener>()
+
+    fun addListener(authStateChangeListener: AuthStateChangeListener) {
+        this.authStateChangeListeners.add(authStateChangeListener)
+    }
+
+    fun removeListener(authStateChangeListener: AuthStateChangeListener) {
+        this.authStateChangeListeners.remove(authStateChangeListener)
+    }
+
     suspend fun verifiedPhoneLogin(
         uid: String?,
         firebaseToken: String?,
@@ -39,8 +50,13 @@ class AuthService @Inject constructor(
     ): Boolean {
         val (isNewUser, user, session) =
             apiUserService.saveUser(uid, firebaseToken, account, phoneNumber)
+        notifyAuthChange()
         saveUser(user, session)
         return isNewUser
+    }
+
+    private fun notifyAuthChange() {
+        authStateChangeListeners.forEach { it.onAuthStateChanged() }
     }
 
     var currentUser: ApiUser?
@@ -93,4 +109,21 @@ class AuthService @Inject constructor(
 
     suspend fun getUser(): ApiUser? = apiUserService.getUser(currentUser?.id ?: "")
     suspend fun getUserFlow() = apiUserService.getUserFlow(currentUser?.id ?: "")
+}
+
+
+interface AuthStateChangeListener {
+    fun onAuthStateChanged()
+}
+
+sealed class AuthState {
+    data object UNAUTHORIZED : AuthState()
+    data class VERIFIED(val user: ApiUser) : AuthState()
+
+    val isAuthorised: Boolean
+        get() = this !is UNAUTHORIZED
+
+    val isVerified: Boolean
+        get() = this is VERIFIED
+
 }

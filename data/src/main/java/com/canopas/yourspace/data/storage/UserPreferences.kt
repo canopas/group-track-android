@@ -40,6 +40,9 @@ class UserPreferences @Inject constructor(
         val KEY_USER_JSON = stringPreferencesKey("current_user")
         val KEY_USER_SESSION_JSON = stringPreferencesKey("user_session")
         val KEY_USER_CURRENT_SPACE = stringPreferencesKey("user_current_space")
+
+        val IS_FCM_REGISTERED = booleanPreferencesKey("is_fcm_registered")
+
     }
 
     suspend fun isIntroShown(): Boolean {
@@ -124,4 +127,15 @@ class UserPreferences @Inject constructor(
                 }
             }
         }
+
+    var isFCMRegistered: Boolean
+        get() = runBlocking {
+            preferencesDataStore.data.first()[PreferencesKey.IS_FCM_REGISTERED] ?: false
+        }
+        set(registered) = runBlocking {
+            preferencesDataStore.edit { preferences ->
+                preferences[PreferencesKey.IS_FCM_REGISTERED] = registered ?: false
+            }
+        }
+
 }
