@@ -96,6 +96,7 @@ class AuthService @Inject constructor(
     fun signOut() {
         currentUser = null
         currentUserSession = null
+        userPreferences.isFCMRegistered = false
         userPreferences.setOnboardShown(false)
         userPreferences.currentSpace = ""
         firebaseAuth.signOut()
