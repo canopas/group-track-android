@@ -1,10 +1,13 @@
 package com.canopas.yourspace.domain.di
 
+import android.app.NotificationManager
+import android.content.Context
 import com.canopas.yourspace.BuildConfig
 import com.canopas.yourspace.data.utils.AppDispatcher
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Named
 import javax.inject.Singleton
@@ -23,4 +26,11 @@ class AppDataProvider {
     @Provides
     @Singleton
     fun provideAppDispatcher() = AppDispatcher()
+
+    @Provides
+    @Singleton
+    fun provideNotificationManager(@ApplicationContext context: Context): NotificationManager {
+        return context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    }
+
 }
