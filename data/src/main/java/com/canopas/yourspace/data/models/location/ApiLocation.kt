@@ -1,6 +1,7 @@
 package com.canopas.yourspace.data.models.location
 
 import androidx.annotation.Keep
+import com.squareup.moshi.JsonClass
 import java.util.UUID
 
 enum class UserState(val value: Int) {
@@ -9,6 +10,7 @@ enum class UserState(val value: Int) {
 }
 
 @Keep
+@JsonClass(generateAdapter = true)
 data class ApiLocation(
     val id: String = UUID.randomUUID().toString(),
     val user_id: String = "",

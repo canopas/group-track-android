@@ -1,10 +1,12 @@
 package com.canopas.yourspace.data.models.location
 
 import android.location.Location
-import com.google.errorprone.annotations.Keep
+import androidx.annotation.Keep
+import com.squareup.moshi.JsonClass
 import java.util.UUID
 
 @Keep
+@JsonClass(generateAdapter = true)
 data class LocationJourney(
     val id: String = UUID.randomUUID().toString(),
     val user_id: String = "",

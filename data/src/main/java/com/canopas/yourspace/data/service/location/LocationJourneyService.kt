@@ -1,7 +1,10 @@
 package com.canopas.yourspace.data.service.location
 
 import com.canopas.yourspace.data.models.location.LocationJourney
+import com.canopas.yourspace.data.models.location.isSteadyLocation
+import com.canopas.yourspace.data.storage.room.LocationTableDatabase
 import com.canopas.yourspace.data.utils.Config
+import com.canopas.yourspace.data.utils.Converters
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
@@ -13,11 +16,13 @@ import javax.inject.Singleton
 @Singleton
 class LocationJourneyService @Inject constructor(
     db: FirebaseFirestore,
-    private val locationManager: LocationManager
+    private val locationManager: LocationManager,
+    private val locationTableDatabase: LocationTableDatabase,
+    private val converters: Converters
 ) {
     private val userRef = db.collection(Config.FIRESTORE_COLLECTION_USERS)
     private fun journeyRef(userId: String) =
-        userRef.document(userId.replace('/', '_')).collection(Config.FIRESTORE_COLLECTION_USER_JOURNEYS)
+        userRef.document(userId).collection(Config.FIRESTORE_COLLECTION_USER_JOURNEYS)
 
     suspend fun saveLastKnownJourney(
         userId: String
@@ -34,6 +39,15 @@ class LocationJourneyService @Inject constructor(
             created_at = Date().time
         )
 
+        locationTableDatabase.locationTableDao().getLocationData(userId).let { locationTable ->
+            locationTable?.lastSteadyLocation?.let {
+                locationTableDatabase.locationTableDao().updateLocationTable(
+                    locationTable.copy(
+                        lastSteadyLocation = converters.journeyToString(journey)
+                    )
+                )
+            }
+        }
         docRef.set(journey).await()
     }
 
@@ -63,6 +77,22 @@ class LocationJourneyService @Inject constructor(
             created_at = recordedAt
         )
 
+        locationTableDatabase.locationTableDao().getLocationData(userId).let { locationTable ->
+            val newLocationData = if (journey.isSteadyLocation()) {
+                locationTable?.copy(
+                    lastSteadyLocation = converters.journeyToString(journey),
+                    lastLocationJourney = converters.journeyToString(journey)
+                )
+            } else {
+                locationTable?.copy(
+                    lastMovingLocation = converters.journeyToString(journey),
+                    lastLocationJourney = converters.journeyToString(journey)
+                )
+            }
+            newLocationData?.let {
+                locationTableDatabase.locationTableDao().updateLocationTable(it)
+            }
+        }
         docRef.set(journey).await()
     }
 
@@ -107,7 +137,7 @@ class LocationJourneyService @Inject constructor(
             .whereLessThan("created_at", to)
             .orderBy("created_at", Query.Direction.DESCENDING).limit(50)
 
-    fun updateLastMovingLocation(userId: String, newJourney: LocationJourney) {
+    fun updateLastLocationJourney(userId: String, newJourney: LocationJourney) {
         journeyRef(userId).document(newJourney.id).set(newJourney)
     }
 }

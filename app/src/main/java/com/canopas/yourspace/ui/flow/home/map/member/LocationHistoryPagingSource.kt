@@ -27,6 +27,6 @@ class LocationHistoryPagingSource(private var query: Query) :
 
             LoadResult.Page(data = lists, prevKey = null, nextKey = nextPage)
         } catch (e: Exception) {
-            LoadResult.Error(e)
+            LoadResult.Page(data = emptyList(), prevKey = null, nextKey = null)
         }
 }

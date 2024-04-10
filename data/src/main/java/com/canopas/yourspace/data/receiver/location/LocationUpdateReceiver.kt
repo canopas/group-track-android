@@ -6,6 +6,7 @@ import android.content.Intent
 import android.location.Location
 import com.canopas.yourspace.data.models.location.ApiLocation
 import com.canopas.yourspace.data.models.location.LocationJourney
+import com.canopas.yourspace.data.models.location.LocationTable
 import com.canopas.yourspace.data.models.location.UserState
 import com.canopas.yourspace.data.models.location.isSteadyLocation
 import com.canopas.yourspace.data.models.location.toLocation
@@ -13,8 +14,10 @@ import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.location.ApiLocationService
 import com.canopas.yourspace.data.service.location.LocationJourneyService
 import com.canopas.yourspace.data.service.location.LocationManager
+import com.canopas.yourspace.data.storage.room.LocationTableDatabase
 import com.canopas.yourspace.data.utils.Config.DISTANCE_TO_CHECK_SUDDEN_LOCATION_CHANGE
 import com.canopas.yourspace.data.utils.Config.RADIUS_TO_CHECK_USER_STATE
+import com.canopas.yourspace.data.utils.Converters
 import com.google.android.gms.location.LocationResult
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -42,7 +45,14 @@ class LocationUpdateReceiver : BroadcastReceiver() {
     lateinit var locationManager: LocationManager
 
     @Inject
+    lateinit var locationTableDatabase: LocationTableDatabase
+
+    @Inject
     lateinit var authService: AuthService
+
+    @Inject
+    lateinit var converters: Converters
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -51,17 +61,20 @@ class LocationUpdateReceiver : BroadcastReceiver() {
                 try {
                     locationResult.locations.map { extractedLocation ->
                         async {
-                            val lastLocation = getLastLocation()
-                            val userState = getUserState(extractedLocation, lastLocation)
-
-                            locationService.saveCurrentLocation(
-                                authService.currentUser?.id ?: "",
-                                extractedLocation.latitude,
-                                extractedLocation.longitude,
-                                Date().time,
-                                userState = userState ?: UserState.STEADY.value
-                            )
-                            saveLocationJourney(userState, extractedLocation, lastLocation)
+                            authService.currentUser?.id?.let {
+                                val locationData = getLocationData()
+                                val lastLocation = getLastLocation(locationData)
+                                val userState =
+                                    getUserState(extractedLocation, lastLocation, locationData)
+                                locationService.saveCurrentLocation(
+                                    it,
+                                    extractedLocation.latitude,
+                                    extractedLocation.longitude,
+                                    Date().time,
+                                    userState = userState ?: UserState.STEADY.value
+                                )
+                                saveLocationJourney(userState, extractedLocation, lastLocation)
+                            }
                         }
                     }
                 } catch (e: Exception) {
@@ -71,13 +84,20 @@ class LocationUpdateReceiver : BroadcastReceiver() {
         }
     }
 
+    private fun getLocationData(): LocationTable? {
+        return authService.currentUser?.id?.let { userId ->
+            locationTableDatabase.locationTableDao().getLocationData(userId)
+        }
+    }
+
     private suspend fun getUserState(
         extractedLocation: Location,
-        lastLocation: ApiLocation?
+        lastLocation: ApiLocation?,
+        locationData: LocationTable?
     ): Int? {
         return scope.async {
             try {
-                val lastFiveMinuteLocations = getLastFiveMinuteLocations()
+                val lastFiveMinuteLocations = getLastFiveMinuteLocations(locationData)
                 return@async if (lastFiveMinuteLocations.isNotEmpty() && lastFiveMinuteLocations.isMoving(
                         extractedLocation
                     )
@@ -106,9 +126,10 @@ class LocationUpdateReceiver : BroadcastReceiver() {
     ) {
         try {
             scope.launch {
-                val lastSteadyLocation = getLastSteadyLocation()
-                val lastMovingLocation = getLastMovingLocation()
-                val lastJourneyLocation = getLastJourneyLocation()
+                val locationData = getLocationData()
+                val lastSteadyLocation = getLastSteadyLocation(locationData)
+                val lastMovingLocation = getLastMovingLocation(locationData)
+                val lastJourneyLocation = getLastJourneyLocation(locationData)
 
                 if (lastJourneyLocation == null) {
                     locationJourneyService.saveCurrentJourney(
@@ -219,37 +240,95 @@ class LocationUpdateReceiver : BroadcastReceiver() {
         }
     }
 
-    private suspend fun getLastLocation(): ApiLocation? {
-        return locationService.getLastLocation(authService.currentUser?.id ?: "")
+    private suspend fun getLastLocation(locationData: LocationTable?): ApiLocation? {
+        locationData?.let { location ->
+            location.latestLocation?.let {
+                return converters.locationFromString(it)
+            }
+        } ?: run {
+            val lastLocation = locationService.getLastLocation(authService.currentUser?.id ?: "")
+            lastLocation?.let {
+                locationTableDatabase.locationTableDao().insertLocationData(
+                    LocationTable(
+                        userId = authService.currentUser?.id ?: "",
+                        latestLocation = converters.locationToString(it)
+                    )
+                )
+            }
+            return lastLocation
+        }
     }
 
-    private suspend fun getLastJourneyLocation(): LocationJourney? {
-        return locationJourneyService.getLastJourneyLocation(authService.currentUser?.id ?: "")
+    private suspend fun getLastJourneyLocation(locationData: LocationTable?): LocationJourney? {
+        return locationData?.lastLocationJourney?.let {
+            return converters.journeyFromString(it)
+        } ?: run {
+            val lastJourneyLocation =
+                locationJourneyService.getLastJourneyLocation(authService.currentUser?.id ?: "")
+            locationData?.copy(lastLocationJourney = converters.journeyToString(lastJourneyLocation))?.let {
+                locationTableDatabase.locationTableDao().updateLocationTable(it)
+            }
+            return lastJourneyLocation
+        }
     }
 
-    private suspend fun getLastSteadyLocation(): LocationJourney? {
-        return locationJourneyService.getLastSteadyLocation(authService.currentUser?.id ?: "")
+    private suspend fun getLastSteadyLocation(locationData: LocationTable?): LocationJourney? {
+        locationData?.lastSteadyLocation?.let {
+            return converters.journeyFromString(it)
+        } ?: run {
+            val lastSteadyLocation =
+                locationJourneyService.getLastSteadyLocation(authService.currentUser?.id ?: "")
+            locationData?.copy(lastSteadyLocation = converters.journeyToString(lastSteadyLocation))
+                ?.let {
+                    locationTableDatabase.locationTableDao().updateLocationTable(it)
+                }
+            return lastSteadyLocation
+        }
     }
 
-    private suspend fun getLastMovingLocation(): LocationJourney? {
-        return locationJourneyService.getLastMovingLocation(authService.currentUser?.id ?: "")
+    private suspend fun getLastMovingLocation(locationData: LocationTable?): LocationJourney? {
+        locationData?.lastMovingLocation?.let {
+            return converters.journeyFromString(it)
+        } ?: run {
+            val lastMovingLocation =
+                locationJourneyService.getLastMovingLocation(authService.currentUser?.id ?: "")
+            locationData?.copy(lastMovingLocation = converters.journeyToString(lastMovingLocation))?.let {
+                locationTableDatabase.locationTableDao().updateLocationTable(it)
+            }
+            return lastMovingLocation
+        }
     }
 
     private fun updateLastMovingLocation(newJourney: LocationJourney) {
-        locationJourneyService.updateLastMovingLocation(
+        locationJourneyService.updateLastLocationJourney(
             authService.currentUser?.id ?: "",
             newJourney
         )
     }
 
-    private suspend fun getLastFiveMinuteLocations(): List<ApiLocation> {
-        val lastFiveMinuteLocations =
-            locationService.getLastFiveMinuteLocations(authService.currentUser?.id ?: "")
-        val locationsList = mutableListOf<ApiLocation>()
-        lastFiveMinuteLocations.collectLatest { locations ->
-            locationsList.addAll(locations)
+    private suspend fun getLastFiveMinuteLocations(
+        locationData: LocationTable?
+    ): List<ApiLocation> {
+        val locationList = mutableListOf<ApiLocation>()
+        return locationData?.lastFiveMinutesLocations?.let {
+            converters.locationListFromString(it)
+        }.takeIf {
+            val lastLocationCreatedAt = it?.firstOrNull()?.created_at ?: 0L
+            it?.isNotEmpty() == true && (Date().time > (lastLocationCreatedAt + 5 * 60 * 1000))
+        } ?: run {
+            val locations =
+                locationService.getLastFiveMinuteLocations(
+                    authService.currentUser?.id ?: ""
+                )
+            locations.collectLatest {
+                locationList.addAll(it)
+            }
+            locationData?.copy(lastFiveMinutesLocations = converters.locationListToString(locationList))
+                ?.let {
+                    locationTableDatabase.locationTableDao().updateLocationTable(it)
+                }
+            locationList
         }
-        return locationsList
     }
 
     private fun List<ApiLocation>.isMoving(currentLocation: Location): Boolean {

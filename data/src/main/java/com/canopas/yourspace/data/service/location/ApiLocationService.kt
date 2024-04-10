@@ -1,8 +1,11 @@
 package com.canopas.yourspace.data.service.location
 
 import com.canopas.yourspace.data.models.location.ApiLocation
+import com.canopas.yourspace.data.models.location.LocationTable
 import com.canopas.yourspace.data.models.location.UserState
+import com.canopas.yourspace.data.storage.room.LocationTableDatabase
 import com.canopas.yourspace.data.utils.Config
+import com.canopas.yourspace.data.utils.Converters
 import com.canopas.yourspace.data.utils.snapshotFlow
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
@@ -17,7 +20,9 @@ import javax.inject.Singleton
 @Singleton
 class ApiLocationService @Inject constructor(
     db: FirebaseFirestore,
-    private val locationManager: LocationManager
+    private val locationManager: LocationManager,
+    private val locationTableDatabase: LocationTableDatabase,
+    private val converters: Converters
 ) {
     private val userRef = db.collection(Config.FIRESTORE_COLLECTION_USERS)
     private fun locationRef(userId: String): CollectionReference? {
@@ -46,6 +51,8 @@ class ApiLocationService @Inject constructor(
             user_state = UserState.STEADY.value
         )
 
+        setLocationTableData(userId, location)
+
         docRef.set(location).await()
     }
 
@@ -68,7 +75,31 @@ class ApiLocationService @Inject constructor(
             user_state = userState
         )
 
+        setLocationTableData(userId, location)
+
         docRef.set(location).await()
+    }
+
+    private suspend fun setLocationTableData(
+        userId: String,
+        location: ApiLocation
+    ) {
+        locationTableDatabase.locationTableDao().getLocationData(userId).let { locationTable ->
+            locationTable?.latestLocation?.let {
+                locationTableDatabase.locationTableDao().updateLocationTable(
+                    locationTable.copy(
+                        latestLocation = converters.locationToString(location)
+                    )
+                )
+            } ?: run {
+                locationTableDatabase.locationTableDao().insertLocationData(
+                    LocationTable(
+                        userId = userId,
+                        latestLocation = converters.locationToString(location)
+                    )
+                )
+            }
+        }
     }
 
     suspend fun getCurrentLocation(userId: String): Flow<List<ApiLocation>>? {
