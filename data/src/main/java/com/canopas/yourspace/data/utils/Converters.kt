@@ -6,6 +6,7 @@ import com.canopas.yourspace.data.models.location.LocationJourney
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -28,7 +29,12 @@ class Converters @Inject constructor() {
      * */
     @TypeConverter
     fun locationListFromString(value: String): List<ApiLocation>? {
-        return listJsonAdapter.fromJson(value)
+        return try {
+            listJsonAdapter.fromJson(value)
+        } catch (e: Exception) {
+            Timber.e(e, "Error converting location list from string")
+            null
+        }
     }
 
     /**
@@ -36,7 +42,12 @@ class Converters @Inject constructor() {
      * */
     @TypeConverter
     fun locationListToString(list: List<ApiLocation>?): String {
-        return listJsonAdapter.toJson(list)
+        return try {
+            listJsonAdapter.toJson(list)
+        } catch (e: Exception) {
+            Timber.e(e, "Error converting location list to string")
+            ""
+        }
     }
 
     /**
@@ -44,7 +55,12 @@ class Converters @Inject constructor() {
      * */
     @TypeConverter
     fun locationFromString(value: String): ApiLocation? {
-        return apiLocationAdapter.fromJson(value)
+        return try {
+            apiLocationAdapter.fromJson(value)
+        } catch (e: Exception) {
+            Timber.e(e, "Error converting location from string")
+            null
+        }
     }
 
     /**
@@ -52,7 +68,12 @@ class Converters @Inject constructor() {
      * */
     @TypeConverter
     fun locationToString(apiLocation: ApiLocation?): String {
-        return apiLocationAdapter.toJson(apiLocation)
+        return try {
+            apiLocationAdapter.toJson(apiLocation)
+        } catch (e: Exception) {
+            Timber.e(e, "Error converting location to string")
+            ""
+        }
     }
 
     /**
@@ -60,7 +81,12 @@ class Converters @Inject constructor() {
      * */
     @TypeConverter
     fun journeyFromString(value: String): LocationJourney? {
-        return journeyAdapter.fromJson(value)
+        return try {
+            journeyAdapter.fromJson(value)
+        } catch (e: Exception) {
+            Timber.e(e, "Error converting journey from string")
+            null
+        }
     }
 
     /**
@@ -68,6 +94,11 @@ class Converters @Inject constructor() {
      * */
     @TypeConverter
     fun journeyToString(journey: LocationJourney?): String {
-        return journeyAdapter.toJson(journey)
+        return try {
+            journeyAdapter.toJson(journey)
+        } catch (e: Exception) {
+            Timber.e(e, "Error converting journey to string")
+            ""
+        }
     }
 }

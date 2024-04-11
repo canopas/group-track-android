@@ -32,6 +32,7 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -410,6 +411,13 @@ fun FilterOption(
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
+object PastOrPresentSelectableDates: SelectableDates {
+    override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+        return utcTimeMillis <= System.currentTimeMillis()
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShowDatePicker(
     selectedTimestamp: Long? = null,
@@ -417,8 +425,10 @@ fun ShowDatePicker(
     dismissButtonClick: () -> Unit
 ) {
     val calendar = Calendar.getInstance()
+
     val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = selectedTimestamp ?: calendar.timeInMillis
+        initialSelectedDateMillis = selectedTimestamp ?: calendar.timeInMillis,
+        selectableDates = PastOrPresentSelectableDates
     )
     DatePickerDialog(
         onDismissRequest = {},
@@ -438,8 +448,7 @@ fun ShowDatePicker(
         }
     ) {
         DatePicker(
-            state = datePickerState,
-            dateValidator = { date -> date <= System.currentTimeMillis() }
+            state = datePickerState
         )
     }
 }
