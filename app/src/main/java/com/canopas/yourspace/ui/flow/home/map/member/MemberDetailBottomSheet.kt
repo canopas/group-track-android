@@ -306,17 +306,28 @@ private fun LocationHistoryItem(
                 modifier = Modifier
                     .padding(16.dp)
             ) {
-                Icon(
-                    painterResource(id = R.drawable.ic_access_time),
-                    contentDescription = "",
-                    tint = AppTheme.colorScheme.textSecondary,
-                    modifier = Modifier.size(12.dp)
-                )
+                if (location.isSteadyLocation()) {
+                    Icon(
+                        painterResource(id = R.drawable.ic_access_time),
+                        contentDescription = "",
+                        tint = AppTheme.colorScheme.textSecondary,
+                        modifier = Modifier.size(12.dp)
+                    )
 
-                Text(
-                    text = getFormattedLocationTime(location.created_at!!, previousLocationJourney?.created_at ?: System.currentTimeMillis()),
-                    style = AppTheme.appTypography.label2.copy(color = AppTheme.colorScheme.textSecondary)
-                )
+                    Text(
+                        text = getFormattedLocationTime(location.created_at!!, previousLocationJourney?.created_at ?: System.currentTimeMillis()),
+                        style = AppTheme.appTypography.label2.copy(color = AppTheme.colorScheme.textSecondary)
+                    )
+                } else {
+                    Text(
+                        text = getDistanceString(location.route_distance!!) + " - ",
+                        style = AppTheme.appTypography.label2.copy(color = AppTheme.colorScheme.textSecondary)
+                    )
+                    Text(
+                        text = getRouteDurationString(location.route_duration!!),
+                        style = AppTheme.appTypography.label2.copy(color = AppTheme.colorScheme.textSecondary)
+                    )
+                }
             }
         }
     }
@@ -526,11 +537,56 @@ fun UserInfoContent(userInfo: UserInfo) {
 
 private fun getFormattedLocationTime(timestamp1: Long, timestamp2: Long): String {
     val elapsedTime = maxOf(timestamp1, timestamp2) - minOf(timestamp1, timestamp2)
-    //  Calculate hh:mm:sec from elapsed time milliseconds
     val hours = TimeUnit.MILLISECONDS.toHours(elapsedTime)
     val minutes = TimeUnit.MILLISECONDS.toMinutes(elapsedTime) % 60
     val seconds = TimeUnit.MILLISECONDS.toSeconds(elapsedTime) % 60
-    return String.format("%02d:%02d:%02d", hours, minutes, seconds)
+    return when {
+        hours > 24 -> {
+            val days = hours / 24
+            val remainingHours = hours % 24
+            "$days days $remainingHours hours $minutes minutes $seconds seconds"
+        }
+        hours > 0 -> {
+            "$hours hours $minutes minutes $seconds seconds"
+        }
+        minutes > 0 -> {
+            "$minutes minutes $seconds seconds"
+        }
+        else -> {
+            "$seconds seconds"
+        }
+    }
+}
+
+private fun getDistanceString(
+    routeDistance: Double
+): String {
+    return if (routeDistance < 1000) {
+        "$routeDistance m"
+    } else {
+        // Take maximum of 2 decimal places
+        val distanceInKm = (routeDistance / 1000)
+        String.format("%.2f", distanceInKm) + " km"
+    }
+}
+
+private fun getRouteDurationString(
+    routeDuration: Long
+): String {
+    val hours = TimeUnit.MILLISECONDS.toHours(routeDuration)
+    val minutes = TimeUnit.MILLISECONDS.toMinutes(routeDuration) % 60
+    val seconds = TimeUnit.MILLISECONDS.toSeconds(routeDuration) % 60
+    return when {
+        hours > 0 -> {
+            "$hours hours $minutes minutes $seconds seconds"
+        }
+        minutes > 0 -> {
+            "$minutes minutes $seconds seconds"
+        }
+        else -> {
+            "$seconds seconds"
+        }
+    }
 }
 
 fun getFormattedCreatedAt(createdAt: Long): String {

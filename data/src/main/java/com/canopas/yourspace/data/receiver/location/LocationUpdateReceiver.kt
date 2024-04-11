@@ -113,7 +113,7 @@ class LocationUpdateReceiver : BroadcastReceiver() {
                     extractedLocation
                 )
                 val timeDifference = extractedLocation.time - lastMovingLocation.created_at!!
-                if (lastMovingAndCurrentDistance < 100 && timeDifference > 5 * 60 * 1000) {
+                if ((lastMovingAndCurrentDistance < 100 || lastMovingLocation == lastJourneyLocation) && timeDifference > 5 * 60 * 1000) {
                     if (lastJourneyLocation != null) {
                         locationJourneyService.saveJourneyForSteadyUser(
                             userId,

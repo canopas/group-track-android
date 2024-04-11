@@ -119,7 +119,10 @@ suspend fun LocationJourneyService.saveJourneyIfNullLastLocation(
         )
     } else {
         val timeDifference = extractedLocation.time - lastJourneyLocation.created_at!!
-        val distance = distanceBetween(extractedLocation, lastJourneyLocation.toLocationFromSteadyJourney()).toDouble()
+        val distance = distanceBetween(
+            extractedLocation,
+            lastJourneyLocation.toLocationFromSteadyJourney()
+        ).toDouble()
 
         if ((timeDifference > 5 * 60 * 1000 && !lastJourneyLocation.isSteadyLocation()) ||
             distance > Config.DISTANCE_TO_CHECK_SUDDEN_LOCATION_CHANGE
@@ -180,14 +183,29 @@ suspend fun LocationJourneyService.saveJourneyForMovingUser(
         route_distance = lastSteadyLocation?.toLocationFromSteadyJourney()?.let { location ->
             distanceBetween(extractedLocation, location).toDouble()
         },
-        route_duration = extractedLocation.time - (lastSteadyLocation?.created_at ?: 0L),
-        current_location_duration = extractedLocation.time - (lastSteadyLocation?.created_at ?: 0L),
-        created_at = Date().time
+        route_duration = extractedLocation.time - (
+            (
+                lastMovingLocation?.created_at
+                    ?: lastSteadyLocation?.created_at
+                ) ?: 0L
+            ),
+        current_location_duration = extractedLocation.time - (
+            (
+                lastMovingLocation?.created_at
+                    ?: lastSteadyLocation?.created_at
+                ) ?: 0L
+            ),
+        created_at = lastMovingLocation?.created_at ?: Date().time
     )
 
-    val distance = distanceBetween(extractedLocation, lastJourneyLocation.toLocationFromSteadyJourney()).toDouble()
+    val distance = distanceBetween(
+        extractedLocation,
+        lastJourneyLocation.toLocationFromSteadyJourney()
+    ).toDouble()
 
-    if (distance > Config.DISTANCE_TO_CHECK_SUDDEN_LOCATION_CHANGE) {
+    val timeDifference = Date().time - newJourney.created_at!!
+
+    if (distance > Config.DISTANCE_TO_CHECK_SUDDEN_LOCATION_CHANGE || timeDifference > 5 * 60 * 1000) {
         saveCurrentJourney(
             userId = currentUserId,
             fromLatitude = extractedLocation.latitude,
