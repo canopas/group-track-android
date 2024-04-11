@@ -411,7 +411,7 @@ fun FilterOption(
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-object PastOrPresentSelectableDates: SelectableDates {
+object PastOrPresentSelectableDates : SelectableDates {
     override fun isSelectableDate(utcTimeMillis: Long): Boolean {
         return utcTimeMillis <= System.currentTimeMillis()
     }
