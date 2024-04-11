@@ -23,9 +23,9 @@ data class ApiLocation(
     val user_state: Int? = UserState.MOVING.value
 )
 
-fun ApiLocation.toLocationFromSteadyJourney() = android.location.Location("").apply {
-    latitude = this@toLocationFromSteadyJourney.latitude
-    longitude = this@toLocationFromSteadyJourney.longitude
+fun ApiLocation.toLocation() = android.location.Location("").apply {
+    latitude = this@toLocation.latitude
+    longitude = this@toLocation.longitude
 }
 
 fun android.location.Location.toApiLocation(userId: String) = ApiLocation(

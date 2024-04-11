@@ -7,6 +7,7 @@ import com.canopas.yourspace.data.models.location.LocationTable
 import com.canopas.yourspace.data.models.location.UserState
 import com.canopas.yourspace.data.models.location.isSteadyLocation
 import com.canopas.yourspace.data.models.location.toLocationFromSteadyJourney
+import com.canopas.yourspace.data.models.location.toLocation
 import com.canopas.yourspace.data.service.location.LocationJourneyService
 import com.canopas.yourspace.data.storage.room.LocationTableDatabase
 import com.canopas.yourspace.data.utils.Config
@@ -34,7 +35,7 @@ fun distanceBetween(location1: Location, location2: Location): Float {
  * */
 fun List<ApiLocation>.isMoving(currentLocation: Location): Boolean {
     return any {
-        val distance = currentLocation.distanceTo(it.toLocationFromSteadyJourney()).toDouble()
+        val distance = currentLocation.distanceTo(it.toLocation()).toDouble()
         distance > Config.RADIUS_TO_CHECK_USER_STATE
     }
 }
