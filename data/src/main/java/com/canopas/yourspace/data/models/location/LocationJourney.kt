@@ -24,7 +24,12 @@ fun LocationJourney.isSteadyLocation(): Boolean {
     return to_latitude == null && to_longitude == null
 }
 
-fun LocationJourney.toLocation() = Location("").apply {
-    latitude = this@toLocation.from_latitude
-    longitude = this@toLocation.from_longitude
+fun LocationJourney.toLocationFromSteadyJourney() = Location("").apply {
+    latitude = this@toLocationFromSteadyJourney.from_latitude
+    longitude = this@toLocationFromSteadyJourney.from_longitude
+}
+
+fun LocationJourney.toLocationFromMovingJourney() = Location("").apply {
+    latitude = this@toLocationFromMovingJourney.to_latitude ?: 0.0
+    longitude = this@toLocationFromMovingJourney.to_longitude ?: 0.0
 }

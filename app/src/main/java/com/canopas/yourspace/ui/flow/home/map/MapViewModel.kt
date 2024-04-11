@@ -3,7 +3,7 @@ package com.canopas.yourspace.ui.flow.home.map
 import android.location.Location
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.canopas.yourspace.data.models.location.toLocation
+import com.canopas.yourspace.data.models.location.toLocationFromSteadyJourney
 import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.models.user.UserInfo
 import com.canopas.yourspace.data.repository.SpaceRepository
@@ -56,7 +56,7 @@ class MapViewModel @Inject constructor(
                 val selectedUser = _state.value.selectedUser
                 if (selectedUser != null) {
                     val updatedLocation =
-                        members.find { it.user.id == selectedUser.user.id }?.location?.toLocation()
+                        members.find { it.user.id == selectedUser.user.id }?.location?.toLocationFromSteadyJourney()
                     if (updatedLocation != null) {
                         currentCameraPosition = updatedLocation
                     }
@@ -80,7 +80,7 @@ class MapViewModel @Inject constructor(
         if (selectedUser != null && selectedUser.user.id == userInfo.user.id) {
             dismissMemberDetail()
         } else {
-            val selectedLocation = userInfo.location?.toLocation()
+            val selectedLocation = userInfo.location?.toLocationFromSteadyJourney()
             _state.emit(
                 _state.value.copy(
                     selectedUser = userInfo,

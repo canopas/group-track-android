@@ -39,15 +39,8 @@ class LocationJourneyService @Inject constructor(
             created_at = Date().time
         )
 
-        locationTableDatabase.locationTableDao().getLocationData(userId).let { locationTable ->
-            locationTable?.lastSteadyLocation?.let {
-                locationTableDatabase.locationTableDao().updateLocationTable(
-                    locationTable.copy(
-                        lastSteadyLocation = converters.journeyToString(journey)
-                    )
-                )
-            }
-        }
+        journey.updateLocationJourney(userId)
+
         docRef.set(journey).await()
     }
 
@@ -77,23 +70,28 @@ class LocationJourneyService @Inject constructor(
             created_at = recordedAt
         )
 
+        journey.updateLocationJourney(userId)
+
+        docRef.set(journey).await()
+    }
+
+    private suspend fun LocationJourney.updateLocationJourney(userId: String) {
         locationTableDatabase.locationTableDao().getLocationData(userId).let { locationTable ->
-            val newLocationData = if (journey.isSteadyLocation()) {
+            val newLocationData = if (isSteadyLocation()) {
                 locationTable?.copy(
-                    lastSteadyLocation = converters.journeyToString(journey),
-                    lastLocationJourney = converters.journeyToString(journey)
+                    lastSteadyLocation = converters.journeyToString(this),
+                    lastLocationJourney = converters.journeyToString(this)
                 )
             } else {
                 locationTable?.copy(
-                    lastMovingLocation = converters.journeyToString(journey),
-                    lastLocationJourney = converters.journeyToString(journey)
+                    lastMovingLocation = converters.journeyToString(this),
+                    lastLocationJourney = converters.journeyToString(this)
                 )
             }
             newLocationData?.let {
                 locationTableDatabase.locationTableDao().updateLocationTable(it)
             }
         }
-        docRef.set(journey).await()
     }
 
     suspend fun getLastSteadyLocation(userId: String): LocationJourney? {

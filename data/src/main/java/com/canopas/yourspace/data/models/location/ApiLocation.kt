@@ -4,9 +4,12 @@ import androidx.annotation.Keep
 import com.squareup.moshi.JsonClass
 import java.util.UUID
 
+/**
+ * User state that can be either [UserState.STEADY] or [UserState.MOVING]
+ * */
 enum class UserState(val value: Int) {
-    STEADY(1),
-    MOVING(2)
+    STEADY(0),
+    MOVING(1)
 }
 
 @Keep
@@ -20,9 +23,9 @@ data class ApiLocation(
     val user_state: Int? = UserState.MOVING.value
 )
 
-fun ApiLocation.toLocation() = android.location.Location("").apply {
-    latitude = this@toLocation.latitude
-    longitude = this@toLocation.longitude
+fun ApiLocation.toLocationFromSteadyJourney() = android.location.Location("").apply {
+    latitude = this@toLocationFromSteadyJourney.latitude
+    longitude = this@toLocationFromSteadyJourney.longitude
 }
 
 fun android.location.Location.toApiLocation(userId: String) = ApiLocation(

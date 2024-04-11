@@ -9,9 +9,10 @@ import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import javax.inject.Inject
 
 /**
- * Converters for Room database
- * Converters for converting complex data types to Room supported data types
- * For example, converting List<ApiLocation> to String and vice versa
+ * Converters for Room database, used for converting complex data types to Room supported data types.
+ *
+ * For example, converting List<ApiLocation> to String and vice versa.
+ *
  * Similarly, converting ApiLocation to String and vice versa
  * */
 class Converters @Inject constructor() {
