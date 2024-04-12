@@ -145,7 +145,6 @@ suspend fun LocationJourneyService.saveJourneyIfNullLastLocation(
 suspend fun LocationJourneyService.saveJourneyForSteadyUser(
     currentUserId: String,
     extractedLocation: Location,
-    lastLocation: ApiLocation?,
     lastJourneyLocation: LocationJourney,
     lastSteadyLocation: LocationJourney?
 ) {
@@ -159,7 +158,7 @@ suspend fun LocationJourneyService.saveJourneyForSteadyUser(
         userId = currentUserId,
         fromLatitude = extractedLocation.latitude,
         fromLongitude = extractedLocation.longitude,
-        currentLocationDuration = extractedLocation.time - (lastLocation?.created_at ?: 0L),
+        currentLocationDuration = extractedLocation.time - (lastJourneyLocation.created_at ?: 0L),
         recordedAt = Date().time
     )
 }

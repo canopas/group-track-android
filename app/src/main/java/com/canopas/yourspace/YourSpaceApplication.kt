@@ -10,11 +10,7 @@ class YourSpaceApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-
-        if (BuildConfig.DEBUG || BuildConfig.VERSION_NAME == "1.0.0") {
-            Timber.plant(Timber.DebugTree())
-        } else {
-            FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(true)
-        }
+        Timber.plant(Timber.DebugTree())
+        FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(!BuildConfig.DEBUG)
     }
 }

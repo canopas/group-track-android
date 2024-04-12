@@ -8,6 +8,7 @@ import com.canopas.yourspace.data.models.location.ApiLocation
 import com.canopas.yourspace.data.models.location.LocationJourney
 import com.canopas.yourspace.data.models.location.LocationTable
 import com.canopas.yourspace.data.models.location.UserState
+import com.canopas.yourspace.data.models.location.isSteadyLocation
 import com.canopas.yourspace.data.models.location.toApiLocation
 import com.canopas.yourspace.data.models.location.toLocationFromMovingJourney
 import com.canopas.yourspace.data.service.auth.AuthService
@@ -25,6 +26,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.util.Calendar
 import java.util.Date
 import javax.inject.Inject
 
@@ -115,14 +117,34 @@ class LocationUpdateReceiver : BroadcastReceiver() {
                 val timeDifference = extractedLocation.time - lastMovingLocation.created_at!!
                 if ((lastMovingAndCurrentDistance < 100 || lastMovingLocation == lastJourneyLocation) && timeDifference > 5 * 60 * 1000) {
                     if (lastJourneyLocation != null) {
-                        locationJourneyService.saveJourneyForSteadyUser(
-                            userId,
-                            extractedLocation,
-                            lastLocation,
-                            lastJourneyLocation,
-                            lastSteadyLocation
+                        locationJourneyService.saveCurrentJourney(
+                            userId = userId,
+                            fromLatitude = lastJourneyLocation.from_latitude,
+                            fromLongitude = lastJourneyLocation.from_longitude,
+                            currentLocationDuration = extractedLocation.time - lastJourneyLocation.created_at!!,
+                            recordedAt = Date().time
                         )
+                        return
                     }
+                }
+            }
+
+            if (lastJourneyLocation?.isSteadyLocation() == true) {
+                val calendar1 = Calendar.getInstance().apply {
+                    timeInMillis = lastJourneyLocation.created_at!!
+                }
+                val calendar2 = Calendar.getInstance().apply {
+                    timeInMillis = extractedLocation.time
+                }
+                // Check if day is changed
+                if (calendar1.get(Calendar.DAY_OF_MONTH) != calendar2.get(Calendar.DAY_OF_MONTH)) {
+                    locationJourneyService.saveCurrentJourney(
+                        userId = userId,
+                        fromLatitude = lastJourneyLocation.from_latitude,
+                        fromLongitude = lastJourneyLocation.from_longitude,
+                        currentLocationDuration = extractedLocation.time - lastJourneyLocation.created_at!!,
+                        recordedAt = Date().time
+                    )
                 }
             }
 
@@ -139,7 +161,6 @@ class LocationUpdateReceiver : BroadcastReceiver() {
                         locationJourneyService.saveJourneyForSteadyUser(
                             userId,
                             extractedLocation,
-                            lastLocation,
                             lastJourneyLocation,
                             lastSteadyLocation
                         )
