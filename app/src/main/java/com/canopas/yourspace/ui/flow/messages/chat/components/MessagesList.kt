@@ -109,7 +109,7 @@ fun ColumnScope.MessageList(
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(AppTheme.colorScheme.surface)
-                            .padding(8.dp),
+                            .padding(bottom = 8.dp, top = 20.dp),
                         textAlign = TextAlign.Center
                     )
                 }

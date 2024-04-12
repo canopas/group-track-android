@@ -87,16 +87,28 @@ exports.sendNotification = onDocumentCreated("space_threads/{threadId}/thread_me
 
     const memberIds = documentData.member_ids.filter(memberId => memberId !== senderId);
 
-    const tokensPromises = memberIds.map(async memberId => {
+    const membersPromises = memberIds.map(async memberId => {
         const memberSnapshot = await admin.firestore().collection('users').doc(memberId).get();
         if (!memberSnapshot.exists) {
            throw new Error(`Member with ID ${memberId} does not exist`);
         }
-        return memberSnapshot.data().fcm_token;
+        return memberSnapshot.data();
     });
 
-    const tokens = await Promise.all(tokensPromises)
-    const filteredTokens = tokens.filter(token => token !== undefined);
+    const members = await Promise.all(membersPromises)
+    const memberNames = members.map(member => {
+        return member.first_name;
+    });
+
+    const firstTwoNames = memberNames.slice(0, 2).join(", ");
+    const remainingCount = memberNames.length - 2;
+    const groupName = remainingCount > 0 ? `${firstTwoNames} +${remainingCount}` : firstTwoNames;
+
+    const filteredTokens = members.map(member => {
+           return member.fcm_token;
+    }).filter(token => token !== undefined);
+
+    const isGroup = memberIds.length > 1;
 
     if (filteredTokens.length > 0) {
         const payload = {
@@ -107,6 +119,9 @@ exports.sendNotification = onDocumentCreated("space_threads/{threadId}/thread_me
                 },
              data : {
                    senderProfileUrl: senderProfile,
+                   senderId: senderId,
+                   groupName: groupName,
+                   isGroup: `${isGroup}`,
                    threadId: threadId,
                    type: 'chat'
                 }

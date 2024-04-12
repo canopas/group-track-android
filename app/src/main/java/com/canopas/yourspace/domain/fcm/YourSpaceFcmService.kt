@@ -1,5 +1,6 @@
 package com.canopas.yourspace.domain.fcm
 
+import android.annotation.SuppressLint
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
@@ -8,7 +9,9 @@ import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
+import androidx.core.graphics.drawable.IconCompat
 import coil.ImageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
@@ -27,6 +30,8 @@ import javax.inject.Inject
 
 const val CHANNEL_YOURSPACE = "notification_channel_your_space"
 const val NOTIFICATION_ID = 101
+
+private const val NOTIFICATION_TYPE_CHAT = "chat"
 
 
 @AndroidEntryPoint
@@ -56,20 +61,36 @@ class YourSpaceFcmService : FirebaseMessagingService() {
             val title = notification.title
             val body = notification.body
             val profile = message.data["senderProfileUrl"]
-            if (title != null && body != null) {
-                sendNotification(this, title, body, profile)
+            val type = message.data["type"]
+
+            if (title != null && body != null && type == NOTIFICATION_TYPE_CHAT) {
+                scope.launch {
+                    val bitmap =
+                        if (profile.isNullOrEmpty()) null else getTrackBitmapFromUrl(profile)
+                    sendNotification(this@YourSpaceFcmService, title, body, message.data, bitmap)
+                }
             }
         }
     }
 
+    @SuppressLint("MissingPermission")
     private fun sendNotification(
         context: Context,
         title: String,
         body: String,
-        profile: String?,
+        data: MutableMap<String, String>,
+        profile: Bitmap?
     ) {
+        val isGroup = data["isGroup"].toBoolean()
+        val groupName = data["groupName"]
+        val senderId = data["senderId"]
+        val notificationId = data["threadId"]?.hashCode() ?: NOTIFICATION_ID
 
-        val user: Person = Person.Builder().setIcon(userIcon).setName(userName).build()
+        val user = Person.Builder().apply {
+            setKey(senderId)
+            setName(title)
+            profile?.let { setIcon(IconCompat.createWithAdaptiveBitmap(it)) }
+        }.build()
 
         val activityActionIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -83,23 +104,41 @@ class YourSpaceFcmService : FirebaseMessagingService() {
             pendingIntentFlag
         )
 
+        val style =
+            findActiveNotification(notificationId) ?: NotificationCompat.MessagingStyle(user)
+
         val nBuilder: NotificationCompat.Builder =
             NotificationCompat.Builder(context, CHANNEL_YOURSPACE)
                 .setSmallIcon(R.drawable.app_logo)
                 .setContentTitle(title)
                 .setContentText(body)
                 .setAutoCancel(true)
+                .setOnlyAlertOnce(true)
+                .setCategory(NotificationCompat.CATEGORY_MESSAGE)
                 .setContentIntent(activityActionPendingIntent)
+                .setStyle(
+                    style.also {
+                        if (isGroup) {
+                            it.setGroupConversation(true)
+                            it.setConversationTitle(groupName)
+                        }
+                        it.addMessage(body, System.currentTimeMillis(), user)
+                    }
+                )
 
-        scope.launch {
-            val bitmap = getTrackBitmapFromUrl(profile ?: "")
-            bitmap?.let {
-                nBuilder.setLargeIcon(it)
-                notificationManager.notify(NOTIFICATION_ID, nBuilder.build())
-            }
+        notificationManager.notify(notificationId, nBuilder.build())
+    }
+
+    private fun findActiveNotification(notificationId: Int): NotificationCompat.MessagingStyle? {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            NotificationManagerCompat.from(this)
+                .activeNotifications
+                .find { it.id == notificationId }
+                ?.notification
+                ?.let { NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(it) }
+        } else {
+            null
         }
-
-        notificationManager.notify(NOTIFICATION_ID, nBuilder.build())
     }
 
     private suspend fun getTrackBitmapFromUrl(
@@ -123,3 +162,4 @@ class YourSpaceFcmService : FirebaseMessagingService() {
         }
     }
 }
+
