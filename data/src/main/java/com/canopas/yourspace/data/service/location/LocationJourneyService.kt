@@ -105,7 +105,7 @@ class LocationJourneyService @Inject constructor(
         journeyRef(userId).whereEqualTo("user_id", userId)
             .whereGreaterThanOrEqualTo("created_at", from)
             .whereLessThan("created_at", to)
-            .orderBy("created_at", Query.Direction.DESCENDING).limit(50)
+            .orderBy("created_at", Query.Direction.DESCENDING).limit(10)
 
     fun updateLastMovingLocation(userId: String, newJourney: LocationJourney) {
         journeyRef(userId).document(newJourney.id).set(newJourney)

@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -38,6 +39,7 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,9 +58,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.paging.LoadState
-import androidx.paging.compose.LazyPagingItems
-import androidx.paging.compose.collectAsLazyPagingItems
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.location.LocationJourney
 import com.canopas.yourspace.data.models.location.isSteadyLocation
@@ -82,7 +81,6 @@ fun MemberDetailBottomSheetContent(
 ) {
     val viewModel = hiltViewModel<MemberDetailViewModel>()
     val state by viewModel.state.collectAsState()
-    val locations = viewModel.location.collectAsLazyPagingItems()
 
     LaunchedEffect(userInfo) {
         val calendar = Calendar.getInstance()
@@ -112,42 +110,57 @@ fun MemberDetailBottomSheetContent(
             calendar.set(Calendar.HOUR_OF_DAY, 23)
             viewModel.fetchUserLocationHistory(from = timestamp, to = calendar.timeInMillis)
         }
-        LocationHistory(locations)
+        LocationHistory(state, viewModel)
     }
 }
 
 @Composable
 fun LocationHistory(
-    locations: LazyPagingItems<LocationJourney>
+    state: MemberDetailState,
+    viewModel: MemberDetailViewModel
 ) {
+    val locations = state.locations
+    val lazyListState = rememberLazyListState()
+    val isScrollToEnd by remember(lazyListState) {
+        derivedStateOf {
+            lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index == lazyListState.layoutInfo.totalItemsCount - 1
+        }
+    }
+
+    if (isScrollToEnd) {
+        viewModel.loadMoreLocations()
+    }
+
     Box {
         when {
-            locations.loadState.refresh == LoadState.Loading -> {
+            locations.isEmpty() && state.isLoading -> {
                 Box(
                     modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) { AppProgressIndicator() }
             }
 
-            locations.itemCount == 0 -> {
+            locations.isEmpty() -> {
                 EmptyHistory()
             }
 
             else -> {
-                LazyColumn {
-                    items(locations.itemCount) { index ->
+                LazyColumn(
+                    state = lazyListState
+                ) {
+                    items(locations.size) { index ->
                         val location = locations[index]
-                        val previousLocationJourney = locations.itemSnapshotList.getOrNull(index - 1)
+                        val previousLocationJourney = locations.getOrNull(index - 1)
 
                         LocationHistoryItem(
-                            location!!,
+                            location,
                             previousLocationJourney,
                             index,
-                            isLastItem = index == locations.itemCount - 1
+                            isLastItem = index == locations.lastIndex
                         )
                     }
 
-                    if (locations.loadState.append == LoadState.Loading) {
+                    if (locations.isNotEmpty() && state.isLoading) {
                         item {
                             Box(
                                 modifier = Modifier.fillMaxWidth(),
@@ -314,7 +327,10 @@ private fun LocationHistoryItem(
                 )
 
                 Text(
-                    text = getFormattedLocationTime(location.created_at!!, previousLocationJourney?.created_at ?: System.currentTimeMillis()),
+                    text = getFormattedLocationTime(
+                        location.created_at!!,
+                        previousLocationJourney?.created_at ?: System.currentTimeMillis()
+                    ),
                     style = AppTheme.appTypography.label2.copy(color = AppTheme.colorScheme.textSecondary)
                 )
             }
