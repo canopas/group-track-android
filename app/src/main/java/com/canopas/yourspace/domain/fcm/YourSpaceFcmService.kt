@@ -1,6 +1,7 @@
 package com.canopas.yourspace.domain.fcm
 
 import android.annotation.SuppressLint
+import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
@@ -11,6 +12,7 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
+import androidx.core.app.RemoteInput
 import androidx.core.graphics.drawable.IconCompat
 import coil.ImageLoader
 import coil.request.ImageRequest
@@ -34,6 +36,8 @@ const val NOTIFICATION_ID = 101
 private const val NOTIFICATION_TYPE_CHAT = "chat"
 
 
+const val REPLY_ACTION_REQUEST_CODE = 102
+
 @AndroidEntryPoint
 class YourSpaceFcmService : FirebaseMessagingService() {
     @Inject
@@ -52,10 +56,10 @@ class YourSpaceFcmService : FirebaseMessagingService() {
             FcmRegisterWorker.startService(applicationContext)
         }
     }
-
+//ignTqy6LEox7X8bDkJK2
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
-        Timber.e("XXX: onMessageReceived: ${message} dat ${message.data} message ${message.notification}")
+        Timber.e("XXX: onMessageReceived: data ${message.data}")
         val notification = message.notification
         notification?.let {
             val title = notification.title
@@ -84,7 +88,8 @@ class YourSpaceFcmService : FirebaseMessagingService() {
         val isGroup = data["isGroup"].toBoolean()
         val groupName = data["groupName"]
         val senderId = data["senderId"]
-        val notificationId = data["threadId"]?.hashCode() ?: NOTIFICATION_ID
+        val threadId = data["threadId"]
+        val notificationId = threadId?.hashCode() ?: NOTIFICATION_ID
 
         val user = Person.Builder().apply {
             setKey(senderId)
@@ -92,53 +97,22 @@ class YourSpaceFcmService : FirebaseMessagingService() {
             profile?.let { setIcon(IconCompat.createWithAdaptiveBitmap(it)) }
         }.build()
 
-        val activityActionIntent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
-        }
-        val pendingIntentFlag =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else PendingIntent.FLAG_UPDATE_CURRENT
-        val activityActionPendingIntent: PendingIntent = PendingIntent.getActivity(
-            context,
-            0,
-            activityActionIntent,
-            pendingIntentFlag
-        )
-
         val style =
-            findActiveNotification(notificationId) ?: NotificationCompat.MessagingStyle(user)
-
-        val nBuilder: NotificationCompat.Builder =
-            NotificationCompat.Builder(context, CHANNEL_YOURSPACE)
-                .setSmallIcon(R.drawable.app_logo)
-                .setContentTitle(title)
-                .setContentText(body)
-                .setAutoCancel(true)
-                .setOnlyAlertOnce(true)
-                .setCategory(NotificationCompat.CATEGORY_MESSAGE)
-                .setContentIntent(activityActionPendingIntent)
-                .setStyle(
-                    style.also {
-                        if (isGroup) {
-                            it.setGroupConversation(true)
-                            it.setConversationTitle(groupName)
-                        }
-                        it.addMessage(body, System.currentTimeMillis(), user)
-                    }
-                )
-
-        notificationManager.notify(notificationId, nBuilder.build())
-    }
-
-    private fun findActiveNotification(notificationId: Int): NotificationCompat.MessagingStyle? {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            NotificationManagerCompat.from(this)
-                .activeNotifications
-                .find { it.id == notificationId }
-                ?.notification
+            findActiveNotification(this, notificationId)
                 ?.let { NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(it) }
-        } else {
-            null
+                ?: NotificationCompat.MessagingStyle(user)
+
+        style.also {
+            if (isGroup) {
+                it.setGroupConversation(true)
+                it.setConversationTitle(groupName)
+            }
+            it.addMessage(body, System.currentTimeMillis(), user)
         }
+
+        val nBuilder =
+            context.messageNotificationBuilder(notificationId, threadId, title, body, style)
+        notificationManager.notify(notificationId, nBuilder.build())
     }
 
     private suspend fun getTrackBitmapFromUrl(

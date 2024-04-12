@@ -162,6 +162,7 @@
     <string name="threads_screen_delete_dialogue_delete_btn">Delete</string>
     <string name="title_notification_channel">YourSpace notification</string>
     <string name="description_notification_channel">It is used to show messages</string>
+    <string name="common_reply">Reply</string>
 
     <string-array name="home_create_space_name_suggestion">
         <item>Family</item>

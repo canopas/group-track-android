@@ -43,6 +43,7 @@
         <receiver
             android:name=".data.receiver.location.LocationUpdateReceiver"
             android:exported="false" />
+        <receiver android:name="com.canopas.yourspace.domain.fcm.ReplyActionReceiver" />
 
         <activity
             android:name="com.canhub.cropper.CropImageActivity"
