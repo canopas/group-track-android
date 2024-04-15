@@ -6,7 +6,6 @@ import com.canopas.yourspace.data.service.user.ApiUserService
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -112,7 +111,6 @@ class AuthService @Inject constructor(
     suspend fun getUserFlow() = apiUserService.getUserFlow(currentUser?.id ?: "")
 }
 
-
 interface AuthStateChangeListener {
     fun onAuthStateChanged()
 }
@@ -126,5 +124,4 @@ sealed class AuthState {
 
     val isVerified: Boolean
         get() = this is VERIFIED
-
 }

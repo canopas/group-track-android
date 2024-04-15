@@ -1,9 +1,7 @@
 package com.canopas.yourspace.data.models.messages
 
 import androidx.annotation.Keep
-import com.google.firebase.Timestamp
 import com.google.firebase.firestore.Exclude
-import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.ServerTimestamp
 import java.text.SimpleDateFormat
 import java.util.Date

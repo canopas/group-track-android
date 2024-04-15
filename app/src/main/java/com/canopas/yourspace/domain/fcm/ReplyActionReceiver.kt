@@ -1,16 +1,12 @@
 package com.canopas.yourspace.domain.fcm
 
-import android.app.Notification
 import android.app.NotificationManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.Person
 import androidx.core.app.RemoteInput
-import androidx.core.graphics.drawable.IconCompat
-import com.canopas.yourspace.R
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.messages.ApiMessagesService
 import dagger.hilt.android.AndroidEntryPoint
@@ -54,7 +50,6 @@ class ReplyActionReceiver : BroadcastReceiver() {
         scope.launch {
             apiMessagesService.sendMessage(threadId, senderId, inputtedText.toString())
             Timber.e(" reply sent $threadId")
-
         }
 
         val activeNotification = findActiveNotification(context, notificationId) ?: return
@@ -87,6 +82,5 @@ class ReplyActionReceiver : BroadcastReceiver() {
 
         notificationManager.notify(notificationId, nBuilder.build())
         Timber.e("notification added")
-
     }
 }

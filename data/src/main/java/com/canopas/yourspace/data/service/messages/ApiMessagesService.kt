@@ -7,7 +7,6 @@ import com.canopas.yourspace.data.service.user.ApiUserService
 import com.canopas.yourspace.data.utils.Config
 import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_SPACE_THREADS
 import com.canopas.yourspace.data.utils.snapshotFlow
-import com.google.firebase.Firebase
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -20,7 +19,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
-import timber.log.Timber
 import java.util.Date
 import javax.inject.Inject
 
@@ -87,7 +85,7 @@ class ApiMessagesService @Inject constructor(
             thread_id = threadId,
             sender_id = senderId,
             message = message,
-            seen_by = listOf(senderId),
+            seen_by = listOf(senderId)
         )
         docRef.set(threadMessage).await()
     }

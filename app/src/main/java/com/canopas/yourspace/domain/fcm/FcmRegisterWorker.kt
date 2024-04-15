@@ -42,7 +42,6 @@ class FcmRegisterWorker @AssistedInject constructor(
     private val scope = CoroutineScope(Dispatchers.Main + job)
 
     override suspend fun doWork(): Result {
-
         if (userPreferences.currentUser != null && !userPreferences.isFCMRegistered) {
             val deviceToken = getFCMToken()
             try {
@@ -80,7 +79,6 @@ class FcmRegisterWorker @AssistedInject constructor(
         return token
     }
 
-
     companion object {
         fun startService(context: Context) {
             val data = Data.Builder().putString(FCM_SERVICE, FCM_SERVICE).build()
@@ -91,5 +89,4 @@ class FcmRegisterWorker @AssistedInject constructor(
             workManager.enqueue(request)
         }
     }
-
 }

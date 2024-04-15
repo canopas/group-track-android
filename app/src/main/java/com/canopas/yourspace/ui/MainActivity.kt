@@ -46,7 +46,6 @@ import com.canopas.yourspace.ui.navigation.RESULT_OKAY
 import com.canopas.yourspace.ui.navigation.slideComposable
 import com.canopas.yourspace.ui.theme.CatchMeTheme
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {

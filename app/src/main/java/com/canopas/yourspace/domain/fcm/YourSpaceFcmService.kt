@@ -1,18 +1,12 @@
 package com.canopas.yourspace.domain.fcm
 
 import android.annotation.SuppressLint
-import android.app.Notification
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.Context
-import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
-import android.os.Build
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
-import androidx.core.app.RemoteInput
 import androidx.core.graphics.drawable.IconCompat
 import coil.ImageLoader
 import coil.request.ImageRequest
@@ -21,7 +15,6 @@ import com.canopas.yourspace.R
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.domain.fcm.NotificationDataConst.KEY_IS_GROUP
 import com.canopas.yourspace.domain.fcm.NotificationDataConst.KEY_SENDER_ID
-import com.canopas.yourspace.ui.MainActivity
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import dagger.hilt.android.AndroidEntryPoint
@@ -29,7 +22,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 const val CHANNEL_YOURSPACE = "notification_channel_your_space"
@@ -123,7 +115,7 @@ class YourSpaceFcmService : FirebaseMessagingService() {
     }
 
     private suspend fun getTrackBitmapFromUrl(
-        url: String,
+        url: String
     ): Bitmap? {
         try {
             val size = resources.getDimensionPixelSize(R.dimen.size_notification_large)
@@ -143,4 +135,3 @@ class YourSpaceFcmService : FirebaseMessagingService() {
         }
     }
 }
-

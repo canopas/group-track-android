@@ -20,7 +20,6 @@ fun findActiveNotification(
             .activeNotifications
             .find { it.id == notificationId }
             ?.notification
-
     } else {
         null
     }
@@ -40,14 +39,11 @@ fun Context.messageNotificationBuilder(
             .setLabel(replyActionButtonTitle)
             .build()
 
-
     val replyAction = NotificationCompat.Action.Builder(
         icon,
         replyActionButtonTitle,
         replyActionPendingIntent(this, notificationId, threadId ?: "")
     ).addRemoteInput(remoteInput).build()
-
-
 
     return NotificationCompat.Builder(this, CHANNEL_YOURSPACE)
         .setSmallIcon(R.drawable.app_logo)
@@ -56,10 +52,9 @@ fun Context.messageNotificationBuilder(
         .setAutoCancel(true)
         .setOnlyAlertOnce(true)
         .setCategory(NotificationCompat.CATEGORY_MESSAGE)
-        .setContentIntent(clickActionPendingIntent(this,threadId))
+        .setContentIntent(clickActionPendingIntent(this, threadId))
         .addAction(replyAction)
         .setStyle(style)
-
 }
 
 private fun clickActionPendingIntent(context: Context, threadId: String?): PendingIntent {

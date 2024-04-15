@@ -241,13 +241,13 @@ fun PermissionFooter(onClick: () -> Unit) {
     }
 
     val title =
-      if(!context.isLocationPermissionGranted)
-          stringResource(id = R.string.home_permission_footer_missing_location_permission_title)
-    else if (!context.hasNotificationPermission) {
-        stringResource(id = R.string.home_permission_footer_title)
-    } else {
-          stringResource(id = R.string.home_permission_footer_missing_location_permission_title)
-    }
+        if (!context.isLocationPermissionGranted) {
+            stringResource(id = R.string.home_permission_footer_missing_location_permission_title)
+        } else if (!context.hasNotificationPermission) {
+            stringResource(id = R.string.home_permission_footer_title)
+        } else {
+            stringResource(id = R.string.home_permission_footer_missing_location_permission_title)
+        }
 
     val subTitle =
         if (!locationEnabled) {

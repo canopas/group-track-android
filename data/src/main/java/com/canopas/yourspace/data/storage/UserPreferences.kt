@@ -42,7 +42,6 @@ class UserPreferences @Inject constructor(
         val KEY_USER_CURRENT_SPACE = stringPreferencesKey("user_current_space")
 
         val IS_FCM_REGISTERED = booleanPreferencesKey("is_fcm_registered")
-
     }
 
     suspend fun isIntroShown(): Boolean {
@@ -137,5 +136,4 @@ class UserPreferences @Inject constructor(
                 preferences[PreferencesKey.IS_FCM_REGISTERED] = registered ?: false
             }
         }
-
 }
