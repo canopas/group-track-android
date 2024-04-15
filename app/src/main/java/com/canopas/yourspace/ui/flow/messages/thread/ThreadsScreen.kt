@@ -364,7 +364,7 @@ private fun LazyItemScope.ThreadItem(
         ) {
             val hasUnreadMsg = message?.seen_by?.contains(currentUser?.id) == false
             Text(
-                text = message?.created_at?.formattedMessageTimeString(
+                text = message?.createdAtMs?.formattedMessageTimeString(
                     LocalContext.current
                 ) ?: "",
                 style = AppTheme.appTypography.label3,

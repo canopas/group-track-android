@@ -1,6 +1,84 @@
 {
   "indexes": [
     {
+      "collectionGroup": "thread_messages",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "seen_by",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "sender_id",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "user_journeys",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "to_latitude",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "created_at",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "user_journeys",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "to_latitude",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "user_id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "created_at",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "user_journeys",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "user_id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "created_at",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "user_journeys",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "user_id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "created_at",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "to_latitude",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "user_locations",
       "queryScope": "COLLECTION",
       "fields": [

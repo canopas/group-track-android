@@ -194,7 +194,7 @@ fun LazyItemScope.MessageContent(
 
 fun shouldShowUserDetails(previousMessage: ApiThreadMessage?, message: ApiThreadMessage): Boolean {
     if (previousMessage == null) return true
-    val diff = message.created_at - previousMessage.created_at
+    val diff = message.createdAtMs - previousMessage.createdAtMs
 
     // Check if the previous message is from the same sender and within a minute
     return previousMessage.sender_id != message.sender_id || diff !in 0..TimeUnit.MINUTES.toMillis(1)

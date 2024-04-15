@@ -200,7 +200,7 @@ service cloud.firestore {
                     request.resource.data.sender_id is string &&
                     request.resource.data.message is string &&
                     request.resource.data.seen_by is list &&
-                    request.resource.data.created_at is int;
+                    request.resource.data.created_at is timestamp;
         }
     }
 }
