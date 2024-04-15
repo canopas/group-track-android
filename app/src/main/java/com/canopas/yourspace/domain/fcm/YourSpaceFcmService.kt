@@ -19,6 +19,8 @@ import coil.request.ImageRequest
 import coil.request.SuccessResult
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.storage.UserPreferences
+import com.canopas.yourspace.domain.fcm.NotificationDataConst.KEY_IS_GROUP
+import com.canopas.yourspace.domain.fcm.NotificationDataConst.KEY_SENDER_ID
 import com.canopas.yourspace.ui.MainActivity
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
@@ -35,8 +37,14 @@ const val NOTIFICATION_ID = 101
 
 private const val NOTIFICATION_TYPE_CHAT = "chat"
 
-
-const val REPLY_ACTION_REQUEST_CODE = 102
+object NotificationDataConst {
+    const val KEY_PROFILE_URL = "senderProfileUrl"
+    const val KEY_NOTIFICATION_TYPE = "type"
+    const val KEY_IS_GROUP = "isGroup"
+    const val KEY_GROUP_NAME = "groupName"
+    const val KEY_SENDER_ID = "senderId"
+    const val KEY_THREAD_ID = "threadId"
+}
 
 @AndroidEntryPoint
 class YourSpaceFcmService : FirebaseMessagingService() {
@@ -56,16 +64,15 @@ class YourSpaceFcmService : FirebaseMessagingService() {
             FcmRegisterWorker.startService(applicationContext)
         }
     }
-//ignTqy6LEox7X8bDkJK2
+
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
-        Timber.e("XXX: onMessageReceived: data ${message.data}")
         val notification = message.notification
         notification?.let {
             val title = notification.title
             val body = notification.body
-            val profile = message.data["senderProfileUrl"]
-            val type = message.data["type"]
+            val profile = message.data[NotificationDataConst.KEY_PROFILE_URL]
+            val type = message.data[NotificationDataConst.KEY_NOTIFICATION_TYPE]
 
             if (title != null && body != null && type == NOTIFICATION_TYPE_CHAT) {
                 scope.launch {
@@ -85,10 +92,10 @@ class YourSpaceFcmService : FirebaseMessagingService() {
         data: MutableMap<String, String>,
         profile: Bitmap?
     ) {
-        val isGroup = data["isGroup"].toBoolean()
-        val groupName = data["groupName"]
-        val senderId = data["senderId"]
-        val threadId = data["threadId"]
+        val isGroup = data[NotificationDataConst.KEY_IS_GROUP].toBoolean()
+        val groupName = data[NotificationDataConst.KEY_GROUP_NAME]
+        val senderId = data[NotificationDataConst.KEY_SENDER_ID]
+        val threadId = data[NotificationDataConst.KEY_THREAD_ID]
         val notificationId = threadId?.hashCode() ?: NOTIFICATION_ID
 
         val user = Person.Builder().apply {

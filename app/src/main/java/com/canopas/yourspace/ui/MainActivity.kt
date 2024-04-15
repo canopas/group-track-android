@@ -1,5 +1,6 @@
 package com.canopas.yourspace.ui
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -15,9 +16,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.canopas.yourspace.R
+import com.canopas.yourspace.domain.fcm.NotificationDataConst
 import com.canopas.yourspace.ui.component.AppAlertDialog
 import com.canopas.yourspace.ui.flow.auth.methods.SignInMethodViewModel
 import com.canopas.yourspace.ui.flow.auth.methods.SignInMethodsScreen
@@ -43,11 +46,13 @@ import com.canopas.yourspace.ui.navigation.RESULT_OKAY
 import com.canopas.yourspace.ui.navigation.slideComposable
 import com.canopas.yourspace.ui.theme.CatchMeTheme
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val threadId = intent.getStringExtra(NotificationDataConst.KEY_THREAD_ID)
         setContent {
             CatchMeTheme {
                 // A surface container using the 'background' color from the theme
@@ -55,18 +60,30 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MainApp()
+                    val viewModel = hiltViewModel<MainViewModel>()
+                    MainApp(viewModel)
+
+                    LaunchedEffect(Unit) {
+                        viewModel.handleIntentData(threadId)
+                    }
                 }
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        val viewModel = ViewModelProvider(this)[MainViewModel::class.java]
+        val threadId = intent?.getStringExtra(NotificationDataConst.KEY_THREAD_ID)
+        viewModel.handleIntentData(threadId)
+        intent?.extras?.clear()
     }
 }
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun MainApp() {
+fun MainApp(viewModel: MainViewModel) {
     val navController = rememberNavController()
-    val viewModel = hiltViewModel<MainViewModel>()
     val sessionExpired by viewModel.sessionExpiredState.collectAsState()
 
     val initialRoute by viewModel.initialRoute.collectAsState()

@@ -48,8 +48,10 @@ class FcmRegisterWorker @AssistedInject constructor(
             try {
                 val job = scope.async {
                     val user = userPreferences.currentUser!!
-                    apiUserService.registerFcmToken(user.id, deviceToken)
-                    authService.saveUser(user.copy(fcm_token = deviceToken))
+                    if (user.fcm_token != deviceToken) {
+                        apiUserService.registerFcmToken(user.id, deviceToken)
+                        authService.saveUser(user.copy(fcm_token = deviceToken))
+                    }
                     userPreferences.isFCMRegistered = true
                 }
                 job.await()

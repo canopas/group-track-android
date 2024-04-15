@@ -7,13 +7,9 @@ import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.core.app.Person
 import androidx.core.app.RemoteInput
-import androidx.core.graphics.drawable.IconCompat
 import com.canopas.yourspace.R
 import com.canopas.yourspace.ui.MainActivity
-import okhttp3.RequestBody
-import timber.log.Timber
 
 fun findActiveNotification(
     context: Context,
@@ -60,21 +56,22 @@ fun Context.messageNotificationBuilder(
         .setAutoCancel(true)
         .setOnlyAlertOnce(true)
         .setCategory(NotificationCompat.CATEGORY_MESSAGE)
-        .setContentIntent(clickActionPendingIntent(this))
+        .setContentIntent(clickActionPendingIntent(this,threadId))
         .addAction(replyAction)
         .setStyle(style)
 
 }
 
-private fun clickActionPendingIntent(context: Context): PendingIntent {
+private fun clickActionPendingIntent(context: Context, threadId: String?): PendingIntent {
     val intent = Intent(context, MainActivity::class.java).apply {
+        putExtra(NotificationDataConst.KEY_THREAD_ID, threadId)
         flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
     }
     val pendingIntentFlag =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else PendingIntent.FLAG_UPDATE_CURRENT
     return PendingIntent.getActivity(
         context,
-        REPLY_ACTION_REQUEST_CODE,
+        System.currentTimeMillis().toInt(),
         intent,
         pendingIntentFlag
     )
