@@ -6,7 +6,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
 import com.canopas.yourspace.data.models.user.UserInfo
-import com.canopas.yourspace.data.service.location.ApiLocationService
+import com.canopas.yourspace.data.service.location.LocationJourneyService
 import com.canopas.yourspace.data.utils.AppDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,7 +17,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MemberDetailViewModel @Inject constructor(
-    private val locationService: ApiLocationService,
+    private val journeyService: LocationJourneyService,
     private val appDispatcher: AppDispatcher
 ) : ViewModel() {
 
@@ -32,7 +32,7 @@ class MemberDetailViewModel @Inject constructor(
         )
     ) {
         LocationHistoryPagingSource(
-            query = locationService.getLocationHistoryQuery(
+            query = journeyService.getJourneyHistoryQuery(
                 _state.value.selectedUser?.user?.id ?: "",
                 _state.value.selectedTimeFrom ?: 0,
                 _state.value.selectedTimeTo ?: 0
@@ -58,7 +58,7 @@ class MemberDetailViewModel @Inject constructor(
             _dataPagingSource?.invalidate()
         } catch (e: Exception) {
             Timber.e(e, "Failed to fetch location history")
-            _state.emit(_state.value.copy(error = e.message))
+            _state.emit(_state.value.copy(error = e))
         }
     }
 }
@@ -67,5 +67,5 @@ data class MemberDetailState(
     val selectedUser: UserInfo? = null,
     val selectedTimeFrom: Long? = null,
     val selectedTimeTo: Long? = null,
-    val error: String? = null
+    val error: Exception? = null
 )

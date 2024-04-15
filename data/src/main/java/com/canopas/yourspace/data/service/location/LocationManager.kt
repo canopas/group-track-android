@@ -55,7 +55,7 @@ class LocationManager @Inject constructor(@ApplicationContext private val contex
     }
 
     private fun createRequest(): LocationRequest =
-        LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 0)
+        LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, LOCATION_UPDATE_INTERVAL)
             .apply {
                 setGranularity(Granularity.GRANULARITY_PERMISSION_LEVEL)
                 setMinUpdateDistanceMeters(LOCATION_UPDATE_DISTANCE)
