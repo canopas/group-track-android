@@ -20,6 +20,7 @@ data class ApiUser(
     val location_enabled: Boolean = true,
     val space_ids: List<String>? = emptyList(),
     val provider_firebase_id_token: String? = null,
+    val fcm_token: String? = null,
     val created_at: Long? = System.currentTimeMillis()
 ) {
     @get:Exclude

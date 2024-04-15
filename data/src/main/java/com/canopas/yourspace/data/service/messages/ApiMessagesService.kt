@@ -10,6 +10,8 @@ import com.canopas.yourspace.data.utils.snapshotFlow
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.Source
+import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -17,6 +19,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
+import java.util.Date
 import javax.inject.Inject
 
 class ApiMessagesService @Inject constructor(
@@ -61,15 +64,18 @@ class ApiMessagesService @Inject constructor(
         .orderBy("created_at", Query.Direction.DESCENDING)
         .limit(limit.toLong()).snapshotFlow(ApiThreadMessage::class.java)
 
-    fun getMessages(
+    suspend fun getMessages(
         threadId: String,
-        from: Long = System.currentTimeMillis(),
+        from: Date,
         limit: Int = 20
-    ) = threadMessagesRef(threadId)
-        .orderBy("created_at", Query.Direction.DESCENDING)
-        .whereLessThan("created_at", from)
-        .limit(limit.toLong())
-        .snapshotFlow(ApiThreadMessage::class.java)
+    ): List<ApiThreadMessage> {
+        return threadMessagesRef(threadId)
+            .orderBy("created_at", Query.Direction.DESCENDING)
+            .whereLessThan("created_at", from)
+            .limit(limit.toLong())
+            .get(Source.SERVER).await().documents
+            .mapNotNull { it.toObject<ApiThreadMessage>() }
+    }
 
     suspend fun sendMessage(threadId: String, senderId: String, message: String) {
         val docRef = threadMessagesRef(threadId).document()
@@ -79,8 +85,7 @@ class ApiMessagesService @Inject constructor(
             thread_id = threadId,
             sender_id = senderId,
             message = message,
-            seen_by = listOf(senderId),
-            created_at = System.currentTimeMillis()
+            seen_by = listOf(senderId)
         )
         docRef.set(threadMessage).await()
     }

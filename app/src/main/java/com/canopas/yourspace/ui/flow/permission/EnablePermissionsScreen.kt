@@ -188,22 +188,22 @@ fun EnablePermissionsContent(modifier: Modifier) {
             }
         )
 
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-//            PermissionContent(
-//                title = stringResource(R.string.enable_permission_notification_access_title),
-//                description = stringResource(R.string.enable_permission_notification_access_desc),
-//                isGranted = notificationPermissionStates?.status == PermissionStatus.Granted,
-//                onClick = {
-//                    if (notificationPermissionStates?.status is PermissionStatus.Denied ||
-//                        notificationPermissionStates?.status?.shouldShowRationale == true
-//                    ) {
-//                        showNotificationRational = true
-//                    } else if (notificationPermissionStates?.status != PermissionStatus.Granted) {
-//                        notificationPermissionStates?.launchPermissionRequest()
-//                    }
-//                }
-//            )
-//        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            PermissionContent(
+                title = stringResource(R.string.enable_permission_notification_access_title),
+                description = stringResource(R.string.enable_permission_notification_access_desc),
+                isGranted = notificationPermissionStates?.status == PermissionStatus.Granted,
+                onClick = {
+                    if (notificationPermissionStates?.status is PermissionStatus.Denied ||
+                        notificationPermissionStates?.status?.shouldShowRationale == true
+                    ) {
+                        showNotificationRational = true
+                    } else if (notificationPermissionStates?.status != PermissionStatus.Granted) {
+                        notificationPermissionStates?.launchPermissionRequest()
+                    }
+                }
+            )
+        }
 
         Spacer(modifier = Modifier.weight(1f))
         Text(

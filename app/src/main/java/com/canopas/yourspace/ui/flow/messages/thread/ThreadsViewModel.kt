@@ -68,7 +68,7 @@ class ThreadsViewModel @Inject constructor(
         }.collectLatest { threads ->
             val sortedList =
                 threads.filterArchivedThreadsForUser(authService.currentUser!!.id)
-                    .sortedByDescending { it.messages.firstOrNull()?.created_at ?: 0 }
+                    .sortedByDescending { it.messages.firstOrNull()?.createdAtMs ?: 0 }
             _state.emit(_state.value.copy(threadInfo = sortedList, loadingThreads = false))
         }
     }
@@ -122,7 +122,7 @@ class ThreadsViewModel @Inject constructor(
         return this.filter { info ->
             val archiveTimestamp = info.thread.archived_for[userId]
             if (archiveTimestamp != null) {
-                val latestMessageTimestamp = info.messages.firstOrNull()?.created_at ?: 0
+                val latestMessageTimestamp = info.messages.firstOrNull()?.createdAtMs ?: 0
                 archiveTimestamp < latestMessageTimestamp
             } else {
                 true

@@ -65,6 +65,7 @@ import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.messages.ThreadInfo
 import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.models.user.UserInfo
+import com.canopas.yourspace.domain.utils.formattedMessageTimeString
 import com.canopas.yourspace.ui.component.AppAlertDialog
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.AppProgressIndicator
@@ -73,7 +74,6 @@ import com.canopas.yourspace.ui.component.UserProfile
 import com.canopas.yourspace.ui.component.motionClickEvent
 import com.canopas.yourspace.ui.flow.messages.chat.toFormattedTitle
 import com.canopas.yourspace.ui.theme.AppTheme
-import com.canopas.yourspace.utils.formattedMessageTimeString
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -364,7 +364,7 @@ private fun LazyItemScope.ThreadItem(
         ) {
             val hasUnreadMsg = message?.seen_by?.contains(currentUser?.id) == false
             Text(
-                text = message?.created_at?.formattedMessageTimeString(
+                text = message?.createdAtMs?.formattedMessageTimeString(
                     LocalContext.current
                 ) ?: "",
                 style = AppTheme.appTypography.label3,

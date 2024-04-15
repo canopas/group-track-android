@@ -27,13 +27,15 @@ service cloud.firestore {
                     request.resource.data.get('phone', '') is string &&
                     request.resource.data.get('email', '') is string &&
                     request.resource.data.get('last_name', '') is string &&
+                    request.resource.data.get('fcm_token', '') is string &&
                     request.resource.data.get('profile_image', '') is string &&
                     request.resource.data.get('space_ids', []) is list;
 
             allow update: if isAuthorized() && request.auth.uid == resource.data.id &&
-                    request.resource.data.diff(resource.data).affectedKeys().hasAny(['first_name', 'last_name', 'profile_image', 'location_enabled', 'space_ids', 'phone', 'email']) &&
+                    request.resource.data.diff(resource.data).affectedKeys().hasAny(['first_name', 'last_name', 'profile_image', 'location_enabled', 'space_ids', 'phone', 'email','fcm_token']) &&
                     request.resource.data.first_name is string &&
                     request.resource.data.get('last_name', '') is string &&
+                    request.resource.data.get('fcm_token', '') is string &&
                     request.resource.data.location_enabled is bool &&
                     request.resource.data.get('space_ids', []) is list;
 
@@ -198,7 +200,7 @@ service cloud.firestore {
                     request.resource.data.sender_id is string &&
                     request.resource.data.message is string &&
                     request.resource.data.seen_by is list &&
-                    request.resource.data.created_at is int;
+                    request.resource.data.created_at is timestamp;
         }
     }
 }

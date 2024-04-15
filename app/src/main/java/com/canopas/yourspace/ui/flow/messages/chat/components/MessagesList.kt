@@ -39,12 +39,12 @@ import androidx.compose.ui.unit.dp
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.messages.ApiThreadMessage
 import com.canopas.yourspace.data.models.user.UserInfo
+import com.canopas.yourspace.domain.utils.formattedMessageDateHeader
 import com.canopas.yourspace.ui.component.AppProgressIndicator
 import com.canopas.yourspace.ui.component.UserProfile
 import com.canopas.yourspace.ui.component.reachedBottom
 import com.canopas.yourspace.ui.flow.messages.chat.toFormattedTitle
 import com.canopas.yourspace.ui.theme.AppTheme
-import com.canopas.yourspace.utils.formattedMessageDateHeader
 import kotlinx.coroutines.flow.distinctUntilChanged
 import java.util.concurrent.TimeUnit
 
@@ -109,7 +109,7 @@ fun ColumnScope.MessageList(
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(AppTheme.colorScheme.surface)
-                            .padding(8.dp),
+                            .padding(bottom = 8.dp, top = 20.dp),
                         textAlign = TextAlign.Center
                     )
                 }
@@ -194,7 +194,7 @@ fun LazyItemScope.MessageContent(
 
 fun shouldShowUserDetails(previousMessage: ApiThreadMessage?, message: ApiThreadMessage): Boolean {
     if (previousMessage == null) return true
-    val diff = message.created_at - previousMessage.created_at
+    val diff = message.createdAtMs - previousMessage.createdAtMs
 
     // Check if the previous message is from the same sender and within a minute
     return previousMessage.sender_id != message.sender_id || diff !in 0..TimeUnit.MINUTES.toMillis(1)
