@@ -180,9 +180,6 @@ dependencies {
 
     implementation("com.google.maps.android:maps-compose:4.3.0")
 
-    // Paging
-    implementation("androidx.paging:paging-compose:3.2.1")
-
     // Image cropper
     implementation("com.vanniktech:android-image-cropper:4.5.0")
 
