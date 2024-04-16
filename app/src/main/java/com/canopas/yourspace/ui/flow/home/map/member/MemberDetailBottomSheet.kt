@@ -64,6 +64,7 @@ import com.canopas.yourspace.data.models.location.isSteadyLocation
 import com.canopas.yourspace.data.models.user.UserInfo
 import com.canopas.yourspace.ui.component.AppProgressIndicator
 import com.canopas.yourspace.ui.component.UserProfile
+import com.canopas.yourspace.ui.component.reachedBottom
 import com.canopas.yourspace.ui.theme.AppTheme
 import com.canopas.yourspace.utils.getAddress
 import com.google.android.gms.maps.model.LatLng
@@ -110,25 +111,24 @@ fun MemberDetailBottomSheetContent(
             calendar.set(Calendar.HOUR_OF_DAY, 23)
             viewModel.fetchUserLocationHistory(from = timestamp, to = calendar.timeInMillis)
         }
-        LocationHistory(state, viewModel)
+        LocationHistory()
     }
 }
 
 @Composable
-fun LocationHistory(
-    state: MemberDetailState,
-    viewModel: MemberDetailViewModel
-) {
+fun LocationHistory() {
+    val viewModel = hiltViewModel<MemberDetailViewModel>()
+    val state by viewModel.state.collectAsState()
+
     val locations = state.locations
     val lazyListState = rememberLazyListState()
-    val isScrollToEnd by remember(lazyListState) {
-        derivedStateOf {
-            lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index == lazyListState.layoutInfo.totalItemsCount - 1
-        }
+
+    val reachedBottom by remember {
+        derivedStateOf { lazyListState.reachedBottom() }
     }
 
-    if (isScrollToEnd) {
-        viewModel.loadMoreLocations()
+    LaunchedEffect(reachedBottom) {
+        if (reachedBottom) viewModel.loadMoreLocations()
     }
 
     Box {

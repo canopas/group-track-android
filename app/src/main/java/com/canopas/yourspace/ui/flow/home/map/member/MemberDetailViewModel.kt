@@ -6,12 +6,10 @@ import com.canopas.yourspace.data.models.location.LocationJourney
 import com.canopas.yourspace.data.models.user.UserInfo
 import com.canopas.yourspace.data.service.location.LocationJourneyService
 import com.canopas.yourspace.data.utils.AppDispatcher
-import com.google.firebase.firestore.Query
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -46,9 +44,12 @@ class MemberDetailViewModel @Inject constructor(
         _state.value = _state.value.copy(isLoading = true)
 
         try {
-            val query = getQuery()
-            val querySnapshot = query.get().await()
-            val locations = querySnapshot.documents.mapNotNull { it.toObject(LocationJourney::class.java) }
+            val locations = journeyService.getJourneyHistory(
+                _state.value.selectedUser?.user?.id ?: "",
+                _state.value.selectedTimeFrom ?: 0,
+                _state.value.locations.lastOrNull()?.created_at ?: _state.value.selectedTimeTo
+                    ?: 0
+            )
 
             val locationJourneys = (state.value.locations + locations).distinctBy { it.id }
             val hasMoreItems = !state.value.locations.map { it.id }.containsAll(locations.map { it.id })
@@ -62,15 +63,6 @@ class MemberDetailViewModel @Inject constructor(
             Timber.e(e, "Failed to fetch location history")
             _state.value = _state.value.copy(error = e, isLoading = false)
         }
-    }
-
-    private fun getQuery(): Query {
-        return journeyService.getJourneyHistoryQuery(
-            _state.value.selectedUser?.user?.id ?: "",
-            _state.value.selectedTimeFrom ?: 0,
-            _state.value.locations.lastOrNull()?.created_at ?: _state.value.selectedTimeTo
-                ?: 0
-        )
     }
 
     fun loadMoreLocations() {
