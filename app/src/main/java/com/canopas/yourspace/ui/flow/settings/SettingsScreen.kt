@@ -160,6 +160,14 @@ private fun OtherSettingsContent(viewModel: SettingsViewModel) {
     )
 
     SettingsItem(
+        label = stringResource(id = R.string.setting_contact_support),
+        icon = R.drawable.ic_settings_contact_support,
+        onClick = {
+            viewModel.showContactSupport()
+        }
+    )
+
+    SettingsItem(
         label = stringResource(id = R.string.setting_privacy),
         icon = R.drawable.ic_settings_privacy,
         onClick = {

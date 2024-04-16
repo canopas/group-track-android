@@ -13,6 +13,22 @@ service cloud.firestore {
             return requestedUserSpaceIds.hasAny(resourceUserSpaceIds);
         }
 
+        match /support_requests/{docId} {
+              allow create : if isAuthorized() && request.auth.uid == request.resource.data.user_id &&
+                             request.resource.data.keys().hasAll(["user_id", "title", "description", "device_name","app_version","device_os", "created_at"]) &&
+                             request.resource.data.user_id is string &&
+                             request.resource.data.title is string &&
+                             request.resource.data.description is string &&
+                             request.resource.data.device_name is string &&
+                             request.resource.data.app_version is string &&
+                             request.resource.data.device_os is string &&
+                             request.resource.data.created_at is timestamp &&
+                             request.resource.data.get('attachments', []) is list;
+                allow update: if false;
+                allow delete: if false;
+                allow read: if isAuthorized() && request.auth.uid == resource.data.user_id;
+        }
+
         match /users/{docId} {
             allow create : if isAuthorized() && request.auth.uid == docId &&
                     request.resource.data.keys().hasAll(["id", "auth_type", "location_enabled", "provider_firebase_id_token", "created_at"]) &&

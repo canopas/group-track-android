@@ -16,20 +16,33 @@
     <string name="common_unknown">Unknown</string>
     <string name="common_today">Today</string>
     <string name="common_yesterday">Yesterday</string>
+    <string name="common_reply">Reply</string>
+    <string name="common_share_invite_code_message">Let\'s stay connected! Use invite code %s to join my Space.\n<a href="https://play.google.com/store/apps/details?id=com.canopas.yourspace">Download the app</a>.</string>
+    <string name="common_session_expired_title">You\'ve been logged out</string>
+    <string name="common_session_expired_message">You need to sign in again to continue using the application.</string>
+    <string name="common_enable_location_service_title">Turn on location/GPS</string>
+    <string name="common_enable_location_service_message">Your location/GPS setting must be turned on for YourSpace to work. Please turn on location/GPS in the settings</string>
+    <string name="common_background_access_permission_title">Location Access Required</string>
+    <string name="common_background_access_permission_message">YourSpace\'s location-sharing feature works correctly when it can access your location all the time. This ensures it gives you accurate, real-time updates.</string>
+    <string name="common_background_access_permission_steps">Go to settings > select <b>"Allow all the time"</b></string>
+    <string name="common_background_access_permission_rational_steps">Go to settings > YourSpace app info > Location permission > select <b>"Allow all the time"</b></string>
+    <string name="common_background_access_permission_btn">Go to Settings</string>
 
+    <string name="title_notification_channel">YourSpace notification</string>
+    <string name="description_notification_channel">It is used to show messages</string>
     <string name="network_error_text">Network error occurred. Please check your internet connection.</string>
     <string name="server_error_text">Server error occurred. Please try again later.</string>
     <string name="unexpected_error_text">An unexpected error occurred.</string>
-
-    <string name="common_share_invite_code_message">Let\'s stay connected! Use invite code %s to join my Space.\n<a href="https://play.google.com/store/apps/details?id=com.canopas.yourspace">Download the app</a>.</string>
 
     <string name="intro_content_one">Share your location seamlessly, connecting with just a click.</string>
     <string name="intro_content_two">Stay in the know with instant alerts – whether loved ones enter or leave.</string>
     <string name="intro_content_three">Simplify your connections and insights – explore drive reports, location history effortlessly.</string>
     <string name="get_started">Get started</string>
+
     <string name="sign_in_btn_continue_with_phone">Continue with Phone Number</string>
     <string name="sign_in_with_google_failed_error_msg">Failed to sign in with google</string>
     <string name="sign_in_btn_continue_with_google">Continue with Google</string>
+
     <string name="phone_sign_in_title_enter_phone_number">Enter Phone Number</string>
     <string name="phone_sign_in_subtitle_verification_message">We\'ll verify your phone number with a verification code.</string>
     <string name="phone_sign_in_hint_phone_number">Phone Number</string>
@@ -39,6 +52,7 @@
     <string name="phone_sign_in_otp_hint_verification_code">Enter code</string>
     <string name="phone_sign_in_otp_label_resend_code">Resend code</string>
     <string name="phone_sign_in_screen_select_country_text">Select Country</string>
+
     <string name="onboard_pick_name_title">What\'s your name?</string>
     <string name="onboard_pick_name_label_first_name">First name</string>
     <string name="onboard_pick_name_label_last_name">Last name</string>
@@ -62,13 +76,12 @@
     <string name="onboard_join_space_joining_space_label">You\'re about to become a member of the %s Space.</string>
     <string name="onboard_join_space_subtitle">Here\'s presenting those eagerly waiting:</string>
     <string name="onboard_space_invalid_invite_code">It appears the code is no longer valid or has expired. Please review and enter a valid code.</string>
+
     <string name="enable_permission_title">Enable Permissions</string>
     <string name="enable_permission_subtitle">For an effective user experience on YourSpace, it\'s necessary to enable these permissions.</string>
     <string name="enable_permission_footer">We prioritize the security of your information and want to assure you that we do not share your data with any third-party entities.</string>
-
     <string name="enable_permission_location_access_title">Location access</string>
     <string name="enable_permission_location_access_desc">For seamless sharing of your live location with a trusted contact requires permission for location access.</string>
-
     <string name="enable_permission_background_location_access_title">Background Location access</string>
     <string name="enable_permission_background_location_access_desc">Granting background location permission allows you to effortlessly stay connected with trusted ones, ensuring seamless coordination and peace of mind in knowing their whereabouts.\n\n Location permission > select <b>"Allow all the time"</b></string>
     <string name="enable_permission_background_location_access_required_location_permisison_msg">Please grant either Approximate location access permission or Fine location access permission</string>
@@ -77,98 +90,21 @@
     <string name="enable_permission_btn_enable">Enable permission</string>
     <string name="enable_permission_rational_msg">To receive timely updates, check-ins, and alerts from YourSpace, grant notification access. We respect your privacy and will only use notifications to enhance your experience. Enable now for seamless communication!</string>
     <string name="enable_permission_rational_title">Enable Notification Access</string>
+
     <string name="home_tab_label_home">Home</string>
     <string name="home_tab_label_activities">Activities</string>
     <string name="home_tab_label_places">Places</string>
-    <string name="common_enable_location_service_title">Turn on location/GPS</string>
-    <string name="common_enable_location_service_message">Your location/GPS setting must be turned on for YourSpace to work. Please turn on location/GPS in the settings</string>
-    <string name="common_background_access_permission_title">Location Access Required</string>
-    <string name="common_background_access_permission_message">YourSpace\'s location-sharing feature works correctly when it can access your location all the time. This ensures it gives you accurate, real-time updates.</string>
-    <string name="common_background_access_permission_steps">Go to settings > select <b>"Allow all the time"</b></string>
-    <string name="common_background_access_permission_rational_steps">Go to settings > YourSpace app info > Location permission > select <b>"Allow all the time"</b></string>
-    <string name="common_background_access_permission_btn">Go to Settings</string>
-    <string name="home_space_selection_menu_default_text">Select a space</string>
-    <string name="home_space_selection_space_item_subtitle_members">By %s • %s members</string>
-    <string name="home_space_selection_space_item_subtitle_member">By %s • %s member</string>
-    <string name="home_create_space_suggestions">Some suggestions…</string>
-    <string name="space_inviate_code_title">Invite Code</string>
-    <string name="space_invite_title">Invite members to the %s</string>
-    <string name="space_invite_subtitle">Share this invite code with your trusted ones in your own style. Connecting is as flexible as you are.</string>
-    <string name="join_space_title_enter_code">Enter the invite code</string>
-    <string name="join_space_title">Join Space</string>
-    <string name="join_space_success_popup_message">You\'re now a member of the %s group for sharing your real-time location.</string>
-    <string name="map_user_item_location_updated_now">Just now</string>
-    <string name="map_user_item_location_updated_minutes_ago">%s min ago</string>
-    <string name="map_user_item_location_updated_hours_ago">%s hr ago</string>
-    <string name="map_user_item_location_updated_since_days">Since %s</string>
-    <string name="map_user_item_location_unknown">Location not found</string>
-    <string name="map_user_item_location_off">Location turned off</string>
-    <string name="member_detail_location_history">Location History</string>
-    <string name="member_detail_empty_location_history">No Location History Found!</string>
+
     <string name="home_permission_footer_title">Stay closed to your loved one</string>
     <string name="home_permission_footer_subtitle">Allow YourSpace to access your location data.</string>
     <string name="home_permission_footer_location_off_subtitle">Device location/GPS is off. Please turn it on!</string>
     <string name="home_permission_footer_missing_location_permission_title">Location sharing is currently not possible</string>
     <string name="home_permission_footer_missing_location_permission_subtitle">Some permissions are missing - grant access</string>
-    <string name="settings_title">Settings</string>
-    <string name="setting_profile">Profile</string>
-    <string name="setting_space_settings">%s settings</string>
-    <string name="setting_general_settings">General settings</string>
-    <string name="setting_btn_sign_out">Sign out</string>
-    <string name="settings_btn_delete_account">Delete account</string>
-    <string name="setting_sign_out_dialogue_title_text">See you soon!</string>
-    <string name="setting_sign_out_dialogue_confirm_btn_text">Sign out</string>
-    <string name="setting_sign_out_dialogue_message_text">Are you sure you want to sign out?</string>
 
-    <string name="setting_delete_account_dialogue_title_text">Sorry to see you go!</string>
-    <string name="setting_delete_account_dialogue_confirm_btn_text">Delete Account</string>
-    <string name="setting_delete_account_dialogue_message_text">Deleting your account is permanent and you will lose all your data. Are you sure you want to delete your account permanently?</string>
-    <string name="setting_space_notifications">Notifications</string>
-    <string name="setting_space_management">Space settings</string>
-    <string name="setting_location_sharing">Location Sharing</string>
-    <string name="setting_other">Other</string>
-    <string name="setting_privacy">Privacy Policy</string>
-    <string name="setting_about_us">About Us</string>
-    <string name="setting_app_version">App version: %s</string>
-    <string name="edit_profile_title">Edit profile</string>
-    <string name="edit_profile_toolbar_save_text">Save</string>
-    <string name="edit_profile_image_chooser_camera_text">Camera</string>
-    <string name="edit_profile_image_chooser_gallery_text">Gallery</string>
-    <string name="edit_profile_image_chooser_remove_photo_text">Remove Photo</string>
-    <string name="edit_profile_first_name_label">First Name</string>
-    <string name="edit_profile_last_name_label">Last Name</string>
-    <string name="edit_profile_email_label">Email</string>
-    <string name="edit_profile_phone_label">Phone</string>
-    <string name="common_session_expired_title">You\'ve been logged out</string>
-    <string name="common_session_expired_message">You need to sign in again to continue using the application.</string>
-    <string name="space_setting_title_details">Space details</string>
-    <string name="space_setting_title_your_location">Your location sharing</string>
-    <string name="space_setting_title_members_location_status">Space member status</string>
-    <string name="space_setting_hint_space_name">Space Name</string>
-    <string name="space_setting_no_members">No members in %s</string>
-    <string name="space_settings_btn_delete_space">Delete Space</string>
-    <string name="space_settings_btn_leave_space">Leave Space</string>
-    <string name="space_settings_delete_confrim_btn">Delete</string>
-    <string name="space_settings_delete_confrim_message">Confirming will permanently delete this space and associated data. This action cannot be undone.</string>
-    <string name="space_settings_leave_confrim_btn">Leave</string>
-    <string name="space_settings_leave_confrim_message">Are you sure you want to leave this space? You will no longer be able to view or share location with members of this space.</string>
-    <string name="threads_screen_subtitle_messages">Messages</string>
-    <string name="threads_screen_no_members_title">Add members to send messages</string>
-    <string name="threads_screen_no_members_subtitle">At least one member needs to join your space to be able to chat.</string>
-    <string name="thread_screen_add_new_member">Add a new member</string>
-    <string name="threads_screen_no_threads">Tap on \'+\' to send new message to anyone in your space</string>
-    <string name="messages_member_all">All</string>
-    <string name="messages_new_message_hint">Type message</string>
-    <string name="messages_time_format_minutes">%s min</string>
-    <string name="messages_label_seen">Seen</string>
-    <string name="messages_label_seen_by">"Seen by %s"</string>
-    <string name="threads_screen_delete_dialogue_title_text">Delete Thread?</string>
-    <string name="threads_screen_delete_dialogue_message_text">Are you sure you want to delete this thread? This action cannot be undone.</string>
-    <string name="threads_screen_delete_dialogue_delete_btn">Delete</string>
-    <string name="title_notification_channel">YourSpace notification</string>
-    <string name="description_notification_channel">It is used to show messages</string>
-    <string name="common_reply">Reply</string>
-
+    <string name="home_space_selection_menu_default_text">Select a space</string>
+    <string name="home_space_selection_space_item_subtitle_members">By %s • %s members</string>
+    <string name="home_space_selection_space_item_subtitle_member">By %s • %s member</string>
+    <string name="home_create_space_suggestions">Some suggestions…</string>
     <string-array name="home_create_space_name_suggestion">
         <item>Family</item>
         <item>Friends</item>
@@ -180,8 +116,90 @@
         <item>My Squad</item>
         <item>Heart mates</item>
         <item>Blood Bond</item>
-
-
     </string-array>
+
+    <string name="space_inviate_code_title">Invite Code</string>
+    <string name="space_invite_title">Invite members to the %s</string>
+    <string name="space_invite_subtitle">Share this invite code with your trusted ones in your own style. Connecting is as flexible as you are.</string>
+
+    <string name="join_space_title_enter_code">Enter the invite code</string>
+    <string name="join_space_title">Join Space</string>
+    <string name="join_space_success_popup_message">You\'re now a member of the %s group for sharing your real-time location.</string>
+
+    <string name="map_user_item_location_updated_now">Just now</string>
+    <string name="map_user_item_location_updated_minutes_ago">%s min ago</string>
+    <string name="map_user_item_location_updated_hours_ago">%s hr ago</string>
+    <string name="map_user_item_location_updated_since_days">Since %s</string>
+    <string name="map_user_item_location_unknown">Location not found</string>
+    <string name="map_user_item_location_off">Location turned off</string>
+
+    <string name="member_detail_location_history">Location History</string>
+    <string name="member_detail_empty_location_history">No Location History Found!</string>
+
+    <string name="settings_title">Settings</string>
+    <string name="setting_profile">Profile</string>
+    <string name="setting_space_settings">%s settings</string>
+    <string name="setting_general_settings">General settings</string>
+    <string name="setting_btn_sign_out">Sign out</string>
+    <string name="settings_btn_delete_account">Delete account</string>
+    <string name="setting_sign_out_dialogue_title_text">See you soon!</string>
+    <string name="setting_sign_out_dialogue_confirm_btn_text">Sign out</string>
+    <string name="setting_sign_out_dialogue_message_text">Are you sure you want to sign out?</string>
+    <string name="setting_delete_account_dialogue_title_text">Sorry to see you go!</string>
+    <string name="setting_delete_account_dialogue_confirm_btn_text">Delete Account</string>
+    <string name="setting_delete_account_dialogue_message_text">Deleting your account is permanent and you will lose all your data. Are you sure you want to delete your account permanently?</string>
+    <string name="setting_space_notifications">Notifications</string>
+    <string name="setting_space_management">Space settings</string>
+    <string name="setting_location_sharing">Location Sharing</string>
+    <string name="setting_other">Other</string>
+    <string name="setting_contact_support">Contact support</string>
+    <string name="setting_privacy">Privacy Policy</string>
+    <string name="setting_about_us">About Us</string>
+    <string name="setting_app_version">App version: %s</string>
+
+    <string name="edit_profile_title">Edit profile</string>
+    <string name="edit_profile_toolbar_save_text">Save</string>
+    <string name="edit_profile_image_chooser_camera_text">Camera</string>
+    <string name="edit_profile_image_chooser_gallery_text">Gallery</string>
+    <string name="edit_profile_image_chooser_remove_photo_text">Remove Photo</string>
+    <string name="edit_profile_first_name_label">First Name</string>
+    <string name="edit_profile_last_name_label">Last Name</string>
+    <string name="edit_profile_email_label">Email</string>
+    <string name="edit_profile_phone_label">Phone</string>
+
+    <string name="space_setting_title_details">Space details</string>
+    <string name="space_setting_title_your_location">Your location sharing</string>
+    <string name="space_setting_title_members_location_status">Space member status</string>
+    <string name="space_setting_hint_space_name">Space Name</string>
+    <string name="space_setting_no_members">No members in %s</string>
+    <string name="space_settings_btn_delete_space">Delete Space</string>
+    <string name="space_settings_btn_leave_space">Leave Space</string>
+    <string name="space_settings_delete_confrim_btn">Delete</string>
+    <string name="space_settings_delete_confrim_message">Confirming will permanently delete this space and associated data. This action cannot be undone.</string>
+    <string name="space_settings_leave_confrim_btn">Leave</string>
+    <string name="space_settings_leave_confrim_message">Are you sure you want to leave this space? You will no longer be able to view or share location with members of this space.</string>
+
+    <string name="threads_screen_subtitle_messages">Messages</string>
+    <string name="threads_screen_no_members_title">Add members to send messages</string>
+    <string name="threads_screen_no_members_subtitle">At least one member needs to join your space to be able to chat.</string>
+    <string name="thread_screen_add_new_member">Add a new member</string>
+    <string name="threads_screen_no_threads">Tap on \'+\' to send new message to anyone in your space</string>
+    <string name="threads_screen_delete_dialogue_title_text">Delete Thread?</string>
+    <string name="threads_screen_delete_dialogue_message_text">Are you sure you want to delete this thread? This action cannot be undone.</string>
+    <string name="threads_screen_delete_dialogue_delete_btn">Delete</string>
+
+    <string name="messages_member_all">All</string>
+    <string name="messages_new_message_hint">Type message</string>
+    <string name="messages_time_format_minutes">%s min</string>
+    <string name="messages_label_seen">Seen</string>
+    <string name="messages_label_seen_by">"Seen by %s"</string>
+
+    <string name="support_title">Contact Support</string>
+    <string name="support_text_field_title">Title</string>
+    <string name="support_text_field_desc">Description</string>
+    <string name="support_label_attachment">Attachment(if any)</string>
+    <string name="support_btn_submit">Submit</string>
+    <string name="support_attachment_size_limit_exceed">Attachment size should be less than 5MB</string>
+    <string name="support_request_sent">Thanks! Your feedback has been recorded.</string>
 
 </resources>

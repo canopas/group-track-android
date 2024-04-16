@@ -3,6 +3,7 @@ package com.canopas.yourspace.ui
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,6 +40,7 @@ import com.canopas.yourspace.ui.flow.permission.EnablePermissionsScreen
 import com.canopas.yourspace.ui.flow.settings.SettingsScreen
 import com.canopas.yourspace.ui.flow.settings.profile.EditProfileScreen
 import com.canopas.yourspace.ui.flow.settings.space.SpaceProfileScreen
+import com.canopas.yourspace.ui.flow.settings.support.SupportScreen
 import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import com.canopas.yourspace.ui.navigation.KEY_RESULT
@@ -168,6 +170,10 @@ fun MainApp(viewModel: MainViewModel) {
 
         slideComposable(AppDestinations.ThreadMessages.path) {
             MessagesScreen()
+        }
+
+        slideComposable(AppDestinations.contactSupport.path) {
+            SupportScreen()
         }
     }
 }
