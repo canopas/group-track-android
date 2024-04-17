@@ -1,19 +1,15 @@
 package com.canopas.yourspace.ui.flow.settings.support
 
 import android.net.Uri
-import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.support.ApiSupportService
 import com.canopas.yourspace.data.utils.AppDispatcher
 import com.canopas.yourspace.ui.navigation.AppNavigator
-import com.google.firebase.storage.FirebaseStorage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
@@ -69,24 +65,32 @@ class SupportViewModel @Inject constructor(
         fileCopy.forEach { file ->
             viewModelScope.launch(appDispatchers.IO) {
                 try {
-                    _state.emit(state.value.copy(attachmentUploading = file))
+                    uploadingAttachment(file)
                     val uri = apiSupportService.uploadImage(file)
-                    _state.emit(state.value.copy(attachmentUploading = null))
-                    uploadedAttachments[file] = uri
+                    uploadedAttachment(file, uri)
                 } catch (e: Exception) {
-                    val failed = state.value.attachmentsFailed.toMutableList()
-                    failed.add(file)
-                    uploadedAttachments[file] = null
-                    _state.emit(
-                        state.value.copy(
-                            error = e.message,
-                            attachmentUploading = null,
-                            attachmentsFailed = failed
-                        )
-                    )
+                    uploadedAttachment(file, null)
+                    _state.emit(state.value.copy(error = e.message))
                 }
             }
         }
+    }
+
+    private fun uploadingAttachment(file: File) {
+        val uploading = state.value.attachmentUploading.toMutableList()
+        uploading.add(file)
+        _state.value = state.value.copy(attachmentUploading = uploading)
+    }
+
+    private fun uploadedAttachment(file: File, uri: Uri?) {
+        val uploading = state.value.attachmentUploading.toMutableList()
+        uploading.remove(file)
+        val failed = state.value.attachmentsFailed.toMutableList()
+        if (uri == null) {
+            failed.add(file)
+        }
+        uploadedAttachments[file] = uri
+        _state.value = state.value.copy(attachmentUploading = uploading, attachmentsFailed = failed)
     }
 
     fun onAttachmentRemoved(file: File) {
@@ -94,6 +98,7 @@ class SupportViewModel @Inject constructor(
         attachments.remove(file)
         val failed = state.value.attachmentsFailed.toMutableList()
         failed.remove(file)
+        uploadedAttachments.remove(file)
         _state.value = state.value.copy(attachments = attachments, attachmentsFailed = failed)
     }
 
@@ -115,6 +120,7 @@ class SupportViewModel @Inject constructor(
             )
             _state.emit(state.value.copy(requestSent = true, submitting = false))
         } catch (e: Exception) {
+            Timber.e(e, "Error submitting support request")
             _state.emit(state.value.copy(error = e.message, submitting = false))
         }
     }
@@ -127,7 +133,6 @@ class SupportViewModel @Inject constructor(
         _state.value = state.value.copy(requestSent = false)
         appNavigator.navigateBack()
     }
-
 }
 
 data class SupportState(
@@ -135,7 +140,7 @@ data class SupportState(
     val title: String = "",
     val description: String = "",
     val requestSent: Boolean = false,
-    val attachmentUploading: File? = null,
+    val attachmentUploading: List<File> = emptyList(),
     val attachments: List<File> = emptyList(),
     val attachmentSizeLimitExceed: Boolean = false,
     val attachmentsFailed: List<File> = emptyList(),

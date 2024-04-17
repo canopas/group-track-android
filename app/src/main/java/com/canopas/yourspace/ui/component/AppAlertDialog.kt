@@ -9,7 +9,7 @@ import com.canopas.yourspace.ui.theme.AppTheme
 
 @Composable
 fun AppAlertDialog(
-    title: String?=null,
+    title: String? = null,
     subTitle: String,
     confirmBtnText: String? = null,
     dismissBtnText: String? = null,

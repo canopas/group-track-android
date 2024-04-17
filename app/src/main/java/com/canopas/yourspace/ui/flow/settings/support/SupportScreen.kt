@@ -69,7 +69,6 @@ import com.canopas.yourspace.ui.component.motionClickEvent
 import com.canopas.yourspace.ui.theme.AppTheme
 import java.io.File
 import java.io.FileInputStream
-import kotlin.reflect.KFunction1
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -119,7 +118,8 @@ fun SupportScreen() {
             properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
             onConfirmClick = {
                 viewModel.dismissSuccessPopup()
-            })
+            }
+        )
     }
 }
 
@@ -135,9 +135,8 @@ fun SupportContent(modifier: Modifier) {
             .fillMaxSize()
             .verticalScroll(scrollState)
             .padding(horizontal = 16.dp)
-            .padding(bottom = 20.dp),
+            .padding(bottom = 20.dp)
     ) {
-
         val titleInteractionSource = remember { MutableInteractionSource() }
         val descriptionInteractionSource = remember { MutableInteractionSource() }
         val isTitleFocused by titleInteractionSource.collectIsFocusedAsState()
@@ -185,7 +184,7 @@ fun SupportContent(modifier: Modifier) {
         Text(
             text = stringResource(id = R.string.support_text_field_desc),
             color = if (isDescriptionFocused) AppTheme.colorScheme.primary else AppTheme.colorScheme.textDisabled,
-            style = AppTheme.appTypography.body2,
+            style = AppTheme.appTypography.body2
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -224,14 +223,13 @@ fun SupportContent(modifier: Modifier) {
 
         PrimaryButton(
             label = stringResource(id = R.string.support_btn_submit),
-            enabled = state.title.isNotEmpty() && state.description.isNotEmpty() && !state.submitting,
+            enabled = state.title.isNotEmpty() && state.description.isNotEmpty() && !state.submitting && state.attachmentUploading.isEmpty(),
             showLoader = state.submitting,
             onClick = { viewModel.submitSupportRequest() },
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.CenterHorizontally)
         )
-
     }
 }
 
@@ -239,12 +237,11 @@ fun SupportContent(modifier: Modifier) {
 fun Attachments(
     attachments: List<File>,
     failedAttachments: List<File>,
-    uploading: File?,
-    onAttachmentPinClicked:() -> Unit,
+    uploading: List<File>,
+    onAttachmentPinClicked: () -> Unit,
     onAttachmentAdded: (List<File>) -> Unit,
     onAttachmentRemoved: (File) -> Unit
 ) {
-
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetMultipleContents()
@@ -293,13 +290,11 @@ fun Attachments(
     attachments.forEach { attachment ->
         AttachmentItem(
             attachment,
-            isUploading = uploading == attachment,
+            isUploading = uploading.contains(attachment),
             isFailed = failedAttachments.contains(attachment),
             onAttachmentRemoved
         )
-
     }
-
 }
 
 @Composable
@@ -361,9 +356,7 @@ fun AttachmentItem(
             )
         }
     }
-
 }
-
 
 private fun getFileName(context: Context, uri: Uri): String {
     var fileName = "media_file"
