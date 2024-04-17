@@ -11,6 +11,7 @@ import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -72,5 +73,16 @@ class MainViewModel @Inject constructor(
             clearStack = true
         )
         _sessionExpiredState.emit(false)
+    }
+
+    fun handleIntentData(threadId: String?) {
+        if (!threadId.isNullOrEmpty()) {
+            navigateToMessages(threadId)
+        }
+    }
+
+    private fun navigateToMessages(threadId: String) = viewModelScope.launch(appDispatcher.IO) {
+        delay(500)
+        navigator.navigateTo(AppDestinations.ThreadMessages.messages(threadId).path)
     }
 }

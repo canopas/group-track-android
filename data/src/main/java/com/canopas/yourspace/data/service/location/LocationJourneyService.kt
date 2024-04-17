@@ -22,7 +22,8 @@ class LocationJourneyService @Inject constructor(
 ) {
     private val userRef = db.collection(Config.FIRESTORE_COLLECTION_USERS)
     private fun journeyRef(userId: String) =
-        userRef.document(userId).collection(Config.FIRESTORE_COLLECTION_USER_JOURNEYS)
+        userRef.document(userId)
+            .collection(Config.FIRESTORE_COLLECTION_USER_JOURNEYS)
 
     suspend fun saveLastKnownJourney(
         userId: String
@@ -129,11 +130,14 @@ class LocationJourneyService @Inject constructor(
         null
     }
 
-    fun getJourneyHistoryQuery(userId: String, from: Long, to: Long) =
+    suspend fun getJourneyHistory(userId: String, from: Long, to: Long) =
         journeyRef(userId).whereEqualTo("user_id", userId)
             .whereGreaterThanOrEqualTo("created_at", from)
             .whereLessThan("created_at", to)
-            .orderBy("created_at", Query.Direction.DESCENDING).limit(50)
+            .orderBy("created_at", Query.Direction.DESCENDING)
+            .limit(10)
+            .get().await()
+            .documents.mapNotNull { it.toObject(LocationJourney::class.java) }
 
     fun updateLastLocationJourney(userId: String, newJourney: LocationJourney) {
         journeyRef(userId).document(newJourney.id).set(newJourney)

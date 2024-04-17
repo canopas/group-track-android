@@ -125,9 +125,17 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("androidx.navigation:navigation-compose:2.7.7")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
-    implementation("com.google.firebase:firebase-firestore-ktx:24.11.0")
     implementation("androidx.compose.foundation:foundation:1.6.5")
 
+    implementation(platform("com.google.firebase:firebase-bom:32.8.1"))
+    implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("com.google.firebase:firebase-messaging-ktx")
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-storage")
+    implementation("com.google.firebase:firebase-crashlytics")
+
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
+    implementation("androidx.lifecycle:lifecycle-process:2.7.0")
     // Test
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
@@ -145,18 +153,13 @@ dependencies {
     val hilt = "2.50"
     implementation("com.google.dagger:hilt-android:$hilt")
     ksp("com.google.dagger:hilt-compiler:$hilt")
+    // Work manager
+    implementation("androidx.hilt:hilt-work:1.2.0")
+    kapt("androidx.hilt:hilt-compiler:1.2.0")
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
 
     // DataStore
     implementation("androidx.datastore:datastore-preferences:1.0.0")
-
-    // Firebase
-    implementation(platform("com.google.firebase:firebase-bom:32.8.0"))
-    implementation("com.google.firebase:firebase-auth")
-    implementation("com.google.android.gms:play-services-auth:21.0.0")
-    implementation("com.google.firebase:firebase-storage")
-
-    // Crashlytics
-    implementation("com.google.firebase:firebase-crashlytics")
 
     // Timber
     implementation("com.jakewharton.timber:timber:5.0.1")
@@ -171,9 +174,6 @@ dependencies {
     implementation("com.google.accompanist:accompanist-permissions:0.32.0")
 
     implementation("com.google.maps.android:maps-compose:4.3.0")
-
-    // Paging
-    implementation("androidx.paging:paging-compose:3.2.1")
 
     // Image cropper
     implementation("com.vanniktech:android-image-cropper:4.5.0")

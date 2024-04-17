@@ -74,6 +74,10 @@ class SettingsViewModel @Inject constructor(
         val spaceId = _state.value.selectedSpace?.id ?: return
         navigator.navigateTo(AppDestinations.SpaceProfileScreen.spaceSettings(spaceId).path)
     }
+
+    fun showContactSupport() {
+        navigator.navigateTo(AppDestinations.contactSupport.path)
+    }
 }
 
 data class SettingsScreenState(

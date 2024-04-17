@@ -102,6 +102,10 @@ class ApiUserService @Inject constructor(
         userRef.document(user.id).set(user).await()
     }
 
+    suspend fun registerFcmToken(userId: String, token: String) {
+        userRef.document(userId).update("fcm_token", token).await()
+    }
+
     suspend fun addSpaceId(userId: String, spaceId: String) {
         userRef.document(userId).update("space_ids", FieldValue.arrayUnion(spaceId)).await()
     }

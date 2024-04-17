@@ -1,4 +1,4 @@
-package com.canopas.yourspace.utils
+package com.canopas.yourspace.domain.utils
 
 import android.content.Context
 import android.content.Intent

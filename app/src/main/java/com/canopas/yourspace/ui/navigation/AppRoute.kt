@@ -21,6 +21,11 @@ object AppDestinations {
         override val path: String = "settings"
     }
 
+    val contactSupport = object : AppRoute {
+        override val arguments: List<NamedNavArgument> = emptyList()
+        override val path: String = "contact-support"
+    }
+
     val editProfile = object : AppRoute {
         override val arguments: List<NamedNavArgument> = emptyList()
         override val path: String = "edit-profile"
