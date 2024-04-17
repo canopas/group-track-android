@@ -1,6 +1,7 @@
 const {onDocumentDeleted, onDocumentCreated} = require("firebase-functions/v2/firestore");
 const firebase_tools = require('firebase-tools');
 const {setGlobalOptions} = require("firebase-functions/v2");
+const {onCall, HttpsError} = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
 admin.initializeApp();
 setGlobalOptions({maxInstances: 5});
@@ -138,4 +139,62 @@ exports.sendNotification = onDocumentCreated("space_threads/{threadId}/thread_me
 
 });
 
+exports.sendSupportRequest = onCall(async (request) => {
+
+     const db = admin.firestore();
+     var data = request.data;
+
+     await db.collection('support_requests')
+     .add({
+        to: ["radhika.s@canopas.com","megh.l@canopas.com"],
+        message: {
+            subject: "YourSpace Support Request",
+            html: `
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+                <meta name="HandheldFriendly" content="true">
+                <style>
+                    table {
+                        width: 80%;
+                        border-collapse: collapse;
+                    }
+
+                    table, th, td {
+                        border: 1px solid black;
+                    }
+
+                    th {
+                        font-weight: bold;
+                    }
+
+                    th, td {
+                        height: 30px;
+                        text-align: center;
+                    }
+                </style>
+            </head>
+            <body>
+            <br>
+            <table>
+                <tbody>
+                    <tr>
+                        ${Object.entries(data).map((entry, index) => {
+                            const key = entry[0];
+                            const value = Array.isArray(entry[1]) ? entry[1].join("</p><p>") : entry[1]; // Handle arrays specially
+                            return `<tr><td>${key}</td><td>${value}</td></tr>`;
+                        }).join('')}
+                    </tr>
+                </tbody>
+            </table>
+            </body>
+            </html>
+            `,
+        },
+     }).then(() => console.log('Queued email for delivery!'));
+
+});
 
