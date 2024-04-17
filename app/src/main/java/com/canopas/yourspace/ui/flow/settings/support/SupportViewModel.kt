@@ -47,7 +47,6 @@ class SupportViewModel @Inject constructor(
                 failed.add(it)
                 _state.value =
                     state.value.copy(attachmentSizeLimitExceed = true, attachmentsFailed = failed)
-
                 return
             }
         }
