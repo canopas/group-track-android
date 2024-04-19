@@ -13,7 +13,9 @@ class ApiPlaceService @Inject constructor(
     private fun spacePlacesRef(spaceId: String) =
         spaceRef.document(spaceId).collection(Config.FIRESTORE_COLLECTION_SPACE_PLACES)
 
-    suspend fun addPlace(spaceId: String, placeId: String) {}
+    suspend fun addPlace(spaceId: String, name: String, latitude: Double, longitude: Double) {
+
+    }
 
     suspend fun getPlaces(spaceId: String) {}
 

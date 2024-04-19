@@ -27,6 +27,7 @@ import com.canopas.yourspace.ui.flow.auth.methods.SignInMethodsScreen
 import com.canopas.yourspace.ui.flow.auth.phone.EXTRA_RESULT_IS_NEW_USER
 import com.canopas.yourspace.ui.flow.auth.phone.SignInWithPhoneScreen
 import com.canopas.yourspace.ui.flow.auth.verification.PhoneVerificationScreen
+import com.canopas.yourspace.ui.flow.geofence.addplace.locate.ChoosePlaceNameScreen
 import com.canopas.yourspace.ui.flow.geofence.addplace.locate.LocateOnMapScreen
 import com.canopas.yourspace.ui.flow.home.home.HomeScreen
 import com.canopas.yourspace.ui.flow.home.space.create.CreateSpaceHomeScreen
@@ -178,6 +179,10 @@ fun MainApp(viewModel: MainViewModel) {
 
         slideComposable(AppDestinations.locateOnMap.path) {
             LocateOnMapScreen()
+        }
+
+        slideComposable(AppDestinations.ChoosePlaceName.path) {
+            ChoosePlaceNameScreen()
         }
     }
 }

@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.canopas.yourspace.data.service.location.LocationManager
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,7 +36,7 @@ class LocateOnMapViewModel @Inject constructor(
     }
 
     fun onNextClick(latitude: Double, longitude: Double) {
-        Timber.d("XXX: selectedLocation: latitude $latitude, longitude $longitude")
+        appNavigator.navigateTo(AppDestinations.ChoosePlaceName.setArgs(latitude,longitude).path)
     }
 }
 

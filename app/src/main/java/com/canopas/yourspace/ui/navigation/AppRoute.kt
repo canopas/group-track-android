@@ -167,4 +167,27 @@ object AppDestinations {
         override val arguments: List<NamedNavArgument> = emptyList()
         override val path: String = "locate-on-map"
     }
+
+    object ChoosePlaceName {
+        const val KEY_SELECTED_LAT = "lat"
+        const val KEY_SELECTED_LONG = "long"
+
+
+        private const val PATH = "choose-place-name"
+        const val path =
+            "$PATH?$KEY_SELECTED_LAT={$KEY_SELECTED_LAT}&$KEY_SELECTED_LONG={$KEY_SELECTED_LONG}"
+
+        fun setArgs(
+            latitude: Double,
+            longitude: Double
+        ) = object : AppRoute {
+
+            override val arguments = listOf(
+                navArgument(KEY_SELECTED_LAT) { type = NavType.StringType },
+                navArgument(KEY_SELECTED_LONG) { type = NavType.StringType }
+            )
+
+            override val path = "$PATH?$KEY_SELECTED_LAT=$latitude&$KEY_SELECTED_LONG=$longitude"
+        }
+    }
 }

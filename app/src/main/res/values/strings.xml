@@ -201,6 +201,24 @@
     <string name="support_btn_submit">Submit</string>
     <string name="support_attachment_size_limit_exceed">Attachment size should be less than 5MB</string>
     <string name="support_request_sent">Thanks! Your feedback has been recorded.</string>
+
     <string name="locate_on_map_title">Locate on Map</string>
+    <string name="choose_place_name_title">Choose place name</string>
+    <string name="choose_place_name_subtitle">Label Your Spaces: Define Each with a Unique Name</string>
+    <string name="choose_place_name_hint">Enter place name</string>
+    <string name="choose_place_btn_add_place">Add Place</string>
+
+    <string-array name="choose_place_name_suggestion">
+        <item>Home</item>
+        <item>Work</item>
+        <item>Friends</item>
+        <item>School</item>
+        <item>Gym</item>
+        <item>Park</item>
+        <item>Grocery Store</item>
+        <item>Shop</item>
+        <item>Cafe</item>
+        <item>Restaurant</item>
+    </string-array>
 
 </resources>
