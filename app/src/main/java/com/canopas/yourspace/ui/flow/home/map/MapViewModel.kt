@@ -123,6 +123,10 @@ class MapViewModel @Inject constructor(
             locationManager.startService()
         }
     }
+
+    fun navigateToPlaces() {
+        navigator.navigateTo(AppDestinations.locateOnMap.path)
+    }
 }
 
 data class MapScreenState(

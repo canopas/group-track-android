@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.konan.properties.hasProperty
 import java.util.Properties
 
 plugins {
@@ -44,7 +45,11 @@ android {
         } else {
             val p = Properties()
             p.load(project.rootProject.file("local.properties").reader())
-            manifestPlaceholders["MAPS_API_KEY"] = p.getProperty("MAPS_API_KEY")
+            if (p.hasProperty("MAPS_API_KEY")) {
+                manifestPlaceholders["MAPS_API_KEY"] = p.getProperty("MAPS_API_KEY")
+            } else {
+                manifestPlaceholders["MAPS_API_KEY"] = ""
+            }
         }
     }
 

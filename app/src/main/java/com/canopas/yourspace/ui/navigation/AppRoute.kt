@@ -162,4 +162,9 @@ object AppDestinations {
             override val path = "$PATH?$KEY_THREAD_ID=$threadId"
         }
     }
+
+    val locateOnMap = object : AppRoute {
+        override val arguments: List<NamedNavArgument> = emptyList()
+        override val path: String = "locate-on-map"
+    }
 }
