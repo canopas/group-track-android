@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.place.ApiPlaceService
+import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.utils.AppDispatcher
 import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppDestinations.ChoosePlaceName
@@ -21,7 +22,8 @@ class ChoosePlaceNameViewModel @Inject constructor(
     private val appDispatcher: AppDispatcher,
     private val navigator: AppNavigator,
     private val apiPlaceService: ApiPlaceService,
-    private val spaceRepository: SpaceRepository
+    private val spaceRepository: SpaceRepository,
+    private val userPreferences: UserPreferences
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ChoosePlaceNameScreenState())
@@ -45,22 +47,28 @@ class ChoosePlaceNameViewModel @Inject constructor(
     }
 
     fun addPlace() = viewModelScope.launch(appDispatcher.IO) {
-        _state.value = _state.value.copy(addingPlace = true)
+        val currentSpaceId = userPreferences.currentSpace ?: return@launch
+        val currentUser = userPreferences.currentUser ?: return@launch
+
+        _state.emit(state.value.copy(addingPlace = true))
         try {
-//            apiPlaceService.addPlace(
-//                spaceId = spaceRepository.currentSpaceId,
-//                name = state.value.placeName,
-//                latitude = selectedLatitude,
-//                longitude = selectedLongitude
-//            )
+            val memberIds = spaceRepository.getMemberBySpaceId(currentSpaceId)?.map { it.user_id }
+                ?: emptyList()
+            apiPlaceService.addPlace(
+                spaceId = currentSpaceId,
+                name = state.value.placeName,
+                latitude = selectedLatitude,
+                longitude = selectedLongitude,
+                createdBy = currentUser.id,
+                spaceMemberIds = memberIds
+            )
             navigator.navigateBack(
                 AppDestinations.home.path,
                 true
             ) // TODO navigate to places screen
+            _state.emit(state.value.copy(addingPlace = false))
         } catch (e: Exception) {
-            _state.value = _state.value.copy(error = e)
-        } finally {
-            _state.value = _state.value.copy(addingPlace = false)
+            _state.emit(state.value.copy(error = e, addingPlace = false))
         }
     }
 }

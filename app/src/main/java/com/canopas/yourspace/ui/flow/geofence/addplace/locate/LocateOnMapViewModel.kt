@@ -36,7 +36,7 @@ class LocateOnMapViewModel @Inject constructor(
     }
 
     fun onNextClick(latitude: Double, longitude: Double) {
-        appNavigator.navigateTo(AppDestinations.ChoosePlaceName.setArgs(latitude,longitude).path)
+        appNavigator.navigateTo(AppDestinations.ChoosePlaceName.setArgs(latitude, longitude).path)
     }
 }
 

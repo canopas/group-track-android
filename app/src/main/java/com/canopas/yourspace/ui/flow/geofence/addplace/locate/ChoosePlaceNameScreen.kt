@@ -89,7 +89,6 @@ fun ChoosePlaceNameScreen() {
             }
         )
     }
-
 }
 
 @Composable

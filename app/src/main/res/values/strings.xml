@@ -211,7 +211,6 @@
     <string-array name="choose_place_name_suggestion">
         <item>Home</item>
         <item>Work</item>
-        <item>Friends</item>
         <item>School</item>
         <item>Gym</item>
         <item>Park</item>

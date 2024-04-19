@@ -100,6 +100,8 @@ class SpaceRepository @Inject constructor(
 
     suspend fun getSpace(spaceId: String): ApiSpace? = spaceService.getSpace(spaceId)
 
+    suspend fun getMemberBySpaceId(spaceId: String) = spaceService.getMemberBySpaceId(spaceId).firstOrNull()
+
     @OptIn(ExperimentalCoroutinesApi::class)
     suspend fun getMemberWithLocation(): Flow<List<UserInfo>> {
         if (currentSpaceId.isEmpty()) return emptyFlow()

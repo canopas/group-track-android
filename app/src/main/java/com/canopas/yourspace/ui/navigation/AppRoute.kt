@@ -172,7 +172,6 @@ object AppDestinations {
         const val KEY_SELECTED_LAT = "lat"
         const val KEY_SELECTED_LONG = "long"
 
-
         private const val PATH = "choose-place-name"
         const val path =
             "$PATH?$KEY_SELECTED_LAT={$KEY_SELECTED_LAT}&$KEY_SELECTED_LONG={$KEY_SELECTED_LONG}"
