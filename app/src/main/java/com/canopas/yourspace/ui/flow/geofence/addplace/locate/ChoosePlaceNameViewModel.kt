@@ -65,7 +65,7 @@ class ChoosePlaceNameViewModel @Inject constructor(
             navigator.navigateBack(
                 AppDestinations.home.path,
                 true
-            ) // TODO navigate to places screen
+            )
             _state.emit(state.value.copy(addingPlace = false))
         } catch (e: Exception) {
             _state.emit(state.value.copy(error = e, addingPlace = false))
@@ -76,5 +76,6 @@ class ChoosePlaceNameViewModel @Inject constructor(
 data class ChoosePlaceNameScreenState(
     val placeName: String = "",
     val addingPlace: Boolean = false,
+    val placeAdded: Boolean = false,
     val error: Exception? = null
 )

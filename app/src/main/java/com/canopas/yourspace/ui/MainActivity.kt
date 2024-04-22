@@ -30,6 +30,7 @@ import com.canopas.yourspace.ui.flow.auth.verification.PhoneVerificationScreen
 import com.canopas.yourspace.ui.flow.geofence.addplace.locate.ChoosePlaceNameScreen
 import com.canopas.yourspace.ui.flow.geofence.addplace.locate.LocateOnMapScreen
 import com.canopas.yourspace.ui.flow.home.home.HomeScreen
+import com.canopas.yourspace.ui.flow.home.places.PlacesListScreen
 import com.canopas.yourspace.ui.flow.home.space.create.CreateSpaceHomeScreen
 import com.canopas.yourspace.ui.flow.home.space.create.SpaceInvite
 import com.canopas.yourspace.ui.flow.home.space.join.JoinSpaceScreen
@@ -175,6 +176,10 @@ fun MainApp(viewModel: MainViewModel) {
 
         slideComposable(AppDestinations.contactSupport.path) {
             SupportScreen()
+        }
+
+        slideComposable(AppDestinations.places.path) {
+            PlacesListScreen()
         }
 
         slideComposable(AppDestinations.locateOnMap.path) {

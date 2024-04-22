@@ -42,7 +42,7 @@ import com.canopas.yourspace.ui.flow.home.activity.ActivityScreen
 import com.canopas.yourspace.ui.flow.home.home.component.SpaceSelectionMenu
 import com.canopas.yourspace.ui.flow.home.home.component.SpaceSelectionPopup
 import com.canopas.yourspace.ui.flow.home.map.MapScreen
-import com.canopas.yourspace.ui.flow.home.places.PlacesScreen
+import com.canopas.yourspace.ui.flow.home.places.PlacesListScreen
 import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.tabComposable
 import com.canopas.yourspace.ui.theme.AppTheme
@@ -186,7 +186,7 @@ fun HomeScreenContent(navController: NavHostController) {
         }
 
         tabComposable(AppDestinations.places.path) {
-            PlacesScreen()
+            PlacesListScreen()
         }
 
         tabComposable(AppDestinations.activity.path) {

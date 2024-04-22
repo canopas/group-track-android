@@ -202,6 +202,9 @@
     <string name="support_attachment_size_limit_exceed">Attachment size should be less than 5MB</string>
     <string name="support_request_sent">Thanks! Your feedback has been recorded.</string>
 
+    <string name="places_list_title">Places</string>
+    <string name="places_list_add_new_place_btn">Add a new Place</string>
+
     <string name="locate_on_map_title">Locate on Map</string>
     <string name="choose_place_name_title">Choose place name</string>
     <string name="choose_place_name_subtitle">Label Your Spaces: Define Each with a Unique Name</string>

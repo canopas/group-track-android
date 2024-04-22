@@ -125,7 +125,7 @@ class MapViewModel @Inject constructor(
     }
 
     fun navigateToPlaces() {
-        navigator.navigateTo(AppDestinations.locateOnMap.path)
+        navigator.navigateTo(AppDestinations.places.path)
     }
 }
 
