@@ -1,6 +1,7 @@
 package com.canopas.yourspace.ui.flow.home.places
 
 import androidx.lifecycle.ViewModel
+import com.canopas.yourspace.data.models.place.ApiPlace
 import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.place.ApiPlaceService
 import com.canopas.yourspace.data.storage.UserPreferences
@@ -53,5 +54,7 @@ data class PlacesListScreenState(
     val addedPlaceLng: Double = 0.0,
     val addedPlaceName: String = "",
 
+    val placesLoading:Boolean = false,
+    val places:List<ApiPlace> = emptyList(),
     val error: Exception? = null
 )
