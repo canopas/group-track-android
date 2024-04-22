@@ -1,4 +1,4 @@
-package com.canopas.yourspace.ui.flow.geofence.addplace.locate
+package com.canopas.yourspace.ui.flow.geofence.addplace.placename
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

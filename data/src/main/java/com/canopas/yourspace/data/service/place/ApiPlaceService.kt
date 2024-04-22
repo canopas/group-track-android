@@ -17,9 +17,10 @@ class ApiPlaceService @Inject constructor(
         spaceRef.document(spaceId).collection(Config.FIRESTORE_COLLECTION_SPACE_PLACES)
 
     private fun spacePlacesSettingsRef(spaceId: String, placeId: String) =
-        spaceRef.document(spaceId).collection(Config.FIRESTORE_COLLECTION_SPACE_PLACES).document(placeId).collection(
-            Config.FIRESTORE_COLLECTION_SPACE_PLACES_MEMBER_SETTINGS
-        )
+        spaceRef.document(spaceId).collection(Config.FIRESTORE_COLLECTION_SPACE_PLACES)
+            .document(placeId).collection(
+                Config.FIRESTORE_COLLECTION_SPACE_PLACES_MEMBER_SETTINGS
+            )
 
     suspend fun addPlace(
         spaceId: String,

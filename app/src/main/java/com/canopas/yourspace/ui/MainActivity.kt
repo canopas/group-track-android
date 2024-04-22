@@ -27,10 +27,14 @@ import com.canopas.yourspace.ui.flow.auth.methods.SignInMethodsScreen
 import com.canopas.yourspace.ui.flow.auth.phone.EXTRA_RESULT_IS_NEW_USER
 import com.canopas.yourspace.ui.flow.auth.phone.SignInWithPhoneScreen
 import com.canopas.yourspace.ui.flow.auth.verification.PhoneVerificationScreen
-import com.canopas.yourspace.ui.flow.geofence.addplace.locate.ChoosePlaceNameScreen
 import com.canopas.yourspace.ui.flow.geofence.addplace.locate.LocateOnMapScreen
+import com.canopas.yourspace.ui.flow.geofence.addplace.placename.ChoosePlaceNameScreen
 import com.canopas.yourspace.ui.flow.home.home.HomeScreen
+import com.canopas.yourspace.ui.flow.home.places.EXTRA_RESULT_PLACE_LATITUDE
+import com.canopas.yourspace.ui.flow.home.places.EXTRA_RESULT_PLACE_LONGITUDE
+import com.canopas.yourspace.ui.flow.home.places.EXTRA_RESULT_PLACE_NAME
 import com.canopas.yourspace.ui.flow.home.places.PlacesListScreen
+import com.canopas.yourspace.ui.flow.home.places.PlacesListViewModel
 import com.canopas.yourspace.ui.flow.home.space.create.CreateSpaceHomeScreen
 import com.canopas.yourspace.ui.flow.home.space.create.SpaceInvite
 import com.canopas.yourspace.ui.flow.home.space.join.JoinSpaceScreen
@@ -179,6 +183,31 @@ fun MainApp(viewModel: MainViewModel) {
         }
 
         slideComposable(AppDestinations.places.path) {
+            val placesListViewModel = hiltViewModel<PlacesListViewModel>()
+
+            val result = navController.currentBackStackEntry
+                ?.savedStateHandle?.get<Int>(KEY_RESULT)
+            result?.let {
+                val latitude = navController.currentBackStackEntry
+                    ?.savedStateHandle?.get<Double>(EXTRA_RESULT_PLACE_LATITUDE) ?: 0.0
+                val longitude = navController.currentBackStackEntry
+                    ?.savedStateHandle?.get<Double>(EXTRA_RESULT_PLACE_LONGITUDE) ?: 0.0
+                val placeName = navController.currentBackStackEntry
+                    ?.savedStateHandle?.get<String>(EXTRA_RESULT_PLACE_NAME) ?: ""
+                navController.currentBackStackEntry
+                    ?.savedStateHandle?.apply {
+                        remove<Int>(KEY_RESULT)
+                        remove<Double>(EXTRA_RESULT_PLACE_LATITUDE)
+                        remove<Double>(EXTRA_RESULT_PLACE_LONGITUDE)
+                        remove<String>(EXTRA_RESULT_PLACE_NAME)
+                    }
+
+                LaunchedEffect(key1 = result) {
+                    if (result == RESULT_OKAY) {
+                        placesListViewModel.addPlace(latitude, longitude, placeName)
+                    }
+                }
+            }
             PlacesListScreen()
         }
 

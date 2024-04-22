@@ -10,6 +10,7 @@
     <string name="common_btn_create_space">Create new</string>
     <string name="common_btn_join_space">Join space</string>
     <string name="common_btn_ok">Okay</string>
+    <string name="common_btn_got_it">Got it</string>
     <string name="common_label_congratulations">Congratulations!</string>
     <string name="common_btn_add">Add</string>
     <string name="common_btn_cancel">Cancel</string>
@@ -210,6 +211,8 @@
     <string name="choose_place_name_subtitle">Label Your Spaces: Define Each with a Unique Name</string>
     <string name="choose_place_name_hint">Enter place name</string>
     <string name="choose_place_btn_add_place">Add Place</string>
+    <string name="place_added_popup_title">%s Added</string>
+    <string name="place_added_popup_description">You will be notified when members of your space arrive/leave this place</string>
 
     <string-array name="choose_place_name_suggestion">
         <item>Home</item>
