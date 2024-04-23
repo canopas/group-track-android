@@ -4,10 +4,12 @@ import android.location.Location
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.canopas.yourspace.data.models.location.toLocation
+import com.canopas.yourspace.data.models.place.ApiPlace
 import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.models.user.UserInfo
 import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.location.LocationManager
+import com.canopas.yourspace.data.service.place.ApiPlaceService
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.utils.AppDispatcher
 import com.canopas.yourspace.ui.navigation.AppDestinations
@@ -16,6 +18,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -27,6 +30,7 @@ class MapViewModel @Inject constructor(
     private val spaceRepository: SpaceRepository,
     private val userPreferences: UserPreferences,
     private val locationManager: LocationManager,
+    private val apiPlaceService: ApiPlaceService,
     private val appDispatcher: AppDispatcher,
     private val navigator: AppNavigator
 ) : ViewModel() {
@@ -35,6 +39,7 @@ class MapViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     private var locationJob: Job? = null
+    private var placeJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -44,8 +49,23 @@ class MapViewModel @Inject constructor(
             }
             userPreferences.currentSpaceState.collectLatest {
                 locationJob?.cancel()
+                placeJob?.cancel()
                 listenMemberLocation()
+                listenPlaces()
             }
+        }
+    }
+
+    private fun listenPlaces() {
+        placeJob = viewModelScope.launch(appDispatcher.IO) {
+            apiPlaceService
+                .listenAllPlaces(spaceRepository.currentSpaceId)
+                .catch { e ->
+                    Timber.e(e, "Failed to listen places")
+                }
+                .collectLatest { places ->
+                    _state.emit(_state.value.copy(places = places))
+                }
         }
     }
 
@@ -131,6 +151,7 @@ class MapViewModel @Inject constructor(
 
 data class MapScreenState(
     val members: List<UserInfo> = emptyList(),
+    val places: List<ApiPlace> = emptyList(),
     val currentUser: ApiUser? = null,
     val defaultCameraPosition: Location? = null,
     val selectedUser: UserInfo? = null,

@@ -60,6 +60,7 @@ import com.canopas.yourspace.domain.utils.isLocationServiceEnabled
 import com.canopas.yourspace.domain.utils.openLocationSettings
 import com.canopas.yourspace.ui.component.ShowEnableLocationDialog
 import com.canopas.yourspace.ui.flow.home.map.component.AddMemberBtn
+import com.canopas.yourspace.ui.flow.home.map.component.MapCircles
 import com.canopas.yourspace.ui.flow.home.map.component.MapControlBtn
 import com.canopas.yourspace.ui.flow.home.map.component.MapMarker
 import com.canopas.yourspace.ui.flow.home.map.component.MapUserItem
@@ -363,6 +364,10 @@ private fun MapView(
                     isSelected = currentUser.id == state.selectedUser?.user?.id
                 ) {}
             }
+        }
+
+        state.places.forEach {
+            MapCircles(place = it) {}
         }
     }
 }

@@ -1,11 +1,13 @@
 package com.canopas.yourspace.ui.flow.home.map
 
 import com.canopas.yourspace.MainCoroutineRule
+import com.canopas.yourspace.data.models.place.ApiPlace
 import com.canopas.yourspace.data.models.space.ApiSpace
 import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.models.user.UserInfo
 import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.location.LocationManager
+import com.canopas.yourspace.data.service.place.ApiPlaceService
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.utils.AppDispatcher
 import com.canopas.yourspace.ui.navigation.AppNavigator
@@ -33,6 +35,7 @@ class MapViewModelTest {
     private val spaceRepository = mock<SpaceRepository>()
     private val userPreferences = mock<UserPreferences>()
     private val locationManager = mock<LocationManager>()
+    private val apiPlaceService = mock<ApiPlaceService>()
     private val navigator = mock<AppNavigator>()
     private val testDispatcher = AppDispatcher(IO = UnconfinedTestDispatcher())
 
@@ -43,6 +46,7 @@ class MapViewModelTest {
             spaceRepository = spaceRepository,
             userPreferences = userPreferences,
             locationManager = locationManager,
+            apiPlaceService = apiPlaceService,
             appDispatcher = testDispatcher,
             navigator = navigator
         )
@@ -199,5 +203,24 @@ class MapViewModelTest {
         setUp()
         viewModel.addMember()
         assert(viewModel.state.value.error == exception)
+    }
+
+    @Test
+    fun `should update places on listenPlaces`() = runTest {
+        val user = ApiUser(id = "user1")
+        val flow = flow {
+            emit("space1")
+        }
+        val lists = listOf(ApiPlace())
+        val placesFlow = flow {
+            emit(lists)
+        }
+        whenever(spaceRepository.currentSpaceId).thenReturn("space1")
+        whenever(userPreferences.currentUser).thenReturn(user)
+        whenever(userPreferences.currentSpaceState).thenReturn(flow)
+        whenever(spaceRepository.getMemberWithLocation()).thenReturn(flowOf(emptyList()))
+        whenever(apiPlaceService.listenAllPlaces("space1")).thenReturn(placesFlow)
+        setUp()
+        assert(viewModel.state.value.places == lists)
     }
 }

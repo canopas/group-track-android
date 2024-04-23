@@ -5,7 +5,7 @@ import com.google.firebase.firestore.ServerTimestamp
 import java.util.Date
 import java.util.UUID
 
-const val GEOFENCE_PLACE_RADIUS_DEFAULT = 100.0
+const val GEOFENCE_PLACE_RADIUS_DEFAULT = 200.0
 
 @Keep
 data class ApiPlace(

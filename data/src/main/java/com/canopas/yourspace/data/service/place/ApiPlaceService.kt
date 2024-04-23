@@ -3,7 +3,9 @@ package com.canopas.yourspace.data.service.place
 import com.canopas.yourspace.data.models.place.ApiPlace
 import com.canopas.yourspace.data.models.place.ApiPlaceMemberSetting
 import com.canopas.yourspace.data.utils.Config
+import com.canopas.yourspace.data.utils.snapshotFlow
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
@@ -61,6 +63,9 @@ class ApiPlaceService @Inject constructor(
         val places = spacePlacesRef(spaceId).get().await()
         return places.toObjects(ApiPlace::class.java).sortedByDescending { it.created_at }
     }
+
+    fun listenAllPlaces(spaceId: String): Flow<List<ApiPlace>> =
+        spacePlacesRef(spaceId).snapshotFlow(ApiPlace::class.java)
 
     suspend fun getPlace(spaceId: String, placeId: String) {}
 
