@@ -168,6 +168,28 @@ object AppDestinations {
         override val path: String = "locate-on-map"
     }
 
+    object LocateOnMap {
+        const val KEY_SELECTED_NAME = "place_name"
+
+        private const val PATH = "locate-on-map"
+        const val path =
+            "$PATH?$KEY_SELECTED_NAME={$KEY_SELECTED_NAME}"
+
+        fun setArgs(
+            placeName: String
+        ) = object : AppRoute {
+
+            override val arguments = listOf(
+                navArgument(KEY_SELECTED_NAME) {
+                    type = NavType.StringType
+                    nullable = true
+                }
+            )
+
+            override val path = "$PATH?$KEY_SELECTED_NAME=$placeName"
+        }
+    }
+
     object ChoosePlaceName {
         const val KEY_SELECTED_LAT = "lat"
         const val KEY_SELECTED_LONG = "long"

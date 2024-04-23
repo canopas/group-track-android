@@ -1,11 +1,7 @@
-package com.canopas.yourspace.ui.flow.home.places
+package com.canopas.yourspace.ui.flow.geofence.places
 
 import androidx.lifecycle.ViewModel
 import com.canopas.yourspace.data.models.place.ApiPlace
-import com.canopas.yourspace.data.repository.SpaceRepository
-import com.canopas.yourspace.data.service.place.ApiPlaceService
-import com.canopas.yourspace.data.storage.UserPreferences
-import com.canopas.yourspace.data.utils.AppDispatcher
 import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,11 +11,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PlacesListViewModel @Inject constructor(
-    private val appNavigator: AppNavigator,
-    private val appDispatcher: AppDispatcher,
-    private val apiPlaceService: ApiPlaceService,
-    private val spaceRepository: SpaceRepository,
-    private val userPreferences: UserPreferences
+    private val appNavigator: AppNavigator
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(PlacesListScreenState())
@@ -30,7 +22,7 @@ class PlacesListViewModel @Inject constructor(
     }
 
     fun navigateToAddPlace() {
-        appNavigator.navigateTo(AppDestinations.locateOnMap.path)
+        appNavigator.navigateTo(AppDestinations.LocateOnMap.setArgs("").path)
     }
 
     fun addPlace(lat: Double, long: Double, name: String) {
@@ -46,6 +38,10 @@ class PlacesListViewModel @Inject constructor(
     fun dismissPlaceAddedPopup() {
         _state.value = state.value.copy(placeAdded = false, addedPlaceLat = 0.0, addedPlaceLng = 0.0, addedPlaceName = "")
     }
+
+    fun selectedSuggestion(name: String) {
+        appNavigator.navigateTo(AppDestinations.LocateOnMap.setArgs(name).path)
+    }
 }
 
 data class PlacesListScreenState(
@@ -54,7 +50,7 @@ data class PlacesListScreenState(
     val addedPlaceLng: Double = 0.0,
     val addedPlaceName: String = "",
 
-    val placesLoading:Boolean = false,
-    val places:List<ApiPlace> = emptyList(),
+    val placesLoading: Boolean = false,
+    val places: List<ApiPlace> = emptyList(),
     val error: Exception? = null
 )

@@ -38,11 +38,11 @@ import androidx.navigation.compose.rememberNavController
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.utils.isBackgroundLocationPermissionGranted
 import com.canopas.yourspace.ui.component.AppProgressIndicator
+import com.canopas.yourspace.ui.flow.geofence.places.PlacesListScreen
 import com.canopas.yourspace.ui.flow.home.activity.ActivityScreen
 import com.canopas.yourspace.ui.flow.home.home.component.SpaceSelectionMenu
 import com.canopas.yourspace.ui.flow.home.home.component.SpaceSelectionPopup
 import com.canopas.yourspace.ui.flow.home.map.MapScreen
-import com.canopas.yourspace.ui.flow.home.places.PlacesListScreen
 import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.tabComposable
 import com.canopas.yourspace.ui.theme.AppTheme

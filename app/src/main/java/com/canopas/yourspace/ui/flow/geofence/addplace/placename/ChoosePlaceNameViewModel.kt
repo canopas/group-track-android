@@ -7,9 +7,9 @@ import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.place.ApiPlaceService
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.utils.AppDispatcher
-import com.canopas.yourspace.ui.flow.home.places.EXTRA_RESULT_PLACE_LATITUDE
-import com.canopas.yourspace.ui.flow.home.places.EXTRA_RESULT_PLACE_LONGITUDE
-import com.canopas.yourspace.ui.flow.home.places.EXTRA_RESULT_PLACE_NAME
+import com.canopas.yourspace.ui.flow.geofence.places.EXTRA_RESULT_PLACE_LATITUDE
+import com.canopas.yourspace.ui.flow.geofence.places.EXTRA_RESULT_PLACE_LONGITUDE
+import com.canopas.yourspace.ui.flow.geofence.places.EXTRA_RESULT_PLACE_NAME
 import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppDestinations.ChoosePlaceName
 import com.canopas.yourspace.ui.navigation.AppNavigator

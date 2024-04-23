@@ -205,7 +205,10 @@
 
     <string name="places_list_title">Places</string>
     <string name="places_list_add_new_place_btn">Add a new Place</string>
+    <string name="places_list_suggestion_add_your_place">Add your %s</string>
 
+
+    <string name="locate_on_map_selected_name_title">Add %s</string>
     <string name="locate_on_map_title">Locate on Map</string>
     <string name="choose_place_name_title">Choose place name</string>
     <string name="choose_place_name_subtitle">Label Your Spaces: Define Each with a Unique Name</string>
@@ -213,6 +216,16 @@
     <string name="choose_place_btn_add_place">Add Place</string>
     <string name="place_added_popup_title">%s Added</string>
     <string name="place_added_popup_description">You will be notified when members of your space arrive/leave this place</string>
+    <string name="locate_on_map_hint_getting_address">Getting Address...</string>
+
+    <string-array name="add_places_suggestions">
+        <item>Home</item>
+        <item>Work</item>
+        <item>School</item>
+        <item>Gym</item>
+        <item>Library</item>
+        <item>Local Park</item>
+    </string-array>
 
     <string-array name="choose_place_name_suggestion">
         <item>Home</item>

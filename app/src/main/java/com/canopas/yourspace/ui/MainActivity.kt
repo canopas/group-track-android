@@ -29,12 +29,12 @@ import com.canopas.yourspace.ui.flow.auth.phone.SignInWithPhoneScreen
 import com.canopas.yourspace.ui.flow.auth.verification.PhoneVerificationScreen
 import com.canopas.yourspace.ui.flow.geofence.addplace.locate.LocateOnMapScreen
 import com.canopas.yourspace.ui.flow.geofence.addplace.placename.ChoosePlaceNameScreen
+import com.canopas.yourspace.ui.flow.geofence.places.EXTRA_RESULT_PLACE_LATITUDE
+import com.canopas.yourspace.ui.flow.geofence.places.EXTRA_RESULT_PLACE_LONGITUDE
+import com.canopas.yourspace.ui.flow.geofence.places.EXTRA_RESULT_PLACE_NAME
+import com.canopas.yourspace.ui.flow.geofence.places.PlacesListScreen
+import com.canopas.yourspace.ui.flow.geofence.places.PlacesListViewModel
 import com.canopas.yourspace.ui.flow.home.home.HomeScreen
-import com.canopas.yourspace.ui.flow.home.places.EXTRA_RESULT_PLACE_LATITUDE
-import com.canopas.yourspace.ui.flow.home.places.EXTRA_RESULT_PLACE_LONGITUDE
-import com.canopas.yourspace.ui.flow.home.places.EXTRA_RESULT_PLACE_NAME
-import com.canopas.yourspace.ui.flow.home.places.PlacesListScreen
-import com.canopas.yourspace.ui.flow.home.places.PlacesListViewModel
 import com.canopas.yourspace.ui.flow.home.space.create.CreateSpaceHomeScreen
 import com.canopas.yourspace.ui.flow.home.space.create.SpaceInvite
 import com.canopas.yourspace.ui.flow.home.space.join.JoinSpaceScreen
@@ -211,7 +211,7 @@ fun MainApp(viewModel: MainViewModel) {
             PlacesListScreen()
         }
 
-        slideComposable(AppDestinations.locateOnMap.path) {
+        slideComposable(AppDestinations.LocateOnMap.path) {
             LocateOnMapScreen()
         }
 
