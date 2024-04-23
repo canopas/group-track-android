@@ -4,6 +4,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import com.canopas.yourspace.ui.theme.AppTheme
 
@@ -22,6 +23,7 @@ fun AppAlertDialog(
         onDismissRequest = {},
         properties = properties ?: DialogProperties(),
         containerColor = AppTheme.colorScheme.containerNormalOnSurface,
+        tonalElevation = 20.dp,
         title = {
             if (title != null) {
                 Text(

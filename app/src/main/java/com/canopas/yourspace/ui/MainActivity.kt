@@ -204,7 +204,7 @@ fun MainApp(viewModel: MainViewModel) {
 
                 LaunchedEffect(key1 = result) {
                     if (result == RESULT_OKAY) {
-                        placesListViewModel.addPlace(latitude, longitude, placeName)
+                        placesListViewModel.showPlaceAddedPopup(latitude, longitude, placeName)
                     }
                 }
             }

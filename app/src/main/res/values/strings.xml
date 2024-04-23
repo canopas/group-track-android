@@ -14,6 +14,7 @@
     <string name="common_label_congratulations">Congratulations!</string>
     <string name="common_btn_add">Add</string>
     <string name="common_btn_cancel">Cancel</string>
+    <string name="common_btn_delete">Delete</string>
     <string name="common_unknown">Unknown</string>
     <string name="common_today">Today</string>
     <string name="common_yesterday">Yesterday</string>
@@ -206,7 +207,7 @@
     <string name="places_list_title">Places</string>
     <string name="places_list_add_new_place_btn">Add a new Place</string>
     <string name="places_list_suggestion_add_your_place">Add your %s</string>
-
+    <string name="places_list_delete_dialogue_message_text">Are you sure you want to delete this place? This action cannot be undone.</string>
 
     <string name="locate_on_map_selected_name_title">Add %s</string>
     <string name="locate_on_map_title">Locate on Map</string>
@@ -216,7 +217,7 @@
     <string name="choose_place_btn_add_place">Add Place</string>
     <string name="place_added_popup_title">%s Added</string>
     <string name="place_added_popup_description">You will be notified when members of your space arrive/leave this place</string>
-    <string name="locate_on_map_hint_getting_address">Getting Address...</string>
+    <string name="locate_on_map_hint_getting_address">Getting Address…</string>
 
     <string-array name="add_places_suggestions">
         <item>Home</item>

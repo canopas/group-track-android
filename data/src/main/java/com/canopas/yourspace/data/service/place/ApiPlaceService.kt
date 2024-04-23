@@ -57,7 +57,14 @@ class ApiPlaceService @Inject constructor(
         }
     }
 
-    suspend fun getPlaces(spaceId: String) {}
+    suspend fun getPlaces(spaceId: String): List<ApiPlace> {
+        val places = spacePlacesRef(spaceId).get().await()
+        return places.toObjects(ApiPlace::class.java).sortedByDescending { it.created_at }
+    }
 
     suspend fun getPlace(spaceId: String, placeId: String) {}
+
+    suspend fun deletePlace(currentSpaceId: String, id: String) {
+        spacePlacesRef(currentSpaceId).document(id).delete().await()
+    }
 }
