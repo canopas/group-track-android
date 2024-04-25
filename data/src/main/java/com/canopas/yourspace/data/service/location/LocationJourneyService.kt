@@ -130,7 +130,7 @@ class LocationJourneyService @Inject constructor(
         null
     }
 
-    fun getJourneyHistoryQuery(userId: String, from: Long, to: Long) =
+    suspend fun getJourneyHistory(userId: String, from: Long, to: Long) =
         journeyRef(userId).whereEqualTo("user_id", userId)
             .whereGreaterThanOrEqualTo("created_at", from)
             .whereLessThan("created_at", to)
