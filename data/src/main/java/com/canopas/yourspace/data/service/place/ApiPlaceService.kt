@@ -6,6 +6,9 @@ import com.canopas.yourspace.data.utils.Config
 import com.canopas.yourspace.data.utils.snapshotFlow
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
@@ -64,10 +67,10 @@ class ApiPlaceService @Inject constructor(
         return places.toObjects(ApiPlace::class.java).sortedByDescending { it.created_at }
     }
 
-    fun listenAllPlaces(spaceId: String): Flow<List<ApiPlace>> =
-        spacePlacesRef(spaceId).snapshotFlow(ApiPlace::class.java)
-
-    suspend fun getPlace(spaceId: String, placeId: String) {}
+    fun listenAllPlaces(spaceId: String): Flow<List<ApiPlace>> {
+        if (spaceId.isEmpty()) return emptyFlow()
+        return spacePlacesRef(spaceId).snapshotFlow(ApiPlace::class.java)
+    }
 
     suspend fun deletePlace(currentSpaceId: String, id: String) {
         spacePlacesRef(currentSpaceId).document(id).delete().await()

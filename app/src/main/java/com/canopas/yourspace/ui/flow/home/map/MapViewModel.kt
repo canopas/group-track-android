@@ -64,7 +64,7 @@ class MapViewModel @Inject constructor(
                     Timber.e(e, "Failed to listen places")
                 }
                 .collectLatest { places ->
-                    _state.emit(_state.value.copy(places = places))
+                    _state.emit(_state.value.copy(places = places.filter { it.latitude != 0.0 && it.longitude != 0.0 }))
                 }
         }
     }
