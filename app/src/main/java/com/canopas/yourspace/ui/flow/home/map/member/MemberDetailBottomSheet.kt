@@ -569,16 +569,16 @@ private fun getFormattedLocationTime(timestamp1: Long, timestamp2: Long): String
         hours > 24 -> {
             val days = hours / 24
             val remainingHours = hours % 24
-            "$days days $remainingHours hours $minutes minutes $seconds seconds"
+            "$days day $remainingHours hr $minutes min $seconds sec"
         }
         hours > 0 -> {
-            "$hours hours $minutes minutes $seconds seconds"
+            "$hours hr $minutes min $seconds sec"
         }
         minutes > 0 -> {
-            "$minutes minutes $seconds seconds"
+            "$minutes min $seconds sec"
         }
         else -> {
-            "$seconds seconds"
+            "$seconds sec"
         }
     }
 }
@@ -603,13 +603,13 @@ private fun getRouteDurationString(
     val seconds = TimeUnit.MILLISECONDS.toSeconds(routeDuration) % 60
     return when {
         hours > 0 -> {
-            "$hours hours $minutes minutes $seconds seconds"
+            "$hours hr $minutes min $seconds sec"
         }
         minutes > 0 -> {
-            "$minutes minutes $seconds seconds"
+            "$minutes min $seconds sec"
         }
         else -> {
-            "$seconds seconds"
+            "$seconds sec"
         }
     }
 }

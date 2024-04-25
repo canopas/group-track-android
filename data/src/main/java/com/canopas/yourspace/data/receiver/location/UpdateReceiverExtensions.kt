@@ -149,16 +149,17 @@ suspend fun LocationJourneyService.saveJourneyForSteadyUser(
     lastSteadyLocation: LocationJourney?
 ) {
     val distance = lastSteadyLocation?.toLocationFromSteadyJourney()?.let { location ->
-        distanceBetween(extractedLocation, location).toDouble()
-    } ?: 0.0
-    if (lastJourneyLocation.isSteadyLocation() || distance < Config.DISTANCE_TO_CHECK_SUDDEN_LOCATION_CHANGE) {
+        distanceBetween(extractedLocation, location)
+    }?.toDouble() ?: 0.0
+    val timeDifference = extractedLocation.time - lastJourneyLocation.created_at!!
+    if (distance < Config.DISTANCE_TO_CHECK_SUDDEN_LOCATION_CHANGE && timeDifference < Config.FIVE_MINUTES) {
         return
     }
     saveCurrentJourney(
         userId = currentUserId,
         fromLatitude = extractedLocation.latitude,
         fromLongitude = extractedLocation.longitude,
-        currentLocationDuration = extractedLocation.time - (lastJourneyLocation.created_at ?: 0L),
+        currentLocationDuration = extractedLocation.time - lastJourneyLocation.created_at,
         recordedAt = Date().time
     )
 }

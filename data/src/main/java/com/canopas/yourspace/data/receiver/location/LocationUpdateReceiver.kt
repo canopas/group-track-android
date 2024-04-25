@@ -10,7 +10,6 @@ import com.canopas.yourspace.data.models.location.LocationTable
 import com.canopas.yourspace.data.models.location.UserState
 import com.canopas.yourspace.data.models.location.isSteadyLocation
 import com.canopas.yourspace.data.models.location.toApiLocation
-import com.canopas.yourspace.data.models.location.toLocationFromMovingJourney
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.location.ApiLocationService
 import com.canopas.yourspace.data.service.location.LocationJourneyService
@@ -109,26 +108,6 @@ class LocationUpdateReceiver : BroadcastReceiver() {
             val lastMovingLocation = getLastMovingLocation(locationData)
             val lastJourneyLocation = getLastJourneyLocation(locationData)
 
-            lastMovingLocation?.let {
-                val lastMovingAndCurrentDistance = distanceBetween(
-                    lastMovingLocation.toLocationFromMovingJourney(),
-                    extractedLocation
-                )
-                val timeDifference = extractedLocation.time - lastMovingLocation.created_at!!
-                if ((lastMovingAndCurrentDistance < 100 || lastMovingLocation == lastJourneyLocation) && timeDifference > 5 * 60 * 1000) {
-                    if (lastJourneyLocation != null) {
-                        locationJourneyService.saveCurrentJourney(
-                            userId = userId,
-                            fromLatitude = lastJourneyLocation.from_latitude,
-                            fromLongitude = lastJourneyLocation.from_longitude,
-                            currentLocationDuration = extractedLocation.time - lastJourneyLocation.created_at!!,
-                            recordedAt = Date().time
-                        )
-                        return
-                    }
-                }
-            }
-
             if (lastJourneyLocation?.isSteadyLocation() == true) {
                 val calendar1 = Calendar.getInstance().apply {
                     timeInMillis = lastJourneyLocation.created_at!!
@@ -143,8 +122,9 @@ class LocationUpdateReceiver : BroadcastReceiver() {
                         fromLatitude = lastJourneyLocation.from_latitude,
                         fromLongitude = lastJourneyLocation.from_longitude,
                         currentLocationDuration = extractedLocation.time - lastJourneyLocation.created_at!!,
-                        recordedAt = Date().time
+                        recordedAt = lastJourneyLocation.created_at
                     )
+                    return
                 }
             }
 
