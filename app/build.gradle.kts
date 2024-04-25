@@ -125,7 +125,6 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("androidx.navigation:navigation-compose:2.7.7")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
-    implementation("com.google.firebase:firebase-firestore-ktx:24.11.0")
     implementation("androidx.compose.foundation:foundation:1.6.5")
 
     implementation(platform("com.google.firebase:firebase-bom:32.8.1"))
@@ -162,15 +161,6 @@ dependencies {
 
     // DataStore
     implementation("androidx.datastore:datastore-preferences:1.0.0")
-
-    // Firebase
-    implementation(platform("com.google.firebase:firebase-bom:32.8.0"))
-    implementation("com.google.firebase:firebase-auth")
-    implementation("com.google.android.gms:play-services-auth:21.0.0")
-    implementation("com.google.firebase:firebase-storage")
-
-    // Crashlytics
-    implementation("com.google.firebase:firebase-crashlytics")
 
     // Timber
     implementation("com.jakewharton.timber:timber:5.0.1")

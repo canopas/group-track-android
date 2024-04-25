@@ -329,7 +329,10 @@ private fun LocationHistoryItem(
                     )
 
                     Text(
-                        text = getFormattedLocationTime(location.created_at!!, previousLocationJourney?.created_at ?: System.currentTimeMillis()),
+                        text = getFormattedLocationTime(
+                            location.created_at!!,
+                            previousLocationJourney?.created_at ?: System.currentTimeMillis()
+                        ),
                         style = AppTheme.appTypography.label2.copy(color = AppTheme.colorScheme.textSecondary)
                     )
                 } else {

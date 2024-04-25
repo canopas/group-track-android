@@ -22,7 +22,7 @@ class LocationJourneyService @Inject constructor(
 ) {
     private val userRef = db.collection(Config.FIRESTORE_COLLECTION_USERS)
     private fun journeyRef(userId: String) =
-        userRef.document(userId.replace('/', '_'))
+        userRef.document(userId)
             .collection(Config.FIRESTORE_COLLECTION_USER_JOURNEYS)
 
     suspend fun saveLastKnownJourney(
