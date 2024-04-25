@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -39,6 +40,7 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,17 +59,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.paging.LoadState
-import androidx.paging.compose.LazyPagingItems
-import androidx.paging.compose.collectAsLazyPagingItems
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.location.LocationJourney
 import com.canopas.yourspace.data.models.location.isSteadyLocation
 import com.canopas.yourspace.data.models.user.UserInfo
+import com.canopas.yourspace.domain.utils.getAddress
 import com.canopas.yourspace.ui.component.AppProgressIndicator
 import com.canopas.yourspace.ui.component.UserProfile
+import com.canopas.yourspace.ui.component.reachedBottom
 import com.canopas.yourspace.ui.theme.AppTheme
-import com.canopas.yourspace.utils.getAddress
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -83,7 +83,6 @@ fun MemberDetailBottomSheetContent(
 ) {
     val viewModel = hiltViewModel<MemberDetailViewModel>()
     val state by viewModel.state.collectAsState()
-    val locations = viewModel.location.collectAsLazyPagingItems()
 
     LaunchedEffect(userInfo) {
         val calendar = Calendar.getInstance()
@@ -113,42 +112,56 @@ fun MemberDetailBottomSheetContent(
             calendar.set(Calendar.HOUR_OF_DAY, 23)
             viewModel.fetchUserLocationHistory(from = timestamp, to = calendar.timeInMillis)
         }
-        LocationHistory(locations)
+        LocationHistory()
     }
 }
 
 @Composable
-fun LocationHistory(
-    locations: LazyPagingItems<LocationJourney>
-) {
+fun LocationHistory() {
+    val viewModel = hiltViewModel<MemberDetailViewModel>()
+    val state by viewModel.state.collectAsState()
+
+    val locations = state.locations
+    val lazyListState = rememberLazyListState()
+
+    val reachedBottom by remember {
+        derivedStateOf { lazyListState.reachedBottom() }
+    }
+
+    LaunchedEffect(reachedBottom) {
+        if (reachedBottom) viewModel.loadMoreLocations()
+    }
+
     Box {
         when {
-            locations.loadState.refresh == LoadState.Loading -> {
+            locations.isEmpty() && state.isLoading -> {
                 Box(
                     modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) { AppProgressIndicator() }
             }
 
-            locations.itemCount == 0 -> {
+            locations.isEmpty() -> {
                 EmptyHistory()
             }
 
             else -> {
-                LazyColumn {
-                    items(locations.itemCount) { index ->
+                LazyColumn(
+                    state = lazyListState
+                ) {
+                    items(locations.size) { index ->
                         val location = locations[index]
-                        val previousLocationJourney = locations.itemSnapshotList.getOrNull(index - 1)
+                        val previousLocationJourney = locations.getOrNull(index - 1)
 
                         LocationHistoryItem(
-                            location!!,
+                            location,
                             previousLocationJourney,
                             index,
-                            isLastItem = index == locations.itemCount - 1
+                            isLastItem = index == locations.lastIndex
                         )
                     }
 
-                    if (locations.loadState.append == LoadState.Loading) {
+                    if (locations.isNotEmpty() && state.isLoading) {
                         item {
                             Box(
                                 modifier = Modifier.fillMaxWidth(),

@@ -2,6 +2,7 @@ package com.canopas.yourspace.data.models.messages
 
 import androidx.annotation.Keep
 import com.google.firebase.firestore.Exclude
+import com.google.firebase.firestore.ServerTimestamp
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -28,9 +29,14 @@ data class ApiThreadMessage(
     val sender_id: String = "",
     val message: String = "",
     val seen_by: List<String> = emptyList(),
-    val created_at: Long = System.currentTimeMillis()
+    @ServerTimestamp
+    val created_at: Date? = null
 ) {
     @get:Exclude
+    val createdAtMs: Long
+        get() = created_at?.time ?: Date().time
+
+    @get:Exclude
     val formattedTime: String
-        get() = SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date(created_at))
+        get() = SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date(createdAtMs))
 }

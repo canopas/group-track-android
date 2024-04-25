@@ -60,15 +60,16 @@ import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.location.toApiLocation
 import com.canopas.yourspace.data.utils.hasAllPermission
 import com.canopas.yourspace.data.utils.hasFineLocationPermission
+import com.canopas.yourspace.data.utils.hasNotificationPermission
 import com.canopas.yourspace.data.utils.isLocationPermissionGranted
+import com.canopas.yourspace.domain.utils.isLocationServiceEnabled
+import com.canopas.yourspace.domain.utils.openLocationSettings
 import com.canopas.yourspace.ui.component.ShowEnableLocationDialog
 import com.canopas.yourspace.ui.flow.home.map.component.AddMemberBtn
 import com.canopas.yourspace.ui.flow.home.map.component.MapMarker
 import com.canopas.yourspace.ui.flow.home.map.component.MapUserItem
 import com.canopas.yourspace.ui.flow.home.map.member.MemberDetailBottomSheetContent
 import com.canopas.yourspace.ui.theme.AppTheme
-import com.canopas.yourspace.utils.isLocationServiceEnabled
-import com.canopas.yourspace.utils.openLocationSettings
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState
@@ -216,7 +217,7 @@ fun MapScreenContent(modifier: Modifier) {
 
             val context = LocalContext.current
             AnimatedVisibility(
-                visible = !context.hasAllPermission || !context.isLocationServiceEnabled(),
+                visible = !context.hasAllPermission || !context.isLocationServiceEnabled() || !context.hasNotificationPermission,
                 enter = slideInVertically(tween(100)) { it },
                 exit = slideOutVertically(tween(100)) { it }
             ) {
@@ -240,7 +241,13 @@ fun PermissionFooter(onClick: () -> Unit) {
     }
 
     val title =
-        stringResource(id = R.string.home_permission_footer_missing_location_permission_title)
+        if (!context.isLocationPermissionGranted) {
+            stringResource(id = R.string.home_permission_footer_missing_location_permission_title)
+        } else if (!context.hasNotificationPermission) {
+            stringResource(id = R.string.home_permission_footer_title)
+        } else {
+            stringResource(id = R.string.home_permission_footer_missing_location_permission_title)
+        }
 
     val subTitle =
         if (!locationEnabled) {

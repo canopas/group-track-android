@@ -1,4 +1,4 @@
-package com.canopas.yourspace.utils
+package com.canopas.yourspace.domain.utils
 
 import android.content.Context
 import com.canopas.yourspace.R

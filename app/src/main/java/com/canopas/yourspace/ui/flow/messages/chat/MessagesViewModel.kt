@@ -19,11 +19,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.Calendar
+import java.util.Date
 import javax.inject.Inject
 
 private const val MESSAGE_PAGE_LIMIT = 20
@@ -74,36 +74,38 @@ class MessagesViewModel @Inject constructor(
                     _state.emit(state.value.copy(error = e.message))
                 }
                 .collectLatest { messages ->
-                    val newMessages = allMessages + messages
-                    _state.value =
-                        state.value.copy(
-                            messagesByDate = newMessages.filterMessagesSinceArchive(
-                                authService.currentUser!!.id,
-                                state.value.thread
-                            ).groupMessagesByDate()
-                        )
-                    markMessagesAsSeen(messages)
+                    val filter = messages.filter { it.created_at != null }
+                    if (filter.isNotEmpty()) {
+                        val newMessages =
+                            allMessages.filter { msg -> filter.any { it.id != msg.id } } + filter
+                        _state.value =
+                            state.value.copy(
+                                messagesByDate = newMessages.groupMessagesByDate()
+                            )
+                        markMessagesAsSeen(filter)
+                    }
                 }
         }
     }
 
-    private fun markMessagesAsSeen(messages: List<ApiThreadMessage>) = viewModelScope.launch(appDispatcher.IO) {
-        try {
-            val unreadMessages = messages.distinct()
-                .filter { !it.seen_by.contains(state.value.currentUserId) }
-                .map { it.id }
+    private fun markMessagesAsSeen(messages: List<ApiThreadMessage>) =
+        viewModelScope.launch(appDispatcher.IO) {
+            try {
+                val unreadMessages = messages.distinct()
+                    .filter { !it.seen_by.contains(state.value.currentUserId) }
+                    .map { it.id }
 
-            if (unreadMessages.isNotEmpty()) {
-                messagesRepository.markMessagesAsSeen(
-                    threadId,
-                    unreadMessages,
-                    state.value.currentUserId
-                )
+                if (unreadMessages.isNotEmpty()) {
+                    messagesRepository.markMessagesAsSeen(
+                        threadId,
+                        unreadMessages,
+                        state.value.currentUserId
+                    )
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Error marking messages as seen")
             }
-        } catch (e: Exception) {
-            Timber.e(e, "Error marking messages as seen")
         }
-    }
 
     fun loadMore() = viewModelScope.launch(appDispatcher.IO) {
         if (loadingData || !hasMoreData || threadId.isEmpty()) return@launch
@@ -115,24 +117,20 @@ class MessagesViewModel @Inject constructor(
             )
         )
         try {
-            val from =
-                if (state.value.messagesByDate.isEmpty()) System.currentTimeMillis() else allMessages.minBy { it.created_at }.created_at
-
+            val from = allMessages.minByOrNull { it.createdAtMs }?.created_at ?: Date()
             val newMessages = messagesRepository.getMessages(
                 threadId,
                 from = from,
                 limit = MESSAGE_PAGE_LIMIT
-            ).first()
+            )
 
             hasMoreData = newMessages.isNotEmpty()
 
+            val existingMsg =
+                if (newMessages.isEmpty()) allMessages else allMessages.filter { msg -> newMessages.any { it.id != msg.id } }
             _state.emit(
                 state.value.copy(
-                    messagesByDate = (allMessages + newMessages)
-                        .filterMessagesSinceArchive(
-                            authService.currentUser!!.id,
-                            state.value.thread
-                        ).groupMessagesByDate(),
+                    messagesByDate = (existingMsg + newMessages).groupMessagesByDate(),
                     append = false,
                     loadingMessages = false,
                     error = null
@@ -315,11 +313,17 @@ class MessagesViewModel @Inject constructor(
     }
 
     private fun List<ApiThreadMessage>.groupMessagesByDate(): Map<Long, List<ApiThreadMessage>> {
-        val messages = this.distinctBy { it.id }.sortedByDescending { it.created_at }
+        val messages = this.distinctBy { it.id }
+            .filterMessagesSinceArchive(
+                authService.currentUser!!.id,
+                state.value.thread
+            )
+            .sortedByDescending { it.createdAtMs }
+
         val groupedMessages = mutableMapOf<Long, MutableList<ApiThreadMessage>>()
 
         for (message in messages) {
-            val messageDate = getDayStartTimestamp(message.created_at)
+            val messageDate = getDayStartTimestamp(message.createdAtMs)
 
             if (!groupedMessages.containsKey(messageDate)) {
                 groupedMessages[messageDate] = mutableListOf()
@@ -336,7 +340,7 @@ class MessagesViewModel @Inject constructor(
     ): List<ApiThreadMessage> {
         val archiveTimestamp = thread?.archived_for?.get(userId) ?: return this
         return this.filter { message ->
-            message.created_at >= archiveTimestamp
+            message.createdAtMs >= archiveTimestamp
         }
     }
 

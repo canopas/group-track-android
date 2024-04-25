@@ -9,6 +9,7 @@ import com.canopas.yourspace.data.service.user.ApiUserService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.map
+import java.util.Date
 import javax.inject.Inject
 
 class MessagesRepository @Inject constructor(
@@ -46,13 +47,17 @@ class MessagesRepository @Inject constructor(
             ThreadInfo(it, members)
         }
 
-    fun getMessages(threadId: String, from: Long, limit: Int) =
+    suspend fun getMessages(threadId: String, from: Date, limit: Int) =
         apiMessagesService.getMessages(threadId, from, limit)
 
     fun getLatestMessages(threadId: String, limit: Int) =
         apiMessagesService.getLatestMessages(threadId, limit)
 
-    suspend fun markMessagesAsSeen(threadId: String, messageIds: List<String>, currentUserId: String) {
+    suspend fun markMessagesAsSeen(
+        threadId: String,
+        messageIds: List<String>,
+        currentUserId: String
+    ) {
         apiMessagesService.markMessagesAsSeen(threadId, messageIds, currentUserId)
     }
 }
