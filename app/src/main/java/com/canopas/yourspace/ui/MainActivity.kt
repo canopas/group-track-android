@@ -71,12 +71,12 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    override fun onNewIntent(intent: Intent?) {
+    override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         val viewModel = ViewModelProvider(this)[MainViewModel::class.java]
-        val threadId = intent?.getStringExtra(NotificationDataConst.KEY_THREAD_ID)
+        val threadId = intent.getStringExtra(NotificationDataConst.KEY_THREAD_ID)
         viewModel.handleIntentData(threadId)
-        intent?.extras?.clear()
+        intent.extras?.clear()
     }
 }
 
