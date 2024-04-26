@@ -166,7 +166,7 @@ dependencies {
     implementation("com.jakewharton.timber:timber:5.0.1")
 
     // country-picker
-    implementation("com.canopas.jetcountrypicker:jetcountrypicker:1.0.9")
+    implementation("com.canopas.jetcountrypicker:jetcountrypicker:1.1.1")
 
     // coil
     implementation("io.coil-kt:coil-compose:2.5.0")

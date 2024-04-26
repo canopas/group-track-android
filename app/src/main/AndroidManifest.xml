@@ -23,7 +23,6 @@
             android:name=".ui.MainActivity"
             android:exported="true"
             android:launchMode="singleTask"
-            android:label="@string/app_name"
             android:theme="@style/Theme.CatchMe"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
