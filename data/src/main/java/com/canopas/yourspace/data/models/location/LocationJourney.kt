@@ -17,7 +17,8 @@ data class LocationJourney(
     val route_distance: Double? = null,
     val route_duration: Long? = null,
     val current_location_duration: Long? = null,
-    val created_at: Long? = System.currentTimeMillis()
+    val created_at: Long? = System.currentTimeMillis(),
+    val persistent_location_date: Long? = null
 )
 
 fun LocationJourney.isSteadyLocation(): Boolean {

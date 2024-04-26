@@ -122,7 +122,8 @@ class LocationUpdateReceiver : BroadcastReceiver() {
                         fromLatitude = lastJourneyLocation.from_latitude,
                         fromLongitude = lastJourneyLocation.from_longitude,
                         currentLocationDuration = extractedLocation.time - lastJourneyLocation.created_at!!,
-                        recordedAt = lastJourneyLocation.created_at
+                        recordedAt = Date().time,
+                        persistentLocationDate = lastJourneyLocation.created_at
                     )
                     return
                 }

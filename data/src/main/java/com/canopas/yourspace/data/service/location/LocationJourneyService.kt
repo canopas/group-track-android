@@ -54,7 +54,8 @@ class LocationJourneyService @Inject constructor(
         routeDistance: Double? = null,
         routeDuration: Long? = null,
         currentLocationDuration: Long? = null,
-        recordedAt: Long
+        recordedAt: Long,
+        persistentLocationDate: Long? = null
     ) {
         val docRef = journeyRef(userId).document()
 
@@ -68,7 +69,8 @@ class LocationJourneyService @Inject constructor(
             route_distance = routeDistance,
             route_duration = routeDuration,
             current_location_duration = currentLocationDuration,
-            created_at = recordedAt
+            created_at = recordedAt,
+            persistent_location_date = persistentLocationDate
         )
 
         journey.updateLocationJourney(userId)
