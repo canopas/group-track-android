@@ -109,23 +109,30 @@ class LocationUpdateReceiver : BroadcastReceiver() {
             val lastJourneyLocation = getLastJourneyLocation(locationData)
 
             if (lastJourneyLocation?.isSteadyLocation() == true) {
-                val calendar1 = Calendar.getInstance().apply {
-                    timeInMillis = lastJourneyLocation.created_at!!
-                }
-                val calendar2 = Calendar.getInstance().apply {
-                    timeInMillis = extractedLocation.time
-                }
-                // Check if day is changed
-                if (calendar1.get(Calendar.DAY_OF_MONTH) != calendar2.get(Calendar.DAY_OF_MONTH)) {
-                    locationJourneyService.saveCurrentJourney(
-                        userId = userId,
-                        fromLatitude = lastJourneyLocation.from_latitude,
-                        fromLongitude = lastJourneyLocation.from_longitude,
-                        currentLocationDuration = extractedLocation.time - lastJourneyLocation.created_at!!,
-                        recordedAt = Date().time,
-                        persistentLocationDate = lastJourneyLocation.created_at
-                    )
-                    return
+                lastSteadyLocation?.let {
+                    val calendar1 = Calendar.getInstance().apply {
+                        timeInMillis = lastSteadyLocation.created_at!!
+                    }
+                    val calendar2 = Calendar.getInstance().apply {
+                        timeInMillis = extractedLocation.time
+                    }
+                    val calendar3 = Calendar.getInstance().apply {
+                        timeInMillis = lastSteadyLocation.persistent_location_date ?: Date().time
+                    }
+                    // Check if day is changed
+                    if ((calendar1.get(Calendar.DAY_OF_MONTH) != calendar2.get(Calendar.DAY_OF_MONTH)) ||
+                        (calendar2.get(Calendar.DAY_OF_MONTH) != calendar3.get(Calendar.DAY_OF_MONTH))
+                    ) {
+                        locationJourneyService.saveCurrentJourney(
+                            userId = userId,
+                            fromLatitude = lastSteadyLocation.from_latitude,
+                            fromLongitude = lastSteadyLocation.from_longitude,
+                            currentLocationDuration = extractedLocation.time - lastSteadyLocation.created_at!!,
+                            recordedAt = Date().time,
+                            persistentLocationDate = lastSteadyLocation.created_at
+                        )
+                        return
+                    }
                 }
             }
 
