@@ -3,7 +3,9 @@ package com.canopas.yourspace.ui.flow.geofence.places
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.canopas.yourspace.data.models.place.ApiPlace
+import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.repository.SpaceRepository
+import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.place.ApiPlaceService
 import com.canopas.yourspace.data.utils.AppDispatcher
 import com.canopas.yourspace.ui.navigation.AppDestinations
@@ -19,10 +21,11 @@ class PlacesListViewModel @Inject constructor(
     private val appNavigator: AppNavigator,
     private val appDispatcher: AppDispatcher,
     private val spaceRepository: SpaceRepository,
-    private val placeService: ApiPlaceService
+    private val placeService: ApiPlaceService,
+    private val authService: AuthService
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(PlacesListScreenState())
+    private val _state = MutableStateFlow(PlacesListScreenState(currentUser = authService.currentUser))
     val state = _state.asStateFlow()
 
     init {
@@ -98,7 +101,11 @@ class PlacesListViewModel @Inject constructor(
             val places = state.value.deletingPlaces.toMutableList()
             places.remove(place)
             _state.value =
-                state.value.copy(deletingPlaces = places, error = e.localizedMessage, placeToDelete = null)
+                state.value.copy(
+                    deletingPlaces = places,
+                    error = e.localizedMessage,
+                    placeToDelete = null
+                )
         }
     }
 }
@@ -112,6 +119,7 @@ data class PlacesListScreenState(
     val placeToDelete: ApiPlace? = null,
     val deletingPlaces: List<ApiPlace> = emptyList(),
 
+    val currentUser: ApiUser? = null,
     val placesLoading: Boolean = false,
     val places: List<ApiPlace> = emptyList(),
     val error: String? = null

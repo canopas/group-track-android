@@ -138,6 +138,7 @@ fun PlacesListContent(modifier: Modifier) {
                     PlaceItem(
                         place,
                         isDeleting = state.deletingPlaces.contains(place),
+                        allowDelete = state.currentUser?.id == place.created_by,
                         onClick = { viewModel.navigateToEditPlace(place) },
                         onDeleteClick = { viewModel.showDeletePlaceConfirmation(place) }
                     )
@@ -161,6 +162,7 @@ fun PlacesListItem(
     icon: Painter,
     isSuggestion: Boolean = false,
     showLoader: Boolean = false,
+    allowDelete: Boolean = false,
     onClick: () -> Unit,
     onDeleteClick: () -> Unit = {}
 ) {
@@ -201,7 +203,7 @@ fun PlacesListItem(
                 .weight(1f)
         )
 
-        if (!isSuggestion) {
+        if (!isSuggestion && allowDelete){
             IconButton(onClick = onDeleteClick, enabled = !showLoader) {
                 if (showLoader) {
                     AppProgressIndicator(
@@ -230,6 +232,7 @@ fun PlacesListItem(
 fun PlaceItem(
     place: ApiPlace,
     isDeleting: Boolean,
+    allowDelete:Boolean,
     onClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
@@ -253,6 +256,7 @@ fun PlaceItem(
         icon = icon,
         isSuggestion = false,
         showLoader = isDeleting,
+        allowDelete = allowDelete,
         onClick = onClick,
         onDeleteClick = onDeleteClick
     )

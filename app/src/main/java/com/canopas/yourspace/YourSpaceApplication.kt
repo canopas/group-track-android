@@ -9,8 +9,11 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.Configuration
+import com.canopas.yourspace.data.repository.GeofenceRepository
+import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.auth.AuthStateChangeListener
+import com.canopas.yourspace.data.service.place.GeoFenceService
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.domain.fcm.CHANNEL_YOURSPACE
 import com.canopas.yourspace.domain.fcm.FcmRegisterWorker
@@ -35,6 +38,9 @@ class YourSpaceApplication :
     lateinit var authService: AuthService
 
     @Inject
+    lateinit var geoFenceRepository: GeofenceRepository
+
+    @Inject
     lateinit var notificationManager: NotificationManager
 
     override fun onCreate() {
@@ -43,6 +49,10 @@ class YourSpaceApplication :
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
         authService.addListener(this)
         setNotificationChannel()
+
+        if (userPreferences.currentUser != null) {
+            geoFenceRepository.init()
+        }
     }
 
     private fun setNotificationChannel() {
