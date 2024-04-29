@@ -5,7 +5,6 @@ import com.canopas.yourspace.data.models.user.ApiUserSession
 import com.canopas.yourspace.data.models.user.LOGIN_TYPE_GOOGLE
 import com.canopas.yourspace.data.models.user.LOGIN_TYPE_PHONE
 import com.canopas.yourspace.data.service.location.ApiLocationService
-import com.canopas.yourspace.data.service.location.LocationJourneyService
 import com.canopas.yourspace.data.utils.Config
 import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_USERS
 import com.canopas.yourspace.data.utils.Device
@@ -21,8 +20,7 @@ import javax.inject.Singleton
 class ApiUserService @Inject constructor(
     db: FirebaseFirestore,
     private val device: Device,
-    private val locationService: ApiLocationService,
-    private val locationJourneyService: LocationJourneyService
+    private val locationService: ApiLocationService
 ) {
     private val userRef = db.collection(FIRESTORE_COLLECTION_USERS)
     private fun sessionRef(userId: String) =
@@ -83,7 +81,6 @@ class ApiUserService @Inject constructor(
             )
             sessionDocRef.set(session).await()
             locationService.saveLastKnownLocation(user.id)
-            locationJourneyService.saveLastKnownJourney(user.id)
             return Triple(true, user, session)
         }
     }

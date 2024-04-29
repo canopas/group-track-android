@@ -9,7 +9,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
-import java.util.Date
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -24,26 +23,6 @@ class LocationJourneyService @Inject constructor(
     private fun journeyRef(userId: String) =
         userRef.document(userId)
             .collection(Config.FIRESTORE_COLLECTION_USER_JOURNEYS)
-
-    suspend fun saveLastKnownJourney(
-        userId: String
-    ) {
-        val lastLocation = locationManager.getLastLocation() ?: return
-        val docRef = journeyRef(userId).document()
-
-        val journey = LocationJourney(
-            id = docRef.id,
-            user_id = userId,
-            from_latitude = lastLocation.latitude,
-            from_longitude = lastLocation.longitude,
-            current_location_duration = System.currentTimeMillis() - lastLocation.time,
-            created_at = Date().time
-        )
-
-        journey.updateLocationJourney(userId)
-
-        docRef.set(journey).await()
-    }
 
     suspend fun saveCurrentJourney(
         userId: String,
@@ -137,7 +116,7 @@ class LocationJourneyService @Inject constructor(
             .whereGreaterThanOrEqualTo("created_at", from)
             .whereLessThan("created_at", to)
             .orderBy("created_at", Query.Direction.DESCENDING)
-            .limit(10)
+            .limit(20)
             .get().await()
             .documents.mapNotNull { it.toObject(LocationJourney::class.java) }
 
