@@ -1,6 +1,5 @@
 package com.canopas.yourspace.data.service.place
 
-import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -8,7 +7,6 @@ import android.os.Build
 import com.canopas.yourspace.data.models.place.ApiPlace
 import com.canopas.yourspace.data.receiver.geofence.GeofenceBroadcastReceiver
 import com.canopas.yourspace.data.receiver.geofence.GeofenceBroadcastReceiverConst
-import com.canopas.yourspace.data.utils.hasFineLocationPermission
 import com.canopas.yourspace.data.utils.isLocationPermissionGranted
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.Geofence.GEOFENCE_TRANSITION_ENTER
@@ -18,14 +16,13 @@ import com.google.android.gms.location.GeofencingRequest
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
-import java.lang.Exception
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class GeoFenceService @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val client: GeofencingClient,
+    private val client: GeofencingClient
 ) {
     private val geofenceList = mutableMapOf<String, Geofence>()
 
@@ -103,12 +100,10 @@ class GeoFenceService @Inject constructor(
         geofenceList.clear()
     }
 
-
     private fun createGeofence(
         key: String,
         place: ApiPlace
     ): Geofence {
-
         return Geofence.Builder()
             .setRequestId(key)
             .setCircularRegion(place.latitude, place.longitude, place.radius.toFloat())
@@ -116,5 +111,4 @@ class GeoFenceService @Inject constructor(
             .setExpirationDuration(Geofence.NEVER_EXPIRE)
             .build()
     }
-
 }

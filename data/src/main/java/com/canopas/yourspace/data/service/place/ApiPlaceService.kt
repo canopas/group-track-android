@@ -5,15 +5,16 @@ import com.canopas.yourspace.data.models.place.ApiPlaceMemberSetting
 import com.canopas.yourspace.data.utils.Config
 import com.canopas.yourspace.data.utils.snapshotFlow
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.functions.FirebaseFunctions
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class ApiPlaceService @Inject constructor(
-    private val db: FirebaseFirestore
+    private val db: FirebaseFirestore,
+    private val functions: FirebaseFunctions
 ) {
 
     private val spaceRef = db.collection(Config.FIRESTORE_COLLECTION_SPACES)
@@ -60,6 +61,14 @@ class ApiPlaceService @Inject constructor(
             spacePlacesSettingsRef(spaceId, place.id).add(setting)
                 .await()
         }
+
+        val data = mapOf(
+            "spaceId" to spaceId,
+            "placeName" to name,
+            "createdBy" to createdBy,
+            "spaceMemberIds" to spaceMemberIds
+        )
+        functions.getHttpsCallable("sendNewPlaceNotification").call(data).await()
     }
 
     suspend fun getPlaces(spaceId: String): List<ApiPlace> {

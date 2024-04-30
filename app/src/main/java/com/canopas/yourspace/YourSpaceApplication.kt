@@ -10,13 +10,12 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.Configuration
 import com.canopas.yourspace.data.repository.GeofenceRepository
-import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.auth.AuthStateChangeListener
-import com.canopas.yourspace.data.service.place.GeoFenceService
 import com.canopas.yourspace.data.storage.UserPreferences
-import com.canopas.yourspace.domain.fcm.CHANNEL_YOURSPACE
 import com.canopas.yourspace.domain.fcm.FcmRegisterWorker
+import com.canopas.yourspace.domain.fcm.YOURSPACE_CHANNEL_MESSAGES
+import com.canopas.yourspace.domain.fcm.YOURSPACE_CHANNEL_PLACES
 import dagger.hilt.android.HiltAndroidApp
 import timber.log.Timber
 import javax.inject.Inject
@@ -57,16 +56,27 @@ class YourSpaceApplication :
 
     private fun setNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val reminderChannel = NotificationChannel(
-                CHANNEL_YOURSPACE,
-                getString(R.string.title_notification_channel),
+            NotificationChannel(
+                YOURSPACE_CHANNEL_MESSAGES,
+                getString(R.string.title_notification_channel_messages),
                 NotificationManager.IMPORTANCE_HIGH
-            )
+            ).apply {
+                description =
+                    getString(R.string.description_notification_channel_messages)
+                enableLights(true)
+                notificationManager.createNotificationChannel(this)
+            }
 
-            reminderChannel.description =
-                getString(R.string.description_notification_channel)
-            reminderChannel.enableLights(true)
-            notificationManager.createNotificationChannel(reminderChannel)
+            NotificationChannel(
+                YOURSPACE_CHANNEL_PLACES,
+                getString(R.string.title_notification_channel_places),
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply {
+                description =
+                    getString(R.string.description_notification_channel_places)
+                enableLights(true)
+                notificationManager.createNotificationChannel(this)
+            }
         }
     }
 

@@ -69,7 +69,6 @@ class GeofenceRepository @Inject constructor(
             apiPlaceService.getPlaces(currentSpaceId).forEach { apiPlace ->
                 geoFenceService.addGeofence(apiPlace)
             }
-
         } catch (e: Exception) {
             Timber.e(e, "Error while registering all places")
         }

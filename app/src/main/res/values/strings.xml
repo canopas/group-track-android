@@ -29,9 +29,13 @@
     <string name="common_background_access_permission_steps">Go to settings > select <b>"Allow all the time"</b></string>
     <string name="common_background_access_permission_rational_steps">Go to settings > YourSpace app info > Location permission > select <b>"Allow all the time"</b></string>
     <string name="common_background_access_permission_btn">Go to Settings</string>
+    <string name="common_space_not_found">No Space Found!</string>
+    <string name="common_space_not_found_message">The space you are looking for does not exist or you\'re no longer part of this space.</string>
 
-    <string name="title_notification_channel">YourSpace notification</string>
-    <string name="description_notification_channel">It is used to show messages</string>
+    <string name="title_notification_channel_messages">In-App messaging</string>
+    <string name="description_notification_channel_messages">It is used to show messages</string>
+    <string name="title_notification_channel_places">New Places</string>
+    <string name="description_notification_channel_places">It is used to show newly added places</string>
     <string name="network_error_text">Network error occurred. Please check your internet connection.</string>
     <string name="server_error_text">Server error occurred. Please try again later.</string>
     <string name="unexpected_error_text">An unexpected error occurred.</string>

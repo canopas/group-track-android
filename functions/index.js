@@ -198,3 +198,58 @@ exports.sendSupportRequest = onCall(async (request) => {
 
 });
 
+exports.sendNewPlaceNotification = onCall(async (request) => {
+
+  var data = request.data;
+  const spaceId = request.data.spaceId;
+  const placeName = request.data.placeName;
+  const createdBy = request.data.createdBy;
+  const spaceMemberIds = request.data.spaceMemberIds;
+
+  var createdBySnapShot = await admin.firestore().collection('users').doc(createdBy).get();
+      if (!createdBySnapShot.exists) {
+            console.log('Created By does not exist');
+            return;
+      }
+  const creatorData = createdBySnapShot.data();
+
+  const memberIds = spaceMemberIds.filter(memberId => memberId !== createdBy);
+
+  const membersPromises = memberIds.map(async memberId => {
+          const memberSnapshot = await admin.firestore().collection('users').doc(memberId).get();
+          if (!memberSnapshot.exists) {
+             throw new Error(`Member with ID ${memberId} does not exist`);
+          }
+          return memberSnapshot.data();
+  });
+
+  const members = await Promise.all(membersPromises);
+
+  const filteredTokens = members.map(member => {
+       return member.fcm_token;
+  }).filter(token => token !== undefined);
+
+    if (filteredTokens.length > 0) {
+          const payload = {
+               tokens: filteredTokens,
+               notification: {
+                     title: 'New Place Added!',
+                     body: `${creatorData.first_name} added a new place called ${placeName}`
+                  },
+               data : {
+                     spaceId: spaceId,
+                     type: 'new_place_added'
+                  }
+          };
+
+          admin.messaging().sendMulticast(payload).then((response) => {
+                   console.log("Successfully sent place notification:", response);
+                   return {success: true};
+             }).catch((error) => {
+                    console.log("Failed to send place notification:", error.code);
+                    return {error: error.code};
+             });
+      }
+
+
+});

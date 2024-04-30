@@ -2,6 +2,7 @@ package com.canopas.yourspace.ui
 
 import com.canopas.yourspace.MainCoroutineRule
 import com.canopas.yourspace.data.models.user.ApiUserSession
+import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.user.ApiUserService
 import com.canopas.yourspace.data.storage.UserPreferences
@@ -28,6 +29,7 @@ class MainViewModelTest {
     private val navigator = mock<AppNavigator>()
     private val apiUserService = mock<ApiUserService>()
     private val authService = mock<AuthService>()
+    private val spaceRepository = mock<SpaceRepository>()
     private val testDispatcher = AppDispatcher(IO = UnconfinedTestDispatcher())
 
     private fun setup() {
@@ -36,7 +38,8 @@ class MainViewModelTest {
             navigator,
             testDispatcher,
             apiUserService,
-            authService
+            authService,
+            spaceRepository
         )
     }
 
@@ -46,7 +49,7 @@ class MainViewModelTest {
         whenever(userPreferences.currentUser).thenReturn(null)
         whenever(userPreferences.currentUserSessionState).thenReturn(flowOf())
         setup()
-        assert(viewModel.initialRoute.value == "sign-in")
+        assert(viewModel.state.value.initialRoute == "sign-in")
     }
 
     @Test
@@ -56,7 +59,7 @@ class MainViewModelTest {
         whenever(userPreferences.isOnboardShown()).thenReturn(false)
         whenever(userPreferences.currentUserSessionState).thenReturn(flowOf())
         setup()
-        assert(viewModel.initialRoute.value == "onboard")
+        assert(viewModel.state.value.initialRoute == "onboard")
     }
 
     @Test
@@ -66,7 +69,7 @@ class MainViewModelTest {
         whenever(userPreferences.isOnboardShown()).thenReturn(true)
         whenever(userPreferences.currentUserSessionState).thenReturn(flowOf())
         setup()
-        assert(viewModel.initialRoute.value != "onboard")
+        assert(viewModel.state.value.initialRoute != "onboard")
     }
 
     @Test
@@ -80,7 +83,7 @@ class MainViewModelTest {
 
         setup()
         verify(apiUserService).getUserSessionFlow("1", "1")
-        assert(viewModel.sessionExpiredState.value)
+        assert(viewModel.state.value.isSessionExpired)
     }
 
     @Test
@@ -93,7 +96,7 @@ class MainViewModelTest {
 
         setup()
         verify(apiUserService).getUserSessionFlow("1", "1")
-        assert(!viewModel.sessionExpiredState.value)
+        assert(!viewModel.state.value.isSessionExpired)
     }
 
     @Test
@@ -102,7 +105,7 @@ class MainViewModelTest {
         whenever(userPreferences.isIntroShown()).thenReturn(true)
 
         setup()
-        assert(!viewModel.sessionExpiredState.value)
+        assert(!viewModel.state.value.isSessionExpired)
     }
 
     @Test
@@ -135,6 +138,6 @@ class MainViewModelTest {
 
         setup()
         viewModel.signOut()
-        assert(!viewModel.sessionExpiredState.value)
+        assert(!viewModel.state.value.isSessionExpired)
     }
 }

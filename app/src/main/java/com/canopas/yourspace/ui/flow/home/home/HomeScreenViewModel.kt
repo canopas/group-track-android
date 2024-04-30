@@ -35,6 +35,20 @@ class HomeScreenViewModel @Inject constructor(
         if (userPreferences.currentUser != null) {
             updateUser()
             getAllSpaces()
+            listenCurrentSpaceChanges()
+        }
+    }
+
+    private fun listenCurrentSpaceChanges() = viewModelScope.launch(appDispatcher.IO) {
+        userPreferences.currentSpaceState.collectLatest { currentSpaceState ->
+            if (state.value.selectedSpaceId != currentSpaceState) {
+                val selectedSpace =
+                    state.value.spaces.firstOrNull { it.space.id == currentSpaceState }
+                _state.value = _state.value.copy(
+                    selectedSpaceId = currentSpaceState,
+                    selectedSpace = selectedSpace
+                )
+            }
         }
     }
 

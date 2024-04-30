@@ -203,7 +203,7 @@ fun PlacesListItem(
                 .weight(1f)
         )
 
-        if (!isSuggestion && allowDelete){
+        if (!isSuggestion && allowDelete) {
             IconButton(onClick = onDeleteClick, enabled = !showLoader) {
                 if (showLoader) {
                     AppProgressIndicator(
@@ -232,7 +232,7 @@ fun PlacesListItem(
 fun PlaceItem(
     place: ApiPlace,
     isDeleting: Boolean,
-    allowDelete:Boolean,
+    allowDelete: Boolean,
     onClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {

@@ -141,7 +141,7 @@ fun MapScreenContent(modifier: Modifier) {
         LatLng(location?.latitude ?: 0.0, location?.longitude ?: 0.0)
     }
 
-    val defaultCameraZoom = if(userLocation.latitude == 0.0 && userLocation.longitude == 0.0) 0f else DEFAULT_CAMERA_ZOOM
+    val defaultCameraZoom = if (userLocation.latitude == 0.0 && userLocation.longitude == 0.0) 0f else DEFAULT_CAMERA_ZOOM
 
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(userLocation, defaultCameraZoom)

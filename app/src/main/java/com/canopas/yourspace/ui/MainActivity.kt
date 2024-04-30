@@ -20,7 +20,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.canopas.yourspace.R
-import com.canopas.yourspace.domain.fcm.NotificationDataConst
 import com.canopas.yourspace.ui.component.AppAlertDialog
 import com.canopas.yourspace.ui.flow.auth.methods.SignInMethodViewModel
 import com.canopas.yourspace.ui.flow.auth.methods.SignInMethodsScreen
@@ -59,7 +58,6 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val threadId = intent.getStringExtra(NotificationDataConst.KEY_THREAD_ID)
         setContent {
             CatchMeTheme {
                 // A surface container using the 'background' color from the theme
@@ -71,7 +69,7 @@ class MainActivity : ComponentActivity() {
                     MainApp(viewModel)
 
                     LaunchedEffect(Unit) {
-                        viewModel.handleIntentData(threadId)
+                        viewModel.handleIntentData(intent)
                     }
                 }
             }
@@ -81,8 +79,7 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
         val viewModel = ViewModelProvider(this)[MainViewModel::class.java]
-        val threadId = intent?.getStringExtra(NotificationDataConst.KEY_THREAD_ID)
-        viewModel.handleIntentData(threadId)
+        viewModel.handleIntentData(intent)
         intent?.extras?.clear()
     }
 }
@@ -91,16 +88,19 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainApp(viewModel: MainViewModel) {
     val navController = rememberNavController()
-    val sessionExpired by viewModel.sessionExpiredState.collectAsState()
+    val state by viewModel.state.collectAsState()
 
-    val initialRoute by viewModel.initialRoute.collectAsState()
-    if (sessionExpired) {
+    if (state.isSessionExpired) {
         SessionExpiredAlertPopup()
+    }
+
+    if (state.showSpaceNotFoundPopup) {
+        SpaceNotFoundPopup()
     }
 
     AppNavigator(navController = navController, viewModel.navActions)
 
-    NavHost(navController = navController, startDestination = initialRoute) {
+    NavHost(navController = navController, startDestination = state.initialRoute) {
         slideComposable(AppDestinations.intro.path) {
             IntroScreen()
         }
@@ -139,7 +139,7 @@ fun MainApp(viewModel: MainViewModel) {
         }
 
         slideComposable(AppDestinations.home.path) {
-            HomeScreen()
+            HomeScreen(state.verifyingSpace)
         }
 
         slideComposable(AppDestinations.createSpace.path) {
@@ -231,6 +231,21 @@ fun SessionExpiredAlertPopup() {
         confirmBtnText = stringResource(id = R.string.common_btn_ok),
         onConfirmClick = {
             viewModel.signOut()
+        },
+        properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
+    )
+}
+
+@Composable
+fun SpaceNotFoundPopup() {
+    val viewModel = hiltViewModel<MainViewModel>()
+
+    AppAlertDialog(
+        title = stringResource(id = R.string.common_space_not_found),
+        subTitle = stringResource(id = R.string.common_space_not_found_message),
+        confirmBtnText = stringResource(id = R.string.common_btn_ok),
+        onConfirmClick = {
+            viewModel.dismissSpaceNotFoundPopup()
         },
         properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
     )

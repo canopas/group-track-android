@@ -46,7 +46,7 @@ import com.canopas.yourspace.ui.flow.home.home.HomeScreenViewModel
 import com.canopas.yourspace.ui.theme.AppTheme
 
 @Composable
-fun SpaceSelectionMenu(modifier: Modifier) {
+fun SpaceSelectionMenu(modifier: Modifier, verifyingSpace: Boolean) {
     val viewModel = hiltViewModel<HomeScreenViewModel>()
     val state by viewModel.state.collectAsState()
 
@@ -81,7 +81,7 @@ fun SpaceSelectionMenu(modifier: Modifier) {
                 style = AppTheme.appTypography.label1.copy(color = AppTheme.colorScheme.textPrimary)
             )
 
-            if (state.isLoadingSpaces) {
+            if (state.isLoadingSpaces || verifyingSpace) {
                 CircularProgressIndicator(
                     color = AppTheme.colorScheme.primary,
                     strokeWidth = 2.dp,

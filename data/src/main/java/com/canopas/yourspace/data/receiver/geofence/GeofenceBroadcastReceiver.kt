@@ -22,7 +22,6 @@ object GeofenceBroadcastReceiverConst {
     const val GEOFENCE_EXTRA_KEY_CREATED_BY = "geofence_created_by"
 }
 
-
 @AndroidEntryPoint
 class GeofenceBroadcastReceiver : BroadcastReceiver() {
 
@@ -68,14 +67,12 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
             return
         }
 
-       // spaceRepository.getSpace(spaceId)
-
+        // spaceRepository.getSpace(spaceId)
 
         val geofenceTransition = geofencingEvent.geofenceTransition
         if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER ||
             geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT
         ) {
-
             val triggeringGeofences = geofencingEvent.triggeringGeofences
 
             triggeringGeofences?.forEach { geofence ->
@@ -84,12 +81,9 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
                 val lng = geofence.longitude
                 val radius = geofence.radius
                 val circle = Location("circle").apply { latitude = lat; longitude = lng }
-
             }
 
-
             // sendNotification(geofenceTransitionDetails)
-
         } else {
             Timber.e("XXX Geofence transition error: $geofenceTransition")
         }
@@ -103,6 +97,4 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
         val distance = circle.distanceTo(memberLocation)
         return distance <= radius
     }
-
 }
-

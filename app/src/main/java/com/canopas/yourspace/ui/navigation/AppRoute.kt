@@ -163,11 +163,6 @@ object AppDestinations {
         }
     }
 
-    val locateOnMap = object : AppRoute {
-        override val arguments: List<NamedNavArgument> = emptyList()
-        override val path: String = "locate-on-map"
-    }
-
     object LocateOnMap {
         const val KEY_SELECTED_NAME = "place_name"
 

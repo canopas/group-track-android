@@ -48,7 +48,7 @@ import com.canopas.yourspace.ui.navigation.tabComposable
 import com.canopas.yourspace.ui.theme.AppTheme
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(verifyingSpace: Boolean) {
     val navController = rememberNavController()
     val viewModel = hiltViewModel<HomeScreenViewModel>()
     val context = LocalContext.current
@@ -68,7 +68,7 @@ fun HomeScreen() {
             ) {
                 HomeScreenContent(navController)
 
-                HomeTopBar()
+                HomeTopBar(verifyingSpace)
             }
         }
         /* bottomBar = {
@@ -84,7 +84,7 @@ fun HomeScreen() {
 }
 
 @Composable
-fun HomeTopBar() {
+fun HomeTopBar(verifyingSpace: Boolean) {
     val viewModel = hiltViewModel<HomeScreenViewModel>()
     val state by viewModel.state.collectAsState()
 
@@ -116,7 +116,7 @@ fun HomeTopBar() {
             viewModel.navigateToSettings()
         }
 
-        SpaceSelectionMenu(modifier = Modifier.weight(1f))
+        SpaceSelectionMenu(modifier = Modifier.weight(1f), verifyingSpace = verifyingSpace)
 
         if (!state.selectedSpaceId.isNullOrEmpty()) {
             MapControl(
