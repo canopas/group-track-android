@@ -22,7 +22,7 @@ import javax.inject.Singleton
 @Singleton
 class GeoFenceService @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val client: GeofencingClient
+    private val client: GeofencingClient,
 ) {
     private val geofenceList = mutableMapOf<String, Geofence>()
 
@@ -40,21 +40,20 @@ class GeoFenceService @Inject constructor(
         )
     }
 
-    fun addGeofence(apiPlace: ApiPlace) {
-        if (!context.isLocationPermissionGranted) return
-        if (geofenceList.containsKey(apiPlace.id)) return
-        if (apiPlace.latitude == 0.0 || apiPlace.longitude == 0.0 || apiPlace.radius == 0.0) return
-
-        Timber.d("XXX addGeofence: ${apiPlace.name}")
-
-        registerGeofence(apiPlace)
+    fun addGeofence(places: List<ApiPlace>, currentUserId: String) {
+        places.forEach { registerGeofence(it, currentUserId) }
     }
 
     fun removeGeofence(key: String) {
         geofenceList.remove(key)
     }
 
-    private fun registerGeofence(apiPlace: ApiPlace) {
+    private fun registerGeofence(apiPlace: ApiPlace, currentUserId: String) {
+
+        if (!context.isLocationPermissionGranted) return
+        if (geofenceList.containsKey(apiPlace.id)) return
+        if (apiPlace.latitude == 0.0 || apiPlace.longitude == 0.0 || apiPlace.radius == 0.0) return
+
         val key = apiPlace.id
         val geofence = createGeofence(key, apiPlace)
         geofenceList[key] = geofence
@@ -65,6 +64,8 @@ class GeoFenceService @Inject constructor(
         }.build()
 
         val intent = Intent(context, GeofenceBroadcastReceiver::class.java).apply {
+            putExtra(GeofenceBroadcastReceiverConst.GEOFENCE_EXTRA_KEY_EVENT_BY, currentUserId)
+            putExtra(GeofenceBroadcastReceiverConst.GEOFENCE_EXTRA_KEY_PLACE_ID, apiPlace.id)
             putExtra(GeofenceBroadcastReceiverConst.GEOFENCE_EXTRA_KEY_PLACE_NAME, apiPlace.name)
             putExtra(GeofenceBroadcastReceiverConst.GEOFENCE_EXTRA_KEY_SPACE_ID, apiPlace.space_id)
             putExtra(

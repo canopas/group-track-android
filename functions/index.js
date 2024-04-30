@@ -253,3 +253,30 @@ exports.sendNewPlaceNotification = onCall(async (request) => {
 
 
 });
+
+
+exports.sendGeoFenceNotification = onCall(async (request) => {
+
+  var data = request.data;
+  const placeId = data.placeId;
+  const spaceId = data.spaceId;
+  const createdBy = data.createdBy;
+  const message = data.message;
+
+    var createdBySnapShot = await admin.firestore().collection('users').doc(createdBy).get();
+        if (!createdBySnapShot.exists) {
+                console.log('Created By does not exist');
+                return;
+        }
+    const creatorData = createdBySnapShot.data();
+
+
+    var spaceDocumentSnapshot = await admin.firestore().collection('spaces').doc(spaceId).collection("space_members").get();
+        if (!documentSnapshot.exists) {
+              console.log('Thread does not exist');
+              return;
+        }
+
+        const documentData = documentSnapshot.data();
+
+  });

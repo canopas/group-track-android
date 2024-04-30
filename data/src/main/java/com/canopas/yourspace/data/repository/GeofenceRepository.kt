@@ -1,5 +1,6 @@
 package com.canopas.yourspace.data.repository
 
+import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.place.ApiPlaceService
 import com.canopas.yourspace.data.service.place.GeoFenceService
 import com.canopas.yourspace.data.storage.UserPreferences
@@ -19,7 +20,8 @@ class GeofenceRepository @Inject constructor(
     private val apiPlaceService: ApiPlaceService,
     private val spaceRepository: SpaceRepository,
     private val geoFenceService: GeoFenceService,
-    private val userPreferences: UserPreferences
+    private val userPreferences: UserPreferences,
+    private val authService: AuthService
 ) {
     private var selectedSpace: String? = ""
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -49,26 +51,26 @@ class GeofenceRepository @Inject constructor(
         placeJob?.cancel()
         placeJob = scope.launch {
             val currentSpaceId = spaceRepository.currentSpaceId
+            val currentUser = authService.currentUser ?: return@launch
             if (currentSpaceId.isEmpty()) return@launch
 
             apiPlaceService.listenAllPlaces(currentSpaceId)
                 .collectLatest { places ->
                     Timber.d("XXX Places changed: ${places.size}")
                     geoFenceService.deregisterGeofence()
-                    places.forEach { apiPlace ->
-                        geoFenceService.addGeofence(apiPlace)
-                    }
+                    geoFenceService.addGeofence(places, currentUser.id)
                 }
         }
     }
 
     suspend fun registerAllPlaces() {
         try {
-            val currentSpaceId = spaceRepository.currentSpaceId
+            val currentUser = authService.currentUser ?: return
+            val currentSpaceId = spaceRepository.getMemberBySpaceId()
             if (currentSpaceId.isEmpty()) return
-            apiPlaceService.getPlaces(currentSpaceId).forEach { apiPlace ->
-                geoFenceService.addGeofence(apiPlace)
-            }
+            val places = apiPlaceService.getPlaces(currentSpaceId)
+            geoFenceService.addGeofence(places, currentUser.id)
+
         } catch (e: Exception) {
             Timber.e(e, "Error while registering all places")
         }
