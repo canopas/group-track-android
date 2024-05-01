@@ -123,4 +123,7 @@ class LocationJourneyService @Inject constructor(
     fun updateLastLocationJourney(userId: String, newJourney: LocationJourney) {
         journeyRef(userId).document(newJourney.id).set(newJourney)
     }
+
+    suspend fun getLocationJourneyFromId(userId: String, journeyId: String) =
+        journeyRef(userId).document(journeyId).get().await().toObject(LocationJourney::class.java)
 }

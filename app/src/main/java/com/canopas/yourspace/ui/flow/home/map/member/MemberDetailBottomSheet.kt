@@ -8,6 +8,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,15 +29,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.outlined.Refresh
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -65,6 +64,7 @@ import com.canopas.yourspace.data.models.location.isSteadyLocation
 import com.canopas.yourspace.data.models.user.UserInfo
 import com.canopas.yourspace.domain.utils.getAddress
 import com.canopas.yourspace.ui.component.AppProgressIndicator
+import com.canopas.yourspace.ui.component.ShowDatePicker
 import com.canopas.yourspace.ui.component.UserProfile
 import com.canopas.yourspace.ui.component.reachedBottom
 import com.canopas.yourspace.ui.theme.AppTheme
@@ -96,7 +96,7 @@ fun MemberDetailBottomSheetContent(
     }
 
     Column(modifier = Modifier.fillMaxHeight(0.9f)) {
-        UserInfoContent(userInfo)
+        UserInfoContent(userInfo, viewModel)
         Spacer(modifier = Modifier.height(16.dp))
         Divider(thickness = 1.dp, color = AppTheme.colorScheme.outline)
         Spacer(modifier = Modifier.height(10.dp))
@@ -157,7 +157,8 @@ fun LocationHistory() {
                             location,
                             previousLocationJourney,
                             index,
-                            isLastItem = index == locations.lastIndex
+                            isLastItem = index == locations.lastIndex,
+                            viewModel
                         )
                     }
 
@@ -207,7 +208,8 @@ private fun LocationHistoryItem(
     location: LocationJourney,
     previousLocationJourney: LocationJourney?,
     index: Int,
-    isLastItem: Boolean
+    isLastItem: Boolean,
+    viewModel: MemberDetailViewModel
 ) {
     val context = LocalContext.current
     var fromAddress by remember { mutableStateOf("") }
@@ -227,7 +229,10 @@ private fun LocationHistoryItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = 16.dp)
+            .clickable(onClick = {
+                viewModel.navigateToUserJourneyDetail(location.id)
+            }),
         horizontalArrangement = if (index % 2 == 0) Arrangement.Start else Arrangement.End,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -433,42 +438,6 @@ object PastOrPresentSelectableDates : SelectableDates {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ShowDatePicker(
-    selectedTimestamp: Long? = null,
-    confirmButtonClick: (Long) -> Unit,
-    dismissButtonClick: () -> Unit
-) {
-    val calendar = Calendar.getInstance()
-
-    val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = selectedTimestamp ?: calendar.timeInMillis,
-        selectableDates = PastOrPresentSelectableDates
-    )
-    DatePickerDialog(
-        onDismissRequest = {},
-        confirmButton = {
-            TextButton(onClick = {
-                confirmButtonClick(
-                    datePickerState.selectedDateMillis ?: calendar.timeInMillis
-                )
-            }) {
-                Text(text = "Confirm")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = dismissButtonClick) {
-                Text(text = "Cancel")
-            }
-        }
-    ) {
-        DatePicker(
-            state = datePickerState
-        )
-    }
-}
-
 @Composable
 fun Shimmer() {
     val gradient = listOf(
@@ -508,55 +477,59 @@ fun Shimmer() {
 }
 
 @Composable
-fun UserInfoContent(userInfo: UserInfo) {
+fun UserInfoContent(userInfo: UserInfo, viewModel: MemberDetailViewModel) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        UserProfile(modifier = Modifier.size(54.dp), user = userInfo.user)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            UserProfile(modifier = Modifier.size(54.dp), user = userInfo.user)
 
-        Column(
-            modifier = Modifier
-                .padding(start = 16.dp)
-                .weight(1f),
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = userInfo.user.fullName,
-                style = AppTheme.appTypography.header3,
-                maxLines = 1
-            )
-            if (!userInfo.isLocationEnable) {
+            Column(
+                modifier = Modifier
+                    .padding(start = 16.dp),
+                verticalArrangement = Arrangement.Center
+            ) {
                 Text(
-                    text = stringResource(id = R.string.map_user_item_location_off),
-                    style = AppTheme.appTypography.label1.copy(
-                        color = Color.Red,
-                        fontWeight = FontWeight.Normal
-                    )
+                    text = userInfo.user.fullName,
+                    style = AppTheme.appTypography.header3,
+                    maxLines = 1
                 )
+                if (!userInfo.isLocationEnable) {
+                    Text(
+                        text = stringResource(id = R.string.map_user_item_location_off),
+                        style = AppTheme.appTypography.label1.copy(
+                            color = Color.Red,
+                            fontWeight = FontWeight.Normal
+                        )
+                    )
+                }
             }
         }
 
-//        Box(
-//            modifier = Modifier
-//                .size(38.dp)
-//                .background(
-//                    color = AppTheme.colorScheme.containerNormal,
-//                    shape = CircleShape
-//                ),
-//            contentAlignment = Alignment.Center
-//        ) {
-//            Icon(
-//                painter = painterResource(id = R.drawable.ic_messages),
-//                contentDescription = "",
-//                tint = AppTheme.colorScheme.textSecondary,
-//                modifier = Modifier
-//                    .size(24.dp)
-//                    .padding(2.dp)
-//            )
-//        }
+        IconButton(
+            modifier = Modifier
+                .size(40.dp)
+                .background(
+                    color = AppTheme.colorScheme.primary,
+                    shape = CircleShape
+                ),
+            onClick = {
+                viewModel.navigateToUserJourneyDetail()
+            }
+        ) {
+            Icon(
+                painterResource(id = R.drawable.ic_location_journey),
+                contentDescription = "",
+                tint = AppTheme.colorScheme.surface,
+                modifier = Modifier
+                    .size(36.dp)
+                    .padding(4.dp)
+            )
+        }
     }
 }
 

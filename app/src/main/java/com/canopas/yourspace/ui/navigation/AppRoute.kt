@@ -162,4 +162,36 @@ object AppDestinations {
             override val path = "$PATH?$KEY_THREAD_ID=$threadId"
         }
     }
+
+    object UserJourney {
+        const val KEY_JOURNEY_ID = "journey_id"
+        const val KEY_SELECTED_USER_ID = "selected_user_id"
+
+        private const val PATH = "user-journey"
+        const val pathWithJourneyId = "$PATH/{$KEY_JOURNEY_ID}/{$KEY_SELECTED_USER_ID}"
+        const val pathWithoutJourneyId = "$PATH/{$KEY_SELECTED_USER_ID}"
+
+        fun userJourney(
+            journeyId: String? = null,
+            selectedUserId: String
+        ) = object : AppRoute {
+
+            override val arguments = if (journeyId != null) {
+                listOf(
+                    navArgument(KEY_JOURNEY_ID) { type = NavType.StringType },
+                    navArgument(KEY_SELECTED_USER_ID) { type = NavType.StringType }
+                )
+            } else {
+                listOf(
+                    navArgument(KEY_SELECTED_USER_ID) { type = NavType.StringType }
+                )
+            }
+
+            override val path = if (journeyId != null) {
+                "$PATH/$journeyId/$selectedUserId"
+            } else {
+                "$PATH/$selectedUserId"
+            }
+        }
+    }
 }

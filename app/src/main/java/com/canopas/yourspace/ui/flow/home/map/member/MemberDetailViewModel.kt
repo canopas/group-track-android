@@ -6,6 +6,8 @@ import com.canopas.yourspace.data.models.location.LocationJourney
 import com.canopas.yourspace.data.models.user.UserInfo
 import com.canopas.yourspace.data.service.location.LocationJourneyService
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.ui.navigation.AppDestinations
+import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,7 +18,8 @@ import javax.inject.Inject
 @HiltViewModel
 class MemberDetailViewModel @Inject constructor(
     private val journeyService: LocationJourneyService,
-    private val appDispatcher: AppDispatcher
+    private val appDispatcher: AppDispatcher,
+    private val navigator: AppNavigator
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(MemberDetailState())
@@ -70,6 +73,17 @@ class MemberDetailViewModel @Inject constructor(
             if (it.hasMoreLocations && !it.isLoading) {
                 loadLocations()
             }
+        }
+    }
+
+    fun navigateToUserJourneyDetail(journeyId: String? = null) {
+        state.value.selectedUser?.let { selectedUser ->
+            navigator.navigateTo(
+                AppDestinations.UserJourney.userJourney(
+                    journeyId,
+                    selectedUser.user.id
+                ).path
+            )
         }
     }
 }
