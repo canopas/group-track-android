@@ -1,11 +1,13 @@
 package com.canopas.yourspace.ui.flow.home.map.journeyview
 
+import android.location.Location
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.canopas.yourspace.data.models.location.LocationJourney
 import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.service.location.LocationJourneyService
+import com.canopas.yourspace.data.service.location.LocationManager
 import com.canopas.yourspace.data.service.user.ApiUserService
 import com.canopas.yourspace.data.utils.AppDispatcher
 import com.canopas.yourspace.ui.navigation.AppDestinations.UserJourney.KEY_JOURNEY_ID
@@ -24,6 +26,7 @@ class UserJourneyViewModel @Inject constructor(
     private val navigator: AppNavigator,
     private val journeyService: LocationJourneyService,
     private val appDispatcher: AppDispatcher,
+    private val locationManager: LocationManager,
     private val apiUserService: ApiUserService
 ) : ViewModel() {
 
@@ -35,7 +38,12 @@ class UserJourneyViewModel @Inject constructor(
     init {
         viewModelScope.launch(appDispatcher.IO) {
             val user = apiUserService.getUser(userId!!)
-            _state.value = _state.value.copy(journeyId = journeyId, user = user)
+            val currentLocation = locationManager.getLastLocation()
+            _state.value = _state.value.copy(
+                journeyId = journeyId,
+                user = user,
+                currentLocation = currentLocation
+            )
         }
     }
 
@@ -93,6 +101,7 @@ data class UserJourneyState(
     val user: ApiUser? = null,
     val selectedTimeFrom: Long = System.currentTimeMillis(),
     val selectedTimeTo: Long = System.currentTimeMillis(),
+    val currentLocation: Location? = null,
     val journeyId: String? = null,
     val journey: LocationJourney? = null,
     val journeyList: List<LocationJourney> = emptyList()

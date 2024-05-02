@@ -123,7 +123,10 @@ fun MapView(viewModel: UserJourneyViewModel) {
                             state.journeyList.first().from_longitude
                         )
                     } else {
-                        LatLng(0.0, 0.0)
+                        LatLng(
+                            state.currentLocation?.latitude ?: 0.0,
+                            state.currentLocation?.longitude ?: 0.0
+                        )
                     }
                 )
                 .zoom(13f)
