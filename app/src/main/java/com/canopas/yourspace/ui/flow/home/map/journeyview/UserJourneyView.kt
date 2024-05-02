@@ -251,7 +251,10 @@ fun HorizontalDatePicker() {
             .padding(16.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        ArrowButton(icon = Icons.AutoMirrored.Filled.KeyboardArrowLeft) {
+        ArrowButton(
+            icon = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+            enabled = state.journeyId == null
+        ) {
             updateSelectedDate(-1)
         }
 
@@ -261,10 +264,16 @@ fun HorizontalDatePicker() {
                 .weight(1f)
                 .padding(horizontal = 20.dp)
                 .background(
-                    color = AppTheme.colorScheme.iconsBackground,
+                    color = AppTheme.colorScheme.iconsBackground.copy(
+                        alpha = if (state.journeyId == null) 1f else 0.7f
+                    ),
                     shape = MaterialTheme.shapes.small
                 )
-                .clickable { showDatePicker = true }
+                .clickable {
+                    if (state.journeyId == null) {
+                        showDatePicker = true
+                    }
+                }
         ) {
             Text(
                 text = getFormattedJourneyDate(
@@ -280,10 +289,11 @@ fun HorizontalDatePicker() {
             )
         }
 
-        ArrowButton(icon = Icons.AutoMirrored.Filled.KeyboardArrowRight) {
-            if (state.selectedTimeTo < System.currentTimeMillis()) {
-                updateSelectedDate(1)
-            }
+        ArrowButton(
+            icon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            enabled = state.selectedTimeTo < System.currentTimeMillis() && state.journeyId == null
+        ) {
+            updateSelectedDate(1)
         }
     }
 
@@ -299,16 +309,17 @@ fun HorizontalDatePicker() {
 }
 
 @Composable
-fun ArrowButton(icon: ImageVector, onClick: () -> Unit) {
+fun ArrowButton(icon: ImageVector, enabled: Boolean, onClick: () -> Unit) {
+    val backgroundAlpha = if (enabled) 1f else 0.7f
     Box(
         modifier = Modifier
             .wrapContentWidth()
             .fillMaxHeight()
             .background(
-                color = AppTheme.colorScheme.iconsBackground,
+                color = AppTheme.colorScheme.iconsBackground.copy(alpha = backgroundAlpha),
                 shape = MaterialTheme.shapes.small
             )
-            .clickable { onClick() },
+            .clickable(enabled = enabled) { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Icon(

@@ -560,11 +560,11 @@ private fun getDistanceString(
     routeDistance: Double
 ): String {
     return if (routeDistance < 1000) {
-        "$routeDistance m"
+        String.format(Locale.getDefault(), "%.2f", routeDistance) + " m"
     } else {
         // Take maximum of 2 decimal places
         val distanceInKm = (routeDistance / 1000)
-        String.format("%.2f", distanceInKm) + " km"
+        String.format(Locale.getDefault(), "%.2f", distanceInKm) + " km"
     }
 }
 
