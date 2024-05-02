@@ -72,8 +72,6 @@ import java.util.Locale
 fun UserJourneyView() {
     val viewModel = hiltViewModel<UserJourneyViewModel>()
     val state by viewModel.state.collectAsState()
-    val context = LocalContext.current
-    val isDarkMode = isSystemInDarkTheme()
 
     LaunchedEffect(key1 = Unit) {
         val calendar = Calendar.getInstance().apply {
@@ -86,43 +84,10 @@ fun UserJourneyView() {
         viewModel.onDateSelected(calendar.timeInMillis, startTimeStamp)
     }
 
-    val mapProperties = MapProperties(
-        mapStyleOptions = if (isDarkMode) {
-            MapStyleOptions.loadRawResourceStyle(context, R.raw.map_theme_night)
-        } else {
-            null
-        }
-    )
-
     Box(modifier = Modifier.fillMaxSize()) {
-        GoogleMap(
-            cameraPositionState = CameraPositionState(
-                CameraPosition.Builder()
-                    .target(
-                        if (state.journey != null) {
-                            LatLng(state.journey!!.from_latitude, state.journey!!.from_longitude)
-                        } else if (state.journeyList.isNotEmpty()) {
-                            LatLng(
-                                state.journeyList.first().from_latitude,
-                                state.journeyList.first().from_longitude
-                            )
-                        } else {
-                            LatLng(0.0, 0.0)
-                        }
-                    )
-                    .zoom(13f)
-                    .build()
-            ),
-            properties = mapProperties
-        ) {
-            state.journey?.let { journey ->
-                DrawJourney(context, journey)
-            } ?: state.journeyList.forEach { journey ->
-                DrawJourney(context, journey)
-            }
-        }
+        MapView(viewModel = viewModel)
 
-        HorizontalDatePicker()
+        HorizontalDatePicker(viewModel)
 
         ExpandableProfileImage(viewModel)
 
@@ -131,6 +96,134 @@ fun UserJourneyView() {
                 CircularProgressIndicator(color = AppTheme.colorScheme.primary)
             }
         }
+    }
+}
+
+@Composable
+fun MapView(viewModel: UserJourneyViewModel) {
+    val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
+    val isDarkMode = isSystemInDarkTheme()
+    val mapProperties = MapProperties(
+        mapStyleOptions = if (isDarkMode) {
+            MapStyleOptions.loadRawResourceStyle(context, R.raw.map_theme_night)
+        } else {
+            null
+        }
+    )
+    GoogleMap(
+        cameraPositionState = CameraPositionState(
+            CameraPosition.Builder()
+                .target(
+                    if (state.journey != null) {
+                        LatLng(state.journey!!.from_latitude, state.journey!!.from_longitude)
+                    } else if (state.journeyList.isNotEmpty()) {
+                        LatLng(
+                            state.journeyList.first().from_latitude,
+                            state.journeyList.first().from_longitude
+                        )
+                    } else {
+                        LatLng(0.0, 0.0)
+                    }
+                )
+                .zoom(13f)
+                .build()
+        ),
+        properties = mapProperties
+    ) {
+        state.journey?.let { journey ->
+            DrawJourney(context, journey)
+        } ?: state.journeyList.forEach { journey ->
+            DrawJourney(context, journey)
+        }
+    }
+}
+
+@Composable
+fun HorizontalDatePicker(viewModel: UserJourneyViewModel) {
+    val state by viewModel.state.collectAsState()
+    var showDatePicker by remember { mutableStateOf(false) }
+
+    fun updateSelectedDate(deltaDays: Int, timestamp: Long? = null) {
+        val calendar = Calendar.getInstance().apply {
+            timeInMillis = if (deltaDays == 0) state.selectedTimeFrom else state.selectedTimeTo
+            if (timestamp != null) {
+                timeInMillis = timestamp
+            }
+            add(Calendar.DAY_OF_MONTH, deltaDays)
+            set(Calendar.HOUR_OF_DAY, 0)
+        }
+        val startTimeStamp = calendar.timeInMillis
+        calendar.set(Calendar.HOUR_OF_DAY, 23)
+        calendar.set(Calendar.MINUTE, 59)
+        viewModel.onDateSelected(calendar.timeInMillis, startTimeStamp)
+    }
+
+    LaunchedEffect(key1 = Unit) {
+        updateSelectedDate(0)
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(IntrinsicSize.Min)
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        ArrowButton(
+            icon = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+            enabled = state.journeyId == null
+        ) {
+            updateSelectedDate(-1)
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .padding(horizontal = 20.dp)
+                .background(
+                    color = AppTheme.colorScheme.iconsBackground.copy(
+                        alpha = if (state.journeyId == null) 1f else 0.5f
+                    ),
+                    shape = MaterialTheme.shapes.small
+                )
+                .clickable {
+                    if (state.journeyId == null) {
+                        showDatePicker = true
+                    }
+                }
+        ) {
+            Text(
+                text = getFormattedJourneyDate(
+                    state.selectedTimeFrom,
+                    state.selectedTimeTo,
+                    context = LocalContext.current
+                ),
+                color = AppTheme.colorScheme.onPrimary,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(4.dp),
+                textAlign = TextAlign.Center
+            )
+        }
+
+        ArrowButton(
+            icon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            enabled = state.selectedTimeTo < System.currentTimeMillis() && state.journeyId == null
+        ) {
+            updateSelectedDate(1)
+        }
+    }
+
+    if (showDatePicker) {
+        ShowDatePicker(
+            confirmButtonClick = { timestamp ->
+                showDatePicker = false
+                updateSelectedDate(0, timestamp)
+            },
+            dismissButtonClick = { showDatePicker = false }
+        )
     }
 }
 
@@ -186,7 +279,7 @@ private fun DrawJourney(
             val fromLatLng = LatLng(journey.from_latitude, journey.from_longitude)
             address = fromLatLng.getAddress(context) ?: ""
             if (!journey.isSteadyLocation()) {
-                val toLatLng = LatLng(journey.to_latitude!!, journey.to_longitude!!)
+                val toLatLng = LatLng(journey.to_latitude ?: 0.0, journey.to_longitude ?: 0.0)
                 toAddress = toLatLng.getAddress(context) ?: ""
             }
         }
@@ -202,7 +295,7 @@ private fun DrawJourney(
         val fromMarkerState =
             MarkerState(position = LatLng(journey.from_latitude, journey.from_longitude))
         val toMarkerState =
-            MarkerState(position = LatLng(journey.to_latitude!!, journey.to_longitude!!))
+            MarkerState(position = LatLng(journey.to_latitude ?: 0.0, journey.to_longitude ?: 0.0))
         MarkerInfoWindow(state = fromMarkerState) {
             MarkerInfoText(address = address, time = journey.created_at!!)
         }
@@ -212,7 +305,7 @@ private fun DrawJourney(
         Polyline(
             points = listOf(
                 LatLng(journey.from_latitude, journey.from_longitude),
-                LatLng(journey.to_latitude!!, journey.to_longitude!!)
+                LatLng(journey.to_latitude ?: 0.0, journey.to_longitude ?: 0.0)
             ),
             jointType = JointType.BEVEL
         )
@@ -220,97 +313,8 @@ private fun DrawJourney(
 }
 
 @Composable
-fun HorizontalDatePicker() {
-    val viewModel = hiltViewModel<UserJourneyViewModel>()
-    val state by viewModel.state.collectAsState()
-    var showDatePicker by remember { mutableStateOf(false) }
-
-    fun updateSelectedDate(deltaDays: Int, timestamp: Long? = null) {
-        val calendar = Calendar.getInstance().apply {
-            timeInMillis = if (deltaDays == 0) state.selectedTimeFrom else state.selectedTimeTo
-            if (timestamp != null) {
-                timeInMillis = timestamp
-            }
-            add(Calendar.DAY_OF_MONTH, deltaDays)
-            set(Calendar.HOUR_OF_DAY, 0)
-        }
-        val startTimeStamp = calendar.timeInMillis
-        calendar.set(Calendar.HOUR_OF_DAY, 23)
-        calendar.set(Calendar.MINUTE, 59)
-        viewModel.onDateSelected(calendar.timeInMillis, startTimeStamp)
-    }
-
-    LaunchedEffect(key1 = Unit) {
-        updateSelectedDate(0)
-    }
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(IntrinsicSize.Min)
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        ArrowButton(
-            icon = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-            enabled = state.journeyId == null
-        ) {
-            updateSelectedDate(-1)
-        }
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .padding(horizontal = 20.dp)
-                .background(
-                    color = AppTheme.colorScheme.iconsBackground.copy(
-                        alpha = if (state.journeyId == null) 1f else 0.7f
-                    ),
-                    shape = MaterialTheme.shapes.small
-                )
-                .clickable {
-                    if (state.journeyId == null) {
-                        showDatePicker = true
-                    }
-                }
-        ) {
-            Text(
-                text = getFormattedJourneyDate(
-                    state.selectedTimeFrom,
-                    state.selectedTimeTo,
-                    context = LocalContext.current
-                ),
-                color = AppTheme.colorScheme.onPrimary,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(4.dp),
-                textAlign = TextAlign.Center
-            )
-        }
-
-        ArrowButton(
-            icon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-            enabled = state.selectedTimeTo < System.currentTimeMillis() && state.journeyId == null
-        ) {
-            updateSelectedDate(1)
-        }
-    }
-
-    if (showDatePicker) {
-        ShowDatePicker(
-            confirmButtonClick = { timestamp ->
-                showDatePicker = false
-                updateSelectedDate(0, timestamp)
-            },
-            dismissButtonClick = { showDatePicker = false }
-        )
-    }
-}
-
-@Composable
 fun ArrowButton(icon: ImageVector, enabled: Boolean, onClick: () -> Unit) {
-    val backgroundAlpha = if (enabled) 1f else 0.7f
+    val backgroundAlpha = if (enabled) 1f else 0.5f
     Box(
         modifier = Modifier
             .wrapContentWidth()

@@ -71,7 +71,11 @@ class LocationJourneyService @Inject constructor(
                 )
             }
             newLocationData?.let {
-                locationTableDatabase.locationTableDao().updateLocationTable(it)
+                try {
+                    locationTableDatabase.locationTableDao().updateLocationTable(it)
+                } catch (e: Exception) {
+                    Timber.e(e, "Error while updating location journey")
+                }
             }
         }
     }
@@ -121,9 +125,19 @@ class LocationJourneyService @Inject constructor(
             .documents.mapNotNull { it.toObject(LocationJourney::class.java) }
 
     fun updateLastLocationJourney(userId: String, newJourney: LocationJourney) {
-        journeyRef(userId).document(newJourney.id).set(newJourney)
+        try {
+            journeyRef(userId).document(newJourney.id).set(newJourney)
+        } catch (e: Exception) {
+            Timber.e(e, "Error while updating last location journey")
+        }
     }
 
-    suspend fun getLocationJourneyFromId(userId: String, journeyId: String) =
-        journeyRef(userId).document(journeyId).get().await().toObject(LocationJourney::class.java)
+    suspend fun getLocationJourneyFromId(userId: String, journeyId: String): LocationJourney? {
+        return try {
+            journeyRef(userId).document(journeyId).get().await().toObject(LocationJourney::class.java)
+        } catch (e: Exception) {
+            Timber.e(e, "Error while getting location journey from id")
+            null
+        }
+    }
 }
