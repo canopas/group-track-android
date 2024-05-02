@@ -11,6 +11,7 @@ import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.utils.AppDispatcher
 import com.canopas.yourspace.domain.fcm.KEY_NOTIFICATION_TYPE
 import com.canopas.yourspace.domain.fcm.NotificationChatConst
+import com.canopas.yourspace.domain.fcm.NotificationGeofenceConst
 import com.canopas.yourspace.domain.fcm.NotificationPlaceConst
 import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppNavigator
@@ -88,7 +89,17 @@ class MainViewModel @Inject constructor(
             }
         } else if (type == NotificationPlaceConst.NOTIFICATION_TYPE_NEW_PLACE_ADDED) {
             val spaceId = intent.getStringExtra(NotificationPlaceConst.KEY_SPACE_ID)
-            if (!spaceId.isNullOrEmpty()) navigateToPlaceList(spaceId)
+            if (!spaceId.isNullOrEmpty()) verifySpace(spaceId) {
+                navigator.navigateTo(
+                    AppDestinations.places.path,
+                    popUpToRoute = AppDestinations.home.path
+                )
+            }
+        } else if (type == NotificationGeofenceConst.NOTIFICATION_TYPE_GEOFENCE) {
+            val spaceId = intent.getStringExtra(NotificationGeofenceConst.KEY_SPACE_ID)
+            if (!spaceId.isNullOrEmpty()) verifySpace(spaceId) {
+                navigator.navigateBack(AppDestinations.home.path)
+            }
         }
     }
 
@@ -97,29 +108,33 @@ class MainViewModel @Inject constructor(
         navigator.navigateTo(AppDestinations.ThreadMessages.messages(threadId).path)
     }
 
-    private fun navigateToPlaceList(spaceId: String) = viewModelScope.launch(appDispatcher.IO) {
-        try {
-            if (spaceRepository.currentSpaceId == spaceId) {
-                delay(500)
-                navigator.navigateTo(AppDestinations.places.path)
-                return@launch
-            }
-            _state.value = state.value.copy(verifyingSpace = true, showSpaceNotFoundPopup = false)
-            val space = spaceRepository.getSpace(spaceId)
-
-            if (space != null) {
-                spaceRepository.currentSpaceId = spaceId
-                _state.value = state.value.copy(verifyingSpace = false)
-                navigator.navigateTo(AppDestinations.places.path, popUpToRoute = AppDestinations.home.path)
-            } else {
+    private fun verifySpace(spaceId: String, action: () -> Unit = {}) =
+        viewModelScope.launch(appDispatcher.IO) {
+            try {
+                if (spaceRepository.currentSpaceId == spaceId) {
+                    delay(500)
+                    action()
+                    return@launch
+                }
                 _state.value =
-                    state.value.copy(showSpaceNotFoundPopup = true, verifyingSpace = false)
+                    state.value.copy(verifyingSpace = true, showSpaceNotFoundPopup = false)
+                val space = spaceRepository.getSpace(spaceId)
+
+                if (space != null) {
+                    spaceRepository.currentSpaceId = spaceId
+                    _state.value = state.value.copy(verifyingSpace = false)
+                    action()
+                } else {
+                    _state.value =
+                        state.value.copy(showSpaceNotFoundPopup = true, verifyingSpace = false)
+                }
+            } catch (e: Exception) {
+                _state.value =
+                    state.value.copy(verifyingSpace = false, showSpaceNotFoundPopup = true)
+                Timber.e(e, "Error verifying space")
             }
-        } catch (e: Exception) {
-            _state.value = state.value.copy(verifyingSpace = false, showSpaceNotFoundPopup = true)
-            Timber.e(e, "Error verifying space")
         }
-    }
+
 
     fun dismissSpaceNotFoundPopup() {
         _state.value = state.value.copy(showSpaceNotFoundPopup = false)

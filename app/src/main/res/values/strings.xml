@@ -36,6 +36,9 @@
     <string name="description_notification_channel_messages">It is used to show messages</string>
     <string name="title_notification_channel_places">New Places</string>
     <string name="description_notification_channel_places">It is used to show newly added places</string>
+    <string name="title_notification_channel_geofence">Geofence</string>
+    <string name="description_notification_channel_geofence">It is used to notify when member arrive/leave place.</string>
+
     <string name="network_error_text">Network error occurred. Please check your internet connection.</string>
     <string name="server_error_text">Server error occurred. Please try again later.</string>
     <string name="unexpected_error_text">An unexpected error occurred.</string>

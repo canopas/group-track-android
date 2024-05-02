@@ -24,10 +24,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 const val YOURSPACE_CHANNEL_MESSAGES = "your_space_notification_channel_messages"
 const val YOURSPACE_CHANNEL_PLACES = "your_space_notification_channel_places"
+const val YOURSPACE_CHANNEL_GEOFENCE = "your_space_notification_channel_geofence"
 
 const val NOTIFICATION_ID = 101
 
@@ -45,6 +47,15 @@ object NotificationChatConst {
 object NotificationPlaceConst {
     const val NOTIFICATION_TYPE_NEW_PLACE_ADDED = "new_place_added"
     const val KEY_SPACE_ID = "spaceId"
+}
+
+object NotificationGeofenceConst {
+    const val NOTIFICATION_TYPE_GEOFENCE = "geofence"
+    const val KEY_SPACE_ID = "spaceId"
+    const val KEY_PLACE_ID = "placeId"
+    const val KEY_PLACE_NAME = "placeName"
+    const val eventBy = "eventBy"
+    const val KEY_EVENT_BY = "eventBy"
 }
 
 @AndroidEntryPoint
@@ -90,9 +101,52 @@ class YourSpaceFcmService : FirebaseMessagingService() {
                     }
                 } else if (type == NotificationPlaceConst.NOTIFICATION_TYPE_NEW_PLACE_ADDED) {
                     sendPlaceNotification(this, title, body, message.data)
+                } else if (type == NotificationGeofenceConst.NOTIFICATION_TYPE_GEOFENCE) {
+                    sendGeoFenceNotification(this, title, body, message.data)
                 }
             }
         }
+    }
+
+    private fun sendGeoFenceNotification(
+        context: Context,
+        title: String,
+        body: String,
+        data: Map<String, String>
+    ) {
+        val spaceId = data[NotificationGeofenceConst.KEY_SPACE_ID]
+        val userId = data[NotificationGeofenceConst.KEY_EVENT_BY]
+
+        val notificationId = userId?.hashCode() ?: NOTIFICATION_ID
+
+        val intent = Intent(context, MainActivity::class.java).apply {
+            putExtra(NotificationGeofenceConst.KEY_SPACE_ID, spaceId)
+            putExtra(NotificationGeofenceConst.KEY_EVENT_BY, userId)
+            putExtra(
+                KEY_NOTIFICATION_TYPE,
+                NotificationGeofenceConst.NOTIFICATION_TYPE_GEOFENCE
+            )
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val pendingIntentFlag =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else PendingIntent.FLAG_UPDATE_CURRENT
+
+        val clickAction = PendingIntent.getActivity(
+            context,
+            System.currentTimeMillis().toInt(),
+            intent,
+            pendingIntentFlag
+        )
+
+        val nBuilder = NotificationCompat.Builder(this, YOURSPACE_CHANNEL_PLACES)
+            .setSmallIcon(R.drawable.app_logo)
+            .setContentTitle(title)
+            .setContentText(body)
+            .setAutoCancel(true)
+            .setOnlyAlertOnce(true)
+            .setContentIntent(clickAction)
+
+        notificationManager.notify(notificationId, nBuilder.build())
     }
 
     private fun sendPlaceNotification(
@@ -125,7 +179,7 @@ class YourSpaceFcmService : FirebaseMessagingService() {
         val nBuilder = NotificationCompat.Builder(this, YOURSPACE_CHANNEL_PLACES)
             .setSmallIcon(R.drawable.app_logo)
             .setContentTitle(title)
-            .setContentText(body)
+            .setContentText(context.getString(R.string.places_list_title))
             .setAutoCancel(true)
             .setOnlyAlertOnce(true)
             .setContentIntent(clickAction)

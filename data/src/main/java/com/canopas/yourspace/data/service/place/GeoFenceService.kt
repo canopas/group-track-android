@@ -6,7 +6,6 @@ import android.content.Intent
 import android.os.Build
 import com.canopas.yourspace.data.models.place.ApiPlace
 import com.canopas.yourspace.data.receiver.geofence.GeofenceBroadcastReceiver
-import com.canopas.yourspace.data.receiver.geofence.GeofenceBroadcastReceiverConst
 import com.canopas.yourspace.data.utils.isLocationPermissionGranted
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.Geofence.GEOFENCE_TRANSITION_ENTER
@@ -40,59 +39,33 @@ class GeoFenceService @Inject constructor(
         )
     }
 
-    fun addGeofence(places: List<ApiPlace>, currentUserId: String) {
-        places.forEach { registerGeofence(it, currentUserId) }
-    }
-
-    fun removeGeofence(key: String) {
-        geofenceList.remove(key)
-    }
-
-    private fun registerGeofence(apiPlace: ApiPlace, currentUserId: String) {
-
+    fun addGeofence(places: List<ApiPlace>) {
         if (!context.isLocationPermissionGranted) return
-        if (geofenceList.containsKey(apiPlace.id)) return
-        if (apiPlace.latitude == 0.0 || apiPlace.longitude == 0.0 || apiPlace.radius == 0.0) return
 
-        val key = apiPlace.id
-        val geofence = createGeofence(key, apiPlace)
-        geofenceList[key] = geofence
+        places
+            .filterNot { apiPlace -> apiPlace.latitude == 0.0 || apiPlace.longitude == 0.0 || apiPlace.radius == 0.0 }
+            .forEach { apiPlace ->
+                val key = apiPlace.id
+                val geofence = createGeofence(key, apiPlace)
+                geofenceList[key] = geofence
+            }
+
+        registerGeofence()
+    }
+
+    private fun registerGeofence() {
+        if(geofenceList.isEmpty()) return
 
         val request = GeofencingRequest.Builder().also { request ->
             request.setInitialTrigger(0)
-            request.addGeofence(geofence)
+            request.addGeofences(geofenceList.values.toList())
         }.build()
-
-        val intent = Intent(context, GeofenceBroadcastReceiver::class.java).apply {
-            putExtra(GeofenceBroadcastReceiverConst.GEOFENCE_EXTRA_KEY_EVENT_BY, currentUserId)
-            putExtra(GeofenceBroadcastReceiverConst.GEOFENCE_EXTRA_KEY_PLACE_ID, apiPlace.id)
-            putExtra(GeofenceBroadcastReceiverConst.GEOFENCE_EXTRA_KEY_PLACE_NAME, apiPlace.name)
-            putExtra(GeofenceBroadcastReceiverConst.GEOFENCE_EXTRA_KEY_SPACE_ID, apiPlace.space_id)
-            putExtra(
-                GeofenceBroadcastReceiverConst.GEOFENCE_EXTRA_KEY_CREATED_BY,
-                apiPlace.created_by
-            )
-        }
-
-        val pendingIntentFlag =
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-                PendingIntent.FLAG_CANCEL_CURRENT
-            } else {
-                PendingIntent.FLAG_MUTABLE
-            }
-
-        val geofencingPendingIntent = PendingIntent.getBroadcast(
-            context,
-            System.currentTimeMillis().toInt(),
-            intent,
-            pendingIntentFlag
-        )
 
         client.addGeofences(request, geofencingPendingIntent)
             .addOnSuccessListener {
-                Timber.d("XXX registerGeofence: Success for ${apiPlace.name}")
+                Timber.d("RegisterGeofence: Success")
             }.addOnFailureListener { exception ->
-                Timber.e(exception, "XXX registerGeofence: Failed for ${apiPlace.name}")
+                Timber.e(exception, "RegisterGeofence: Failed")
             }
     }
 

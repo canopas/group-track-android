@@ -1,15 +1,20 @@
 package com.canopas.yourspace.data.repository
 
+import com.canopas.yourspace.data.models.user.UserInfo
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.place.ApiPlaceService
 import com.canopas.yourspace.data.service.place.GeoFenceService
-import com.canopas.yourspace.data.storage.UserPreferences
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -20,57 +25,42 @@ class GeofenceRepository @Inject constructor(
     private val apiPlaceService: ApiPlaceService,
     private val spaceRepository: SpaceRepository,
     private val geoFenceService: GeoFenceService,
-    private val userPreferences: UserPreferences,
     private val authService: AuthService
 ) {
-    private var selectedSpace: String? = ""
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-    private var placeJob: Job? = null
 
     fun init() {
-        Timber.d("XXX GeofenceRepository init")
         listenForSpaceChange()
     }
 
     private fun listenForSpaceChange() {
         scope.launch {
-            userPreferences.currentSpaceState
-                .filter { it.isNotEmpty() }
-                .collectLatest {
-                    Timber.d("XXX Space changed to $it")
-                    if (selectedSpace != it) {
-                        selectedSpace = it
-                        geoFenceService.deregisterGeofence()
-                        listenForPlaces()
-                    }
+            val currentUser = authService.currentUser?.id ?: return@launch
+            spaceRepository.getUserSpaces(currentUser).flatMapConcat { spaces ->
+                val flows = spaces.filterNotNull().map { space ->
+                    apiPlaceService.listenAllPlaces(space.id)
                 }
-        }
-    }
-
-    private fun listenForPlaces() {
-        placeJob?.cancel()
-        placeJob = scope.launch {
-            val currentSpaceId = spaceRepository.currentSpaceId
-            val currentUser = authService.currentUser ?: return@launch
-            if (currentSpaceId.isEmpty()) return@launch
-
-            apiPlaceService.listenAllPlaces(currentSpaceId)
-                .collectLatest { places ->
-                    Timber.d("XXX Places changed: ${places.size}")
-                    geoFenceService.deregisterGeofence()
-                    geoFenceService.addGeofence(places, currentUser.id)
+                if (flows.isEmpty()) {
+                    emptyFlow()
+                } else {
+                    combine(flows) { it.toList().flatten() }
                 }
+
+            }.collectLatest { places ->
+                geoFenceService.deregisterGeofence()
+                geoFenceService.addGeofence(places)
+            }
         }
     }
 
     suspend fun registerAllPlaces() {
         try {
-            val currentUser = authService.currentUser ?: return
-            val currentSpaceId = spaceRepository.getMemberBySpaceId()
-            if (currentSpaceId.isEmpty()) return
-            val places = apiPlaceService.getPlaces(currentSpaceId)
-            geoFenceService.addGeofence(places, currentUser.id)
-
+            val currentUser = authService.currentUser?.id ?: return
+            val spaces = spaceRepository.getUserSpaces(currentUser).first().filterNotNull()
+            spaces.forEach { space ->
+                val places = apiPlaceService.getPlaces(space.id)
+                geoFenceService.addGeofence(places)
+            }
         } catch (e: Exception) {
             Timber.e(e, "Error while registering all places")
         }

@@ -9,6 +9,7 @@ import com.google.firebase.functions.FirebaseFunctions
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
@@ -83,5 +84,11 @@ class ApiPlaceService @Inject constructor(
 
     suspend fun deletePlace(currentSpaceId: String, id: String) {
         spacePlacesRef(currentSpaceId).document(id).delete().await()
+    }
+
+    suspend fun getPlace(placeId: String): ApiPlace?{
+        return db.collectionGroup(Config.FIRESTORE_COLLECTION_SPACE_PLACES)
+            .whereEqualTo("id", placeId).limit(1)
+            .snapshotFlow(ApiPlace::class.java).first().firstOrNull()
     }
 }

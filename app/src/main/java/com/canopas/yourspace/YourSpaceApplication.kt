@@ -14,6 +14,7 @@ import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.auth.AuthStateChangeListener
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.domain.fcm.FcmRegisterWorker
+import com.canopas.yourspace.domain.fcm.YOURSPACE_CHANNEL_GEOFENCE
 import com.canopas.yourspace.domain.fcm.YOURSPACE_CHANNEL_MESSAGES
 import com.canopas.yourspace.domain.fcm.YOURSPACE_CHANNEL_PLACES
 import dagger.hilt.android.HiltAndroidApp
@@ -75,6 +76,18 @@ class YourSpaceApplication :
                 description =
                     getString(R.string.description_notification_channel_places)
                 enableLights(true)
+                notificationManager.createNotificationChannel(this)
+            }
+
+            NotificationChannel(
+                YOURSPACE_CHANNEL_GEOFENCE,
+                getString(R.string.title_notification_channel_geofence),
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply {
+                description =
+                    getString(R.string.description_notification_channel_geofence)
+                enableLights(true)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) this.setAllowBubbles(true)
                 notificationManager.createNotificationChannel(this)
             }
         }

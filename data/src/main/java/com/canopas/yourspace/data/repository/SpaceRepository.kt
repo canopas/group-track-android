@@ -89,7 +89,7 @@ class SpaceRepository @Inject constructor(
         return getSpace(spaceId)
     }
 
-    private suspend fun getUserSpaces(userId: String) =
+    suspend fun getUserSpaces(userId: String) =
         spaceService.getSpaceMemberByUserId(userId).map {
             it.map { spaceMember ->
                 val spaceId = spaceMember.space_id
@@ -100,7 +100,8 @@ class SpaceRepository @Inject constructor(
 
     suspend fun getSpace(spaceId: String): ApiSpace? = spaceService.getSpace(spaceId)
 
-    suspend fun getMemberBySpaceId(spaceId: String) = spaceService.getMemberBySpaceId(spaceId).firstOrNull()
+    suspend fun getMemberBySpaceId(spaceId: String) =
+        spaceService.getMemberBySpaceId(spaceId).firstOrNull()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     suspend fun getMemberWithLocation(): Flow<List<UserInfo>> {

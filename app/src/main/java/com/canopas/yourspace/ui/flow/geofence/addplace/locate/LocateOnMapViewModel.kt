@@ -20,6 +20,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -94,6 +95,7 @@ class LocateOnMapViewModel @Inject constructor(
             )
             _state.emit(state.value.copy(addingPlace = false))
         } catch (e: Exception) {
+            Timber.e(e, "Error while adding place")
             _state.emit(state.value.copy(error = e, addingPlace = false))
         }
     }
