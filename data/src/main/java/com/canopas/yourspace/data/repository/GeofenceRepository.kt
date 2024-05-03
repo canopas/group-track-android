@@ -1,19 +1,16 @@
 package com.canopas.yourspace.data.repository
 
-import com.canopas.yourspace.data.models.user.UserInfo
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.place.ApiPlaceService
 import com.canopas.yourspace.data.service.place.GeoFenceService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapConcat
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -45,7 +42,6 @@ class GeofenceRepository @Inject constructor(
                 } else {
                     combine(flows) { it.toList().flatten() }
                 }
-
             }.collectLatest { places ->
                 geoFenceService.deregisterGeofence()
                 geoFenceService.addGeofence(places)

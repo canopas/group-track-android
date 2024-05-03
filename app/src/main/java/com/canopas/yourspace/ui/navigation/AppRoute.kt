@@ -206,4 +206,20 @@ object AppDestinations {
             override val path = "$PATH?$KEY_SELECTED_LAT=$latitude&$KEY_SELECTED_LONG=$longitude"
         }
     }
+
+    object EditPlace {
+        const val KEY_PLACE_ID = "placeId"
+
+        private const val PATH = "edit-place"
+        const val path = "$PATH/{$KEY_PLACE_ID}"
+
+        fun setArgs(placeId: String) = object : AppRoute {
+
+            override val arguments = listOf(
+                navArgument(KEY_PLACE_ID) { type = NavType.StringType }
+            )
+
+            override val path = "$PATH/$placeId"
+        }
+    }
 }

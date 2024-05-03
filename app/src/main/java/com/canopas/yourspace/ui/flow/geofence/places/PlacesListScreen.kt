@@ -43,6 +43,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.place.ApiPlace
 import com.canopas.yourspace.ui.component.AppAlertDialog
+import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.AppProgressIndicator
 import com.canopas.yourspace.ui.component.motionClickEvent
 import com.canopas.yourspace.ui.flow.geofence.addplace.components.PlaceAddedPopup
@@ -107,6 +108,12 @@ fun PlacesListScreen() {
             },
             properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
         )
+    }
+
+    if (state.error != null) {
+        AppBanner(msg = state.error!!) {
+            viewModel.resetErrorState()
+        }
     }
 }
 

@@ -3,9 +3,7 @@ package com.canopas.yourspace.data.receiver.geofence
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.location.Location
 import com.canopas.yourspace.data.R
-import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.place.ApiPlaceService
 import com.google.android.gms.location.Geofence
@@ -90,7 +88,6 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
                         functions.getHttpsCallable("sendGeoFenceNotification").call(data)
                             .await()
                     }
-
                 }
             } else {
                 Timber.e("Geofence transition error: $geofenceTransition")

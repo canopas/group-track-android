@@ -178,7 +178,9 @@ dependencies {
     // Accompanist permission
     implementation("com.google.accompanist:accompanist-permissions:0.32.0")
 
+    // Map
     implementation("com.google.maps.android:maps-compose:4.3.0")
+    implementation("com.google.maps.android:android-maps-utils:0.4.4")
 
     // Image cropper
     implementation("com.vanniktech:android-image-cropper:4.5.0")

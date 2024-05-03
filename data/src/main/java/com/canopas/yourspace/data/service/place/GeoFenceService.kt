@@ -21,7 +21,7 @@ import javax.inject.Singleton
 @Singleton
 class GeoFenceService @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val client: GeofencingClient,
+    private val client: GeofencingClient
 ) {
     private val geofenceList = mutableMapOf<String, Geofence>()
 
@@ -54,7 +54,7 @@ class GeoFenceService @Inject constructor(
     }
 
     private fun registerGeofence() {
-        if(geofenceList.isEmpty()) return
+        if (geofenceList.isEmpty()) return
 
         val request = GeofencingRequest.Builder().also { request ->
             request.setInitialTrigger(0)

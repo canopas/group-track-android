@@ -75,6 +75,7 @@ class PlacesListViewModel @Inject constructor(
     }
 
     fun navigateToEditPlace(place: ApiPlace) {
+        appNavigator.navigateTo(AppDestinations.EditPlace.setArgs(place.id).path)
     }
 
     fun showDeletePlaceConfirmation(place: ApiPlace) {
@@ -107,6 +108,10 @@ class PlacesListViewModel @Inject constructor(
                     placeToDelete = null
                 )
         }
+    }
+
+    fun resetErrorState() {
+        _state.value = _state.value.copy(error = null)
     }
 }
 

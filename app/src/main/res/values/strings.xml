@@ -19,6 +19,8 @@
     <string name="common_today">Today</string>
     <string name="common_yesterday">Yesterday</string>
     <string name="common_reply">Reply</string>
+    <string name="common_save">Save</string>
+
     <string name="common_share_invite_code_message">Let\'s stay connected! Use invite code %s to join my Space.\n<a href="https://play.google.com/store/apps/details?id=com.canopas.yourspace">Download the app</a>.</string>
     <string name="common_session_expired_title">You\'ve been logged out</string>
     <string name="common_session_expired_message">You need to sign in again to continue using the application.</string>
@@ -225,6 +227,14 @@
     <string name="place_added_popup_title">%s Added</string>
     <string name="place_added_popup_description">You will be notified when members of your space arrive/leave this place</string>
     <string name="locate_on_map_hint_getting_address">Getting Address…</string>
+    <string name="edit_place_title">Edit Place</string>
+    <string name="edit_place_title_place_details">Place Details</string>
+    <string name="edit_place_title_get_notified">Get notified when…</string>
+    <string name="edit_place_notified_when_arrives">Arrives</string>
+    <string name="edit_place_notified_when_leaves">Leaves</string>
+    <string name="edit_place_admin_btn_delete">Delete Place</string>
+    <string name="edit_place_not_admin_cannot_delete">Only admin can edit or delete this Place.</string>
+
 
     <string-array name="add_places_suggestions">
         <item>Home</item>

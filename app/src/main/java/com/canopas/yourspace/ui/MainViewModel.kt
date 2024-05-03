@@ -89,16 +89,20 @@ class MainViewModel @Inject constructor(
             }
         } else if (type == NotificationPlaceConst.NOTIFICATION_TYPE_NEW_PLACE_ADDED) {
             val spaceId = intent.getStringExtra(NotificationPlaceConst.KEY_SPACE_ID)
-            if (!spaceId.isNullOrEmpty()) verifySpace(spaceId) {
-                navigator.navigateTo(
-                    AppDestinations.places.path,
-                    popUpToRoute = AppDestinations.home.path
-                )
+            if (!spaceId.isNullOrEmpty()) {
+                verifySpace(spaceId) {
+                    navigator.navigateTo(
+                        AppDestinations.places.path,
+                        popUpToRoute = AppDestinations.home.path
+                    )
+                }
             }
         } else if (type == NotificationGeofenceConst.NOTIFICATION_TYPE_GEOFENCE) {
             val spaceId = intent.getStringExtra(NotificationGeofenceConst.KEY_SPACE_ID)
-            if (!spaceId.isNullOrEmpty()) verifySpace(spaceId) {
-                navigator.navigateBack(AppDestinations.home.path)
+            if (!spaceId.isNullOrEmpty()) {
+                verifySpace(spaceId) {
+                    navigator.navigateBack(AppDestinations.home.path)
+                }
             }
         }
     }
@@ -134,7 +138,6 @@ class MainViewModel @Inject constructor(
                 Timber.e(e, "Error verifying space")
             }
         }
-
 
     fun dismissSpaceNotFoundPopup() {
         _state.value = state.value.copy(showSpaceNotFoundPopup = false)

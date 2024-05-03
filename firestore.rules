@@ -152,6 +152,11 @@ service cloud.firestore {
                             request.resource.data.created_at is timestamp;
                 }
 
+           function isPlaceAdmin(spaceId, placeId) {
+                      let created_by = get(/databases/$(database)/documents/spaces/$(spaceId)/space_places/$(place)).data.created_by;
+                      return request.auth.uid == created_by;
+           }
+
           match /spaces/{spaceId}/space_places/{place}/place_settings_by_members/{member} {
             allow read: if isAuthorized() && request.auth.uid == resource.data.user_id;
             allow update: if isAuthorized() && request.auth.uid == resource.data.user_id &&
@@ -159,7 +164,7 @@ service cloud.firestore {
                             request.resource.data.arrival_alert_for is list &&
                             request.resource.data.leave_alert_for is list &&
                             request.resource.data.alert_enable is bool;
-            allow delete: if isAuthorized() && (request.auth.uid == resource.data.user_id || isSpaceAdmin(spaceId));
+            allow delete: if isAuthorized() && (request.auth.uid == resource.data.user_id || isPlaceAdmin(place));
             allow create: if isAuthorized() && isSpaceMember(spaceId) &&
                     request.resource.data.keys().hasAll(["user_id", "place_id", "alert_enable", "leave_alert_for", "arrival_alert_for"]) &&
                     request.resource.data.user_id is string &&

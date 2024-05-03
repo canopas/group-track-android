@@ -1,28 +1,16 @@
 package com.canopas.yourspace.ui.flow.geofence.addplace.locate
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,24 +25,19 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
-import com.canopas.yourspace.domain.utils.getAddress
 import com.canopas.yourspace.ui.component.AppProgressIndicator
+import com.canopas.yourspace.ui.flow.geofence.component.PlaceNameContent
 import com.canopas.yourspace.ui.flow.home.map.DEFAULT_CAMERA_ZOOM
 import com.canopas.yourspace.ui.flow.home.map.component.MapControlBtn
 import com.canopas.yourspace.ui.flow.home.map.distanceTo
@@ -68,10 +51,7 @@ import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.rememberCameraPositionState
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -162,7 +142,7 @@ fun LocateOnMapScreen() {
 }
 
 @Composable
-fun LocateOnMapContent(
+private fun LocateOnMapContent(
     modifier: Modifier,
     cameraPositionState: CameraPositionState,
     userLocation: LatLng
@@ -180,114 +160,10 @@ fun LocateOnMapContent(
                 state.updatedPlaceName ?: "",
                 cameraPositionState,
                 userLocation,
-                viewModel::onPlaceNameChanged
+                onPlaceNameChanged = viewModel::onPlaceNameChanged
             )
         }
         MapView(Modifier.fillMaxSize(), cameraPositionState, userLocation)
-    }
-}
-
-@Composable
-fun PlaceNameContent(
-    placeName: String,
-    cameraPositionState: CameraPositionState,
-    userLocation: LatLng,
-    onPlaceNameChanged: (String) -> Unit
-) {
-    val context = LocalContext.current
-    var address by remember { mutableStateOf("") }
-    Timber.d("isMoving: ${cameraPositionState.isMoving}")
-
-    LaunchedEffect(cameraPositionState.isMoving) {
-        withContext(Dispatchers.IO) {
-            if (!cameraPositionState.isMoving) {
-                address = ""
-                address = cameraPositionState.position.target.getAddress(context) ?: ""
-            }
-        }
-    }
-
-    LaunchedEffect(key1 = userLocation) {
-        withContext(Dispatchers.IO) {
-            if (address.isEmpty()) {
-                address = userLocation.getAddress(context) ?: ""
-            }
-        }
-    }
-
-    PlaceNameTextField(
-        placeName,
-        leadingIcon = R.drawable.ic_bookmark,
-        onValueChange = onPlaceNameChanged
-    )
-
-    PlaceNameTextField(
-        address.ifEmpty { stringResource(id = R.string.locate_on_map_hint_getting_address) },
-        leadingIcon = R.drawable.ic_tab_places_filled,
-        enable = false
-    )
-
-    Spacer(modifier = Modifier.height(10.dp))
-}
-
-@Composable
-fun PlaceNameTextField(
-    text: String,
-    enable: Boolean = true,
-    leadingIcon: Int,
-    onValueChange: ((value: String) -> Unit) = {}
-
-) {
-    val focusManager = LocalFocusManager.current
-    val interactionSource = remember { MutableInteractionSource() }
-    val isFocused by interactionSource.collectIsFocusedAsState()
-    val outlineColor =
-        if (isFocused) AppTheme.colorScheme.primary else AppTheme.colorScheme.outline
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 16.dp),
-        verticalArrangement = Arrangement.Center
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                painterResource(id = leadingIcon),
-                contentDescription = null,
-                tint = AppTheme.colorScheme.onDisabled,
-                modifier = Modifier.size(20.dp)
-            )
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            BasicTextField(
-                value = text,
-                onValueChange = { onValueChange(it) },
-                maxLines = 1,
-                enabled = enable,
-                interactionSource = interactionSource,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxWidth(),
-                singleLine = true,
-                textStyle = AppTheme.appTypography.subTitle1.copy(color = AppTheme.colorScheme.textPrimary),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(onDone = {
-                    focusManager.clearFocus()
-                }),
-                cursorBrush = SolidColor(AppTheme.colorScheme.primary)
-            )
-        }
-
-        Divider(
-            Modifier
-                .fillMaxWidth()
-                .padding(top = 4.dp),
-            color = outlineColor
-        )
     }
 }
 

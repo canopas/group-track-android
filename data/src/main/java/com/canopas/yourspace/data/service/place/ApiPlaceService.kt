@@ -8,7 +8,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.functions.FirebaseFunctions
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -59,8 +58,7 @@ class ApiPlaceService @Inject constructor(
         }
 
         settings.forEach { setting ->
-            spacePlacesSettingsRef(spaceId, place.id).add(setting)
-                .await()
+            spacePlacesSettingsRef(spaceId, place.id).document(setting.user_id).set(setting).await()
         }
 
         val data = mapOf(
@@ -86,9 +84,43 @@ class ApiPlaceService @Inject constructor(
         spacePlacesRef(currentSpaceId).document(id).delete().await()
     }
 
-    suspend fun getPlace(placeId: String): ApiPlace?{
+    suspend fun getPlace(placeId: String): ApiPlace? {
         return db.collectionGroup(Config.FIRESTORE_COLLECTION_SPACE_PLACES)
             .whereEqualTo("id", placeId).limit(1)
             .snapshotFlow(ApiPlace::class.java).first().firstOrNull()
+    }
+
+    suspend fun getPlaceMemberSettings(
+        placeId: String,
+        spaceId: String
+    ): List<ApiPlaceMemberSetting> {
+        val settings = spacePlacesSettingsRef(spaceId, placeId).get().await()
+        return settings.toObjects(ApiPlaceMemberSetting::class.java)
+    }
+
+    suspend fun getPlaceMemberSetting(
+        placeId: String,
+        spaceId: String,
+        userId: String
+    ): ApiPlaceMemberSetting? {
+        val settings =
+            spacePlacesSettingsRef(spaceId, placeId)
+                .whereEqualTo("user_id", userId)
+                .limit(1)
+                .get().await()
+        return settings.toObjects(ApiPlaceMemberSetting::class.java).firstOrNull()
+    }
+
+    suspend fun updatePlace(place: ApiPlace) {
+        spacePlacesRef(place.space_id).document(place.id).set(place).await()
+    }
+
+    suspend fun updatePlaceSettings(
+        place: ApiPlace,
+        userId: String,
+        setting: ApiPlaceMemberSetting
+    ) {
+        spacePlacesSettingsRef(place.space_id, place.id)
+            .document(userId).set(setting).await()
     }
 }
