@@ -82,7 +82,8 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
                             "placeId" to placeId,
                             "spaceId" to spaceId,
                             "eventBy" to eventBy.id,
-                            "message" to message
+                            "message" to message,
+                            "eventType" to geofenceTransition
                         )
 
                         functions.getHttpsCallable("sendGeoFenceNotification").call(data)

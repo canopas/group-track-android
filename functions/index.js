@@ -154,7 +154,7 @@ exports.sendSupportRequest = onCall(async (request) => {
             template: {
                 name: "support_request",
                 data: {
-                   request: data
+                    request: data
                 },
             },
         }).then(() => console.log('Queued email for delivery!'));
@@ -207,10 +207,14 @@ exports.sendNewPlaceNotification = onCall(async (request) => {
 
         admin.messaging().sendMulticast(payload).then((response) => {
             console.log("Successfully sent place notification:", response);
-            return { success: true };
+            return {
+                success: true
+            };
         }).catch((error) => {
             console.log("Failed to send place notification:", error.code);
-            return { error: error.code };
+            return {
+                error: error.code
+            };
         });
     }
 
@@ -220,62 +224,88 @@ exports.sendNewPlaceNotification = onCall(async (request) => {
 
 exports.sendGeoFenceNotification = onCall(async (request) => {
 
-    var data = request.data;
-    const placeId = data.placeId;
-    const spaceId = data.spaceId;
-    const eventBy = data.eventBy;
-    const message = data.message;
+            var data = request.data;
+            const GEOFENCE_TRANSITION_ENTER = 1;
+            const GEOFENCE_TRANSITION_EXIT = 2;
 
-    var spaceSnapShot = await admin.firestore().collection('spaces').doc(spaceId).get();
-    if (!spaceSnapShot.exists) {
-        console.log('Space does not exist');
-        return;
-    }
-    const spaceData = spaceSnapShot.data();
+            const placeId = data.placeId;
+            const eventType = data.eventType;
+            const spaceId = data.spaceId;
+            const eventBy = data.eventBy;
+            const message = data.message;
 
-         const memberDocumentSnapshot = await admin.firestore().collection('spaces').doc(spaceId).collection("space_members").get();
-
-         const usersPromises = memberDocumentSnapshot.docs.map(async documentSnapshot => {
-             const userId = documentSnapshot.data().user_id;
-             const userSnapshot = await admin.firestore().collection('users').doc(userId).get();
-             if (!userSnapshot.exists) {
-                 return null;
-             }
-             return userSnapshot.data();
-         });
-
-         const users = (await Promise.all(usersPromises)).filter(user => user);
-
-         const filteredTokens = users
-             .filter(user => user.id !== eventBy && user.fcm_token !== undefined)
-             .map(member => member.fcm_token);
-
-    if (filteredTokens.length > 0) {
-        const payload = {
-            tokens: filteredTokens,
-            notification: {
-                title: spaceData.name,
-                body: message
-            },
-            data: {
-                spaceId: spaceId,
-                placeId: placeId,
-                eventBy: eventBy,
-                type: 'geofence'
+            var spaceSnapShot = await admin.firestore().collection('spaces').doc(spaceId).get();
+            if (!spaceSnapShot.exists) {
+                console.log('Space does not exist');
+                return;
             }
-        };
 
-        admin.messaging().sendMulticast(payload).then((response) => {
-            console.log("Successfully sent geofence notification:", response);
-            return {
-                success: true
-            };
-        }).catch((error) => {
-            console.log("Failed to send geofence notification:", error.code);
-            return {
-                error: error.code
-            };
-        });
-    }
+            const spaceData = spaceSnapShot.data();
 
-});
+            const memberDocumentSnapshot = await admin.firestore().collection('spaces').doc(spaceId).collection("space_members").get();
+
+            const usersPromises = memberDocumentSnapshot.docs.map(async documentSnapshot => {
+                    const userId = documentSnapshot.data().user_id;
+                    if (userId == eventBy) return null;
+                    const userSnapshot = await admin.firestore().collection('users').doc(userId).get();
+                    if (!userSnapshot.exists) {
+                        return null;
+                    }
+
+                    const userData = userSnapshot.data();
+                    const memberSettingsDocRef = admin.firestore().collection('spaces').doc(spaceId)
+                        .collection('space_places').doc(placeId)
+                        .collection('place_settings_by_members').doc(userId);
+
+                    const memberSettingsSnapshot = await memberSettingsDocRef.get();
+                    if (!memberSettingsSnapshot.exists) {
+                        return null;
+                    }
+                    const memberSettingsData = memberSettingsSnapshot.data();
+
+                    if (memberSettingsData.alert_enable &&
+                        ((eventType == GEOFENCE_TRANSITION_ENTER && memberSettingsData.arrival_alert_for.includes(eventBy)) ||
+                            (eventType == GEOFENCE_TRANSITION_EXIT && memberSettingsData.leave_alert_for.includes(eventBy)))) {
+
+                            return userSnapshot.data();
+                        } else {
+                            return null;
+                        }
+
+                    });
+
+                const users = (await Promise.all(usersPromises)).filter(user => user);
+
+                const filteredTokens = users
+                    .filter(user => user.fcm_token !== undefined)
+                    .map(member => member.fcm_token);
+
+                if (filteredTokens.length > 0) {
+                    const payload = {
+                        tokens: filteredTokens,
+                        notification: {
+                            title: spaceData.name,
+                            body: message
+                        },
+                        data: {
+                            spaceId: spaceId,
+                            placeId: placeId,
+                            eventBy: eventBy,
+                            type: 'geofence'
+                        }
+                    };
+
+                    admin.messaging().sendMulticast(payload).then((response) => {
+                        console.log("Successfully sent geofence notification:", response);
+                        return {
+                            success: true
+                        };
+                    }).catch((error) => {
+                        console.log("Failed to send geofence notification:", error.code);
+                        return {
+                            error: error.code
+                        };
+                    });
+                }
+
+            });

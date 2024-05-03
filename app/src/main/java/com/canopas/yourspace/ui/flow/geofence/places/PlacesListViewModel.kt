@@ -13,7 +13,10 @@ import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,7 +28,8 @@ class PlacesListViewModel @Inject constructor(
     private val authService: AuthService
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(PlacesListScreenState(currentUser = authService.currentUser))
+    private val _state =
+        MutableStateFlow(PlacesListScreenState(currentUser = authService.currentUser))
     val state = _state.asStateFlow()
 
     init {
@@ -34,12 +38,14 @@ class PlacesListViewModel @Inject constructor(
 
     private fun loadPlaces() = viewModelScope.launch(appDispatcher.IO) {
         _state.emit(state.value.copy(placesLoading = state.value.places.isEmpty(), error = null))
-        try {
-            val places = placeService.getPlaces(spaceRepository.currentSpaceId)
-            _state.emit(state.value.copy(placesLoading = false, places = places))
-        } catch (e: Exception) {
-            _state.emit(state.value.copy(placesLoading = false, error = e.localizedMessage))
-        }
+        placeService.listenAllPlaces(spaceRepository.currentSpaceId)
+            .catch {
+                Timber.e(it, "Error loading places")
+                _state.emit(state.value.copy(placesLoading = false, error = it.localizedMessage))
+            }
+            .collectLatest {
+                _state.emit(state.value.copy(placesLoading = false, places = it))
+            }
     }
 
     fun navigateBack() {
@@ -58,7 +64,6 @@ class PlacesListViewModel @Inject constructor(
             addedPlaceLng = long,
             addedPlaceName = name
         )
-        loadPlaces()
     }
 
     fun dismissPlaceAddedPopup() {
@@ -97,7 +102,6 @@ class PlacesListViewModel @Inject constructor(
             val places = state.value.deletingPlaces.toMutableList()
             places.remove(place)
             _state.value = state.value.copy(deletingPlaces = places)
-            loadPlaces()
         } catch (e: Exception) {
             val places = state.value.deletingPlaces.toMutableList()
             places.remove(place)

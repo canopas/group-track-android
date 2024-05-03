@@ -178,7 +178,7 @@ class YourSpaceFcmService : FirebaseMessagingService() {
         val nBuilder = NotificationCompat.Builder(this, YOURSPACE_CHANNEL_PLACES)
             .setSmallIcon(R.drawable.app_logo)
             .setContentTitle(title)
-            .setContentText(context.getString(R.string.places_list_title))
+            .setContentText(body)
             .setAutoCancel(true)
             .setOnlyAlertOnce(true)
             .setContentIntent(clickAction)
