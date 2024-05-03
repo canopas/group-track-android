@@ -28,14 +28,15 @@ class MemberDetailViewModel @Inject constructor(
     fun fetchUserLocationHistory(
         from: Long,
         to: Long,
-        userInfo: UserInfo? = _state.value.selectedUser
+        userInfo: UserInfo? = _state.value.selectedUser,
+        refresh: Boolean = false
     ) = viewModelScope.launch(appDispatcher.IO) {
         _state.emit(
             _state.value.copy(
                 selectedUser = userInfo,
                 selectedTimeFrom = from,
                 selectedTimeTo = to,
-                locations = listOf()
+                locations = if (refresh) listOf() else _state.value.locations
             )
         )
         loadLocations()

@@ -110,7 +110,7 @@ fun MemberDetailBottomSheetContent(
             calendar.set(Calendar.HOUR_OF_DAY, 0)
             val timestamp = calendar.timeInMillis
             calendar.set(Calendar.HOUR_OF_DAY, 23)
-            viewModel.fetchUserLocationHistory(from = timestamp, to = calendar.timeInMillis)
+            viewModel.fetchUserLocationHistory(from = timestamp, to = calendar.timeInMillis, refresh = true)
         }
         LocationHistory()
     }
