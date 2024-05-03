@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,6 +22,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -38,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -45,6 +48,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.canopas.yourspace.R
+import com.canopas.yourspace.data.models.location.ApiLocation
 import com.canopas.yourspace.data.models.location.LocationJourney
 import com.canopas.yourspace.data.models.location.isSteadyLocation
 import com.canopas.yourspace.domain.utils.getAddress
@@ -58,9 +62,10 @@ import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
-import com.google.maps.android.compose.MarkerInfoWindow
+import com.google.maps.android.compose.MarkerComposable
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.Polyline
+import com.google.maps.android.compose.rememberMarkerState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
@@ -115,12 +120,12 @@ fun MapView(viewModel: UserJourneyViewModel) {
         cameraPositionState = CameraPositionState(
             CameraPosition.Builder()
                 .target(
-                    if (state.journey != null) {
-                        LatLng(state.journey!!.from_latitude, state.journey!!.from_longitude)
-                    } else if (state.journeyList.isNotEmpty()) {
+                    if (state.journeyWithLocation != null) {
+                        LatLng(state.journeyWithLocation?.journey!!.from_latitude, state.journeyWithLocation?.journey!!.from_longitude)
+                    } else if (state.journeyWithLocations.isNotEmpty()) {
                         LatLng(
-                            state.journeyList.first().from_latitude,
-                            state.journeyList.first().from_longitude
+                            state.journeyWithLocations.first().journey.from_latitude,
+                            state.journeyWithLocations.first().journey.from_longitude
                         )
                     } else {
                         LatLng(
@@ -129,15 +134,15 @@ fun MapView(viewModel: UserJourneyViewModel) {
                         )
                     }
                 )
-                .zoom(13f)
+                .zoom(15f)
                 .build()
         ),
         properties = mapProperties
     ) {
-        state.journey?.let { journey ->
-            DrawJourney(context, journey)
-        } ?: state.journeyList.forEach { journey ->
-            DrawJourney(context, journey)
+        state.journeyWithLocation?.let { journey ->
+            DrawJourney(context, journey.journey, journey.locationsList)
+        } ?: state.journeyWithLocations.forEach { journey ->
+            DrawJourney(context, journey.journey, journey.locationsList)
         }
     }
 }
@@ -272,10 +277,13 @@ fun ExpandableProfileImage(viewModel: UserJourneyViewModel) {
 @Composable
 private fun DrawJourney(
     context: Context,
-    journey: LocationJourney
+    journey: LocationJourney,
+    locationsList: List<ApiLocation>
 ) {
     var address by remember { mutableStateOf("") }
     var toAddress by remember { mutableStateOf("") }
+    var fromExpandState by remember { mutableStateOf(false) }
+    var toExpandState by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = journey) {
         withContext(Dispatchers.IO) {
@@ -289,26 +297,60 @@ private fun DrawJourney(
     }
 
     if (journey.isSteadyLocation()) {
-        val markerState =
-            MarkerState(position = LatLng(journey.from_latitude, journey.from_longitude))
-        MarkerInfoWindow(state = markerState) {
-            MarkerInfoText(address = address, time = journey.created_at!!)
+        val markerState = MarkerState(
+            position = LatLng(journey.from_latitude, journey.from_longitude)
+        )
+        MarkerComposable(
+            keys = arrayOf(fromExpandState, address),
+            state = markerState,
+            zIndex = if (fromExpandState) 1f else 0f,
+            onClick = {
+                fromExpandState = !fromExpandState
+                true
+            }
+        ) {
+            MarkerInfoText(address = address, time = journey.created_at!!, fromExpandState)
         }
     } else {
-        val fromMarkerState =
-            MarkerState(position = LatLng(journey.from_latitude, journey.from_longitude))
-        val toMarkerState =
-            MarkerState(position = LatLng(journey.to_latitude ?: 0.0, journey.to_longitude ?: 0.0))
-        MarkerInfoWindow(state = fromMarkerState) {
-            MarkerInfoText(address = address, time = journey.created_at!!)
-        }
-        MarkerInfoWindow(state = toMarkerState) {
-            MarkerInfoText(address = toAddress, time = journey.created_at!!)
-        }
+        val fromMarkerState = rememberMarkerState(
+            key = address,
+            position = LatLng(journey.from_latitude, journey.from_longitude)
+        )
+        val toMarkerState = rememberMarkerState(
+            key = toAddress,
+            position = LatLng(journey.to_latitude ?: 0.0, journey.to_longitude ?: 0.0)
+        )
+        MarkerComposable(
+            keys = arrayOf(fromExpandState, address),
+            state = fromMarkerState,
+            content = {
+                MarkerInfoText(address = address, time = journey.created_at!!, expanded = fromExpandState)
+            },
+            onClick = {
+                fromExpandState = !fromExpandState
+                true
+            },
+            tag = address
+        )
+        MarkerComposable(
+            keys = arrayOf(toExpandState, toAddress),
+            state = toMarkerState,
+            content = {
+                MarkerInfoText(address = toAddress, time = journey.created_at!! + (journey.route_duration ?: 0), expanded = toExpandState)
+            },
+            onClick = {
+                toExpandState = !toExpandState
+                true
+            },
+            tag = toAddress
+        )
         Polyline(
-            points = listOf(
-                LatLng(journey.from_latitude, journey.from_longitude),
-                LatLng(journey.to_latitude ?: 0.0, journey.to_longitude ?: 0.0)
+            points = mutableListOf(
+                LatLng(journey.to_latitude ?: journey.from_latitude, journey.to_longitude ?: journey.from_longitude)
+            ) + locationsList.map {
+                LatLng(it.latitude, it.longitude)
+            } + mutableListOf(
+                LatLng(journey.from_latitude, journey.from_longitude)
             ),
             jointType = JointType.BEVEL
         )
@@ -339,24 +381,53 @@ fun ArrowButton(icon: ImageVector, enabled: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-fun MarkerInfoText(address: String, time: Long) {
+fun MarkerInfoText(address: String, time: Long, expanded: Boolean = false) {
     Column(
         modifier = Modifier
-            .wrapContentWidth()
+            .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .background(AppTheme.colorScheme.markerInfoWindow, shape = MaterialTheme.shapes.small)
     ) {
-        Text(
-            text = address,
-            color = AppTheme.colorScheme.textPrimary,
-            maxLines = 3,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(8.dp)
-        )
-        Text(
-            text = getFormattedTime(time),
-            color = AppTheme.colorScheme.textSecondary,
-            modifier = Modifier.padding(8.dp)
+        Column(
+            modifier = Modifier
+                .wrapContentWidth()
+                .background(AppTheme.colorScheme.textPrimary, shape = MaterialTheme.shapes.small)
+                .align(Alignment.CenterHorizontally)
+        ) {
+            Row(
+                modifier = Modifier.padding(4.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_pin_icon),
+                    contentDescription = "",
+                    tint = AppTheme.colorScheme.textInversePrimary,
+                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 16.dp).size(24.dp)
+                )
+                Text(
+                    text = if (expanded) address else address.take(20),
+                    color = AppTheme.colorScheme.textInversePrimary,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(vertical = 16.dp)
+                )
+            }
+            if (expanded) {
+                Text(
+                    text = getFormattedTime(time),
+                    color = AppTheme.colorScheme.textInversePrimary,
+                    modifier = Modifier.padding(start = 16.dp, bottom = 16.dp)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Icon(
+            imageVector = Icons.Default.LocationOn,
+            contentDescription = "Location Icon",
+            tint = AppTheme.colorScheme.locationMarker,
+            modifier = Modifier
+                .size(40.dp)
+                .align(Alignment.CenterHorizontally)
         )
     }
 }

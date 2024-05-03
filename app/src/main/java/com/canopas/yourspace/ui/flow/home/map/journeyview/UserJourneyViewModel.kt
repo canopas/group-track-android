@@ -4,15 +4,17 @@ import android.location.Location
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.canopas.yourspace.data.models.location.ApiLocation
 import com.canopas.yourspace.data.models.location.LocationJourney
+import com.canopas.yourspace.data.models.location.isSteadyLocation
 import com.canopas.yourspace.data.models.user.ApiUser
+import com.canopas.yourspace.data.service.location.ApiLocationService
 import com.canopas.yourspace.data.service.location.LocationJourneyService
 import com.canopas.yourspace.data.service.location.LocationManager
 import com.canopas.yourspace.data.service.user.ApiUserService
 import com.canopas.yourspace.data.utils.AppDispatcher
 import com.canopas.yourspace.ui.navigation.AppDestinations.UserJourney.KEY_JOURNEY_ID
 import com.canopas.yourspace.ui.navigation.AppDestinations.UserJourney.KEY_SELECTED_USER_ID
-import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,8 +25,8 @@ import javax.inject.Inject
 @HiltViewModel
 class UserJourneyViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val navigator: AppNavigator,
     private val journeyService: LocationJourneyService,
+    private val apiLocationService: ApiLocationService,
     private val appDispatcher: AppDispatcher,
     private val locationManager: LocationManager,
     private val apiUserService: ApiUserService
@@ -66,8 +68,17 @@ class UserJourneyViewModel @Inject constructor(
             val startTimeStamp = calendar.timeInMillis
             calendar.set(Calendar.HOUR_OF_DAY, 23)
             calendar.set(Calendar.MINUTE, 59)
+            val apiLocations = if (!it.isSteadyLocation()) {
+                apiLocationService.getLocationsBetweenTime(
+                    userId,
+                    it.created_at!!,
+                    it.created_at!! + (it.route_duration ?: 0)
+                ) ?: emptyList()
+            } else {
+                emptyList()
+            }
             _state.value = _state.value.copy(
-                journey = it,
+                journeyWithLocation = JourneyWithLocations(it, apiLocations),
                 isLoading = false,
                 selectedTimeFrom = startTimeStamp,
                 selectedTimeTo = calendar.timeInMillis
@@ -76,13 +87,43 @@ class UserJourneyViewModel @Inject constructor(
     }
 
     private fun fetchJourneyList(userId: String) = viewModelScope.launch(appDispatcher.IO) {
-        val journeyList = journeyService.getJourneyHistory(
+        val journeys = journeyService.getJourneyHistory(
             userId,
             _state.value.selectedTimeFrom,
             _state.value.selectedTimeTo
         )
+        val filteredJourneys = journeys.sortedBy {
+            it.from_latitude.toInt()
+        }.filterIndexed { index, it ->
+            val distance = FloatArray(1)
+            val previousJourney = journeys.getOrNull(index - 1)
+            Location.distanceBetween(
+                it.from_latitude,
+                it.from_longitude,
+                previousJourney?.from_latitude ?: it.from_latitude,
+                previousJourney?.from_longitude ?: it.from_longitude,
+                distance
+            )
+            distance[0] > 1000
+        }.sortedBy {
+            it.created_at
+        }
+        val journeyWithLocations = filteredJourneys.map {
+            JourneyWithLocations(
+                journey = it,
+                locationsList = if (!it.isSteadyLocation()) {
+                    apiLocationService.getLocationsBetweenTime(
+                        userId,
+                        it.created_at!!,
+                        it.created_at!! + (it.route_duration ?: 0)
+                    ) ?: emptyList()
+                } else {
+                    emptyList()
+                }
+            )
+        }
         _state.value = _state.value.copy(
-            journeyList = journeyList,
+            journeyWithLocations = journeyWithLocations,
             isLoading = false
         )
     }
@@ -103,6 +144,11 @@ data class UserJourneyState(
     val selectedTimeTo: Long = System.currentTimeMillis(),
     val currentLocation: Location? = null,
     val journeyId: String? = null,
-    val journey: LocationJourney? = null,
-    val journeyList: List<LocationJourney> = emptyList()
+    val journeyWithLocation: JourneyWithLocations? = null,
+    val journeyWithLocations: List<JourneyWithLocations> = emptyList()
+)
+
+data class JourneyWithLocations(
+    val journey: LocationJourney,
+    val locationsList: List<ApiLocation> = emptyList()
 )
