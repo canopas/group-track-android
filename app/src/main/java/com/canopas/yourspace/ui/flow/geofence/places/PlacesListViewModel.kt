@@ -53,7 +53,7 @@ class PlacesListViewModel @Inject constructor(
     }
 
     fun navigateToAddPlace() {
-        appNavigator.navigateTo(AppDestinations.LocateOnMap.setArgs("").path)
+        appNavigator.navigateTo(AppDestinations.addNewPlace.path)
     }
 
     fun showPlaceAddedPopup(lat: Double, long: Double, name: String) {

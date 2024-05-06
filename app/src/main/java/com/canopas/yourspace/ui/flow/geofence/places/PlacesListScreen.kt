@@ -46,7 +46,7 @@ import com.canopas.yourspace.ui.component.AppAlertDialog
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.AppProgressIndicator
 import com.canopas.yourspace.ui.component.motionClickEvent
-import com.canopas.yourspace.ui.flow.geofence.addplace.components.PlaceAddedPopup
+import com.canopas.yourspace.ui.flow.geofence.add.components.PlaceAddedPopup
 import com.canopas.yourspace.ui.theme.AppTheme
 
 const val EXTRA_RESULT_PLACE_LATITUDE = "place_latitude"

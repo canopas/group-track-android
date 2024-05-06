@@ -1,4 +1,4 @@
-package com.canopas.yourspace.ui.flow.geofence.addplace.components
+package com.canopas.yourspace.ui.flow.geofence.add.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme

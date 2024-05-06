@@ -222,4 +222,11 @@ object AppDestinations {
             override val path = "$PATH/$placeId"
         }
     }
+
+
+    val addNewPlace = object : AppRoute {
+        override val arguments: List<NamedNavArgument> = emptyList()
+        override val path: String = "add-new-place"
+    }
+
 }

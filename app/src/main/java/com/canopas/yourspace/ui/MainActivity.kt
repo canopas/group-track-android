@@ -26,8 +26,9 @@ import com.canopas.yourspace.ui.flow.auth.methods.SignInMethodsScreen
 import com.canopas.yourspace.ui.flow.auth.phone.EXTRA_RESULT_IS_NEW_USER
 import com.canopas.yourspace.ui.flow.auth.phone.SignInWithPhoneScreen
 import com.canopas.yourspace.ui.flow.auth.verification.PhoneVerificationScreen
-import com.canopas.yourspace.ui.flow.geofence.addplace.locate.LocateOnMapScreen
-import com.canopas.yourspace.ui.flow.geofence.addplace.placename.ChoosePlaceNameScreen
+import com.canopas.yourspace.ui.flow.geofence.add.addnew.AddNewPlaceScreen
+import com.canopas.yourspace.ui.flow.geofence.add.locate.LocateOnMapScreen
+import com.canopas.yourspace.ui.flow.geofence.add.placename.ChoosePlaceNameScreen
 import com.canopas.yourspace.ui.flow.geofence.edit.EditPlaceScreen
 import com.canopas.yourspace.ui.flow.geofence.places.EXTRA_RESULT_PLACE_LATITUDE
 import com.canopas.yourspace.ui.flow.geofence.places.EXTRA_RESULT_PLACE_LONGITUDE
@@ -222,6 +223,10 @@ fun MainApp(viewModel: MainViewModel) {
 
         slideComposable(AppDestinations.EditPlace.path) {
             EditPlaceScreen()
+        }
+
+        slideComposable(AppDestinations.addNewPlace.path) {
+            AddNewPlaceScreen()
         }
     }
 }

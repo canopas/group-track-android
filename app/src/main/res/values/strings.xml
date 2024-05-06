@@ -234,7 +234,9 @@
     <string name="edit_place_notified_when_leaves">Leaves</string>
     <string name="edit_place_admin_btn_delete">Delete Place</string>
     <string name="edit_place_not_admin_cannot_delete">Only admin can edit or delete this Place.</string>
-
+    <string name="add_new_place_header_suggestions">Suggestions…</string>
+    <string name="add_new_place_title">Add a New Place</string>
+    <string name="add_new_place_search_place_hint">Search address or location name</string>
 
     <string-array name="add_places_suggestions">
         <item>Home</item>

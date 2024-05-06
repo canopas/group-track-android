@@ -8,6 +8,7 @@ import com.canopas.yourspace.data.service.location.LocationManager
 import com.canopas.yourspace.data.service.place.ApiPlaceService
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.ui.flow.geofence.add.locate.LocateOnMapViewModel
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher

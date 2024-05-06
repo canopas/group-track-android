@@ -125,7 +125,6 @@ private fun PlaceNameTextField(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxWidth(),
-                singleLine = true,
                 textStyle = AppTheme.appTypography.subTitle1.copy(color = AppTheme.colorScheme.textPrimary),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,

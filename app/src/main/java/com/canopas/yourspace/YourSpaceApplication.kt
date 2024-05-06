@@ -17,6 +17,7 @@ import com.canopas.yourspace.domain.fcm.FcmRegisterWorker
 import com.canopas.yourspace.domain.fcm.YOURSPACE_CHANNEL_GEOFENCE
 import com.canopas.yourspace.domain.fcm.YOURSPACE_CHANNEL_MESSAGES
 import com.canopas.yourspace.domain.fcm.YOURSPACE_CHANNEL_PLACES
+import com.google.android.libraries.places.api.Places
 import dagger.hilt.android.HiltAndroidApp
 import timber.log.Timber
 import javax.inject.Inject
@@ -49,6 +50,8 @@ class YourSpaceApplication :
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
         authService.addListener(this)
         setNotificationChannel()
+
+        Places.initializeWithNewPlacesApiEnabled(this, BuildConfig.PLACE_API_KEY)
 
         if (userPreferences.currentUser != null) {
             geoFenceRepository.init()
