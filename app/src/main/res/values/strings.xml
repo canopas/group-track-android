@@ -201,5 +201,6 @@
     <string name="support_btn_submit">Submit</string>
     <string name="support_attachment_size_limit_exceed">Attachment size should be less than 5MB</string>
     <string name="support_request_sent">Thanks! Your feedback has been recorded.</string>
+    <string name="setting_spaces">Spaces</string>
 
 </resources>
