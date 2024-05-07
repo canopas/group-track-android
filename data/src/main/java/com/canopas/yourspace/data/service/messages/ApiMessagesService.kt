@@ -10,7 +10,6 @@ import com.canopas.yourspace.data.utils.snapshotFlow
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.Source
 import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -66,15 +65,20 @@ class ApiMessagesService @Inject constructor(
 
     suspend fun getMessages(
         threadId: String,
-        from: Date,
+        from: Date?,
         limit: Int = 20
     ): List<ApiThreadMessage> {
+        if (from == null) {
+            return threadMessagesRef(threadId)
+                .orderBy("created_at", Query.Direction.DESCENDING)
+                .limit(limit.toLong())
+                .get().await().documents.mapNotNull { it.toObject<ApiThreadMessage>() }
+        }
         return threadMessagesRef(threadId)
             .orderBy("created_at", Query.Direction.DESCENDING)
             .whereLessThan("created_at", from)
             .limit(limit.toLong())
-            .get(Source.SERVER).await().documents
-            .mapNotNull { it.toObject<ApiThreadMessage>() }
+            .get().await().documents.mapNotNull { it.toObject<ApiThreadMessage>() }
     }
 
     suspend fun sendMessage(threadId: String, senderId: String, message: String) {
@@ -88,6 +92,23 @@ class ApiMessagesService @Inject constructor(
             seen_by = listOf(senderId)
         )
         docRef.set(threadMessage).await()
+    }
+
+    fun generateMessage(threadId: String, senderId: String, message: String): ApiThreadMessage {
+        val docRef = threadMessagesRef(threadId).document()
+
+        return ApiThreadMessage(
+            id = docRef.id,
+            thread_id = threadId,
+            sender_id = senderId,
+            message = message,
+            seen_by = listOf(senderId)
+        )
+    }
+
+    suspend fun sendMessage(message: ApiThreadMessage) {
+        val docRef = threadMessagesRef(message.thread_id).document(message.id)
+        docRef.set(message).await()
     }
 
     suspend fun markMessagesAsSeen(threadId: String, messageIds: List<String>, userId: String) {
