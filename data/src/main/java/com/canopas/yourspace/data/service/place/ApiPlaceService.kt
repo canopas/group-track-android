@@ -6,10 +6,13 @@ import com.canopas.yourspace.data.utils.Config
 import com.canopas.yourspace.data.utils.snapshotFlow
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.functions.FirebaseFunctions
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 
 class ApiPlaceService @Inject constructor(
@@ -67,7 +70,11 @@ class ApiPlaceService @Inject constructor(
             "createdBy" to createdBy,
             "spaceMemberIds" to spaceMemberIds
         )
-        functions.getHttpsCallable("sendNewPlaceNotification").call(data).await()
+        functions.getHttpsCallable("sendNewPlaceNotification").call(data).addOnSuccessListener {
+            Timber.d("Notification sent successfully")
+        }.addOnFailureListener {
+            Timber.e(it, "Failed to send new place notification")
+        }
     }
 
     suspend fun getPlaces(spaceId: String): List<ApiPlace> {

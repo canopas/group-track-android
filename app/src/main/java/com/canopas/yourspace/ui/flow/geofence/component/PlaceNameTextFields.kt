@@ -120,6 +120,7 @@ private fun PlaceNameTextField(
                 value = text,
                 onValueChange = { onValueChange(it) },
                 maxLines = maxLines,
+                singleLine = true,
                 enabled = enable,
                 interactionSource = interactionSource,
                 modifier = Modifier
