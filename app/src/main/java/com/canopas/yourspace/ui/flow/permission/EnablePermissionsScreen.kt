@@ -194,7 +194,7 @@ fun EnablePermissionsContent(modifier: Modifier) {
                 description = stringResource(R.string.enable_permission_notification_access_desc),
                 isGranted = notificationPermissionStates?.status == PermissionStatus.Granted,
                 onClick = {
-                     if (notificationPermissionStates?.status != PermissionStatus.Granted) {
+                    if (notificationPermissionStates?.status != PermissionStatus.Granted) {
                         notificationPermissionStates?.launchPermissionRequest()
                     }
                 }
