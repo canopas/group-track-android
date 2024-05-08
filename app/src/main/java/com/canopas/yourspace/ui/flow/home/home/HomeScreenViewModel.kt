@@ -11,6 +11,7 @@ import com.canopas.yourspace.data.utils.AppDispatcher
 import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -169,6 +170,15 @@ class HomeScreenViewModel @Inject constructor(
         if (spaceRepository.currentSpaceId.isEmpty()) return
         navigator.navigateTo(AppDestinations.spaceThreads.path)
     }
+
+    fun showBatteryOptimizationDialog() = viewModelScope.launch(appDispatcher.IO) {
+        delay(500)
+        _state.value = _state.value.copy(showBatteryOptimizationPopup = true)
+    }
+
+    fun dismissBatteryOptimizationDialog() {
+        _state.value = _state.value.copy(showBatteryOptimizationPopup = false)
+    }
 }
 
 data class HomeScreenState(
@@ -180,5 +190,6 @@ data class HomeScreenState(
     val showSpaceSelectionPopup: Boolean = false,
     val locationEnabled: Boolean = true,
     val enablingLocation: Boolean = false,
+    val showBatteryOptimizationPopup: Boolean = false,
     val error: Exception? = null
 )
