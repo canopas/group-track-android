@@ -176,10 +176,7 @@ fun MainApp(viewModel: MainViewModel) {
             SupportScreen()
         }
 
-        slideComposable(AppDestinations.UserJourney.pathWithJourneyId) {
-            UserJourneyView()
-        }
-        slideComposable(AppDestinations.UserJourney.pathWithoutJourneyId) {
+        slideComposable(AppDestinations.UserJourney.path) {
             UserJourneyView()
         }
     }

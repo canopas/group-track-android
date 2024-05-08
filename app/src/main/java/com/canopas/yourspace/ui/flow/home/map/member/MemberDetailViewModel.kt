@@ -52,11 +52,12 @@ class MemberDetailViewModel @Inject constructor(
                 _state.value.selectedUser?.user?.id ?: "",
                 _state.value.selectedTimeFrom ?: 0,
                 _state.value.locations.lastOrNull()?.created_at ?: _state.value.selectedTimeTo
-                    ?: 0
+                ?: 0
             )
 
             val locationJourneys = (state.value.locations + locations).distinctBy { it.id }
-            val hasMoreItems = !state.value.locations.map { it.id }.containsAll(locations.map { it.id })
+            val hasMoreItems =
+                !state.value.locations.map { it.id }.containsAll(locations.map { it.id })
 
             _state.value = _state.value.copy(
                 locations = locationJourneys,
@@ -80,9 +81,8 @@ class MemberDetailViewModel @Inject constructor(
     fun navigateToUserJourneyDetail(journeyId: String? = null) {
         state.value.selectedUser?.let { selectedUser ->
             navigator.navigateTo(
-                AppDestinations.UserJourney.userJourney(
-                    journeyId,
-                    selectedUser.user.id
+                AppDestinations.UserJourney.args(
+                    selectedUser.user.id, journeyId,
                 ).path
             )
         }
