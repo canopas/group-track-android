@@ -26,7 +26,7 @@ class BatteryBroadcastReceiver @Inject constructor(
                     val batteryPct = level / scale.toFloat() * 100
                     authService.updateBatteryStatus(batteryPct)
                 } catch (e: Exception) {
-                    Timber.e(e,"Failed to update battery status")
+                    Timber.e(e, "Failed to update battery status")
                 }
             }
         }

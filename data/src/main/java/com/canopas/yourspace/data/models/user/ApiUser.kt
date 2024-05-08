@@ -2,9 +2,7 @@ package com.canopas.yourspace.data.models.user
 
 import androidx.annotation.Keep
 import com.google.firebase.firestore.Exclude
-import com.google.firebase.firestore.ServerTimestamp
 import com.squareup.moshi.JsonClass
-import java.util.Date
 import java.util.UUID
 
 const val LOGIN_TYPE_GOOGLE = 1

@@ -15,7 +15,7 @@ class BootCompleteReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         if (Intent.ACTION_BOOT_COMPLETED == intent.action) {
-           locationManager.startService()
+            locationManager.startService()
         }
     }
 }

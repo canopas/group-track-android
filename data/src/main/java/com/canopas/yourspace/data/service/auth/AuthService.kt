@@ -1,6 +1,5 @@
 package com.canopas.yourspace.data.service.auth
 
-import android.health.connect.datatypes.units.Percentage
 import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.models.user.ApiUserSession
 import com.canopas.yourspace.data.service.user.ApiUserService
