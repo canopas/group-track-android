@@ -17,6 +17,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.tasks.await
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -77,5 +78,9 @@ class LocationManager @Inject constructor(@ApplicationContext private val contex
 
     fun startService() {
         context.startService(Intent(context, BackgroundLocationService::class.java))
+    }
+
+    fun stopService() {
+        context.stopService(Intent(context, BackgroundLocationService::class.java))
     }
 }
