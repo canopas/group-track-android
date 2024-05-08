@@ -23,7 +23,6 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.Calendar
-import java.util.Date
 import javax.inject.Inject
 
 private const val MESSAGE_PAGE_LIMIT = 20
@@ -76,10 +75,12 @@ class MessagesViewModel @Inject constructor(
                 .collectLatest { messages ->
                     val filter = messages.filter { it.created_at != null }
                     if (filter.isNotEmpty()) {
-                        val newMessages =
-                            allMessages.filter { msg -> filter.any { it.id != msg.id } } + filter
+                        val appendedMessages =
+                            state.value.newMessagesToAppend.filter { append -> filter.any { it.id != append.id } }
+                        val newMessages = allMessages + filter
                         _state.value =
                             state.value.copy(
+                                newMessagesToAppend = appendedMessages,
                                 messagesByDate = newMessages.groupMessagesByDate()
                             )
                         markMessagesAsSeen(filter)
@@ -117,7 +118,7 @@ class MessagesViewModel @Inject constructor(
             )
         )
         try {
-            val from = allMessages.minByOrNull { it.createdAtMs }?.created_at ?: Date()
+            val from = allMessages.minByOrNull { it.createdAtMs }?.created_at
             val newMessages = messagesRepository.getMessages(
                 threadId,
                 from = from,
@@ -126,11 +127,11 @@ class MessagesViewModel @Inject constructor(
 
             hasMoreData = newMessages.isNotEmpty()
 
-            val existingMsg =
-                if (newMessages.isEmpty()) allMessages else allMessages.filter { msg -> newMessages.any { it.id != msg.id } }
+            val messages =
+                if (newMessages.isEmpty()) allMessages else allMessages + newMessages
             _state.emit(
                 state.value.copy(
-                    messagesByDate = (existingMsg + newMessages).groupMessagesByDate(),
+                    messagesByDate = messages.groupMessagesByDate(),
                     append = false,
                     loadingMessages = false,
                     error = null
@@ -305,7 +306,11 @@ class MessagesViewModel @Inject constructor(
                 listenMessages()
             }
 
-            messagesRepository.sendMessage(message, userId, threadId)
+            val newMessage = messagesRepository.generateMessage(message, userId, threadId)
+            val newMessages = state.value.newMessagesToAppend.toMutableList()
+            newMessages.add(newMessage)
+            _state.emit(_state.value.copy(newMessagesToAppend = newMessages))
+            messagesRepository.sendMessage(newMessage)
         } catch (e: Exception) {
             Timber.e(e, "Failed to send message")
             _state.emit(_state.value.copy(error = e.message))
@@ -368,5 +373,6 @@ data class MessagesScreenState(
     val selectAll: Boolean = true,
     val error: String? = null,
     val newMessage: String = "",
+    val newMessagesToAppend: List<ApiThreadMessage> = emptyList(),
     val isNewThread: Boolean = false
 )

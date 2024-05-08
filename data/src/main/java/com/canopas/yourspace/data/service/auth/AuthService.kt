@@ -2,6 +2,7 @@ package com.canopas.yourspace.data.service.auth
 
 import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.models.user.ApiUserSession
+import com.canopas.yourspace.data.service.location.LocationManager
 import com.canopas.yourspace.data.service.user.ApiUserService
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
@@ -13,7 +14,8 @@ import javax.inject.Singleton
 class AuthService @Inject constructor(
     private val userPreferences: UserPreferences,
     private val apiUserService: ApiUserService,
-    private val firebaseAuth: FirebaseAuth
+    private val firebaseAuth: FirebaseAuth,
+    private val locationManager: LocationManager
 ) {
     private val authStateChangeListeners = HashSet<AuthStateChangeListener>()
 
@@ -99,6 +101,7 @@ class AuthService @Inject constructor(
         userPreferences.setOnboardShown(false)
         userPreferences.currentSpace = ""
         firebaseAuth.signOut()
+        locationManager.stopService()
     }
 
     suspend fun deleteAccount() {
@@ -109,6 +112,18 @@ class AuthService @Inject constructor(
 
     suspend fun getUser(): ApiUser? = apiUserService.getUser(currentUser?.id ?: "")
     suspend fun getUserFlow() = apiUserService.getUserFlow(currentUser?.id ?: "")
+
+    suspend fun updateBatteryStatus(batteryPercentage: Float) {
+        val currentUser = currentUser ?: return
+        val session = currentUserSession ?: return
+        apiUserService.updateBatteryPct(currentUser.id, session.id, batteryPercentage)
+    }
+
+    suspend fun updateUserSessionState(state: Int) {
+        val currentUser = currentUser ?: return
+        val session = currentUserSession ?: return
+        apiUserService.updateSessionState(currentUser.id, session.id, state)
+    }
 }
 
 interface AuthStateChangeListener {

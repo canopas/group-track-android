@@ -33,6 +33,9 @@ class JoinSpaceViewModel @Inject constructor(
 
     fun onCodeChanged(code: String) {
         _state.value = _state.value.copy(inviteCode = code)
+        if (code.length == 6) {
+            verifyAndJoinSpace()
+        }
     }
 
     fun verifyAndJoinSpace() = viewModelScope.launch(appDispatcher.IO) {

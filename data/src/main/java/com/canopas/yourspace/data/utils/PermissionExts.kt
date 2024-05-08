@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.os.PowerManager
 import android.provider.Settings
 import androidx.core.app.ActivityCompat
 
@@ -53,3 +54,13 @@ val Context.hasNotificationPermission
         }
 
 val Context.hasAllPermission get() = isLocationPermissionGranted
+
+val Context.isBatteryOptimizationEnabled: Boolean
+    get() {
+        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            powerManager.isIgnoringBatteryOptimizations(packageName).not()
+        } else {
+            false
+        }
+    }

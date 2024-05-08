@@ -5,6 +5,7 @@ import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -100,6 +102,8 @@ fun PermissionDialog(
     title: String,
     subTitle1: String,
     subTitle2: String? = null,
+    dismissBtn: String? = null,
+    confirmBtn: String? = null,
     onDismiss: () -> Unit,
     goToSettings: () -> Unit
 ) {
@@ -120,7 +124,7 @@ fun PermissionDialog(
                     modifier = Modifier
                         .padding(top = 5.dp)
                         .fillMaxWidth(),
-                    style = AppTheme.appTypography.header1
+                    style = AppTheme.appTypography.header3
                 )
                 Text(
                     text = subTitle1,
@@ -128,7 +132,7 @@ fun PermissionDialog(
                     modifier = Modifier
                         .padding(vertical = 10.dp)
                         .fillMaxWidth(),
-                    style = AppTheme.appTypography.body2
+                    style = AppTheme.appTypography.body1
                 )
 
                 if (subTitle2 != null) {
@@ -142,12 +146,21 @@ fun PermissionDialog(
                     )
                 }
 
+                Spacer(modifier = Modifier.padding(10.dp))
+
                 PrimaryButton(
-                    modifier = Modifier
-                        .padding(vertical = 10.dp),
-                    label = stringResource(id = R.string.common_background_access_permission_btn),
+                    label = if (!confirmBtn.isNullOrEmpty()) confirmBtn else stringResource(id = R.string.common_background_access_permission_btn),
                     onClick = goToSettings
                 )
+
+                dismissBtn?.let {
+                    Spacer(modifier = Modifier.padding(4.dp))
+                    PrimaryTextButton(
+                        label = dismissBtn,
+                        onClick = onDismiss,
+                        containerColor = Color.Transparent
+                    )
+                }
             }
         }
     }

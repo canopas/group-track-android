@@ -129,7 +129,7 @@ class ApiLocationService @Inject constructor(
                     .whereLessThan("created_at", startTime)
                     .orderBy("created_at", Query.Direction.DESCENDING).limit(1)
                     .get().await().documents
-                    .randomOrNull()?.toObject(ApiLocation::class.java)
+                    .firstOrNull()?.toObject(ApiLocation::class.java)
 
                 apiLocation?.let {
                     locations.add(it)

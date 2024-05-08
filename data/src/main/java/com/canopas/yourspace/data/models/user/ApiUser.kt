@@ -2,6 +2,7 @@ package com.canopas.yourspace.data.models.user
 
 import androidx.annotation.Keep
 import com.google.firebase.firestore.Exclude
+import com.squareup.moshi.JsonClass
 import java.util.UUID
 
 const val LOGIN_TYPE_GOOGLE = 1
@@ -31,6 +32,7 @@ data class ApiUser(
 }
 
 @Keep
+@JsonClass(generateAdapter = true)
 data class ApiUserSession(
     val id: String = UUID.randomUUID().toString(),
     val user_id: String = "",
@@ -40,6 +42,6 @@ data class ApiUserSession(
     val platform: Int = LOGIN_DEVICE_TYPE_ANDROID,
     val session_active: Boolean = true,
     val app_version: Long? = 0,
-    val battery_status: String? = "",
+    val battery_pct: Float? = 0f,
     val created_at: Long? = System.currentTimeMillis()
 )

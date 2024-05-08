@@ -62,13 +62,13 @@ class LocationManager @Inject constructor(@ApplicationContext private val contex
                 setWaitForAccurateLocation(true)
             }.build()
 
-    fun startLocationTracking() {
+    internal fun startLocationTracking() {
         if (context.hasFineLocationPermission) {
             locationClient.requestLocationUpdates(request, locationUpdatePendingIntent)
         }
     }
 
-    fun stopLocationTracking() {
+    internal fun stopLocationTracking() {
         if (!context.isBackgroundLocationPermissionGranted) {
             locationClient.flushLocations()
             locationClient.removeLocationUpdates(locationUpdatePendingIntent)
@@ -77,5 +77,9 @@ class LocationManager @Inject constructor(@ApplicationContext private val contex
 
     fun startService() {
         context.startService(Intent(context, BackgroundLocationService::class.java))
+    }
+
+    fun stopService() {
+        context.stopService(Intent(context, BackgroundLocationService::class.java))
     }
 }
