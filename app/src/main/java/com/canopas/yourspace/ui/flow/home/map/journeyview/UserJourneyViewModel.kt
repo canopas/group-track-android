@@ -15,11 +15,13 @@ import com.canopas.yourspace.data.service.user.ApiUserService
 import com.canopas.yourspace.data.utils.AppDispatcher
 import com.canopas.yourspace.ui.navigation.AppDestinations.UserJourney.KEY_JOURNEY_ID
 import com.canopas.yourspace.ui.navigation.AppDestinations.UserJourney.KEY_SELECTED_USER_ID
+import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
@@ -53,35 +55,46 @@ class UserJourneyViewModel @Inject constructor(
         if (userId == null) {
             return@launch
         }
-        _state.value = _state.value.copy(isLoading = true)
-        journeyId?.let {
+        if (journeyId.isNullOrEmpty()) {
+            fetchJourneyList(userId!!)
+        } else {
             fetchJourneyFromId(userId!!)
-        } ?: fetchJourneyList(userId!!)
+        }
     }
 
     private fun fetchJourneyFromId(userId: String) = viewModelScope.launch(appDispatcher.IO) {
-        journeyService.getLocationJourneyFromId(userId, journeyId!!)?.let {
-            val calendar = Calendar.getInstance().apply {
-                timeInMillis = it.created_at!!
+        try {
+            _state.value = _state.value.copy(isLoading = true)
+            val journey = journeyService.getLocationJourneyFromId(userId, journeyId!!)
+            if (journey == null) {
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = "Journey not found"
+                )
+                return@launch
             }
-            calendar.set(Calendar.HOUR_OF_DAY, 0)
-            val startTimeStamp = calendar.timeInMillis
-            calendar.set(Calendar.HOUR_OF_DAY, 23)
-            calendar.set(Calendar.MINUTE, 59)
-            val apiLocations = if (!it.isSteadyLocation()) {
+            val createdTime = journey.created_at!!
+            val selectedTimeFrom = createdTime - createdTime % TimeUnit.DAYS.toMillis(1)
+            val selectedTimeTo = selectedTimeFrom + TimeUnit.DAYS.toMillis(1) - 1
+
+            val apiLocations = if (journey.isSteadyLocation().not()) {
                 apiLocationService.getLocationsBetweenTime(
-                    userId,
-                    it.created_at!!,
-                    it.created_at!! + (it.route_duration ?: 0)
+                    userId, createdTime, createdTime + (journey.route_duration ?: 0)
                 ) ?: emptyList()
             } else {
                 emptyList()
             }
             _state.value = _state.value.copy(
-                journeyWithLocation = JourneyWithLocations(it, apiLocations),
+                cameraTarget = LatLng(journey.from_latitude, journey.from_longitude),
+                journeyWithLocation = JourneyWithLocations(journey, apiLocations),
                 isLoading = false,
-                selectedTimeFrom = startTimeStamp,
-                selectedTimeTo = calendar.timeInMillis
+                selectedTimeFrom = selectedTimeFrom,
+                selectedTimeTo = selectedTimeTo
+            )
+        } catch (e: Exception) {
+            _state.value = _state.value.copy(
+                isLoading = false,
+                error = e.message
             )
         }
     }
@@ -107,8 +120,7 @@ class UserJourneyViewModel @Inject constructor(
             distance[0] > 1000
         }.sortedBy {
             it.created_at
-        }
-        val journeyWithLocations = filteredJourneys.map {
+        }.map {
             JourneyWithLocations(
                 journey = it,
                 locationsList = if (!it.isSteadyLocation()) {
@@ -123,7 +135,10 @@ class UserJourneyViewModel @Inject constructor(
             )
         }
         _state.value = _state.value.copy(
-            journeyWithLocations = journeyWithLocations,
+            cameraTarget = filteredJourneys.firstOrNull()?.let {
+                LatLng(it.journey.from_latitude, it.journey.from_longitude)
+            },
+            journeyWithLocations = filteredJourneys,
             isLoading = false
         )
     }
@@ -145,7 +160,9 @@ data class UserJourneyState(
     val currentLocation: Location? = null,
     val journeyId: String? = null,
     val journeyWithLocation: JourneyWithLocations? = null,
-    val journeyWithLocations: List<JourneyWithLocations> = emptyList()
+    val journeyWithLocations: List<JourneyWithLocations> = emptyList(),
+    val cameraTarget: LatLng? = null,
+    val error: String? = null,
 )
 
 data class JourneyWithLocations(

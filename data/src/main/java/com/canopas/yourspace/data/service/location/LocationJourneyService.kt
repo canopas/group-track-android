@@ -133,11 +133,7 @@ class LocationJourneyService @Inject constructor(
     }
 
     suspend fun getLocationJourneyFromId(userId: String, journeyId: String): LocationJourney? {
-        return try {
-            journeyRef(userId).document(journeyId).get().await().toObject(LocationJourney::class.java)
-        } catch (e: Exception) {
-            Timber.e(e, "Error while getting location journey from id")
-            null
-        }
+        return journeyRef(userId).document(journeyId).get().await()
+            .toObject(LocationJourney::class.java)
     }
 }

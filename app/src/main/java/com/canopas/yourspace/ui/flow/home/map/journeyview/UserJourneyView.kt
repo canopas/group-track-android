@@ -55,6 +55,7 @@ import com.canopas.yourspace.domain.utils.getAddress
 import com.canopas.yourspace.ui.component.ShowDatePicker
 import com.canopas.yourspace.ui.component.WavesAnimation
 import com.canopas.yourspace.ui.theme.AppTheme
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.JointType
 import com.google.android.gms.maps.model.LatLng
@@ -65,6 +66,7 @@ import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MarkerComposable
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.Polyline
+import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -116,6 +118,19 @@ fun MapView(viewModel: UserJourneyViewModel) {
             null
         }
     )
+
+    val cameraPositionState = rememberCameraPositionState() {
+        val latLng = LatLng(state.currentLocation?.latitude ?: 0.0,
+            state.currentLocation?.longitude ?: 0.0)
+        position = CameraPosition.fromLatLngZoom(latLng, 15f)
+    }
+
+    LaunchedEffect(state.cameraTarget) {
+        if(state.cameraTarget != null) {
+            cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(state.cameraTarget!!, 15f))
+        }
+    }
+
     GoogleMap(
         cameraPositionState = CameraPositionState(
             CameraPosition.Builder()
@@ -324,7 +339,11 @@ private fun DrawJourney(
             keys = arrayOf(fromExpandState, address),
             state = fromMarkerState,
             content = {
-                MarkerInfoText(address = address, time = journey.created_at!!, expanded = fromExpandState)
+                MarkerInfoText(
+                    address = address,
+                    time = journey.created_at!!,
+                    expanded = fromExpandState
+                )
             },
             onClick = {
                 fromExpandState = !fromExpandState
@@ -336,7 +355,11 @@ private fun DrawJourney(
             keys = arrayOf(toExpandState, toAddress),
             state = toMarkerState,
             content = {
-                MarkerInfoText(address = toAddress, time = journey.created_at!! + (journey.route_duration ?: 0), expanded = toExpandState)
+                MarkerInfoText(
+                    address = toAddress,
+                    time = journey.created_at!! + (journey.route_duration ?: 0),
+                    expanded = toExpandState
+                )
             },
             onClick = {
                 toExpandState = !toExpandState
@@ -346,7 +369,10 @@ private fun DrawJourney(
         )
         Polyline(
             points = mutableListOf(
-                LatLng(journey.to_latitude ?: journey.from_latitude, journey.to_longitude ?: journey.from_longitude)
+                LatLng(
+                    journey.to_latitude ?: journey.from_latitude,
+                    journey.to_longitude ?: journey.from_longitude
+                )
             ) + locationsList.map {
                 LatLng(it.latitude, it.longitude)
             } + mutableListOf(
@@ -400,7 +426,9 @@ fun MarkerInfoText(address: String, time: Long, expanded: Boolean = false) {
                     painter = painterResource(id = R.drawable.ic_pin_icon),
                     contentDescription = "",
                     tint = AppTheme.colorScheme.textInversePrimary,
-                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 16.dp).size(24.dp)
+                    modifier = Modifier
+                        .padding(horizontal = 4.dp, vertical = 16.dp)
+                        .size(24.dp)
                 )
                 Text(
                     text = if (expanded) address else address.take(20),
