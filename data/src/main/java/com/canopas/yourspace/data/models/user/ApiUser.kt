@@ -2,6 +2,8 @@ package com.canopas.yourspace.data.models.user
 
 import androidx.annotation.Keep
 import com.google.firebase.firestore.Exclude
+import com.google.firebase.firestore.ServerTimestamp
+import java.util.Date
 import java.util.UUID
 
 const val LOGIN_TYPE_GOOGLE = 1
@@ -40,6 +42,9 @@ data class ApiUserSession(
     val platform: Int = LOGIN_DEVICE_TYPE_ANDROID,
     val session_active: Boolean = true,
     val app_version: Long? = 0,
-    val battery_status: String? = "",
-    val created_at: Long? = System.currentTimeMillis()
+    val battery_pct: Float? = 0f,
+    @ServerTimestamp
+    val updated_at: Date? = null,
+    @ServerTimestamp
+    val created_at: Date? = null
 )

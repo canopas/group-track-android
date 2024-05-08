@@ -1,5 +1,6 @@
 package com.canopas.yourspace.data.service.auth
 
+import android.health.connect.datatypes.units.Percentage
 import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.models.user.ApiUserSession
 import com.canopas.yourspace.data.service.user.ApiUserService
@@ -109,6 +110,18 @@ class AuthService @Inject constructor(
 
     suspend fun getUser(): ApiUser? = apiUserService.getUser(currentUser?.id ?: "")
     suspend fun getUserFlow() = apiUserService.getUserFlow(currentUser?.id ?: "")
+
+    suspend fun updateBatteryStatus(batteryPercentage: Float) {
+        val currentUser = currentUser ?: return
+        val session = currentUserSession ?: return
+        apiUserService.updateBatteryPct(currentUser.id, session.id, batteryPercentage)
+    }
+
+    suspend fun updateUserSessionState(state: Int) {
+        val currentUser = currentUser ?: return
+        val session = currentUserSession ?: return
+        apiUserService.updateSessionState(currentUser.id, session.id, state)
+    }
 }
 
 interface AuthStateChangeListener {
