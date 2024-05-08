@@ -17,6 +17,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.tasks.await
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -62,13 +63,14 @@ class LocationManager @Inject constructor(@ApplicationContext private val contex
                 setWaitForAccurateLocation(true)
             }.build()
 
-    fun startLocationTracking() {
+    internal fun startLocationTracking() {
         if (context.hasFineLocationPermission) {
+            Timber.e("XXX Location tracking started")
             locationClient.requestLocationUpdates(request, locationUpdatePendingIntent)
         }
     }
 
-    fun stopLocationTracking() {
+    internal fun stopLocationTracking() {
         if (!context.isBackgroundLocationPermissionGranted) {
             locationClient.flushLocations()
             locationClient.removeLocationUpdates(locationUpdatePendingIntent)

@@ -3,6 +3,7 @@ package com.canopas.yourspace.data.models.user
 import androidx.annotation.Keep
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.ServerTimestamp
+import com.squareup.moshi.JsonClass
 import java.util.Date
 import java.util.UUID
 
@@ -33,6 +34,7 @@ data class ApiUser(
 }
 
 @Keep
+@JsonClass(generateAdapter = true)
 data class ApiUserSession(
     val id: String = UUID.randomUUID().toString(),
     val user_id: String = "",
@@ -43,8 +45,5 @@ data class ApiUserSession(
     val session_active: Boolean = true,
     val app_version: Long? = 0,
     val battery_pct: Float? = 0f,
-    @ServerTimestamp
-    val updated_at: Date? = null,
-    @ServerTimestamp
-    val created_at: Date? = null
+    val created_at: Long? = System.currentTimeMillis()
 )
