@@ -18,6 +18,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -70,6 +71,10 @@ fun OtpInputField(
             }
         }
     )
+
+    LaunchedEffect(key1 = Unit) {
+        focusRequester.requestFocus()
+    }
 }
 
 @OptIn(ExperimentalComposeUiApi::class)

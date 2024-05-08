@@ -1,6 +1,7 @@
 package com.canopas.yourspace.data.repository
 
 import com.canopas.yourspace.data.models.messages.ApiThread
+import com.canopas.yourspace.data.models.messages.ApiThreadMessage
 import com.canopas.yourspace.data.models.messages.ThreadInfo
 import com.canopas.yourspace.data.models.user.UserInfo
 import com.canopas.yourspace.data.service.auth.AuthService
@@ -25,12 +26,16 @@ class MessagesRepository @Inject constructor(
         return threadId
     }
 
-    suspend fun sendMessage(
+    fun generateMessage(
         message: String,
         senderId: String,
         threadId: String
+    ): ApiThreadMessage = apiMessagesService.generateMessage(threadId, senderId, message)
+
+    suspend fun sendMessage(
+        message: ApiThreadMessage
     ) {
-        apiMessagesService.sendMessage(threadId, senderId, message)
+        apiMessagesService.sendMessage(message)
     }
 
     suspend fun getThreads(spaceId: String): Flow<List<ApiThread>> {
@@ -47,7 +52,7 @@ class MessagesRepository @Inject constructor(
             ThreadInfo(it, members)
         }
 
-    suspend fun getMessages(threadId: String, from: Date, limit: Int) =
+    suspend fun getMessages(threadId: String, from: Date?, limit: Int) =
         apiMessagesService.getMessages(threadId, from, limit)
 
     fun getLatestMessages(threadId: String, limit: Int) =

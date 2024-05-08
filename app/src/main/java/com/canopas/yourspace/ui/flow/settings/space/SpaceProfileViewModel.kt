@@ -26,7 +26,7 @@ class SpaceProfileViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val spaceID =
-        savedStateHandle.get<String>(AppDestinations.SpaceProfileScreen.KEY_SPACE_ID) ?: ""
+        savedStateHandle.get<String>(AppDestinations.SpaceProfileScreen.KEY_SPACE_ID) ?: throw IllegalArgumentException("Space ID is required")
 
     private val _state = MutableStateFlow(SpaceProfileState())
     val state = _state.asStateFlow()
@@ -38,7 +38,7 @@ class SpaceProfileViewModel @Inject constructor(
     private fun fetchSpaceDetail() = viewModelScope.launch(appDispatcher.IO) {
         _state.emit(_state.value.copy(isLoading = true))
         try {
-            val spaceInfo = spaceRepository.getCurrentSpaceInfo()
+            val spaceInfo = spaceRepository.getSpaceInfo(spaceID)
             val locationEnabled =
                 spaceInfo?.members?.firstOrNull { it.user.id == authService.currentUser?.id }?.isLocationEnable
                     ?: false

@@ -27,7 +27,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -45,7 +44,6 @@ import com.canopas.yourspace.ui.component.UserProfile
 import com.canopas.yourspace.ui.component.reachedBottom
 import com.canopas.yourspace.ui.flow.messages.chat.toFormattedTitle
 import com.canopas.yourspace.ui.theme.AppTheme
-import kotlinx.coroutines.flow.distinctUntilChanged
 import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -55,6 +53,7 @@ fun ColumnScope.MessageList(
     loading: Boolean,
     append: Boolean,
     messagesByDate: Map<Long, List<ApiThreadMessage>>,
+    newMessagesToAppend: List<ApiThreadMessage>,
     members: List<UserInfo>,
     currentUserId: String,
     loadMore: () -> Unit
@@ -64,11 +63,9 @@ fun ColumnScope.MessageList(
     }
 
     LaunchedEffect(reachedBottom) {
-        snapshotFlow { reachedBottom }
-            .distinctUntilChanged()
-            .collect {
-                loadMore()
-            }
+        if (reachedBottom && messagesByDate.isNotEmpty()) {
+            loadMore()
+        }
     }
 
     LazyColumn(
@@ -79,6 +76,23 @@ fun ColumnScope.MessageList(
         contentPadding = PaddingValues(16.dp),
         reverseLayout = true
     ) {
+        itemsIndexed(newMessagesToAppend, key = { index, item -> item.id }) { index, message ->
+            val by =
+                members.firstOrNull { it.user.id == message.sender_id }
+
+            val myLatestMsg =
+                newMessagesToAppend.firstOrNull { it.sender_id == currentUserId }?.id == message.id
+            MessageContent(
+                previousMessage = if (index < newMessagesToAppend.size - 1) newMessagesToAppend[index + 1] else null,
+                message,
+                by = by,
+                seenBy = emptyList(),
+                isGroupChat = members.size > 2,
+                isSender = true,
+                isLatestMsg = myLatestMsg
+            )
+        }
+
         messagesByDate.forEach { section ->
             val messages = section.value
 
@@ -184,6 +198,7 @@ fun LazyItemScope.MessageContent(
         }
 
         MessageBubble(
+            isSent = message.isSent,
             message = message.message,
             timeLabel = timeLabel,
             seenLabel = seenLabel,
@@ -202,6 +217,7 @@ fun shouldShowUserDetails(previousMessage: ApiThreadMessage?, message: ApiThread
 
 @Composable
 fun MessageBubble(
+    isSent: Boolean,
     message: String,
     timeLabel: String,
     seenLabel: String,
@@ -222,7 +238,7 @@ fun MessageBubble(
             .wrapContentWidth()
             .widthIn(max = screenWidth * 0.8f, min = 100.dp)
     ) {
-        if (timeLabel.isNotEmpty()) {
+        if (timeLabel.isNotEmpty() && isSent) {
             Text(
                 text = timeLabel,
                 style = AppTheme.appTypography.label3.copy(color = AppTheme.colorScheme.textDisabled),
@@ -238,7 +254,7 @@ fun MessageBubble(
             modifier = Modifier
                 .background(
                     color = if (isSender) {
-                        AppTheme.colorScheme.primary.copy(alpha = 0.7f)
+                        AppTheme.colorScheme.primary.copy(alpha = if (isSent) 0.7f else 0.5f)
                     } else {
                         AppTheme.colorScheme.containerNormalOnSurface
                     },

@@ -94,7 +94,6 @@ class JoinSpaceViewModelTest {
         whenever(invitation.space_id).thenReturn("space1")
         whenever(invitationService.getInvitation(code)).thenReturn(invitation)
         viewModel.onCodeChanged(code)
-        viewModel.verifyAndJoinSpace()
         verify(spaceRepository).joinSpace("space1")
     }
 
