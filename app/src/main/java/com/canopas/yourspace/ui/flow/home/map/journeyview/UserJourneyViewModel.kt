@@ -126,7 +126,9 @@ class UserJourneyViewModel @Inject constructor(
             distance[0] > 1000
         }.sortedBy {
             it.created_at
-        }.map {
+        }
+
+        val journeyWithLocations = filteredJourneys.map {
             JourneyWithLocations(
                 journey = it,
                 locationsList = if (!it.isSteadyLocation()) {
@@ -140,11 +142,13 @@ class UserJourneyViewModel @Inject constructor(
                 }
             )
         }
+
+        Timber.d("XXX fetchJourneyList ${journeyWithLocations.size}")
         _state.value = _state.value.copy(
-            cameraTarget = filteredJourneys.firstOrNull()?.let {
+            cameraTarget = journeyWithLocations.firstOrNull()?.let {
                 LatLng(it.journey.from_latitude, it.journey.from_longitude)
             },
-            journeyWithLocations = filteredJourneys,
+            journeyWithLocations = journeyWithLocations,
             isLoading = false
         )
     }

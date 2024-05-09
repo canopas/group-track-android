@@ -36,7 +36,9 @@ class MemberDetailViewModel @Inject constructor(
                 selectedUser = userInfo,
                 selectedTimeFrom = from,
                 selectedTimeTo = to,
-                locations = if (_state.value.selectedUser != userInfo) listOf() else _state.value.locations
+                locations = if (_state.value.selectedUser != userInfo
+                    || _state.value.selectedTimeTo != to
+                    || _state.value.selectedTimeFrom != from) listOf() else _state.value.locations
             )
         )
         loadLocations()

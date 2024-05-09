@@ -120,39 +120,23 @@ fun MapView(viewModel: UserJourneyViewModel) {
         }
     )
 
-    val cameraPositionState = rememberCameraPositionState() {
-        val latLng = LatLng(state.currentLocation?.latitude ?: 0.0,
-            state.currentLocation?.longitude ?: 0.0)
-        position = CameraPosition.fromLatLngZoom(latLng, 15f)
-    }
+    val cameraPositionState = rememberCameraPositionState()
 
-    LaunchedEffect(state.cameraTarget) {
-        if(state.cameraTarget != null) {
-            cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(state.cameraTarget!!, 15f))
-        }
+    LaunchedEffect(state.cameraTarget, state.currentLocation) {
+        val latLng = LatLng(
+            state.currentLocation?.latitude ?: 0.0,
+            state.currentLocation?.longitude ?: 0.0
+        )
+        cameraPositionState.animate(
+            CameraUpdateFactory.newLatLngZoom(
+                state.cameraTarget ?: latLng,
+                15f
+            )
+        )
     }
 
     GoogleMap(
-        cameraPositionState = CameraPositionState(
-            CameraPosition.Builder()
-                .target(
-                    if (state.journeyWithLocation != null) {
-                        LatLng(state.journeyWithLocation?.journey!!.from_latitude, state.journeyWithLocation?.journey!!.from_longitude)
-                    } else if (state.journeyWithLocations.isNotEmpty()) {
-                        LatLng(
-                            state.journeyWithLocations.first().journey.from_latitude,
-                            state.journeyWithLocations.first().journey.from_longitude
-                        )
-                    } else {
-                        LatLng(
-                            state.currentLocation?.latitude ?: 0.0,
-                            state.currentLocation?.longitude ?: 0.0
-                        )
-                    }
-                )
-                .zoom(15f)
-                .build()
-        ),
+        cameraPositionState = cameraPositionState,
         properties = mapProperties
     ) {
         state.journeyWithLocation?.let { journey ->
@@ -166,7 +150,6 @@ fun MapView(viewModel: UserJourneyViewModel) {
 @Composable
 fun HorizontalDatePicker(viewModel: UserJourneyViewModel) {
     val state by viewModel.state.collectAsState()
-    Timber.e("XXX HorizontalDatePicker enabled: ${state.journeyId.isNullOrEmpty()}")
     var showDatePicker by remember { mutableStateOf(false) }
 
     fun updateSelectedDate(deltaDays: Int, timestamp: Long? = null) {
@@ -387,7 +370,6 @@ private fun DrawJourney(
 
 @Composable
 fun ArrowButton(icon: ImageVector, enabled: Boolean, onClick: () -> Unit) {
-    Timber.e("XXX ArrowButton: $enabled")
     val backgroundAlpha = if (enabled) 1f else 0.5f
     Box(
         modifier = Modifier
