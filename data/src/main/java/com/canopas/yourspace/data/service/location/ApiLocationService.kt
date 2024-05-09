@@ -5,7 +5,7 @@ import com.canopas.yourspace.data.models.location.LocationTable
 import com.canopas.yourspace.data.models.location.UserState
 import com.canopas.yourspace.data.storage.room.LocationTableDatabase
 import com.canopas.yourspace.data.utils.Config
-import com.canopas.yourspace.data.utils.Converters
+import com.canopas.yourspace.data.utils.LocationConverters
 import com.canopas.yourspace.data.utils.snapshotFlow
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
@@ -22,7 +22,7 @@ class ApiLocationService @Inject constructor(
     db: FirebaseFirestore,
     private val locationManager: LocationManager,
     private val locationTableDatabase: LocationTableDatabase,
-    private val converters: Converters
+    private val converters: LocationConverters
 ) {
     private val userRef = db.collection(Config.FIRESTORE_COLLECTION_USERS)
     private fun locationRef(userId: String): CollectionReference? {

@@ -11,7 +11,7 @@ import com.canopas.yourspace.data.models.location.toLocationFromSteadyJourney
 import com.canopas.yourspace.data.service.location.LocationJourneyService
 import com.canopas.yourspace.data.storage.room.LocationTableDatabase
 import com.canopas.yourspace.data.utils.Config
-import com.canopas.yourspace.data.utils.Converters
+import com.canopas.yourspace.data.utils.LocationConverters
 import timber.log.Timber
 import java.util.Date
 
@@ -44,7 +44,7 @@ fun List<ApiLocation>.isMoving(currentLocation: Location): Boolean {
  * Get last five minute locations from local database ~ 1 location per minute
  * */
 fun LocationTable?.getLastFiveMinuteLocations(
-    converters: Converters
+    converters: LocationConverters
 ): List<ApiLocation> {
     return this?.lastFiveMinutesLocations?.let {
         converters.locationListFromString(it)
@@ -57,7 +57,7 @@ fun LocationTable?.getLastFiveMinuteLocations(
  * Check [UserState] for more details
  * */
 fun LocationTable?.getUserState(
-    converters: Converters,
+    converters: LocationConverters,
     extractedLocation: Location,
     lastLocation: ApiLocation?
 ): Int? {
@@ -93,7 +93,7 @@ fun String.getLocationData(locationTableDatabase: LocationTableDatabase): Locati
 /**
  * Get last location from local database
  * */
-fun LocationTable?.getLastLocation(converters: Converters): ApiLocation? {
+fun LocationTable?.getLastLocation(converters: LocationConverters): ApiLocation? {
     return this?.lastLocationJourney?.let {
         converters.locationFromString(it)
     }
@@ -152,11 +152,13 @@ suspend fun LocationJourneyService.saveJourneyForSteadyUser(
         distanceBetween(extractedLocation, location)
     }?.toDouble() ?: 0.0
     val timeDifference = extractedLocation.time - lastJourneyLocation.created_at!!
+    Timber.d("XXX distance $distance time $timeDifference  journey ${Date(lastJourneyLocation.created_at)}")
     if ((timeDifference < Config.FIVE_MINUTES && distance < Config.DISTANCE_TO_CHECK_SUDDEN_LOCATION_CHANGE) ||
         (lastJourneyLocation.isSteadyLocation() && distance < Config.DISTANCE_TO_CHECK_SUDDEN_LOCATION_CHANGE)
     ) {
         return
     }
+    Timber.d("XXX Saving steady location journey")
     saveCurrentJourney(
         userId = currentUserId,
         fromLatitude = extractedLocation.latitude,
@@ -198,7 +200,7 @@ suspend fun LocationJourneyService.saveJourneyForMovingUser(
                     ?: lastSteadyLocation?.created_at
                 ) ?: 0L
             ),
-        created_at = lastMovingLocation?.created_at ?: Date().time
+        created_at = lastMovingLocation?.created_at ?: System.currentTimeMillis()
     )
 
     val distance = distanceBetween(
@@ -207,22 +209,26 @@ suspend fun LocationJourneyService.saveJourneyForMovingUser(
     ).toDouble()
 
     val timeDifference = Date().time - newJourney.created_at!!
-
-    if (distance > Config.DISTANCE_TO_CHECK_SUDDEN_LOCATION_CHANGE || timeDifference > 5 * 60 * 1000) {
-        saveCurrentJourney(
-            userId = currentUserId,
-            fromLatitude = extractedLocation.latitude,
-            fromLongitude = extractedLocation.longitude,
-            currentLocationDuration = extractedLocation.time - (lastLocation?.created_at ?: 0L),
-            recordedAt = Date().time
-        )
-        return
-    }
+//
+//    if (distance > Config.DISTANCE_TO_CHECK_SUDDEN_LOCATION_CHANGE || timeDifference > 5 * 60 * 1000) {
+//        Timber.d("XXX Sudden location change detected distance $distance time ${timeDifference > 5 * 60 * 1000}" +
+//                "date  newJourney ${Date(newJourney.created_at!!)}")
+//        saveCurrentJourney(
+//            userId = currentUserId,
+//            fromLatitude = extractedLocation.latitude,
+//            fromLongitude = extractedLocation.longitude,
+//            currentLocationDuration = extractedLocation.time - (lastLocation?.created_at ?: 0L),
+//            recordedAt = Date().time
+//        )
+//        return
+//    }
 
     if (lastMovingLocation != null && !lastJourneyLocation.isSteadyLocation()) {
         newJourney = newJourney.copy(id = lastMovingLocation.id)
+        Timber.d("XXX Updating last location journey")
         updateLastLocationJourney(currentUserId, newJourney)
     } else {
+        Timber.d("XXX Saving new location journey")
         saveCurrentJourney(
             userId = newJourney.user_id,
             fromLatitude = newJourney.from_latitude,

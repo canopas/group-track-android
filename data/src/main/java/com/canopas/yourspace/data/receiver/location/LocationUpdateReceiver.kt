@@ -10,18 +10,19 @@ import com.canopas.yourspace.data.models.location.LocationTable
 import com.canopas.yourspace.data.models.location.UserState
 import com.canopas.yourspace.data.models.location.isSteadyLocation
 import com.canopas.yourspace.data.models.location.toApiLocation
+import com.canopas.yourspace.data.models.location.toLocation
+import com.canopas.yourspace.data.repository.JourneyRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.location.ApiLocationService
 import com.canopas.yourspace.data.service.location.LocationJourneyService
 import com.canopas.yourspace.data.service.location.LocationManager
 import com.canopas.yourspace.data.storage.room.LocationTableDatabase
-import com.canopas.yourspace.data.utils.Converters
+import com.canopas.yourspace.data.utils.LocationConverters
 import com.google.android.gms.location.LocationResult
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -50,7 +51,10 @@ class LocationUpdateReceiver : BroadcastReceiver() {
     lateinit var authService: AuthService
 
     @Inject
-    lateinit var converters: Converters
+    lateinit var converters: LocationConverters
+
+    @Inject
+    lateinit var journeyRepository: JourneyRepository
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -58,34 +62,40 @@ class LocationUpdateReceiver : BroadcastReceiver() {
         LocationResult.extractResult(intent)?.let { locationResult ->
             scope.launch {
                 try {
-                    locationResult.locations.map { extractedLocation ->
-                        async {
-                            authService.currentUser?.id?.let {
-                                val locationData = it.getLocationData(locationTableDatabase)
-                                val lastLocation = locationData.getLastLocation(converters)
+                    val userId = authService.currentUser?.id ?: return@launch
+                    locationResult.locations.forEach { extractedLocation ->
 
-                                checkAndUpdateLastFiveMinLocations(locationData, extractedLocation)
+                        val locationData =
+                            locationTableDatabase.locationTableDao().getLocationData(userId)
 
-                                val userState = scope.async {
-                                    locationData.getUserState(
-                                        converters,
-                                        extractedLocation,
-                                        lastLocation
-                                    )
-                                }.await()
+                        val lastLocation = locationData.getLastLocation(converters)
+                        checkAndUpdateLastFiveMinLocations(locationData, extractedLocation)
 
-                                locationService.saveCurrentLocation(
-                                    it,
-                                    extractedLocation.latitude,
-                                    extractedLocation.longitude,
-                                    Date().time,
-                                    userState = userState ?: UserState.STEADY.value
-                                )
-
-                                saveLocationJourney(userState, extractedLocation, lastLocation, it)
-                            }
+                        lastLocation?.let {
+                            Timber.d("XXX distance ${distanceBetween(extractedLocation, lastLocation!!.toLocation())} " +
+                                    "last location ${Date(lastLocation!!.created_at!!)}")
                         }
+                        val userState =
+                            locationData.getUserState(converters, extractedLocation, lastLocation)
+
+                        locationService.saveCurrentLocation(
+                            userId,
+                            extractedLocation.latitude,
+                            extractedLocation.longitude,
+                            Date().time,
+                            userState = userState ?: UserState.STEADY.value
+                        )
+
+                        Timber.d("XXX user state $userState")
+                        saveLocationJourney(
+                            userState,
+                            extractedLocation,
+                            lastLocation,
+                            userId
+                        )
+
                     }
+
                 } catch (e: Exception) {
                     Timber.e(e, "Error while saving location")
                 }
@@ -123,6 +133,7 @@ class LocationUpdateReceiver : BroadcastReceiver() {
                     if ((calendar1.get(Calendar.DAY_OF_MONTH) != calendar2.get(Calendar.DAY_OF_MONTH)) ||
                         (calendar2.get(Calendar.DAY_OF_MONTH) != calendar3.get(Calendar.DAY_OF_MONTH))
                     ) {
+                        Timber.d("XXX day changed")
                         locationJourneyService.saveCurrentJourney(
                             userId = userId,
                             fromLatitude = lastSteadyLocation.from_latitude,
@@ -137,6 +148,7 @@ class LocationUpdateReceiver : BroadcastReceiver() {
             }
 
             if (lastJourneyLocation == null || userState == null) {
+                Timber.d("XXX last journey & location is null")
                 locationJourneyService.saveJourneyIfNullLastLocation(
                     userId,
                     extractedLocation,
@@ -146,6 +158,7 @@ class LocationUpdateReceiver : BroadcastReceiver() {
             } else {
                 when (userState) {
                     UserState.STEADY.value -> {
+                        Timber.d("XXX steady user")
                         locationJourneyService.saveJourneyForSteadyUser(
                             userId,
                             extractedLocation,
@@ -155,6 +168,7 @@ class LocationUpdateReceiver : BroadcastReceiver() {
                     }
 
                     UserState.MOVING.value -> {
+                        Timber.d("XXX moving user")
                         locationJourneyService.saveJourneyForMovingUser(
                             userId,
                             extractedLocation,

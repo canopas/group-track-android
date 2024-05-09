@@ -4,7 +4,7 @@ import com.canopas.yourspace.data.models.location.LocationJourney
 import com.canopas.yourspace.data.models.location.isSteadyLocation
 import com.canopas.yourspace.data.storage.room.LocationTableDatabase
 import com.canopas.yourspace.data.utils.Config
-import com.canopas.yourspace.data.utils.Converters
+import com.canopas.yourspace.data.utils.LocationConverters
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
@@ -17,7 +17,7 @@ class LocationJourneyService @Inject constructor(
     db: FirebaseFirestore,
     private val locationManager: LocationManager,
     private val locationTableDatabase: LocationTableDatabase,
-    private val converters: Converters
+    private val converters: LocationConverters
 ) {
     private val userRef = db.collection(Config.FIRESTORE_COLLECTION_USERS)
     private fun journeyRef(userId: String) =
