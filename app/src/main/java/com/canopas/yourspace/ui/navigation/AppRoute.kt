@@ -172,13 +172,17 @@ object AppDestinations {
 
         fun args(
             selectedUserId: String,
-            journeyId: String? = null,
+            journeyId: String,
         ) = object : AppRoute {
 
             override val arguments = listOf(
-                    navArgument(KEY_JOURNEY_ID) { type = NavType.StringType },
-                    navArgument(KEY_SELECTED_USER_ID) { type = NavType.StringType }
-                )
+                navArgument(KEY_JOURNEY_ID) {
+                    type = NavType.StringType
+                    defaultValue = ""
+                    nullable = true
+                },
+                navArgument(KEY_SELECTED_USER_ID) { type = NavType.StringType }
+            )
 
             override val path = "$PATH/$selectedUserId?$KEY_JOURNEY_ID=$journeyId"
 

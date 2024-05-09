@@ -70,6 +70,7 @@ import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -165,6 +166,7 @@ fun MapView(viewModel: UserJourneyViewModel) {
 @Composable
 fun HorizontalDatePicker(viewModel: UserJourneyViewModel) {
     val state by viewModel.state.collectAsState()
+    Timber.e("XXX HorizontalDatePicker enabled: ${state.journeyId.isNullOrEmpty()}")
     var showDatePicker by remember { mutableStateOf(false) }
 
     fun updateSelectedDate(deltaDays: Int, timestamp: Long? = null) {
@@ -195,7 +197,7 @@ fun HorizontalDatePicker(viewModel: UserJourneyViewModel) {
     ) {
         ArrowButton(
             icon = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-            enabled = state.journeyId == null
+            enabled = state.journeyId.isNullOrEmpty()
         ) {
             updateSelectedDate(-1)
         }
@@ -207,12 +209,12 @@ fun HorizontalDatePicker(viewModel: UserJourneyViewModel) {
                 .padding(horizontal = 20.dp)
                 .background(
                     color = AppTheme.colorScheme.iconsBackground.copy(
-                        alpha = if (state.journeyId == null) 1f else 0.5f
+                        alpha = if (state.journeyId.isNullOrEmpty()) 1f else 0.5f
                     ),
                     shape = MaterialTheme.shapes.small
                 )
                 .clickable {
-                    if (state.journeyId == null) {
+                    if (state.journeyId.isNullOrEmpty()) {
                         showDatePicker = true
                     }
                 }
@@ -233,7 +235,7 @@ fun HorizontalDatePicker(viewModel: UserJourneyViewModel) {
 
         ArrowButton(
             icon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-            enabled = state.selectedTimeTo < System.currentTimeMillis() && state.journeyId == null
+            enabled = state.selectedTimeTo < System.currentTimeMillis() && state.journeyId.isNullOrEmpty()
         ) {
             updateSelectedDate(1)
         }
@@ -385,6 +387,7 @@ private fun DrawJourney(
 
 @Composable
 fun ArrowButton(icon: ImageVector, enabled: Boolean, onClick: () -> Unit) {
+    Timber.e("XXX ArrowButton: $enabled")
     val backgroundAlpha = if (enabled) 1f else 0.5f
     Box(
         modifier = Modifier

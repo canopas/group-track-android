@@ -13,6 +13,7 @@ import com.canopas.yourspace.data.service.location.LocationJourneyService
 import com.canopas.yourspace.data.service.location.LocationManager
 import com.canopas.yourspace.data.service.user.ApiUserService
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppDestinations.UserJourney.KEY_JOURNEY_ID
 import com.canopas.yourspace.ui.navigation.AppDestinations.UserJourney.KEY_SELECTED_USER_ID
 import com.google.android.gms.maps.model.LatLng
@@ -20,6 +21,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -34,12 +36,13 @@ class UserJourneyViewModel @Inject constructor(
     private val apiUserService: ApiUserService
 ) : ViewModel() {
 
-    private var journeyId: String? = savedStateHandle[KEY_JOURNEY_ID]
-    private var userId: String? = savedStateHandle[KEY_SELECTED_USER_ID]
+    private var journeyId: String? = savedStateHandle.get<String>(KEY_JOURNEY_ID)
+    private var userId: String? = savedStateHandle.get<String>(KEY_SELECTED_USER_ID)
     private val _state = MutableStateFlow(UserJourneyState())
     val state = _state.asStateFlow()
 
     init {
+
         viewModelScope.launch(appDispatcher.IO) {
             val user = apiUserService.getUser(userId!!)
             val currentLocation = locationManager.getLastLocation()
@@ -48,6 +51,8 @@ class UserJourneyViewModel @Inject constructor(
                 user = user,
                 currentLocation = currentLocation
             )
+
+            Timber.d("XXX UserJourneyViewModel init ${_state.value.journeyId} isNullOrEmpty ${_state.value.journeyId.isNullOrEmpty()}")
         }
     }
 
@@ -56,6 +61,7 @@ class UserJourneyViewModel @Inject constructor(
             return@launch
         }
         if (journeyId.isNullOrEmpty()) {
+            Timber.d("XXX fetchJourneyList")
             fetchJourneyList(userId!!)
         } else {
             fetchJourneyFromId(userId!!)

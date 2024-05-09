@@ -36,7 +36,7 @@ class MemberDetailViewModel @Inject constructor(
                 selectedUser = userInfo,
                 selectedTimeFrom = from,
                 selectedTimeTo = to,
-                locations = if (_state.value.selectedUser !=userInfo) listOf() else _state.value.locations
+                locations = if (_state.value.selectedUser != userInfo) listOf() else _state.value.locations
             )
         )
         loadLocations()
@@ -82,7 +82,7 @@ class MemberDetailViewModel @Inject constructor(
         state.value.selectedUser?.let { selectedUser ->
             navigator.navigateTo(
                 AppDestinations.UserJourney.args(
-                    selectedUser.user.id, journeyId,
+                    selectedUser.user.id, journeyId ?: "",
                 ).path
             )
         }
