@@ -23,6 +23,7 @@ jobs:
       - name: Run Lint check
         env:
           MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
+          PLACE_API_KEY: ${{ secrets.PLACE_API_KEY }}
         run: ./gradlew ktlintCheck
 
       - name: Run Tests with Gradle
