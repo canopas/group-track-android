@@ -47,11 +47,13 @@ class MapViewModel @Inject constructor(
             withContext(appDispatcher.IO) {
                 _state.emit(_state.value.copy(defaultCameraPosition = locationManager.getLastLocation()))
             }
-            userPreferences.currentSpaceState.collectLatest {
+            userPreferences.currentSpaceState.collectLatest { spaceId ->
                 locationJob?.cancel()
                 placeJob?.cancel()
-                listenMemberLocation()
-                listenPlaces()
+                if (spaceId.isNotEmpty()) {
+                    listenMemberLocation()
+                    listenPlaces()
+                }
             }
         }
     }

@@ -102,6 +102,7 @@ class AuthService @Inject constructor(
         userPreferences.setOnboardShown(false)
         userPreferences.currentSpace = ""
         firebaseAuth.signOut()
+        locationManager.stopService()
     }
 
     suspend fun deleteAccount() {
@@ -112,6 +113,18 @@ class AuthService @Inject constructor(
 
     suspend fun getUser(): ApiUser? = apiUserService.getUser(currentUser?.id ?: "")
     suspend fun getUserFlow() = apiUserService.getUserFlow(currentUser?.id ?: "")
+
+    suspend fun updateBatteryStatus(batteryPercentage: Float) {
+        val currentUser = currentUser ?: return
+        val session = currentUserSession ?: return
+        apiUserService.updateBatteryPct(currentUser.id, session.id, batteryPercentage)
+    }
+
+    suspend fun updateUserSessionState(state: Int) {
+        val currentUser = currentUser ?: return
+        val session = currentUserSession ?: return
+        apiUserService.updateSessionState(currentUser.id, session.id, state)
+    }
 }
 
 interface AuthStateChangeListener {

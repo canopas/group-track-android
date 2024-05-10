@@ -65,7 +65,7 @@ class SpaceProfileViewModelTest {
 
     @Test
     fun `fetchSpaceDetail should update state with isLoading true`() = runTest {
-        whenever(spaceRepository.getCurrentSpaceInfo()).doSuspendableAnswer {
+        whenever(spaceRepository.getSpaceInfo("space1")).doSuspendableAnswer {
             withContext(Dispatchers.IO) {
                 delay(1000)
                 space_info1
@@ -77,14 +77,14 @@ class SpaceProfileViewModelTest {
 
     @Test
     fun `fetchSpaceDetail should update state with spaceInfo`() = runTest {
-        whenever(spaceRepository.getCurrentSpaceInfo()).thenReturn(space_info1)
+        whenever(spaceRepository.getSpaceInfo("space1")).thenReturn(space_info1)
         setup()
         assert(viewModel.state.value.spaceInfo == space_info1)
     }
 
     @Test
     fun `fetchSpaceDetail should update state with currentUserId`() = runTest {
-        whenever(spaceRepository.getCurrentSpaceInfo()).thenReturn(space_info1)
+        whenever(spaceRepository.getSpaceInfo("space1")).thenReturn(space_info1)
         whenever(authService.currentUser).thenReturn(user1)
         setup()
         assert(viewModel.state.value.currentUserId == user1.id)
@@ -92,7 +92,7 @@ class SpaceProfileViewModelTest {
 
     @Test
     fun `fetchSpaceDetail should update state with isAdmin`() = runTest {
-        whenever(spaceRepository.getCurrentSpaceInfo()).thenReturn(space_info1)
+        whenever(spaceRepository.getSpaceInfo("space1")).thenReturn(space_info1)
         whenever(authService.currentUser).thenReturn(user1)
         setup()
         assert(viewModel.state.value.isAdmin)
@@ -100,14 +100,14 @@ class SpaceProfileViewModelTest {
 
     @Test
     fun `fetchSpaceDetail should update state with spaceName`() = runTest {
-        whenever(spaceRepository.getCurrentSpaceInfo()).thenReturn(space_info1)
+        whenever(spaceRepository.getSpaceInfo("space1")).thenReturn(space_info1)
         setup()
         assert(viewModel.state.value.spaceName == space_info1.space.name)
     }
 
     @Test
     fun `fetchSpaceDetail should update state with locationEnabled`() = runTest {
-        whenever(spaceRepository.getCurrentSpaceInfo()).thenReturn(space_info1)
+        whenever(spaceRepository.getSpaceInfo("space1")).thenReturn(space_info1)
         whenever(authService.currentUser).thenReturn(user1)
         setup()
         assert(viewModel.state.value.locationEnabled)
@@ -116,7 +116,7 @@ class SpaceProfileViewModelTest {
     @Test
     fun `fetchSpaceDetails should update state with error when exception is thrown`() = runTest {
         val exception = RuntimeException("Error")
-        whenever(spaceRepository.getCurrentSpaceInfo()).thenThrow(exception)
+        whenever(spaceRepository.getSpaceInfo("space1")).thenThrow(exception)
         setup()
         assert(viewModel.state.value.error == exception)
         assert(!viewModel.state.value.isLoading)
@@ -138,7 +138,7 @@ class SpaceProfileViewModelTest {
 
     @Test
     fun `onChange should update state with allowSave`() = runTest {
-        whenever(spaceRepository.getCurrentSpaceInfo()).thenReturn(space_info1)
+        whenever(spaceRepository.getSpaceInfo("space1")).thenReturn(space_info1)
         setup()
         viewModel.onNameChanged("new_name")
         assert(viewModel.state.value.allowSave)
@@ -146,7 +146,7 @@ class SpaceProfileViewModelTest {
 
     @Test
     fun `onLocationEnabledChanged should update state with locationEnabled`() = runTest {
-        whenever(spaceRepository.getCurrentSpaceInfo()).thenReturn(space_info1)
+        whenever(spaceRepository.getSpaceInfo("space1")).thenReturn(space_info1)
         whenever(authService.currentUser).thenReturn(user1)
         setup()
         viewModel.onLocationEnabledChanged(false)
@@ -155,7 +155,7 @@ class SpaceProfileViewModelTest {
 
     @Test
     fun `onLocationEnabledChanged should update state with allowSave`() = runTest {
-        whenever(spaceRepository.getCurrentSpaceInfo()).thenReturn(space_info1)
+        whenever(spaceRepository.getSpaceInfo("space1")).thenReturn(space_info1)
         whenever(authService.currentUser).thenReturn(user1)
         setup()
         viewModel.onLocationEnabledChanged(false)
@@ -165,7 +165,7 @@ class SpaceProfileViewModelTest {
     @Test
     fun `onLocationEnabledChanged should not update state allowSave if it's not updated`() =
         runTest {
-            whenever(spaceRepository.getCurrentSpaceInfo()).thenReturn(space_info1)
+            whenever(spaceRepository.getSpaceInfo("space1")).thenReturn(space_info1)
             whenever(authService.currentUser).thenReturn(user1)
             setup()
             viewModel.onLocationEnabledChanged(true)
@@ -174,7 +174,7 @@ class SpaceProfileViewModelTest {
 
     @Test
     fun `saveSpace should update state with saving true`() = runTest {
-        whenever(spaceRepository.getCurrentSpaceInfo()).thenReturn(space_info1)
+        whenever(spaceRepository.getSpaceInfo("space1")).thenReturn(space_info1)
         whenever(authService.currentUser).thenReturn(user1)
         whenever(
             spaceRepository.updateSpace(
@@ -196,7 +196,7 @@ class SpaceProfileViewModelTest {
 
     @Test
     fun `saveSpace should invoke updateSpace if spaceName is updated`() = runTest {
-        whenever(spaceRepository.getCurrentSpaceInfo()).thenReturn(space_info1)
+        whenever(spaceRepository.getSpaceInfo("space1")).thenReturn(space_info1)
         whenever(authService.currentUser).thenReturn(user1)
 
         setup()
@@ -211,7 +211,7 @@ class SpaceProfileViewModelTest {
 
     @Test
     fun `saveSpace should not invoke updateSpace if spaceName is not updated`() = runTest {
-        whenever(spaceRepository.getCurrentSpaceInfo()).thenReturn(space_info1)
+        whenever(spaceRepository.getSpaceInfo("space1")).thenReturn(space_info1)
         whenever(authService.currentUser).thenReturn(user1)
 
         setup()
@@ -225,7 +225,7 @@ class SpaceProfileViewModelTest {
 
     @Test
     fun `saveSpace should invoke enableLocation if locationEnabled is updated`() = runTest {
-        whenever(spaceRepository.getCurrentSpaceInfo()).thenReturn(space_info1)
+        whenever(spaceRepository.getSpaceInfo("space1")).thenReturn(space_info1)
         whenever(authService.currentUser).thenReturn(user1)
 
         setup()
@@ -236,7 +236,7 @@ class SpaceProfileViewModelTest {
 
     @Test
     fun `saveSpace should not invoke enableLocation if locationEnabled is not updated`() = runTest {
-        whenever(spaceRepository.getCurrentSpaceInfo()).thenReturn(space_info1)
+        whenever(spaceRepository.getSpaceInfo("space1")).thenReturn(space_info1)
         whenever(authService.currentUser).thenReturn(user1)
 
         setup()
@@ -246,7 +246,7 @@ class SpaceProfileViewModelTest {
 
     @Test
     fun `saveSpace should navigate back after saving`() = runTest {
-        whenever(spaceRepository.getCurrentSpaceInfo()).thenReturn(space_info1)
+        whenever(spaceRepository.getSpaceInfo("space1")).thenReturn(space_info1)
         whenever(authService.currentUser).thenReturn(user1)
 
         setup()
@@ -277,7 +277,7 @@ class SpaceProfileViewModelTest {
 
     @Test
     fun `deleteSpace should update state with deletingSpace true`() = runTest {
-        whenever(spaceRepository.getCurrentSpaceInfo()).thenReturn(space_info1)
+        whenever(spaceRepository.getSpaceInfo("space1")).thenReturn(space_info1)
         whenever(authService.currentUser).thenReturn(user1)
         whenever(spaceRepository.deleteSpace(space.id)).doSuspendableAnswer {
             withContext(Dispatchers.IO) {
@@ -291,7 +291,7 @@ class SpaceProfileViewModelTest {
 
     @Test
     fun `deleteSpace should invoke deleteSpace`() = runTest {
-        whenever(spaceRepository.getCurrentSpaceInfo()).thenReturn(space_info1)
+        whenever(spaceRepository.getSpaceInfo("space1")).thenReturn(space_info1)
         whenever(authService.currentUser).thenReturn(user1)
         setup()
         viewModel.deleteSpace()
@@ -300,7 +300,7 @@ class SpaceProfileViewModelTest {
 
     @Test
     fun `deleteSpace should navigate back after deleting`() = runTest {
-        whenever(spaceRepository.getCurrentSpaceInfo()).thenReturn(space_info1)
+        whenever(spaceRepository.getSpaceInfo("space1")).thenReturn(space_info1)
         whenever(authService.currentUser).thenReturn(user1)
         setup()
         viewModel.deleteSpace()
@@ -310,7 +310,7 @@ class SpaceProfileViewModelTest {
     @Test
     fun `deleteSpace should update state with error if exception is thrown`() = runTest {
         val exception = RuntimeException("Error")
-        whenever(spaceRepository.getCurrentSpaceInfo()).thenReturn(space_info1)
+        whenever(spaceRepository.getSpaceInfo("space1")).thenReturn(space_info1)
         whenever(authService.currentUser).thenReturn(user1)
         whenever(spaceRepository.deleteSpace(space.id)).thenThrow(exception)
         setup()
@@ -320,7 +320,7 @@ class SpaceProfileViewModelTest {
 
     @Test
     fun `leaveSpace should update state with leavingSpace true`() = runTest {
-        whenever(spaceRepository.getCurrentSpaceInfo()).thenReturn(space_info1)
+        whenever(spaceRepository.getSpaceInfo("space1")).thenReturn(space_info1)
         whenever(authService.currentUser).thenReturn(user1)
         whenever(spaceRepository.leaveSpace(space.id)).doSuspendableAnswer {
             withContext(Dispatchers.IO) {
@@ -334,7 +334,7 @@ class SpaceProfileViewModelTest {
 
     @Test
     fun `leaveSpace should invoke leaveSpace`() = runTest {
-        whenever(spaceRepository.getCurrentSpaceInfo()).thenReturn(space_info1)
+        whenever(spaceRepository.getSpaceInfo("space1")).thenReturn(space_info1)
         whenever(authService.currentUser).thenReturn(user1)
         setup()
         viewModel.leaveSpace()
@@ -343,7 +343,7 @@ class SpaceProfileViewModelTest {
 
     @Test
     fun `leaveSpace should navigate back after leaving`() = runTest {
-        whenever(spaceRepository.getCurrentSpaceInfo()).thenReturn(space_info1)
+        whenever(spaceRepository.getSpaceInfo("space1")).thenReturn(space_info1)
         whenever(authService.currentUser).thenReturn(user1)
         setup()
         viewModel.leaveSpace()
@@ -353,7 +353,7 @@ class SpaceProfileViewModelTest {
     @Test
     fun `leaveSpace should update state with error if exception is thrown`() = runTest {
         val exception = RuntimeException("Error")
-        whenever(spaceRepository.getCurrentSpaceInfo()).thenReturn(space_info1)
+        whenever(spaceRepository.getSpaceInfo("space1")).thenReturn(space_info1)
         whenever(authService.currentUser).thenReturn(user1)
         whenever(spaceRepository.leaveSpace(space.id)).thenThrow(exception)
         setup()

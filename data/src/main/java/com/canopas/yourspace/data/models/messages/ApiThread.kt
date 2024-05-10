@@ -33,6 +33,10 @@ data class ApiThreadMessage(
     val created_at: Date? = null
 ) {
     @get:Exclude
+    val isSent: Boolean
+        get() = created_at != null
+
+    @get:Exclude
     val createdAtMs: Long
         get() = created_at?.time ?: Date().time
 
