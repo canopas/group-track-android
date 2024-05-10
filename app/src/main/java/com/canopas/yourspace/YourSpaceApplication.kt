@@ -45,13 +45,13 @@ class YourSpaceApplication :
     lateinit var notificationManager: NotificationManager
 
     override fun onCreate() {
+        Places.initializeWithNewPlacesApiEnabled(this, BuildConfig.PLACE_API_KEY)
+
         super<Application>.onCreate()
         Timber.plant(Timber.DebugTree())
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
         authService.addListener(this)
         setNotificationChannel()
-
-        Places.initializeWithNewPlacesApiEnabled(this, BuildConfig.PLACE_API_KEY)
 
         if (userPreferences.currentUser != null) {
             geoFenceRepository.init()

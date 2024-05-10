@@ -166,7 +166,9 @@ fun PlaceSuggestionItem(
         ) {
             Text(
                 text = place.name ?: "",
-                style = AppTheme.appTypography.body2
+                maxLines = 1,
+                style = AppTheme.appTypography.body1,
+                overflow = TextOverflow.Ellipsis
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
