@@ -52,6 +52,7 @@ class LocationJourneyService @Inject constructor(
             persistent_location_date = persistentLocationDate
         )
 
+        Timber.d("XXX saveCurrentJourney $journey")
         journey.updateLocationJourney(userId)
 
         docRef.set(journey).await()

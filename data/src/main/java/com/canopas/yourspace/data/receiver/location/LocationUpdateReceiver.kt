@@ -17,6 +17,8 @@ import com.canopas.yourspace.data.service.location.ApiLocationService
 import com.canopas.yourspace.data.service.location.LocationJourneyService
 import com.canopas.yourspace.data.service.location.LocationManager
 import com.canopas.yourspace.data.storage.room.LocationTableDatabase
+import com.canopas.yourspace.data.utils.Config
+import com.canopas.yourspace.data.utils.Config.FIVE_MINUTES
 import com.canopas.yourspace.data.utils.LocationConverters
 import com.google.android.gms.location.LocationResult
 import dagger.hilt.android.AndroidEntryPoint
@@ -60,6 +62,8 @@ class LocationUpdateReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         LocationResult.extractResult(intent)?.let { locationResult ->
+            Timber.d("XXXX --------------- ")
+
             scope.launch {
                 try {
                     val userId = authService.currentUser?.id ?: return@launch
@@ -69,12 +73,9 @@ class LocationUpdateReceiver : BroadcastReceiver() {
                             locationTableDatabase.locationTableDao().getLocationData(userId)
 
                         val lastLocation = locationData.getLastLocation(converters)
+
                         checkAndUpdateLastFiveMinLocations(locationData, extractedLocation)
 
-                        lastLocation?.let {
-                            Timber.d("XXX distance ${distanceBetween(extractedLocation, lastLocation!!.toLocation())} " +
-                                    "last location ${Date(lastLocation!!.created_at!!)}")
-                        }
                         val userState =
                             locationData.getUserState(converters, extractedLocation, lastLocation)
 
@@ -147,8 +148,9 @@ class LocationUpdateReceiver : BroadcastReceiver() {
                 }
             }
 
+
             if (lastJourneyLocation == null || userState == null) {
-                Timber.d("XXX last journey & location is null")
+                Timber.d("XXX has last journey ${lastJourneyLocation != null} or userState is  $userState")
                 locationJourneyService.saveJourneyIfNullLastLocation(
                     userId,
                     extractedLocation,
@@ -233,19 +235,32 @@ class LocationUpdateReceiver : BroadcastReceiver() {
     ) {
         val locations =
             locationData?.lastFiveMinutesLocations?.let { converters.locationListFromString(it) }
+        Timber.d("XXX local 5min location ${locations?.size}")
         val userId = authService.currentUser?.id ?: ""
 
         if (locations.isNullOrEmpty()) {
             val lastFiveMinLocations = locationService.getLastFiveMinuteLocations(userId)
-            val locationList = lastFiveMinLocations.toList().flatten().toMutableList()
+            Timber.d("XXX getLastFiveMinuteLocations from remote ${locations?.size}")
+
+            val locationList = lastFiveMinLocations.toList().flatten()
             updateLocationData(locationData, locationList)
         } else {
-            val firstLocationFromList = locations.lastOrNull()
-            firstLocationFromList?.let {
-                if (extractedLocation.time - it.created_at!! > 5 * 60 * 1000) {
-                    val updatedLocationList = locations.toMutableList().apply { remove(it) }
-                    updatedLocationList.add(extractedLocation.toApiLocation(userId))
-                    updateLocationData(locationData, updatedLocationList)
+
+            val firstLocationFromList = locations.minByOrNull { it.created_at!! }
+            val lastLocation = locations.maxByOrNull { it.created_at!! }
+
+            val filteredLocation = locations.filter {
+                extractedLocation.time - it.created_at!! < FIVE_MINUTES
+            }.toMutableList()
+
+            Timber.d("XXX extracted location ${filteredLocation.size}")
+            lastLocation?.let {
+                if (extractedLocation.time - lastLocation.created_at!! > 5 * 60 * 1000) {
+                    Timber.d("XXX local locations ${locations.map { "${Date(it.created_at!!)}+\n" }}")
+                    Timber.d("XXX add new location ${Date(extractedLocation.time)}  location date ${Date(it.created_at!!)} removed ${Date(firstLocationFromList?.created_at!!)}")
+
+                    filteredLocation.add(extractedLocation.toApiLocation(userId))
+                    updateLocationData(locationData, filteredLocation)
                 }
             }
         }
@@ -253,7 +268,7 @@ class LocationUpdateReceiver : BroadcastReceiver() {
 
     private suspend fun updateLocationData(
         locationData: LocationTable?,
-        updatedLocations: MutableList<ApiLocation>
+        updatedLocations: List<ApiLocation>
     ) {
         locationData?.copy(
             lastFiveMinutesLocations = converters.locationListToString(updatedLocations)

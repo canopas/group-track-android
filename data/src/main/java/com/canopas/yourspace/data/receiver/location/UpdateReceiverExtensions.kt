@@ -34,11 +34,22 @@ fun distanceBetween(location1: Location, location2: Location): Float {
  * Check if user is moving or steady
  * */
 fun List<ApiLocation>.isMoving(currentLocation: Location): Boolean {
-    return any {
-        val distance = currentLocation.distanceTo(it.toLocation()).toDouble()
-        distance > Config.RADIUS_TO_CHECK_USER_STATE
+    val latestLocation =
+        this.filter { it.created_at != null }
+            .minByOrNull { it.created_at!! }
+    latestLocation?.let {
+        val distance = distanceBetween(
+            currentLocation,
+            latestLocation?.toLocation()!!
+        )
+        Timber.d("XXX check isMoving --- Distance between $distance min location ${Date(latestLocation.created_at!!)}")
     }
+    return latestLocation != null && distanceBetween(
+        currentLocation,
+        latestLocation.toLocation()
+    ) > Config.RADIUS_TO_CHECK_USER_STATE
 }
+
 
 /**
  * Get last five minute locations from local database ~ 1 location per minute
@@ -61,26 +72,12 @@ fun LocationTable?.getUserState(
     extractedLocation: Location,
     lastLocation: ApiLocation?
 ): Int? {
-    return try {
-        val lastFiveMinuteLocations = this.getLastFiveMinuteLocations(converters)
-        return if (lastFiveMinuteLocations.isNotEmpty() && lastFiveMinuteLocations.isMoving(
-                extractedLocation
-            )
-        ) {
-            UserState.MOVING.value
-        } else if (lastFiveMinuteLocations.isEmpty()) {
-            null
-        } else {
-            if (lastLocation?.user_state != UserState.STEADY.value) {
-                UserState.STEADY.value
-            } else {
-                null
-            }
-        }
-    } catch (e: Exception) {
-        Timber.e(e, "Error while fetching user state")
-        null
-    }
+    val lastFiveMinuteLocations = this.getLastFiveMinuteLocations(converters)
+
+    if (lastFiveMinuteLocations.isEmpty()) return null
+    if (lastFiveMinuteLocations.isMoving(extractedLocation)) return UserState.MOVING.value
+    if (lastLocation?.user_state != UserState.STEADY.value) return UserState.STEADY.value
+    return null
 }
 
 /**
@@ -94,7 +91,7 @@ fun String.getLocationData(locationTableDatabase: LocationTableDatabase): Locati
  * Get last location from local database
  * */
 fun LocationTable?.getLastLocation(converters: LocationConverters): ApiLocation? {
-    return this?.lastLocationJourney?.let {
+    return this?.latestLocation?.let {
         converters.locationFromString(it)
     }
 }
@@ -125,9 +122,12 @@ suspend fun LocationJourneyService.saveJourneyIfNullLastLocation(
             lastJourneyLocation.toLocationFromSteadyJourney()
         ).toDouble()
 
+
         if ((timeDifference > 5 * 60 * 1000 && !lastJourneyLocation.isSteadyLocation()) ||
             distance > Config.DISTANCE_TO_CHECK_SUDDEN_LOCATION_CHANGE
         ) {
+            Timber.d("XXX Sudden location change detected distance $distance time ${timeDifference > 5 * 60 * 1000} " +
+                    "date newJourney ${Date(lastJourneyLocation.created_at!!)}")
             saveCurrentJourney(
                 userId = currentUserId,
                 fromLatitude = extractedLocation.latitude,
@@ -152,7 +152,13 @@ suspend fun LocationJourneyService.saveJourneyForSteadyUser(
         distanceBetween(extractedLocation, location)
     }?.toDouble() ?: 0.0
     val timeDifference = extractedLocation.time - lastJourneyLocation.created_at!!
-    Timber.d("XXX distance $distance time $timeDifference  journey ${Date(lastJourneyLocation.created_at)}")
+    Timber.d(
+        "XXX SteadyUser distance $distance time $timeDifference  journey ${
+            Date(
+                lastJourneyLocation.created_at
+            )
+        }"
+    )
     if ((timeDifference < Config.FIVE_MINUTES && distance < Config.DISTANCE_TO_CHECK_SUDDEN_LOCATION_CHANGE) ||
         (lastJourneyLocation.isSteadyLocation() && distance < Config.DISTANCE_TO_CHECK_SUDDEN_LOCATION_CHANGE)
     ) {
@@ -189,17 +195,17 @@ suspend fun LocationJourneyService.saveJourneyForMovingUser(
             distanceBetween(extractedLocation, location).toDouble()
         },
         route_duration = extractedLocation.time - (
-            (
-                lastMovingLocation?.created_at
-                    ?: lastSteadyLocation?.created_at
-                ) ?: 0L
-            ),
+                (
+                        lastMovingLocation?.created_at
+                            ?: lastSteadyLocation?.created_at
+                        ) ?: 0L
+                ),
         current_location_duration = extractedLocation.time - (
-            (
-                lastMovingLocation?.created_at
-                    ?: lastSteadyLocation?.created_at
-                ) ?: 0L
-            ),
+                (
+                        lastMovingLocation?.created_at
+                            ?: lastSteadyLocation?.created_at
+                        ) ?: 0L
+                ),
         created_at = lastMovingLocation?.created_at ?: System.currentTimeMillis()
     )
 

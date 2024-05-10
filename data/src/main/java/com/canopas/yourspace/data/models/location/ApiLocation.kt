@@ -14,7 +14,7 @@ enum class UserState(val value: Int) {
 
 @Keep
 @JsonClass(generateAdapter = true)
-data class ApiLocation(
+data class  ApiLocation(
     val id: String = UUID.randomUUID().toString(),
     val user_id: String = "",
     val latitude: Double = 0.0,

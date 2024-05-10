@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
+import java.util.Date
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -84,21 +85,20 @@ class ApiLocationService @Inject constructor(
         userId: String,
         location: ApiLocation
     ) {
-        locationTableDatabase.locationTableDao().getLocationData(userId).let { locationTable ->
-            locationTable?.latestLocation?.let {
-                locationTableDatabase.locationTableDao().updateLocationTable(
-                    locationTable.copy(
-                        latestLocation = converters.locationToString(location)
-                    )
+        val data = locationTableDatabase.locationTableDao().getLocationData(userId)
+        if (data == null) {
+            Timber.d("XXX insert latestLocation")
+            locationTableDatabase.locationTableDao().insertLocationData(
+                LocationTable(
+                    userId = userId,
+                    latestLocation = converters.locationToString(location)
                 )
-            } ?: run {
-                locationTableDatabase.locationTableDao().insertLocationData(
-                    LocationTable(
-                        userId = userId,
-                        latestLocation = converters.locationToString(location)
-                    )
-                )
-            }
+            )
+        } else {
+            Timber.d("XXX update latestLocation")
+            locationTableDatabase.locationTableDao().updateLocationTable(
+                data.copy(latestLocation = converters.locationToString(location))
+            )
         }
     }
 
@@ -121,7 +121,6 @@ class ApiLocationService @Inject constructor(
             try {
                 val startTime = currentTime - (i + 1) * 60000
                 val endTime = startTime - 60000
-
                 val reference = locationRef(userId) ?: continue
                 val apiLocation = reference
                     .whereEqualTo("user_id", userId)
