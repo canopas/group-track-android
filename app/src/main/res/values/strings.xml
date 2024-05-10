@@ -32,7 +32,7 @@
     <string name="common_background_access_permission_rational_steps">Go to settings > YourSpace app info > Location permission > select <b>"Allow all the time"</b></string>
     <string name="common_background_access_permission_btn">Go to Settings</string>
     <string name="common_space_not_found">No Space Found!</string>
-    <string name="common_space_not_found_message">The space you are looking for does not exist or you\'re no longer part of this space.</string>
+    <string name="common_space_not_found_message">The space you are looking for isn\'t available or you may have been removed.</string>
 
     <string name="title_notification_channel_messages">In-App messaging</string>
     <string name="description_notification_channel_messages">It is used to show messages</string>

@@ -27,6 +27,7 @@ jobs:
       - name: Deploy internally
         env:
           MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
+          PLACE_API_KEY: ${{ secrets.PLACE_API_KEY }}
           GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
           APP_PLAY_SERVICE_JSON: ${{ secrets.APP_PLAY_SERVICE_JSON }}
           APKSIGN_KEYSTORE_BASE64: ${{ secrets.APKSIGN_KEYSTORE_BASE64 }}
