@@ -29,6 +29,7 @@ jobs:
       - name: Run Tests with Gradle
         env:
           MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
+          PLACE_API_KEY: ${{ secrets.PLACE_API_KEY }}
         run: ./gradlew test
 
       - name: Build with Gradle
