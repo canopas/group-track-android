@@ -10,13 +10,17 @@
     <string name="common_btn_create_space">Create new</string>
     <string name="common_btn_join_space">Join space</string>
     <string name="common_btn_ok">Okay</string>
+    <string name="common_btn_got_it">Got it</string>
     <string name="common_label_congratulations">Congratulations!</string>
     <string name="common_btn_add">Add</string>
     <string name="common_btn_cancel">Cancel</string>
+    <string name="common_btn_delete">Delete</string>
     <string name="common_unknown">Unknown</string>
     <string name="common_today">Today</string>
     <string name="common_yesterday">Yesterday</string>
     <string name="common_reply">Reply</string>
+    <string name="common_save">Save</string>
+
     <string name="common_share_invite_code_message">Let\'s stay connected! Use invite code %s to join my Space.\n<a href="https://play.google.com/store/apps/details?id=com.canopas.yourspace">Download the app</a>.</string>
     <string name="common_session_expired_title">You\'ve been logged out</string>
     <string name="common_session_expired_message">You need to sign in again to continue using the application.</string>
@@ -27,9 +31,16 @@
     <string name="common_background_access_permission_steps">Go to settings > select <b>"Allow all the time"</b></string>
     <string name="common_background_access_permission_rational_steps">Go to settings > YourSpace app info > Location permission > select <b>"Allow all the time"</b></string>
     <string name="common_background_access_permission_btn">Go to Settings</string>
+    <string name="common_space_not_found">No Space Found!</string>
+    <string name="common_space_not_found_message">The space you are looking for isn\'t available or you may have been removed.</string>
 
-    <string name="title_notification_channel">YourSpace notification</string>
-    <string name="description_notification_channel">It is used to show messages</string>
+    <string name="title_notification_channel_messages">In-App messaging</string>
+    <string name="description_notification_channel_messages">It is used to show messages</string>
+    <string name="title_notification_channel_places">New Places</string>
+    <string name="description_notification_channel_places">It is used to show newly added places</string>
+    <string name="title_notification_channel_geofence">Geofence</string>
+    <string name="description_notification_channel_geofence">It is used to notify when member arrive/leave place.</string>
+
     <string name="network_error_text">Network error occurred. Please check your internet connection.</string>
     <string name="server_error_text">Server error occurred. Please try again later.</string>
     <string name="unexpected_error_text">An unexpected error occurred.</string>
@@ -206,5 +217,50 @@
     <string name="battery_optimization_dialog_title">Turn off Battery Optimization for Location Sharing</string>
     <string name="battery_optimization_dialog_message">For location sharing feature to work properly for your Spaces, turn off Battery Optimization in your phone settings for the YourSpace app. This won\'t affect your other apps.</string>
     <string name="battery_optimization_dialog_btn_change_now">Change now</string>
+
+    <string name="places_list_title">Places</string>
+    <string name="places_list_add_new_place_btn">Add a new Place</string>
+    <string name="places_list_suggestion_add_your_place">Add your %s</string>
+    <string name="places_list_delete_dialogue_message_text">Are you sure you want to delete this place? This action cannot be undone.</string>
+
+    <string name="locate_on_map_selected_name_title">Add %s</string>
+    <string name="locate_on_map_title">Locate on Map</string>
+    <string name="choose_place_name_title">Choose place name</string>
+    <string name="choose_place_name_hint">Enter place name</string>
+    <string name="choose_place_btn_add_place">Add Place</string>
+    <string name="place_added_popup_title">%s Added</string>
+    <string name="place_added_popup_description">You will be notified when members of your space arrive/leave this place</string>
+    <string name="locate_on_map_hint_getting_address">Getting Address…</string>
+    <string name="edit_place_title">Edit Place</string>
+    <string name="edit_place_title_place_details">Place Details</string>
+    <string name="edit_place_title_get_notified">Get notified when…</string>
+    <string name="edit_place_notified_when_arrives">Arrives</string>
+    <string name="edit_place_notified_when_leaves">Leaves</string>
+    <string name="edit_place_admin_btn_delete">Delete Place</string>
+    <string name="edit_place_not_admin_cannot_delete">Only admin can edit or delete this Place.</string>
+    <string name="add_new_place_header_suggestions">Suggestions…</string>
+    <string name="add_new_place_title">Add a New Place</string>
+    <string name="add_new_place_search_place_hint">Search address or location name</string>
+
+    <string-array name="add_places_suggestions">
+        <item>Home</item>
+        <item>Work</item>
+        <item>School</item>
+        <item>Gym</item>
+        <item>Library</item>
+        <item>Local Park</item>
+    </string-array>
+
+    <string-array name="choose_place_name_suggestion">
+        <item>Home</item>
+        <item>Work</item>
+        <item>School</item>
+        <item>Gym</item>
+        <item>Park</item>
+        <item>Grocery Store</item>
+        <item>Shop</item>
+        <item>Cafe</item>
+        <item>Restaurant</item>
+    </string-array>
 
 </resources>

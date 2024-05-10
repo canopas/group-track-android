@@ -33,9 +33,7 @@ class ApiLocationService @Inject constructor(
         userId: String
     ) {
         val lastLocation = locationManager.getLastLocation() ?: return
-        val docRef = locationRef(userId)?.document()
-
-        docRef ?: return
+        val docRef = locationRef(userId)?.document() ?: return
 
         val location = ApiLocation(
             id = docRef.id,
@@ -56,8 +54,7 @@ class ApiLocationService @Inject constructor(
         recordedAt: Long,
         userState: Int?
     ) {
-        val docRef = locationRef(userId)?.document()
-        docRef ?: return
+        val docRef = locationRef(userId)?.document() ?: return
 
         val location = ApiLocation(
             id = docRef.id,

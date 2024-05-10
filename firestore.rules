@@ -131,6 +131,48 @@ service cloud.firestore {
 
 
         }
+        match /{path=**}/space_places/{place} {
+            allow read: if isAuthorized() && isSpaceMember(resource.data.space_id);
+            allow write: if false;
+        }
+
+        match /spaces/{spaceId}/space_places/{place} {
+            allow read: if isAuthorized() &&  isSpaceMember(spaceId);
+            allow delete: if isAuthorized() && (isSpaceAdmin(resource.data.space_id) || request.auth.uid == resource.data.created_by);
+            allow update: if isAuthorized() && request.auth.uid == resource.data.created_by;
+            allow create: if isAuthorized() && (isSpaceAdmin(request.resource.data.space_id) || request.auth.uid == request.resource.data.created_by) &&
+                            request.resource.data.keys().hasAll(["id", "space_id", "created_by", "latitude", "longitude", "radius", "name", "created_at"]) &&
+                            request.resource.data.id is string &&
+                            request.resource.data.space_id is string &&
+                            request.resource.data.created_by is string &&
+                            request.resource.data.latitude is number &&
+                            request.resource.data.longitude is number &&
+                            request.resource.data.radius is number &&
+                            request.resource.data.name is string &&
+                            request.resource.data.created_at is timestamp;
+                }
+
+           function isPlaceAdmin(spaceId, placeId) {
+                      let created_by = get(/databases/$(database)/documents/spaces/$(spaceId)/space_places/$(place)).data.created_by;
+                      return request.auth.uid == created_by;
+           }
+
+          match /spaces/{spaceId}/space_places/{place}/place_settings_by_members/{member} {
+            allow read: if isAuthorized() && request.auth.uid == resource.data.user_id;
+            allow update: if isAuthorized() && request.auth.uid == resource.data.user_id &&
+                            request.resource.data.diff(resource.data).affectedKeys().hasOnly(["alert_enable", "leave_alert_for", "arrival_alert_for"]) &&
+                            request.resource.data.arrival_alert_for is list &&
+                            request.resource.data.leave_alert_for is list &&
+                            request.resource.data.alert_enable is bool;
+            allow delete: if isAuthorized() && (request.auth.uid == resource.data.user_id || isPlaceAdmin(place));
+            allow create: if isAuthorized() && isSpaceMember(spaceId) &&
+                    request.resource.data.keys().hasAll(["user_id", "place_id", "alert_enable", "leave_alert_for", "arrival_alert_for"]) &&
+                    request.resource.data.user_id is string &&
+                    request.resource.data.place_id is string &&
+                    request.resource.data.get('arrival_alert_for', []) is list &&
+                    request.resource.data.get('leave_alert_for', []) is list &&
+                    request.resource.data.alert_enable is bool;
+        }
 
         match /{path=**}/space_members/{member} {
             allow read: if isAuthorized() && (request.auth.uid == resource.data.user_id || isSpaceMember(resource.data.space_id));

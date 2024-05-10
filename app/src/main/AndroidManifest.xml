@@ -23,8 +23,8 @@
         <activity
             android:name=".ui.MainActivity"
             android:exported="true"
-            android:launchMode="singleTask"
             android:label="@string/app_name"
+            android:launchMode="singleTask"
             android:theme="@style/Theme.CatchMe"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
@@ -46,6 +46,9 @@
             android:name=".data.receiver.location.LocationUpdateReceiver"
             android:exported="false" />
         <receiver android:name="com.canopas.yourspace.domain.fcm.ReplyActionReceiver" />
+        <receiver
+            android:name=".data.receiver.geofence.GeofenceBroadcastReceiver"
+            android:exported="false" />
 
         <activity
             android:name="com.canhub.cropper.CropImageActivity"
@@ -70,14 +73,6 @@
                 tools:node="remove" />
         </provider>
 
-        <receiver android:name=".domain.receiver.BatteryBroadcastReceiver"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.BATTERY_LOW" />
-                <action android:name="android.intent.action.BATTERY_OKAY" />
-            </intent-filter>
-        </receiver>
-
         <receiver
             android:name=".domain.receiver.BootCompleteReceiver"
             android:exported="true">
@@ -86,6 +81,13 @@
             </intent-filter>
         </receiver>
 
+        <receiver android:name=".domain.receiver.BatteryBroadcastReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BATTERY_LOW" />
+                <action android:name="android.intent.action.BATTERY_OKAY" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

@@ -43,17 +43,17 @@ import com.canopas.yourspace.data.utils.isBackgroundLocationPermissionGranted
 import com.canopas.yourspace.data.utils.isBatteryOptimizationEnabled
 import com.canopas.yourspace.ui.component.AppProgressIndicator
 import com.canopas.yourspace.ui.component.PermissionDialog
+import com.canopas.yourspace.ui.flow.geofence.places.PlacesListScreen
 import com.canopas.yourspace.ui.flow.home.activity.ActivityScreen
 import com.canopas.yourspace.ui.flow.home.home.component.SpaceSelectionMenu
 import com.canopas.yourspace.ui.flow.home.home.component.SpaceSelectionPopup
 import com.canopas.yourspace.ui.flow.home.map.MapScreen
-import com.canopas.yourspace.ui.flow.home.places.PlacesScreen
 import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.tabComposable
 import com.canopas.yourspace.ui.theme.AppTheme
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(verifyingSpace: Boolean) {
     val navController = rememberNavController()
     val viewModel = hiltViewModel<HomeScreenViewModel>()
     val context = LocalContext.current
@@ -79,7 +79,7 @@ fun HomeScreen() {
             ) {
                 HomeScreenContent(navController)
 
-                HomeTopBar()
+                HomeTopBar(verifyingSpace)
             }
         }
         /* bottomBar = {
@@ -95,7 +95,7 @@ fun HomeScreen() {
 }
 
 @Composable
-fun HomeTopBar() {
+fun HomeTopBar(verifyingSpace: Boolean) {
     val viewModel = hiltViewModel<HomeScreenViewModel>()
     val state by viewModel.state.collectAsState()
 
@@ -127,7 +127,7 @@ fun HomeTopBar() {
             viewModel.navigateToSettings()
         }
 
-        SpaceSelectionMenu(modifier = Modifier.weight(1f))
+        SpaceSelectionMenu(modifier = Modifier.weight(1f), verifyingSpace = verifyingSpace)
 
         if (!state.selectedSpaceId.isNullOrEmpty()) {
             MapControl(
@@ -214,7 +214,7 @@ fun HomeScreenContent(navController: NavHostController) {
         }
 
         tabComposable(AppDestinations.places.path) {
-            PlacesScreen()
+            PlacesListScreen()
         }
 
         tabComposable(AppDestinations.activity.path) {

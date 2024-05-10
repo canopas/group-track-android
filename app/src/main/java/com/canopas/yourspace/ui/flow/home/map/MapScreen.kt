@@ -1,11 +1,8 @@
 package com.canopas.yourspace.ui.flow.home.map
 
 import android.Manifest
-import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
@@ -21,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -32,7 +28,6 @@ import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SheetValue
-import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberStandardBottomSheetState
@@ -51,7 +46,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -66,6 +60,8 @@ import com.canopas.yourspace.domain.utils.isLocationServiceEnabled
 import com.canopas.yourspace.domain.utils.openLocationSettings
 import com.canopas.yourspace.ui.component.ShowEnableLocationDialog
 import com.canopas.yourspace.ui.flow.home.map.component.AddMemberBtn
+import com.canopas.yourspace.ui.flow.home.map.component.MapCircles
+import com.canopas.yourspace.ui.flow.home.map.component.MapControlBtn
 import com.canopas.yourspace.ui.flow.home.map.component.MapMarker
 import com.canopas.yourspace.ui.flow.home.map.component.MapUserItem
 import com.canopas.yourspace.ui.flow.home.map.member.MemberDetailBottomSheetContent
@@ -84,7 +80,7 @@ import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.launch
 
-private const val DEFAULT_CAMERA_ZOOM = 15f
+const val DEFAULT_CAMERA_ZOOM = 15f
 private const val DEFAULT_CAMERA_ZOOM_FOR_SELECTED_USER = 17f
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
@@ -145,8 +141,10 @@ fun MapScreenContent(modifier: Modifier) {
         LatLng(location?.latitude ?: 0.0, location?.longitude ?: 0.0)
     }
 
+    val defaultCameraZoom = if (userLocation.latitude == 0.0 && userLocation.longitude == 0.0) 0f else DEFAULT_CAMERA_ZOOM
+
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(userLocation, DEFAULT_CAMERA_ZOOM)
+        position = CameraPosition.fromLatLngZoom(userLocation, defaultCameraZoom)
     }
 
     val relocate by remember {
@@ -161,7 +159,7 @@ fun MapScreenContent(modifier: Modifier) {
         cameraPositionState.animate(
             CameraUpdateFactory.newLatLngZoom(
                 userLocation,
-                if (location != null) DEFAULT_CAMERA_ZOOM_FOR_SELECTED_USER else DEFAULT_CAMERA_ZOOM
+                if (location != null) DEFAULT_CAMERA_ZOOM_FOR_SELECTED_USER else defaultCameraZoom
             )
         )
     }
@@ -175,18 +173,25 @@ fun MapScreenContent(modifier: Modifier) {
                 .align(Alignment.BottomEnd)
 
         ) {
-            RelocateBtn(
-                modifier = Modifier.align(Alignment.End),
-                icon = R.drawable.ic_relocate,
-                show = relocate
-            ) {
-                scope.launch {
-                    cameraPositionState.animate(
-                        CameraUpdateFactory.newLatLngZoom(
-                            userLocation,
-                            DEFAULT_CAMERA_ZOOM
+            Column(modifier = Modifier.align(Alignment.End)) {
+                MapControlBtn(
+                    icon = R.drawable.ic_relocate,
+                    show = relocate
+                ) {
+                    scope.launch {
+                        cameraPositionState.animate(
+                            CameraUpdateFactory.newLatLngZoom(
+                                userLocation,
+                                DEFAULT_CAMERA_ZOOM
+                            )
                         )
-                    )
+                    }
+                }
+                MapControlBtn(
+                    icon = R.drawable.ic_geofence,
+                    show = true
+                ) {
+                    viewModel.navigateToPlaces()
                 }
             }
 
@@ -320,13 +325,15 @@ private fun MapView(
     val state by viewModel.state.collectAsState()
     val isDarkMode = isSystemInDarkTheme()
     val context = LocalContext.current
-    val mapProperties = MapProperties(
-        mapStyleOptions = if (isDarkMode) {
-            MapStyleOptions.loadRawResourceStyle(context, R.raw.map_theme_night)
-        } else {
-            null
-        }
-    )
+    val mapProperties = remember(isDarkMode) {
+        MapProperties(
+            mapStyleOptions = if (isDarkMode) {
+                MapStyleOptions.loadRawResourceStyle(context, R.raw.map_theme_night)
+            } else {
+                null
+            }
+        )
+    }
 
     GoogleMap(
         cameraPositionState = cameraPositionState,
@@ -360,33 +367,9 @@ private fun MapView(
                 ) {}
             }
         }
-    }
-}
 
-@Composable
-private fun RelocateBtn(
-    modifier: Modifier = Modifier,
-    @DrawableRes icon: Int,
-    show: Boolean = true,
-    onClick: () -> Unit
-) {
-    AnimatedVisibility(
-        visible = show,
-        enter = fadeIn(),
-        exit = fadeOut(),
-        modifier = modifier
-            .padding(bottom = 10.dp, end = 10.dp)
-    ) {
-        SmallFloatingActionButton(
-            onClick = { onClick() },
-            containerColor = AppTheme.colorScheme.surface,
-            contentColor = AppTheme.colorScheme.primary
-        ) {
-            Icon(
-                painter = painterResource(id = icon),
-                contentDescription = "",
-                modifier = Modifier.size(24.dp)
-            )
+        state.places.forEach {
+            MapCircles(place = it) {}
         }
     }
 }

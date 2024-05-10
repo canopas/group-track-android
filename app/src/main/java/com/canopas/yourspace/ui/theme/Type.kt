@@ -53,7 +53,6 @@ class AppTypography {
 
     val subTitle2: TextStyle = TextStyle(
         fontFamily = InterFontFamily,
-        fontWeight = FontWeight.W500,
         fontSize = 16.sp
     )
 
@@ -97,5 +96,10 @@ class AppTypography {
         fontWeight = FontWeight.W500,
         fontSize = 11.sp,
         lineHeight = 16.sp
+    )
+
+    val caption = TextStyle(
+        fontFamily = InterFontFamily,
+        fontSize = 12.sp
     )
 }
