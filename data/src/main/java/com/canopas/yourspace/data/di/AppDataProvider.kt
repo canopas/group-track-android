@@ -44,5 +44,4 @@ class AppDataProvider {
     @Singleton
     fun providePlaceClient(@ApplicationContext context: Context): PlacesClient =
         Places.createClient(context)
-
 }

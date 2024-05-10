@@ -39,6 +39,12 @@ class ChoosePlaceNameViewModel @Inject constructor(
         savedStateHandle.get<String>(ChoosePlaceName.KEY_SELECTED_LAT)!!.toDouble()
     private val selectedLongitude =
         savedStateHandle.get<String>(ChoosePlaceName.KEY_SELECTED_LONG)!!.toDouble()
+    private val selectedName =
+        savedStateHandle.get<String>(ChoosePlaceName.KEY_SELECTED_NAME) ?: ""
+
+    init {
+        _state.value = _state.value.copy(placeName = selectedName)
+    }
 
     fun popBackStack() {
         navigator.navigateBack()

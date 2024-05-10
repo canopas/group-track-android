@@ -4,19 +4,21 @@ import com.canopas.yourspace.data.models.place.ApiPlace
 import com.canopas.yourspace.data.models.place.ApiPlaceMemberSetting
 import com.canopas.yourspace.data.utils.Config
 import com.canopas.yourspace.data.utils.snapshotFlow
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.api.net.PlacesClient
+import com.google.android.libraries.places.api.net.SearchByTextRequest
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.functions.FirebaseFunctions
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
 class ApiPlaceService @Inject constructor(
     private val db: FirebaseFirestore,
+    private val placesClient: PlacesClient,
     private val functions: FirebaseFunctions
 ) {
 
@@ -129,5 +131,16 @@ class ApiPlaceService @Inject constructor(
     ) {
         spacePlacesSettingsRef(place.space_id, place.id)
             .document(userId).set(setting).await()
+    }
+
+    suspend fun findPlace(query: String): List<Place> {
+        if (query.trim().isEmpty()) return emptyList()
+        val placeFields = listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG, Place.Field.ADDRESS)
+
+        val searchByTextRequest = SearchByTextRequest.builder(query, placeFields)
+            .setMaxResultCount(20)
+            .build()
+        val response = placesClient.searchByText(searchByTextRequest).await()
+        return response.places
     }
 }

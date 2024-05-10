@@ -1,29 +1,21 @@
 package com.canopas.yourspace.ui.flow.geofence.add.addnew
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsFocusedAsState
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,23 +26,21 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.AppProgressIndicator
+import com.canopas.yourspace.ui.component.SearchTextField
 import com.canopas.yourspace.ui.theme.AppTheme
+import com.google.android.libraries.places.api.model.Place
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -86,157 +76,159 @@ fun AddNewPlaceScreen() {
         }
     ) {
         AddNewPlace(
-            modifier = Modifier.padding(it),
+            modifier = Modifier.padding(it)
         )
     }
 }
 
 @Composable
 private fun AddNewPlace(
-    modifier: Modifier,
+    modifier: Modifier
 ) {
     val viewModel = hiltViewModel<AddNewPlaceViewModel>()
     val state by viewModel.state.collectAsState()
 
     LazyColumn(modifier = modifier.fillMaxSize()) {
-
         item {
-            PlaceNameTextField(
+            SearchTextField(
                 text = state.searchQuery,
-                leadingIcon = R.drawable.ic_tab_places_filled,
+                hint = stringResource(id = R.string.add_new_place_search_place_hint),
                 onValueChange = viewModel::onPlaceNameChanged
             )
 
-            Divider(
-                Modifier
-                    .padding(vertical = 10.dp)
-                    .fillMaxWidth(),
-                color = AppTheme.colorScheme.outline
-            )
+            Spacer(modifier = Modifier.height(16.dp))
 
             LocateOnMap {
                 viewModel.navigateToLocateOnMap()
             }
-
-            PlacesSuggestionHeader()
         }
-
-    }
-}
-
-@Composable
-private fun PlaceNameTextField(
-    text: String,
-    enable: Boolean = true,
-    leadingIcon: Int,
-    maxLines: Int = 1,
-    onValueChange: ((value: String) -> Unit) = {}
-
-) {
-    val focusManager = LocalFocusManager.current
-    val interactionSource = remember { MutableInteractionSource() }
-    val isFocused by interactionSource.collectIsFocusedAsState()
-    val outlineColor =
-        if (isFocused) AppTheme.colorScheme.primary else AppTheme.colorScheme.outline
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 16.dp),
-        verticalArrangement = Arrangement.Center
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                painterResource(id = leadingIcon),
-                contentDescription = null,
-                tint = AppTheme.colorScheme.onDisabled,
-                modifier = Modifier.size(20.dp)
-            )
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Box(modifier = Modifier.fillMaxSize()){
-                if (text.isEmpty()) {
-                    Text(
-                        text = stringResource(id = R.string.add_new_place_search_place_hint),
-                        style = AppTheme.appTypography.subTitle1.copy(color = AppTheme.colorScheme.textDisabled)
-                    )
-                }
-                BasicTextField(
-                    value = text,
-                    onValueChange = { onValueChange(it) },
-                    maxLines = maxLines,
-                    enabled = enable,
-                    interactionSource = interactionSource,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxWidth(),
-                    textStyle = AppTheme.appTypography.subTitle1.copy(color = AppTheme.colorScheme.textPrimary),
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(onDone = {
-                        focusManager.clearFocus()
-                    }),
-                    cursorBrush = SolidColor(AppTheme.colorScheme.primary)
-                )
+        if (state.places.isNotEmpty() || state.loading) {
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                PlacesSuggestionHeader()
             }
-
         }
 
-        Divider(
-            Modifier
-                .fillMaxWidth()
-                .padding(top = 4.dp),
-            color = outlineColor
-        )
+        items(state.places) {
+            PlaceSuggestionItem(
+                place = it,
+                onClick = { viewModel.onPlaceSelected(it) }
+            )
+        }
+
+        if (state.loading) {
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    AppProgressIndicator()
+                }
+            }
+        }
     }
 }
 
-
 @Composable
-fun PlacesSuggestionHeader() {
-    Text(
-        text = stringResource(id = R.string.add_new_place_header_suggestions),
-        style = AppTheme.appTypography.header3,
-        color = AppTheme.colorScheme.textSecondary,
-        textAlign = TextAlign.Start,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 10.dp)
-            .background(color = AppTheme.colorScheme.containerLow)
-            .padding(start = 16.dp, top = 10.dp, bottom = 10.dp)
-    )
-}
-
-@Composable
-private fun LocateOnMap(onClick: () -> Unit) {
-
+fun PlaceSuggestionItem(
+    place: Place,
+    onClick: () -> Unit
+) {
     Row(
         modifier = Modifier
+            .padding(vertical = 4.dp)
             .clickable { onClick() }
-            .padding(vertical = 10.dp)
-            .padding(start = 16.dp),
+            .padding(horizontal = 16.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
                 .size(40.dp)
-                .border(0.5.dp, AppTheme.colorScheme.primary, CircleShape),
+                .background(
+                    AppTheme.colorScheme.containerLow,
+                    shape = RoundedCornerShape(8.dp)
+                ),
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                painter = painterResource(id = R.drawable.ic_geofence),
+                painter = painterResource(id = R.drawable.ic_tab_places_outlined),
                 contentDescription = null,
-                tint = AppTheme.colorScheme.primary,
+                tint = AppTheme.colorScheme.textPrimary,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+
+        Column(
+            modifier = Modifier
+                .padding(start = 10.dp)
+                .weight(1f)
+        ) {
+            Text(
+                text = place.name ?: "",
+                style = AppTheme.appTypography.body2
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = place.address ?: "",
+                style = AppTheme.appTypography.caption,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+@Composable
+fun PlacesSuggestionHeader() {
+    Text(
+        text = stringResource(id = R.string.add_new_place_header_suggestions),
+        style = AppTheme.appTypography.caption,
+        color = AppTheme.colorScheme.textSecondary,
+        textAlign = TextAlign.Start,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 16.dp, top = 20.dp, bottom = 20.dp)
+    )
+}
+
+@Composable
+private fun LocateOnMap(onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .height(60.dp)
+            .padding(horizontal = 16.dp)
+            .fillMaxWidth()
+            .background(
+                color = AppTheme.colorScheme.containerLow,
+                shape = RoundedCornerShape(8.dp)
+            )
+            .clip(RoundedCornerShape(8.dp))
+            .clickable { onClick() }
+            .padding(vertical = 10.dp)
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .background(
+                    color = AppTheme.colorScheme.containerLow,
+                    shape = RoundedCornerShape(8.dp)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_tab_places_outlined),
+                contentDescription = null,
+                tint = AppTheme.colorScheme.textPrimary,
                 modifier = Modifier.size(20.dp)
             )
         }
 
         Text(
             text = stringResource(id = R.string.locate_on_map_title),
-            style = AppTheme.appTypography.subTitle1,
+            style = AppTheme.appTypography.subTitle2,
             modifier = Modifier
                 .padding(start = 10.dp)
                 .weight(1f)

@@ -270,7 +270,7 @@ fun PlaceItem(
 }
 
 @Composable
-fun PlaceSuggestionItem(suggestion: String, onClick: () -> Unit) {
+private fun PlaceSuggestionItem(suggestion: String, onClick: () -> Unit) {
     val icon =
         when (suggestion) {
             "Home" -> painterResource(id = R.drawable.ic_place_home)

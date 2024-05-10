@@ -59,7 +59,6 @@ android {
             p.load(project.rootProject.file("local.properties").reader())
             buildConfigField("String", "PLACE_API_KEY", "\"${p.getProperty("PLACE_API_KEY")}\"")
         }
-
     }
 
     signingConfigs {
@@ -194,8 +193,8 @@ dependencies {
     // Image cropper
     implementation("com.vanniktech:android-image-cropper:4.5.0")
 
-    //Place
-    implementation("com.google.android.libraries.places:places:3.3.0")
+    // Place
+    implementation("com.google.android.libraries.places:places:3.4.0")
 
     implementation(project(":data"))
 }

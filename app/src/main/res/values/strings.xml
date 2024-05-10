@@ -221,7 +221,6 @@
     <string name="locate_on_map_selected_name_title">Add %s</string>
     <string name="locate_on_map_title">Locate on Map</string>
     <string name="choose_place_name_title">Choose place name</string>
-    <string name="choose_place_name_subtitle">Label Your Spaces: Define Each with a Unique Name</string>
     <string name="choose_place_name_hint">Enter place name</string>
     <string name="choose_place_btn_add_place">Add Place</string>
     <string name="place_added_popup_title">%s Added</string>

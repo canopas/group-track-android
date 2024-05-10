@@ -211,7 +211,7 @@ class MapViewModelTest {
         val flow = flow {
             emit("space1")
         }
-        val lists = listOf(ApiPlace())
+        val lists = listOf(ApiPlace(latitude = 1.0, longitude = 1.2))
         val placesFlow = flow {
             emit(lists)
         }

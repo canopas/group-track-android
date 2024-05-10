@@ -3,12 +3,9 @@ package com.canopas.yourspace.ui.flow.geofence.add.addnew
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.canopas.yourspace.data.service.place.ApiPlaceService
-import com.canopas.yourspace.data.service.place.FindPlaceService
 import com.canopas.yourspace.data.utils.AppDispatcher
 import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppNavigator
-import com.google.android.libraries.places.api.Places
-import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.android.libraries.places.api.model.Place
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,8 +20,7 @@ import javax.inject.Inject
 class AddNewPlaceViewModel @Inject constructor(
     private val appNavigator: AppNavigator,
     private val appDispatcher: AppDispatcher,
-    private val apiPlaceService: ApiPlaceService,
-    private val findPlaceService: FindPlaceService
+    private val apiPlaceService: ApiPlaceService
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AddNewPlaceScreenState())
@@ -42,7 +38,6 @@ class AddNewPlaceViewModel @Inject constructor(
         }
     }
 
-
     fun onPlaceNameChanged(placeName: String) {
         searchQuery.value = placeName
         _state.value = _state.value.copy(loading = true, searchQuery = placeName)
@@ -51,7 +46,7 @@ class AddNewPlaceViewModel @Inject constructor(
     private fun findPlace(query: String) = viewModelScope.launch(appDispatcher.IO) {
         try {
             _state.value = _state.value.copy(loading = true)
-            findPlaceService.findPlace(query.trim()).let { places ->
+            apiPlaceService.findPlace(query.trim()).let { places ->
                 _state.value = _state.value.copy(places = places, loading = false)
             }
         } catch (e: Exception) {
@@ -60,8 +55,17 @@ class AddNewPlaceViewModel @Inject constructor(
         }
     }
 
-    fun onPlaceSelected(place: AutocompletePrediction) {
+    fun onPlaceSelected(place: Place) {
+        val latLng = place.latLng ?: return
+        val name = place.name ?: return
 
+        appNavigator.navigateTo(
+            AppDestinations.ChoosePlaceName.setArgs(
+                latitude = latLng.latitude,
+                longitude = latLng.longitude,
+                placeName = name
+            ).path
+        )
     }
 
     fun resetErrorState() {

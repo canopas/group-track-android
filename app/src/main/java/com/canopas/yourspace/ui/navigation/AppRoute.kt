@@ -188,22 +188,28 @@ object AppDestinations {
     object ChoosePlaceName {
         const val KEY_SELECTED_LAT = "lat"
         const val KEY_SELECTED_LONG = "long"
+        const val KEY_SELECTED_NAME = "place_name"
 
         private const val PATH = "choose-place-name"
         const val path =
-            "$PATH?$KEY_SELECTED_LAT={$KEY_SELECTED_LAT}&$KEY_SELECTED_LONG={$KEY_SELECTED_LONG}"
+            "$PATH?$KEY_SELECTED_LAT={$KEY_SELECTED_LAT}&$KEY_SELECTED_LONG={$KEY_SELECTED_LONG}&$KEY_SELECTED_NAME={$KEY_SELECTED_NAME}"
 
         fun setArgs(
             latitude: Double,
-            longitude: Double
+            longitude: Double,
+            placeName: String = ""
         ) = object : AppRoute {
 
             override val arguments = listOf(
                 navArgument(KEY_SELECTED_LAT) { type = NavType.StringType },
-                navArgument(KEY_SELECTED_LONG) { type = NavType.StringType }
+                navArgument(KEY_SELECTED_LONG) { type = NavType.StringType },
+                navArgument(KEY_SELECTED_NAME) {
+                    type = NavType.StringType
+                    nullable = true
+                }
             )
 
-            override val path = "$PATH?$KEY_SELECTED_LAT=$latitude&$KEY_SELECTED_LONG=$longitude"
+            override val path = "$PATH?$KEY_SELECTED_LAT=$latitude&$KEY_SELECTED_LONG=$longitude&$KEY_SELECTED_NAME=$placeName"
         }
     }
 
@@ -223,10 +229,8 @@ object AppDestinations {
         }
     }
 
-
     val addNewPlace = object : AppRoute {
         override val arguments: List<NamedNavArgument> = emptyList()
         override val path: String = "add-new-place"
     }
-
 }
