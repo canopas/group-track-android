@@ -14,7 +14,6 @@ import com.canopas.yourspace.data.service.location.LocationJourneyService
 import com.canopas.yourspace.data.storage.room.LocationTableDatabase
 import com.canopas.yourspace.data.utils.Config
 import com.canopas.yourspace.data.utils.LocationConverters
-import com.canopas.yourspace.data.utils.getLocationData
 import kotlinx.coroutines.flow.toList
 import timber.log.Timber
 import java.util.Calendar
@@ -37,8 +36,7 @@ class JourneyRepository @Inject constructor(
         userId: String
     ) {
         try {
-            val locationData = userId.getLocationData(locationTableDatabase)
-
+            val locationData = getLocationData(userId)
             val lastLocation = getLastLocation(locationData)
 
             val lastSteadyLocation = getLastSteadyLocation(userId, locationData)
@@ -111,6 +109,13 @@ class JourneyRepository @Inject constructor(
         }
     }
 
+    private fun getLocationData(
+        userid: String,
+    ): LocationTable? {
+        return locationTableDatabase.locationTableDao().getLocationData(userid)
+    }
+
+
     private suspend fun getLastSteadyLocation(
         userId: String,
         locationData: LocationTable?
@@ -165,9 +170,7 @@ class JourneyRepository @Inject constructor(
     /**
      * Get last five minute locations from local database ~ 1 location per minute
      * */
-    private fun getLastFiveMinuteLocations(
-        locationData: LocationTable?
-    ): List<ApiLocation> {
+    private fun getLastFiveMinuteLocations(locationData: LocationTable?): List<ApiLocation> {
         return locationData?.lastFiveMinutesLocations?.let {
             converters.locationListFromString(it)
         } ?: emptyList()

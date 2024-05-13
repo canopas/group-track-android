@@ -104,10 +104,3 @@ class LocationConverters @Inject constructor() {
         }
     }
 }
-
-/**
- * Get location data from local database
- * */
-fun String.getLocationData(locationTableDatabase: LocationTableDatabase): LocationTable? {
-    return locationTableDatabase.locationTableDao().getLocationData(this)
-}
