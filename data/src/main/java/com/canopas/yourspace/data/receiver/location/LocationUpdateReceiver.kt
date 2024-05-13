@@ -10,14 +10,12 @@ import com.canopas.yourspace.data.models.location.LocationTable
 import com.canopas.yourspace.data.models.location.UserState
 import com.canopas.yourspace.data.models.location.isSteadyLocation
 import com.canopas.yourspace.data.models.location.toApiLocation
-import com.canopas.yourspace.data.models.location.toLocation
 import com.canopas.yourspace.data.repository.JourneyRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.location.ApiLocationService
 import com.canopas.yourspace.data.service.location.LocationJourneyService
 import com.canopas.yourspace.data.service.location.LocationManager
 import com.canopas.yourspace.data.storage.room.LocationTableDatabase
-import com.canopas.yourspace.data.utils.Config
 import com.canopas.yourspace.data.utils.Config.FIVE_MINUTES
 import com.canopas.yourspace.data.utils.LocationConverters
 import com.google.android.gms.location.LocationResult
@@ -68,33 +66,16 @@ class LocationUpdateReceiver : BroadcastReceiver() {
                 try {
                     val userId = authService.currentUser?.id ?: return@launch
                     locationResult.locations.forEach { extractedLocation ->
-
-                        val locationData =
-                            locationTableDatabase.locationTableDao().getLocationData(userId)
-
-                        val lastLocation = locationData.getLastLocation(converters)
-
-                        checkAndUpdateLastFiveMinLocations(locationData, extractedLocation)
-
-                        val userState =
-                            locationData.getUserState(converters, extractedLocation, lastLocation)
-
+                        val userState = journeyRepository.getUserState(userId, extractedLocation)
+                        Timber.d("XXX user state ${userState} is moving ${userState == UserState.MOVING.value}")
                         locationService.saveCurrentLocation(
                             userId,
                             extractedLocation.latitude,
                             extractedLocation.longitude,
-                            Date().time,
+                            System.currentTimeMillis(),
                             userState = userState ?: UserState.STEADY.value
                         )
-
-                        Timber.d("XXX user state $userState")
-                        saveLocationJourney(
-                            userState,
-                            extractedLocation,
-                            lastLocation,
-                            userId
-                        )
-
+                        journeyRepository.saveLocationJourney(userState, extractedLocation, userId)
                     }
 
                 } catch (e: Exception) {
@@ -104,176 +85,4 @@ class LocationUpdateReceiver : BroadcastReceiver() {
         }
     }
 
-    /**
-     * Save location journey based on user state
-     * */
-    private suspend fun saveLocationJourney(
-        userState: Int?,
-        extractedLocation: Location,
-        lastLocation: ApiLocation?,
-        userId: String
-    ) {
-        try {
-            val locationData = userId.getLocationData(locationTableDatabase)
-            val lastSteadyLocation = getLastSteadyLocation(locationData)
-            val lastMovingLocation = getLastMovingLocation(locationData)
-            val lastJourneyLocation = getLastJourneyLocation(locationData)
-
-            if (lastJourneyLocation?.isSteadyLocation() == true) {
-                lastSteadyLocation?.let {
-                    val calendar1 = Calendar.getInstance().apply {
-                        timeInMillis = lastSteadyLocation.created_at!!
-                    }
-                    val calendar2 = Calendar.getInstance().apply {
-                        timeInMillis = extractedLocation.time
-                    }
-                    val calendar3 = Calendar.getInstance().apply {
-                        timeInMillis = lastSteadyLocation.persistent_location_date ?: Date().time
-                    }
-                    // Check if day is changed
-                    if ((calendar1.get(Calendar.DAY_OF_MONTH) != calendar2.get(Calendar.DAY_OF_MONTH)) ||
-                        (calendar2.get(Calendar.DAY_OF_MONTH) != calendar3.get(Calendar.DAY_OF_MONTH))
-                    ) {
-                        Timber.d("XXX day changed")
-                        locationJourneyService.saveCurrentJourney(
-                            userId = userId,
-                            fromLatitude = lastSteadyLocation.from_latitude,
-                            fromLongitude = lastSteadyLocation.from_longitude,
-                            currentLocationDuration = extractedLocation.time - lastSteadyLocation.created_at!!,
-                            recordedAt = Date().time,
-                            persistentLocationDate = lastSteadyLocation.created_at
-                        )
-                        return
-                    }
-                }
-            }
-
-
-            if (lastJourneyLocation == null || userState == null) {
-                Timber.d("XXX has last journey ${lastJourneyLocation != null} or userState is  $userState")
-                locationJourneyService.saveJourneyIfNullLastLocation(
-                    userId,
-                    extractedLocation,
-                    lastLocation,
-                    lastJourneyLocation
-                )
-            } else {
-                when (userState) {
-                    UserState.STEADY.value -> {
-                        Timber.d("XXX steady user")
-                        locationJourneyService.saveJourneyForSteadyUser(
-                            userId,
-                            extractedLocation,
-                            lastJourneyLocation,
-                            lastSteadyLocation
-                        )
-                    }
-
-                    UserState.MOVING.value -> {
-                        Timber.d("XXX moving user")
-                        locationJourneyService.saveJourneyForMovingUser(
-                            userId,
-                            extractedLocation,
-                            lastLocation,
-                            lastJourneyLocation,
-                            lastSteadyLocation,
-                            lastMovingLocation
-                        )
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            Timber.e(e, "Error while saving location journey")
-        }
-    }
-
-    private suspend fun getLastSteadyLocation(locationData: LocationTable?): LocationJourney? {
-        locationData?.lastSteadyLocation?.let {
-            return converters.journeyFromString(it)
-        } ?: run {
-            val lastSteadyLocation =
-                locationJourneyService.getLastSteadyLocation(authService.currentUser?.id ?: "")
-            locationData?.copy(lastSteadyLocation = converters.journeyToString(lastSteadyLocation))
-                ?.let {
-                    locationTableDatabase.locationTableDao().updateLocationTable(it)
-                }
-            return lastSteadyLocation
-        }
-    }
-
-    private suspend fun getLastMovingLocation(locationData: LocationTable?): LocationJourney? {
-        locationData?.lastMovingLocation?.let {
-            return converters.journeyFromString(it)
-        } ?: run {
-            val lastMovingLocation =
-                locationJourneyService.getLastMovingLocation(authService.currentUser?.id ?: "")
-            locationData?.copy(lastMovingLocation = converters.journeyToString(lastMovingLocation))
-                ?.let {
-                    locationTableDatabase.locationTableDao().updateLocationTable(it)
-                }
-            return lastMovingLocation
-        }
-    }
-
-    private suspend fun getLastJourneyLocation(locationData: LocationTable?): LocationJourney? {
-        return locationData?.lastLocationJourney?.let {
-            return converters.journeyFromString(it)
-        } ?: run {
-            val lastJourneyLocation =
-                locationJourneyService.getLastJourneyLocation(authService.currentUser?.id ?: "")
-            locationData?.copy(lastLocationJourney = converters.journeyToString(lastJourneyLocation))
-                ?.let {
-                    locationTableDatabase.locationTableDao().updateLocationTable(it)
-                }
-            return lastJourneyLocation
-        }
-    }
-
-    private suspend fun checkAndUpdateLastFiveMinLocations(
-        locationData: LocationTable?,
-        extractedLocation: Location
-    ) {
-        val locations =
-            locationData?.lastFiveMinutesLocations?.let { converters.locationListFromString(it) }
-        Timber.d("XXX local 5min location ${locations?.size}")
-        val userId = authService.currentUser?.id ?: ""
-
-        if (locations.isNullOrEmpty()) {
-            val lastFiveMinLocations = locationService.getLastFiveMinuteLocations(userId)
-            Timber.d("XXX getLastFiveMinuteLocations from remote ${locations?.size}")
-
-            val locationList = lastFiveMinLocations.toList().flatten()
-            updateLocationData(locationData, locationList)
-        } else {
-
-            val firstLocationFromList = locations.minByOrNull { it.created_at!! }
-            val lastLocation = locations.maxByOrNull { it.created_at!! }
-
-            val filteredLocation = locations.filter {
-                extractedLocation.time - it.created_at!! < FIVE_MINUTES
-            }.toMutableList()
-
-            Timber.d("XXX extracted location ${filteredLocation.size}")
-            lastLocation?.let {
-                if (extractedLocation.time - lastLocation.created_at!! > 5 * 60 * 1000) {
-                    Timber.d("XXX local locations ${locations.map { "${Date(it.created_at!!)}+\n" }}")
-                    Timber.d("XXX add new location ${Date(extractedLocation.time)}  location date ${Date(it.created_at!!)} removed ${Date(firstLocationFromList?.created_at!!)}")
-
-                    filteredLocation.add(extractedLocation.toApiLocation(userId))
-                    updateLocationData(locationData, filteredLocation)
-                }
-            }
-        }
-    }
-
-    private suspend fun updateLocationData(
-        locationData: LocationTable?,
-        updatedLocations: List<ApiLocation>
-    ) {
-        locationData?.copy(
-            lastFiveMinutesLocations = converters.locationListToString(updatedLocations)
-        )?.let {
-            locationTableDatabase.locationTableDao().updateLocationTable(it)
-        }
-    }
 }

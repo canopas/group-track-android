@@ -33,7 +33,6 @@ class LocationJourneyService @Inject constructor(
         routeDistance: Double? = null,
         routeDuration: Long? = null,
         currentLocationDuration: Long? = null,
-        recordedAt: Long,
         persistentLocationDate: Long? = null
     ) {
         val docRef = journeyRef(userId).document()
@@ -48,11 +47,11 @@ class LocationJourneyService @Inject constructor(
             route_distance = routeDistance,
             route_duration = routeDuration,
             current_location_duration = currentLocationDuration,
-            created_at = recordedAt,
+            created_at = System.currentTimeMillis(),
             persistent_location_date = persistentLocationDate
         )
 
-        Timber.d("XXX saveCurrentJourney $journey")
+        Timber.d("XXX saveCurrentJourney ${journey.id}")
         journey.updateLocationJourney(userId)
 
         docRef.set(journey).await()
@@ -127,6 +126,7 @@ class LocationJourneyService @Inject constructor(
 
     fun updateLastLocationJourney(userId: String, newJourney: LocationJourney) {
         try {
+            Timber.d("XXX updateLastLocationJourney ${newJourney.id}")
             journeyRef(userId).document(newJourney.id).set(newJourney)
         } catch (e: Exception) {
             Timber.e(e, "Error while updating last location journey")

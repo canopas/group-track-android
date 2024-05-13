@@ -87,7 +87,7 @@ class ApiLocationService @Inject constructor(
     ) {
         val data = locationTableDatabase.locationTableDao().getLocationData(userId)
         if (data == null) {
-            Timber.d("XXX insert latestLocation")
+          //  Timber.d("XXX insert latestLocation")
             locationTableDatabase.locationTableDao().insertLocationData(
                 LocationTable(
                     userId = userId,
@@ -95,7 +95,7 @@ class ApiLocationService @Inject constructor(
                 )
             )
         } else {
-            Timber.d("XXX update latestLocation")
+           // Timber.d("XXX update latestLocation")
             locationTableDatabase.locationTableDao().updateLocationTable(
                 data.copy(latestLocation = converters.locationToString(location))
             )
@@ -121,6 +121,7 @@ class ApiLocationService @Inject constructor(
             try {
                 val startTime = currentTime - (i + 1) * 60000
                 val endTime = startTime - 60000
+                Timber.d("XXX getLastFiveMinuteLocations $startTime : $endTime")
                 val reference = locationRef(userId) ?: continue
                 val apiLocation = reference
                     .whereEqualTo("user_id", userId)

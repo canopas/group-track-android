@@ -3,6 +3,8 @@ package com.canopas.yourspace.data.utils
 import androidx.room.TypeConverter
 import com.canopas.yourspace.data.models.location.ApiLocation
 import com.canopas.yourspace.data.models.location.LocationJourney
+import com.canopas.yourspace.data.models.location.LocationTable
+import com.canopas.yourspace.data.storage.room.LocationTableDatabase
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -101,4 +103,11 @@ class LocationConverters @Inject constructor() {
             ""
         }
     }
+}
+
+/**
+ * Get location data from local database
+ * */
+fun String.getLocationData(locationTableDatabase: LocationTableDatabase): LocationTable? {
+    return locationTableDatabase.locationTableDao().getLocationData(this)
 }
