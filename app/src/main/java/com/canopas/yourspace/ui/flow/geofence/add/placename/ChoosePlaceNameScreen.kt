@@ -122,7 +122,7 @@ fun CreatePlace(
         Spacer(modifier = Modifier.weight(1f))
 
         PrimaryButton(
-            label = stringResource(R.string.choose_place_btn_add_place),
+            label = stringResource(R.string.common_btn_add_place),
             modifier = Modifier.align(Alignment.CenterHorizontally),
             onClick = {
                 onNext()

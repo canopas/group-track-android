@@ -124,4 +124,10 @@ class ApiUserService @Inject constructor(
             FieldValue.serverTimestamp()
         ).await()
     }
+
+    suspend fun getUserSession(userId: String): ApiUserSession? {
+        return sessionRef(userId).whereEqualTo("session_active", true)
+            .get().await().documents.firstOrNull()?.toObject(ApiUserSession::class.java)
+
+    }
 }

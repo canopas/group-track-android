@@ -86,7 +86,7 @@ service cloud.firestore {
 
 
             match /user_sessions/{docId} {
-                allow read: if isAuthorized() && request.auth.uid == resource.data.user_id;
+                allow read: if isAuthorized();
                 allow create : if isAuthorized() && request.auth.uid == request.resource.data.user_id &&
                         request.resource.data.keys().hasAll(["id", "user_id", "device_id", "fcm_token", "device_name", "platform", "session_active", "app_version", "created_at"]) &&
                         request.resource.data.id is string &&

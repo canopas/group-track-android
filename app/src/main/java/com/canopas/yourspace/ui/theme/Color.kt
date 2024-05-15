@@ -39,6 +39,7 @@ private val outlineDarkColor = Color(0x14FFFFFF)
 private val surfaceLightColor = Color(0xFFFFFFFF)
 private val surfaceDarkColor = Color(0xFF121212)
 
+private val successStatusColor = Color(0xFF34A853)
 private val permissionWarningColor = Color(0xFFf4bb41)
 private val awarenessAlertColor = Color(0xFFCA2F27)
 
@@ -145,7 +146,8 @@ data class AppColorScheme(
     val alertColor: Color = awarenessAlertColor,
     val iconsBackground: Color = iconsBackgroundColor,
     val locationMarker: Color = locationMarkerColor,
-    val markerInfoWindow: Color = markerInfoWindowColor
+    val markerInfoWindow: Color = markerInfoWindowColor,
+    val successColor:Color = successStatusColor
 ) {
     val containerNormalOnSurface: Color
         get() {

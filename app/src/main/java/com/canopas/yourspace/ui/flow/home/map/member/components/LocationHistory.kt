@@ -1,0 +1,456 @@
+package com.canopas.yourspace.ui.flow.home.map.member.components
+
+import android.location.Address
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import com.canopas.yourspace.R
+import com.canopas.yourspace.data.models.location.LocationJourney
+import com.canopas.yourspace.data.models.location.isSteadyLocation
+import com.canopas.yourspace.domain.utils.getAddress
+import com.canopas.yourspace.domain.utils.getPlaceAddress
+import com.canopas.yourspace.ui.component.AppProgressIndicator
+import com.canopas.yourspace.ui.component.DashedDivider
+import com.canopas.yourspace.ui.component.reachedBottom
+import com.canopas.yourspace.ui.theme.AppTheme
+import com.google.android.gms.maps.model.LatLng
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.concurrent.TimeUnit
+
+@Composable
+fun LocationHistory(
+    isLoading: Boolean,
+    locations: List<LocationJourney>,
+    loadMore: () -> Unit
+) {
+    val lazyListState = rememberLazyListState()
+    val reachedBottom by remember {
+        derivedStateOf { lazyListState.reachedBottom() }
+    }
+
+    LaunchedEffect(reachedBottom) {
+        if (reachedBottom) loadMore()
+    }
+
+    Box {
+        when {
+            locations.isEmpty() && isLoading -> {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) { AppProgressIndicator() }
+            }
+
+            locations.isEmpty() -> {
+                EmptyHistory()
+            }
+
+            else -> {
+                LazyColumn(
+                    state = lazyListState
+                ) {
+                    items(locations.size) { index ->
+                        val location = locations[index]
+                        val previousLocationJourney = locations.getOrNull(index - 1)
+
+                        LocationHistoryItem(
+                            location,
+                            isLastItem = index == locations.lastIndex
+                        )
+                    }
+
+                    if (locations.isNotEmpty() && isLoading) {
+                        item {
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) { AppProgressIndicator() }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LocationHistoryItem(
+    location: LocationJourney,
+    isLastItem: Boolean
+) {
+    if (location.isSteadyLocation()) {
+        SteadyLocationItem(location, isLastItem) {
+            // addPlace()
+        }
+    } else {
+        JourneyLocationItem(location, isLastItem) {
+            // show journey
+        }
+    }
+}
+
+@Composable
+fun JourneyLocationItem(location: LocationJourney, lastItem: Boolean, onTap: () -> Unit) {
+    val context = LocalContext.current
+    var fromAddress by remember { mutableStateOf<Address?>(null) }
+    var toAddress by remember { mutableStateOf<Address?>(null) }
+
+    LaunchedEffect(location) {
+        withContext(Dispatchers.IO) {
+            val latLng =
+                LatLng(location.from_latitude, location.from_longitude)
+            val toLatLng = LatLng(location.to_latitude ?: 0.0, location.to_longitude ?: 0.0)
+            fromAddress = latLng.getPlaceAddress(context)
+            toAddress = toLatLng.getPlaceAddress(context)
+        }
+    }
+
+    val title = fromAddress?.formattedTitle(toAddress) ?: ""
+
+    Row(
+        verticalAlignment = Alignment.Top,
+        modifier = Modifier
+            .height(210.dp)
+    ) {
+
+        DottedTimeline(false, isLastItem = lastItem)
+        Column(
+            modifier = Modifier
+                .padding(start = 16.dp)
+                .weight(1f)
+        ) {
+            PlaceInfo(title, "12:10 AM - 12:30 AM(25 mins, 30secs)")
+            JourneyMap(location, onTap)
+        }
+    }
+}
+
+fun Address.formattedTitle(toAddress: Address?): String {
+    val fromCity = this.locality
+    val toCity = toAddress?.locality
+
+    val fromArea = this.subLocality
+    val toArea = toAddress?.subLocality
+
+    val fromState = this.adminArea
+    val toState = toAddress?.adminArea
+
+    if (fromArea == toArea) return "$fromArea, $fromCity"
+    if (fromCity == toCity) return "$fromArea to $toArea, $fromCity"
+    if (fromState == toState) return "$fromArea, $fromCity to $toArea, $toCity"
+    return "$fromCity, $fromState to $toCity, $toState"
+}
+
+@Composable
+fun SteadyLocationItem(location: LocationJourney, lastItem: Boolean, addPlace: () -> Unit) {
+    val context = LocalContext.current
+    var fromAddress by remember { mutableStateOf("") }
+
+    LaunchedEffect(location) {
+        withContext(Dispatchers.IO) {
+            val latLng =
+                LatLng(location.from_latitude, location.from_longitude)
+            fromAddress = latLng.getAddress(context) ?: ""
+        }
+    }
+
+    Row(
+        verticalAlignment = Alignment.Top,
+        modifier = Modifier
+            .height(140.dp)
+    ) {
+
+        DottedTimeline(isSteadyLocation = true, isLastItem = lastItem)
+
+        Column(
+            modifier = Modifier
+                .padding(start = 16.dp)
+                .weight(1f)
+        ) {
+            PlaceInfo(fromAddress, getFormattedCreatedAt(location.created_at!!))
+
+            Button(
+                onClick = addPlace,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = AppTheme.colorScheme.primary.copy(0.1f),
+                    contentColor = AppTheme.colorScheme.primary
+                )
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_geofence),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .padding(end = 4.dp)
+                        .size(24.dp)
+
+                )
+                Text(
+                    text = stringResource(id = R.string.common_btn_add_place),
+                    style = AppTheme.appTypography.body2,
+                )
+            }
+
+            Spacer(modifier = Modifier.size(8.dp))
+
+            if (!lastItem)
+                HorizontalDivider(thickness = 1.dp, color = AppTheme.colorScheme.outline)
+        }
+    }
+
+}
+
+@Composable
+private fun PlaceInfo(title: String, formattedTime: String) {
+    Text(
+        text = title,
+        style = AppTheme.appTypography.body2.copy(
+            color = AppTheme.colorScheme.textPrimary,
+            fontWeight = FontWeight.Medium
+        ), maxLines = 2, overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.padding(end = 16.dp)
+    )
+    Spacer(modifier = Modifier.size(6.dp))
+
+    Text(
+        text = formattedTime,
+        style = AppTheme.appTypography.caption.copy(
+            fontWeight = FontWeight.Medium,
+            color = AppTheme.colorScheme.textSecondary
+        )
+    )
+    Spacer(modifier = Modifier.size(10.dp))
+}
+
+@Composable
+private fun DottedTimeline(isSteadyLocation: Boolean, isLastItem: Boolean) {
+    Column(
+        modifier = Modifier
+            .padding(start = 16.dp)
+            .fillMaxHeight(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .background(
+                    if (isSteadyLocation) AppTheme.colorScheme.containerNormal else
+                        AppTheme.colorScheme.surface,
+                    shape = CircleShape
+                )
+                .border(
+                    1.dp,
+                    if (isSteadyLocation) Color.Transparent else AppTheme.colorScheme.containerNormal,
+                    CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            if (isSteadyLocation)
+                Icon(
+                    Icons.Default.LocationOn,
+                    contentDescription = "",
+                    tint = AppTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .padding(2.dp)
+                )
+            else
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .background(
+                            AppTheme.colorScheme.primary,
+                            CircleShape
+                        )
+                )
+        }
+
+        if (!isLastItem) DashedDivider(thickness = 1.dp, modifier = Modifier.weight(1f))
+    }
+}
+
+@Composable
+private fun Shimmer() {
+    val gradient = listOf(
+        Color.LightGray.copy(alpha = 0.9f), // darker grey (90% opacity)
+        Color.LightGray.copy(alpha = 0.5f) // lighter grey (30% opacity)
+    )
+
+    val transition = rememberInfiniteTransition(label = "") // animate infinite times
+
+    val translateAnimation = transition.animateFloat( // animate the transition
+        initialValue = 0f,
+        targetValue = 1000f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(
+                durationMillis = 1000, // duration for the animation
+                easing = FastOutLinearInEasing
+            )
+        ),
+        label = ""
+    )
+    val brush = Brush.linearGradient(
+        colors = gradient,
+        start = Offset(200f, 200f),
+        end = Offset(
+            x = translateAnimation.value,
+            y = translateAnimation.value
+        )
+    )
+    Spacer(
+        modifier = Modifier
+            .padding(4.dp)
+            .fillMaxWidth()
+            .height(30.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(brush)
+    )
+}
+
+@Composable
+private fun EmptyHistory() {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.ic_empty_location_history),
+            contentDescription = "",
+            modifier = Modifier
+                .padding(bottom = 30.dp)
+                .alpha(0.8f)
+        )
+
+        Text(
+            text = stringResource(id = R.string.member_detail_empty_location_history),
+            style = AppTheme.appTypography.body1.copy(
+                color = AppTheme.colorScheme.containerHigh.copy(
+                    alpha = 0.8f
+                )
+            ),
+            modifier = Modifier.padding(bottom = 30.dp)
+        )
+    }
+}
+
+private fun getFormattedLocationTime(timestamp1: Long, timestamp2: Long): String {
+    val elapsedTime = maxOf(timestamp1, timestamp2) - minOf(timestamp1, timestamp2)
+    val hours = TimeUnit.MILLISECONDS.toHours(elapsedTime)
+    val minutes = TimeUnit.MILLISECONDS.toMinutes(elapsedTime) % 60
+    val seconds = TimeUnit.MILLISECONDS.toSeconds(elapsedTime) % 60
+    return when {
+        hours > 24 -> {
+            val days = hours / 24
+            val remainingHours = hours % 24
+            "$days day $remainingHours hr $minutes min $seconds sec"
+        }
+
+        hours > 0 -> {
+            "$hours hr $minutes min $seconds sec"
+        }
+
+        minutes > 0 -> {
+            "$minutes min $seconds sec"
+        }
+
+        else -> {
+            "$seconds sec"
+        }
+    }
+}
+
+private fun getDistanceString(
+    routeDistance: Double
+): String {
+    return if (routeDistance < 1000) {
+        String.format(Locale.getDefault(), "%.2f", routeDistance) + " m"
+    } else {
+        // Take maximum of 2 decimal places
+        val distanceInKm = (routeDistance / 1000)
+        String.format(Locale.getDefault(), "%.2f", distanceInKm) + " km"
+    }
+}
+
+private fun getRouteDurationString(
+    routeDuration: Long
+): String {
+    val hours = TimeUnit.MILLISECONDS.toHours(routeDuration)
+    val minutes = TimeUnit.MILLISECONDS.toMinutes(routeDuration) % 60
+    val seconds = TimeUnit.MILLISECONDS.toSeconds(routeDuration) % 60
+    return when {
+        hours > 0 -> {
+            "$hours hr $minutes min $seconds sec"
+        }
+
+        minutes > 0 -> {
+            "$minutes min $seconds sec"
+        }
+
+        else -> {
+            "$seconds sec"
+        }
+    }
+}
+
+private fun getFormattedCreatedAt(createdAt: Long): String {
+    val createdAtTime = Date(createdAt)
+    val createdAtFormat = SimpleDateFormat("d MMM HH:mm", Locale.getDefault())
+    return createdAtFormat.format(createdAtTime)
+}
+
+private fun getFormattedFilterLabel(startTimestamp: Long): String {
+    val startDate = Date(startTimestamp)
+    val startDateFormat = SimpleDateFormat("d MMM", Locale.getDefault())
+    return startDateFormat.format(startDate)
+}

@@ -65,7 +65,7 @@ class AppTypography {
 
     val body2 = TextStyle(
         fontFamily = InterFontFamily,
-        fontWeight = FontWeight.W400,
+        fontWeight = FontWeight.Medium,
         fontSize = 14.sp,
         lineHeight = 20.sp
     )
