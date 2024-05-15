@@ -123,6 +123,7 @@ class AuthService @Inject constructor(
     suspend fun updateUserSessionState(state: Int) {
         val currentUser = currentUser ?: return
         val session = currentUserSession ?: return
+        if(session.state == state) return
         apiUserService.updateSessionState(currentUser.id, session.id, state)
     }
 }

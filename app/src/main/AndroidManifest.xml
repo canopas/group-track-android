@@ -8,6 +8,7 @@
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:name=".YourSpaceApplication"
@@ -50,6 +51,15 @@
             android:name=".data.receiver.geofence.GeofenceBroadcastReceiver"
             android:exported="false" />
 
+        <receiver
+            android:name=".domain.receiver.NetworkConnectionReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+            </intent-filter>
+        </receiver>
+
         <activity
             android:name="com.canhub.cropper.CropImageActivity"
             android:theme="@style/Base.Theme.AppCompat" />
@@ -73,7 +83,8 @@
                 tools:node="remove" />
         </provider>
 
-        <receiver android:name=".domain.receiver.BatteryBroadcastReceiver"
+        <receiver
+            android:name=".domain.receiver.BatteryBroadcastReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BATTERY_LOW" />

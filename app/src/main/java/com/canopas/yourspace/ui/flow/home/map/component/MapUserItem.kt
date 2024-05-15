@@ -1,5 +1,6 @@
 package com.canopas.yourspace.ui.flow.home.map.component
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -32,24 +34,24 @@ fun MapUserItem(
 ) {
     val user = userInfo.user
     Column(
-        modifier = Modifier.width(80.dp)
+        modifier = Modifier.width(60.dp)
             .clickable {
                 onClick()
             }
-            .padding(vertical = 14.dp),
+            .padding(vertical = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         UserProfile(
             Modifier
-                .size(50.dp),
+                .size(40.dp),
             user = user
         )
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(2.dp))
         Text(
             text = user.first_name ?: "",
             overflow = TextOverflow.Ellipsis,
             maxLines = 1,
-            style = AppTheme.appTypography.label1.copy(color = AppTheme.colorScheme.textPrimary)
+            style = AppTheme.appTypography.caption.copy(color = AppTheme.colorScheme.textPrimary)
         )
     }
 }
@@ -61,19 +63,19 @@ fun AddMemberBtn(
 ) {
     Column(
         modifier = Modifier
-            .clickable {
-                onClick()
-            }
-            .padding(10.dp),
+            .clickable { onClick() }.padding(10.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
             modifier = Modifier
-                .size(50.dp)
+                .size(40.dp)
                 .border(
                     1.dp,
                     AppTheme.colorScheme.primary.copy(alpha = 0.7f),
-                    shape = RoundedCornerShape(16.dp)
+                    shape = CircleShape
+                ).background(
+                    AppTheme.colorScheme.surface,
+                    shape = CircleShape
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -82,16 +84,16 @@ fun AddMemberBtn(
             } else {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_add_member),
-                    modifier = Modifier.padding(14.dp),
+                    modifier = Modifier.padding(10.dp),
                     contentDescription = "",
                     tint = AppTheme.colorScheme.primary.copy(alpha = 0.7f)
                 )
             }
         }
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(2.dp))
         Text(
             text = stringResource(id = R.string.common_btn_add),
-            style = AppTheme.appTypography.label1.copy(color = AppTheme.colorScheme.textPrimary)
+            style = AppTheme.appTypography.caption.copy(color = AppTheme.colorScheme.textPrimary)
         )
     }
 }

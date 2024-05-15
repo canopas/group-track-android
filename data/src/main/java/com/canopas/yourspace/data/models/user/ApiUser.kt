@@ -43,5 +43,19 @@ data class ApiUserSession(
     val session_active: Boolean = true,
     val app_version: Long? = 0,
     val battery_pct: Float? = 0f,
+    val state: Int = USER_STATE_UNKNOWN,
     val created_at: Long? = System.currentTimeMillis()
-)
+){
+    @get:Exclude
+    val noNetwork: Boolean get() = state != USER_STATE_NO_NETWORK_OR_PHONE_OFF
+
+    @get:Exclude
+    val locationPermissionDenied: Boolean get() = state == USER_STATE_LOCATION_PERMISSION_DENIED
+
+    @get:Exclude
+    val loggedOut: Boolean get() = !session_active
+}
+
+const val USER_STATE_UNKNOWN = 0
+const val USER_STATE_NO_NETWORK_OR_PHONE_OFF = 1
+const val USER_STATE_LOCATION_PERMISSION_DENIED = 2

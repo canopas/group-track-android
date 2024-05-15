@@ -94,7 +94,7 @@ fun MemberDetailBottomSheetContent(
     }
 
     Column(modifier = Modifier.fillMaxHeight(0.9f)) {
-        UserInfoContent(userInfo, viewModel)
+        UserInfoContent(userInfo)
         Spacer(modifier = Modifier.height(16.dp))
         Divider(thickness = 1.dp, color = AppTheme.colorScheme.outline)
         Spacer(modifier = Modifier.height(10.dp))
@@ -475,7 +475,7 @@ fun Shimmer() {
 }
 
 @Composable
-fun UserInfoContent(userInfo: UserInfo, viewModel: MemberDetailViewModel) {
+private fun UserInfoContent(userInfo: UserInfo) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -484,7 +484,10 @@ fun UserInfoContent(userInfo: UserInfo, viewModel: MemberDetailViewModel) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            UserProfile(modifier = Modifier.size(54.dp), user = userInfo.user)
+            Column {
+                UserProfile(modifier = Modifier.size(40.dp), user = userInfo.user, )
+            }
+
 
             Column(
                 modifier = Modifier

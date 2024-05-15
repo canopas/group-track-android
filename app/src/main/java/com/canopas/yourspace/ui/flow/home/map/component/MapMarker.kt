@@ -18,6 +18,7 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.canopas.yourspace.data.models.location.ApiLocation
 import com.canopas.yourspace.data.models.user.ApiUser
+import com.canopas.yourspace.ui.component.MarkerUserProfile
 import com.canopas.yourspace.ui.component.UserProfile
 import com.canopas.yourspace.ui.theme.AppTheme
 import com.google.android.gms.maps.model.LatLng
@@ -78,7 +79,7 @@ fun MarkerContent(user: ApiUser, isSelected: Boolean, painter: AsyncImagePainter
             .padding(5.dp),
         contentAlignment = Alignment.Center
     ) {
-        UserProfile(
+        MarkerUserProfile(
             modifier = Modifier
                 .fillMaxSize(),
             user = user,
