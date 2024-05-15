@@ -163,6 +163,77 @@ object AppDestinations {
         }
     }
 
+    object LocateOnMap {
+        const val KEY_SELECTED_NAME = "place_name"
+
+        private const val PATH = "locate-on-map"
+        const val path =
+            "$PATH?$KEY_SELECTED_NAME={$KEY_SELECTED_NAME}"
+
+        fun setArgs(
+            placeName: String
+        ) = object : AppRoute {
+
+            override val arguments = listOf(
+                navArgument(KEY_SELECTED_NAME) {
+                    type = NavType.StringType
+                    nullable = true
+                }
+            )
+
+            override val path = "$PATH?$KEY_SELECTED_NAME=$placeName"
+        }
+    }
+
+    object ChoosePlaceName {
+        const val KEY_SELECTED_LAT = "lat"
+        const val KEY_SELECTED_LONG = "long"
+        const val KEY_SELECTED_NAME = "place_name"
+
+        private const val PATH = "choose-place-name"
+        const val path =
+            "$PATH?$KEY_SELECTED_LAT={$KEY_SELECTED_LAT}&$KEY_SELECTED_LONG={$KEY_SELECTED_LONG}&$KEY_SELECTED_NAME={$KEY_SELECTED_NAME}"
+
+        fun setArgs(
+            latitude: Double,
+            longitude: Double,
+            placeName: String = ""
+        ) = object : AppRoute {
+
+            override val arguments = listOf(
+                navArgument(KEY_SELECTED_LAT) { type = NavType.StringType },
+                navArgument(KEY_SELECTED_LONG) { type = NavType.StringType },
+                navArgument(KEY_SELECTED_NAME) {
+                    type = NavType.StringType
+                    nullable = true
+                }
+            )
+
+            override val path = "$PATH?$KEY_SELECTED_LAT=$latitude&$KEY_SELECTED_LONG=$longitude&$KEY_SELECTED_NAME=$placeName"
+        }
+    }
+
+    object EditPlace {
+        const val KEY_PLACE_ID = "placeId"
+
+        private const val PATH = "edit-place"
+        const val path = "$PATH/{$KEY_PLACE_ID}"
+
+        fun setArgs(placeId: String) = object : AppRoute {
+
+            override val arguments = listOf(
+                navArgument(KEY_PLACE_ID) { type = NavType.StringType }
+            )
+
+            override val path = "$PATH/$placeId"
+        }
+    }
+
+    val addNewPlace = object : AppRoute {
+        override val arguments: List<NamedNavArgument> = emptyList()
+        override val path: String = "add-new-place"
+    }
+
     object UserJourney {
         const val KEY_JOURNEY_ID = "journey_id"
         const val KEY_SELECTED_USER_ID = "selected_user_id"

@@ -92,6 +92,19 @@ class SpaceRepository @Inject constructor(
         return SpaceInfo(currentSpace, members)
     }
 
+    suspend fun getSpaceInfo(spaceId: String): SpaceInfo? {
+        val space = getSpace(spaceId) ?: return null
+        val members = spaceService.getMemberBySpaceId(space.id)
+            .map { members ->
+                members.mapNotNull { member ->
+                    val user = userService.getUser(member.user_id)
+                    user?.let { UserInfo(user, isLocationEnable = member.location_enabled) }
+                }
+            }.firstOrNull() ?: emptyList()
+
+        return SpaceInfo(space, members)
+    }
+
     suspend fun getCurrentSpace(): ApiSpace? {
         val spaceId = currentSpaceId
 
@@ -112,6 +125,9 @@ class SpaceRepository @Inject constructor(
         }
 
     suspend fun getSpace(spaceId: String): ApiSpace? = spaceService.getSpace(spaceId)
+
+    suspend fun getMemberBySpaceId(spaceId: String) =
+        spaceService.getMemberBySpaceId(spaceId).firstOrNull()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     suspend fun getMemberWithLocation(): Flow<List<UserInfo>> {

@@ -23,16 +23,19 @@ jobs:
       - name: Run Lint check
         env:
           MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
+          PLACE_API_KEY: ${{ secrets.PLACE_API_KEY }}
         run: ./gradlew ktlintCheck
 
       - name: Run Tests with Gradle
         env:
           MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
+          PLACE_API_KEY: ${{ secrets.PLACE_API_KEY }}
         run: ./gradlew test
 
       - name: Build with Gradle
         env:
           MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
+          PLACE_API_KEY: ${{ secrets.PLACE_API_KEY }}
           APKSIGN_KEYSTORE_BASE64: ${{ secrets.APKSIGN_KEYSTORE_BASE64 }}
           APKSIGN_KEYSTORE_PASS: ${{ secrets.APKSIGN_KEYSTORE_PASS }}
           APKSIGN_KEY_ALIAS: ${{ secrets.APKSIGN_KEY_ALIAS }}

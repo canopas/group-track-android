@@ -20,13 +20,21 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.canopas.yourspace.R
-import com.canopas.yourspace.domain.fcm.NotificationDataConst
 import com.canopas.yourspace.ui.component.AppAlertDialog
 import com.canopas.yourspace.ui.flow.auth.methods.SignInMethodViewModel
 import com.canopas.yourspace.ui.flow.auth.methods.SignInMethodsScreen
 import com.canopas.yourspace.ui.flow.auth.phone.EXTRA_RESULT_IS_NEW_USER
 import com.canopas.yourspace.ui.flow.auth.phone.SignInWithPhoneScreen
 import com.canopas.yourspace.ui.flow.auth.verification.PhoneVerificationScreen
+import com.canopas.yourspace.ui.flow.geofence.add.addnew.AddNewPlaceScreen
+import com.canopas.yourspace.ui.flow.geofence.add.locate.LocateOnMapScreen
+import com.canopas.yourspace.ui.flow.geofence.add.placename.ChoosePlaceNameScreen
+import com.canopas.yourspace.ui.flow.geofence.edit.EditPlaceScreen
+import com.canopas.yourspace.ui.flow.geofence.places.EXTRA_RESULT_PLACE_LATITUDE
+import com.canopas.yourspace.ui.flow.geofence.places.EXTRA_RESULT_PLACE_LONGITUDE
+import com.canopas.yourspace.ui.flow.geofence.places.EXTRA_RESULT_PLACE_NAME
+import com.canopas.yourspace.ui.flow.geofence.places.PlacesListScreen
+import com.canopas.yourspace.ui.flow.geofence.places.PlacesListViewModel
 import com.canopas.yourspace.ui.flow.home.home.HomeScreen
 import com.canopas.yourspace.ui.flow.home.map.journeyview.UserJourneyView
 import com.canopas.yourspace.ui.flow.home.space.create.CreateSpaceHomeScreen
@@ -53,7 +61,6 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val threadId = intent.getStringExtra(NotificationDataConst.KEY_THREAD_ID)
         setContent {
             CatchMeTheme {
                 // A surface container using the 'background' color from the theme
@@ -65,7 +72,7 @@ class MainActivity : ComponentActivity() {
                     MainApp(viewModel)
 
                     LaunchedEffect(Unit) {
-                        viewModel.handleIntentData(threadId)
+                        viewModel.handleIntentData(intent)
                     }
                 }
             }
@@ -75,9 +82,8 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         val viewModel = ViewModelProvider(this)[MainViewModel::class.java]
-        val threadId = intent.getStringExtra(NotificationDataConst.KEY_THREAD_ID)
-        viewModel.handleIntentData(threadId)
-        intent.extras?.clear()
+        viewModel.handleIntentData(intent)
+        intent?.extras?.clear()
     }
 }
 
@@ -85,16 +91,19 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainApp(viewModel: MainViewModel) {
     val navController = rememberNavController()
-    val sessionExpired by viewModel.sessionExpiredState.collectAsState()
+    val state by viewModel.state.collectAsState()
 
-    val initialRoute by viewModel.initialRoute.collectAsState()
-    if (sessionExpired) {
+    if (state.isSessionExpired) {
         SessionExpiredAlertPopup()
+    }
+
+    if (state.showSpaceNotFoundPopup) {
+        SpaceNotFoundPopup()
     }
 
     AppNavigator(navController = navController, viewModel.navActions)
 
-    NavHost(navController = navController, startDestination = initialRoute) {
+    NavHost(navController = navController, startDestination = state.initialRoute) {
         slideComposable(AppDestinations.intro.path) {
             IntroScreen()
         }
@@ -133,7 +142,7 @@ fun MainApp(viewModel: MainViewModel) {
         }
 
         slideComposable(AppDestinations.home.path) {
-            HomeScreen()
+            HomeScreen(state.verifyingSpace)
         }
 
         slideComposable(AppDestinations.createSpace.path) {
@@ -176,6 +185,51 @@ fun MainApp(viewModel: MainViewModel) {
             SupportScreen()
         }
 
+        slideComposable(AppDestinations.places.path) {
+            val placesListViewModel = hiltViewModel<PlacesListViewModel>()
+
+            val result = navController.currentBackStackEntry
+                ?.savedStateHandle?.get<Int>(KEY_RESULT)
+            result?.let {
+                val latitude = navController.currentBackStackEntry
+                    ?.savedStateHandle?.get<Double>(EXTRA_RESULT_PLACE_LATITUDE) ?: 0.0
+                val longitude = navController.currentBackStackEntry
+                    ?.savedStateHandle?.get<Double>(EXTRA_RESULT_PLACE_LONGITUDE) ?: 0.0
+                val placeName = navController.currentBackStackEntry
+                    ?.savedStateHandle?.get<String>(EXTRA_RESULT_PLACE_NAME) ?: ""
+                navController.currentBackStackEntry
+                    ?.savedStateHandle?.apply {
+                        remove<Int>(KEY_RESULT)
+                        remove<Double>(EXTRA_RESULT_PLACE_LATITUDE)
+                        remove<Double>(EXTRA_RESULT_PLACE_LONGITUDE)
+                        remove<String>(EXTRA_RESULT_PLACE_NAME)
+                    }
+
+                LaunchedEffect(key1 = result) {
+                    if (result == RESULT_OKAY) {
+                        placesListViewModel.showPlaceAddedPopup(latitude, longitude, placeName)
+                    }
+                }
+            }
+            PlacesListScreen()
+        }
+
+        slideComposable(AppDestinations.LocateOnMap.path) {
+            LocateOnMapScreen()
+        }
+
+        slideComposable(AppDestinations.ChoosePlaceName.path) {
+            ChoosePlaceNameScreen()
+        }
+
+        slideComposable(AppDestinations.EditPlace.path) {
+            EditPlaceScreen()
+        }
+
+        slideComposable(AppDestinations.addNewPlace.path) {
+            AddNewPlaceScreen()
+        }
+
         slideComposable(AppDestinations.UserJourney.path) {
             UserJourneyView()
         }
@@ -192,6 +246,21 @@ fun SessionExpiredAlertPopup() {
         confirmBtnText = stringResource(id = R.string.common_btn_ok),
         onConfirmClick = {
             viewModel.signOut()
+        },
+        properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
+    )
+}
+
+@Composable
+fun SpaceNotFoundPopup() {
+    val viewModel = hiltViewModel<MainViewModel>()
+
+    AppAlertDialog(
+        title = stringResource(id = R.string.common_space_not_found),
+        subTitle = stringResource(id = R.string.common_space_not_found_message),
+        confirmBtnText = stringResource(id = R.string.common_btn_ok),
+        onConfirmClick = {
+            viewModel.dismissSpaceNotFoundPopup()
         },
         properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
     )

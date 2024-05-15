@@ -58,6 +58,7 @@ class HomeScreenViewModelTest {
 
     private fun setUp() {
         whenever(userPreferences.currentUser).thenReturn(user1)
+        whenever(userPreferences.currentSpaceState).thenReturn(flowOf("space1"))
         viewModel = HomeScreenViewModel(
             navigator = navigator,
             locationManager = locationManager,
@@ -110,15 +111,14 @@ class HomeScreenViewModelTest {
     @Test
     fun `getAllSpace should arrange the spaces list to have current space at first position`() =
         runTest {
-            val result = listOf(space_info1, space_info2)
-            whenever(spaceRepository.currentSpaceId).thenReturn("space2")
+            val result = listOf(space_info2, space_info1)
+            whenever(userPreferences.currentSpaceState).thenReturn(flowOf("space1"))
+            whenever(spaceRepository.currentSpaceId).thenReturn("space1")
             whenever(spaceRepository.getAllSpaceInfo()).thenReturn(flowOf(result))
             setUp()
-
             with(viewModel.state.value) {
-                assert(spaces == listOf(space_info2, space_info1))
-                assert(selectedSpace == space_info2)
-                assert(selectedSpaceId == "space2")
+                assert(spaces == listOf(space_info1, space_info2))
+                assert(selectedSpaceId == "space1")
                 assert(!isLoadingSpaces)
             }
         }

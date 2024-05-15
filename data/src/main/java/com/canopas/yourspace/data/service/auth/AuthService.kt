@@ -95,6 +95,7 @@ class AuthService @Inject constructor(
     }
 
     fun signOut() {
+        locationManager.stopLocationTracking()
         currentUser = null
         currentUserSession = null
         userPreferences.isFCMRegistered = false

@@ -7,7 +7,7 @@ admin.initializeApp();
 setGlobalOptions({maxInstances: 5});
 
 exports.deleteuser = onDocumentDeleted("users/{userId}", async event => {
-    const snap =  event.data;
+    const snap = event.data;
     var userId = snap.data().id;
 
     try {
@@ -20,20 +20,20 @@ exports.deleteuser = onDocumentDeleted("users/{userId}", async event => {
             });
 
         await firebase_tools.firestore
-           .delete(`users/${userId}/user_sessions`, {
-               project: process.env.GCLOUD_PROJECT,
-               recursive: true,
-               yes: true,
-               force: true
-           });
+            .delete(`users/${userId}/user_sessions`, {
+                project: process.env.GCLOUD_PROJECT,
+                recursive: true,
+                yes: true,
+                force: true
+            });
 
         await firebase_tools.firestore
-             .delete(`users/${userId}/user_journeys`, {
-                 project: process.env.GCLOUD_PROJECT,
-                 recursive: true,
-                 yes: true,
-                 force: true
-             });
+            .delete(`users/${userId}/user_journeys`, {
+                project: process.env.GCLOUD_PROJECT,
+                recursive: true,
+                yes: true,
+                force: true
+            });
 
         console.log('User collections deleted successfully.', userId);
     } catch (error) {
@@ -43,7 +43,7 @@ exports.deleteuser = onDocumentDeleted("users/{userId}", async event => {
 });
 
 exports.deleteMessages = onDocumentDeleted("space_thread/{threadId}", async event => {
-    const snap =  event.data;
+    const snap = event.data;
     var threadId = snap.data().id;
 
     try {
@@ -55,7 +55,7 @@ exports.deleteMessages = onDocumentDeleted("space_thread/{threadId}", async even
                 force: true
             });
 
-       console.log('Thread messages deleted successfully.', userId);
+        console.log('Thread messages deleted successfully.', userId);
     } catch (error) {
         console.error('Error deleting thread messages:', error);
         throw new Error('Failed to delete thread');
@@ -66,13 +66,13 @@ exports.sendNotification = onDocumentCreated("space_threads/{threadId}/thread_me
 
     const snap = event.data.data();
     const message = snap.message;
-    const senderId =  snap.sender_id;
-    const threadId =  event.params.threadId;
+    const senderId = snap.sender_id;
+    const threadId = event.params.threadId;
 
     var senderSnapShot = await admin.firestore().collection('users').doc(senderId).get();
     if (!senderSnapShot.exists) {
-          console.log('Sender does not exist');
-          return;
+        console.log('Sender does not exist');
+        return;
     }
     const senderData = senderSnapShot.data();
     const senderName = senderData.first_name + ' ' + senderData.last_name;
@@ -80,8 +80,8 @@ exports.sendNotification = onDocumentCreated("space_threads/{threadId}/thread_me
 
     var documentSnapshot = await admin.firestore().collection('space_threads').doc(threadId).get();
     if (!documentSnapshot.exists) {
-          console.log('Thread does not exist');
-          return;
+        console.log('Thread does not exist');
+        return;
     }
 
     const documentData = documentSnapshot.data();
@@ -91,7 +91,7 @@ exports.sendNotification = onDocumentCreated("space_threads/{threadId}/thread_me
     const membersPromises = memberIds.map(async memberId => {
         const memberSnapshot = await admin.firestore().collection('users').doc(memberId).get();
         if (!memberSnapshot.exists) {
-           throw new Error(`Member with ID ${memberId} does not exist`);
+            throw new Error(`Member with ID ${memberId} does not exist`);
         }
         return memberSnapshot.data();
     });
@@ -106,95 +106,206 @@ exports.sendNotification = onDocumentCreated("space_threads/{threadId}/thread_me
     const groupName = remainingCount > 0 ? `${firstTwoNames} +${remainingCount}` : firstTwoNames;
 
     const filteredTokens = members.map(member => {
-           return member.fcm_token;
+        return member.fcm_token;
     }).filter(token => token !== undefined);
 
     const isGroup = memberIds.length > 1;
 
     if (filteredTokens.length > 0) {
         const payload = {
-             tokens: filteredTokens,
-             notification: {
-                   title: senderName,
-                   body: message,
-                },
-             data : {
-                   senderProfileUrl: senderProfile,
-                   senderId: senderId,
-                   groupName: groupName,
-                   isGroup: `${isGroup}`,
-                   threadId: threadId,
-                   type: 'chat'
-                }
+            tokens: filteredTokens,
+            notification: {
+                title: senderName,
+                body: message,
+            },
+            data: {
+                senderProfileUrl: senderProfile,
+                senderId: senderId,
+                groupName: groupName,
+                isGroup: `${isGroup}`,
+                threadId: threadId,
+                type: 'chat'
+            }
         };
 
         admin.messaging().sendMulticast(payload).then((response) => {
-                 console.log("Successfully sent message:", response);
-                 return {success: true};
-           }).catch((error) => {
-                  console.log("Failed to send message:", error.code);
-                  return {error: error.code};
-           });
+            console.log("Successfully sent message:", response);
+            return {
+                success: true
+            };
+        }).catch((error) => {
+            console.log("Failed to send message:", error.code);
+            return {
+                error: error.code
+            };
+        });
     }
 
 });
 
 exports.sendSupportRequest = onCall(async (request) => {
 
-     const db = admin.firestore();
-     var data = request.data;
+    const db = admin.firestore();
+    var data = request.data;
 
-     await db.collection('support_requests')
-     .add({
-        to: ["radhika.s@canopas.com","megh.l@canopas.com"],
-        message: {
-            subject: "YourSpace Support Request",
-            html: `
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-                <meta name="HandheldFriendly" content="true">
-                <style>
-                    table {
-                        width: 80%;
-                        border-collapse: collapse;
-                    }
-
-                    table, th, td {
-                        border: 1px solid black;
-                    }
-
-                    th {
-                        font-weight: bold;
-                    }
-
-                    th, td {
-                        height: 30px;
-                        text-align: center;
-                    }
-                </style>
-            </head>
-            <body>
-            <br>
-            <table>
-                <tbody>
-                    <tr>
-                        ${Object.entries(data).map((entry, index) => {
-                            const key = entry[0];
-                            const value = Array.isArray(entry[1]) ? entry[1].join("</p><p>") : entry[1]; // Handle arrays specially
-                            return `<tr><td>${key}</td><td>${value}</td></tr>`;
-                        }).join('')}
-                    </tr>
-                </tbody>
-            </table>
-            </body>
-            </html>
-            `,
-        },
-     }).then(() => console.log('Queued email for delivery!'));
+    await db.collection('support_requests')
+        .add({
+            to: ["radhika.s@canopas.com", "megh.l@canopas.com"],
+            template: {
+                name: "support_request",
+                data: {
+                    request: data
+                },
+            },
+        }).then(() => console.log('Queued email for delivery!'));
 
 });
 
+exports.sendNewPlaceNotification = onCall(async (request) => {
+
+    var data = request.data;
+    const spaceId = request.data.spaceId;
+    const placeName = request.data.placeName;
+    const createdBy = request.data.createdBy;
+    const spaceMemberIds = request.data.spaceMemberIds;
+
+    var createdBySnapShot = await admin.firestore().collection('users').doc(createdBy).get();
+    if (!createdBySnapShot.exists) {
+        console.log('Created By does not exist');
+        return;
+    }
+    const creatorData = createdBySnapShot.data();
+
+    const memberIds = spaceMemberIds.filter(memberId => memberId !== createdBy);
+
+    const membersPromises = memberIds.map(async memberId => {
+        const memberSnapshot = await admin.firestore().collection('users').doc(memberId).get();
+        if (!memberSnapshot.exists) {
+            throw new Error(`Member with ID ${memberId} does not exist`);
+        }
+        return memberSnapshot.data();
+    });
+
+    const members = await Promise.all(membersPromises);
+
+    const filteredTokens = members.map(member => {
+        return member.fcm_token;
+    }).filter(token => token !== undefined);
+
+    if (filteredTokens.length > 0) {
+        const payload = {
+            tokens: filteredTokens,
+            notification: {
+                title: 'New Place Added!',
+                body: `${creatorData.first_name} added a new place called ${placeName}`
+            },
+            data: {
+                spaceId: spaceId,
+                type: 'new_place_added'
+            }
+        };
+
+        admin.messaging().sendMulticast(payload).then((response) => {
+            console.log("Successfully sent place notification:", response);
+            return {
+                success: true
+            };
+        }).catch((error) => {
+            console.log("Failed to send place notification:", error.code);
+            return {
+                error: error.code
+            };
+        });
+    }
+
+
+});
+
+
+exports.sendGeoFenceNotification = onCall(async (request) => {
+
+            var data = request.data;
+            const GEOFENCE_TRANSITION_ENTER = 1;
+            const GEOFENCE_TRANSITION_EXIT = 2;
+
+            const placeId = data.placeId;
+            const eventType = data.eventType;
+            const spaceId = data.spaceId;
+            const eventBy = data.eventBy;
+            const message = data.message;
+
+            var spaceSnapShot = await admin.firestore().collection('spaces').doc(spaceId).get();
+            if (!spaceSnapShot.exists) {
+                console.log('Space does not exist');
+                return;
+            }
+
+            const spaceData = spaceSnapShot.data();
+
+            const memberDocumentSnapshot = await admin.firestore().collection('spaces').doc(spaceId).collection("space_members").get();
+
+            const usersPromises = memberDocumentSnapshot.docs.map(async documentSnapshot => {
+                    const userId = documentSnapshot.data().user_id;
+                    if (userId == eventBy) return null;
+                    const userSnapshot = await admin.firestore().collection('users').doc(userId).get();
+                    if (!userSnapshot.exists) {
+                        return null;
+                    }
+
+                    const userData = userSnapshot.data();
+                    const memberSettingsDocRef = admin.firestore().collection('spaces').doc(spaceId)
+                        .collection('space_places').doc(placeId)
+                        .collection('place_settings_by_members').doc(userId);
+
+                    const memberSettingsSnapshot = await memberSettingsDocRef.get();
+                    if (!memberSettingsSnapshot.exists) {
+                        return null;
+                    }
+                    const memberSettingsData = memberSettingsSnapshot.data();
+
+                    if (memberSettingsData.alert_enable &&
+                        ((eventType == GEOFENCE_TRANSITION_ENTER && memberSettingsData.arrival_alert_for.includes(eventBy)) ||
+                            (eventType == GEOFENCE_TRANSITION_EXIT && memberSettingsData.leave_alert_for.includes(eventBy)))) {
+
+                            return userSnapshot.data();
+                        } else {
+                            return null;
+                        }
+
+                    });
+
+                const users = (await Promise.all(usersPromises)).filter(user => user);
+
+                const filteredTokens = users
+                    .filter(user => user.fcm_token !== undefined)
+                    .map(member => member.fcm_token);
+
+                if (filteredTokens.length > 0) {
+                    const payload = {
+                        tokens: filteredTokens,
+                        notification: {
+                            title: spaceData.name,
+                            body: message
+                        },
+                        data: {
+                            spaceId: spaceId,
+                            placeId: placeId,
+                            eventBy: eventBy,
+                            type: 'geofence'
+                        }
+                    };
+
+                    admin.messaging().sendMulticast(payload).then((response) => {
+                        console.log("Successfully sent geofence notification:", response);
+                        return {
+                            success: true
+                        };
+                    }).catch((error) => {
+                        console.log("Failed to send geofence notification:", error.code);
+                        return {
+                            error: error.code
+                        };
+                    });
+                }
+
+            });

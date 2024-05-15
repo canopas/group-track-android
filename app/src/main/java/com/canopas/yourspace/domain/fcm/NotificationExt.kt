@@ -45,7 +45,7 @@ fun Context.messageNotificationBuilder(
         replyActionPendingIntent(this, notificationId, threadId ?: "")
     ).addRemoteInput(remoteInput).build()
 
-    return NotificationCompat.Builder(this, CHANNEL_YOURSPACE)
+    return NotificationCompat.Builder(this, YOURSPACE_CHANNEL_MESSAGES)
         .setSmallIcon(R.drawable.app_logo)
         .setContentTitle(title)
         .setContentText(body)
@@ -59,7 +59,8 @@ fun Context.messageNotificationBuilder(
 
 private fun clickActionPendingIntent(context: Context, threadId: String?): PendingIntent {
     val intent = Intent(context, MainActivity::class.java).apply {
-        putExtra(NotificationDataConst.KEY_THREAD_ID, threadId)
+        putExtra(NotificationChatConst.KEY_THREAD_ID, threadId)
+        putExtra(KEY_NOTIFICATION_TYPE, NotificationChatConst.NOTIFICATION_TYPE_CHAT)
         flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
     }
     val pendingIntentFlag =
