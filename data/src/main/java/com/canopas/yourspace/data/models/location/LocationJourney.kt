@@ -1,10 +1,12 @@
 package com.canopas.yourspace.data.models.location
 
 import android.location.Location
-import com.google.errorprone.annotations.Keep
+import androidx.annotation.Keep
+import com.squareup.moshi.JsonClass
 import java.util.UUID
 
 @Keep
+@JsonClass(generateAdapter = true)
 data class LocationJourney(
     val id: String = UUID.randomUUID().toString(),
     val user_id: String = "",
@@ -15,14 +17,20 @@ data class LocationJourney(
     val route_distance: Double? = null,
     val route_duration: Long? = null,
     val current_location_duration: Long? = null,
-    val created_at: Long? = System.currentTimeMillis()
+    val created_at: Long? = System.currentTimeMillis(),
+    val persistent_location_date: Long? = null
 )
 
 fun LocationJourney.isSteadyLocation(): Boolean {
     return to_latitude == null && to_longitude == null
 }
 
-fun LocationJourney.toLocation() = Location("").apply {
-    latitude = this@toLocation.from_latitude
-    longitude = this@toLocation.from_longitude
+fun LocationJourney.toLocationFromSteadyJourney() = Location("").apply {
+    latitude = this@toLocationFromSteadyJourney.from_latitude
+    longitude = this@toLocationFromSteadyJourney.from_longitude
+}
+
+fun LocationJourney.toLocationFromMovingJourney() = Location("").apply {
+    latitude = this@toLocationFromMovingJourney.to_latitude ?: 0.0
+    longitude = this@toLocationFromMovingJourney.to_longitude ?: 0.0
 }

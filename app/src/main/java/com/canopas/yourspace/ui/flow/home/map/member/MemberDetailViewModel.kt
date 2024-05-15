@@ -6,6 +6,8 @@ import com.canopas.yourspace.data.models.location.LocationJourney
 import com.canopas.yourspace.data.models.user.UserInfo
 import com.canopas.yourspace.data.service.location.LocationJourneyService
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.ui.navigation.AppDestinations
+import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,7 +18,8 @@ import javax.inject.Inject
 @HiltViewModel
 class MemberDetailViewModel @Inject constructor(
     private val journeyService: LocationJourneyService,
-    private val appDispatcher: AppDispatcher
+    private val appDispatcher: AppDispatcher,
+    private val navigator: AppNavigator
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(MemberDetailState())
@@ -25,14 +28,22 @@ class MemberDetailViewModel @Inject constructor(
     fun fetchUserLocationHistory(
         from: Long,
         to: Long,
-        userInfo: UserInfo? = _state.value.selectedUser
+        userInfo: UserInfo? = _state.value.selectedUser,
+        refresh: Boolean = false
     ) = viewModelScope.launch(appDispatcher.IO) {
         _state.emit(
             _state.value.copy(
                 selectedUser = userInfo,
                 selectedTimeFrom = from,
                 selectedTimeTo = to,
-                locations = listOf()
+                locations = if (_state.value.selectedUser != userInfo ||
+                    _state.value.selectedTimeTo != to ||
+                    _state.value.selectedTimeFrom != from
+                ) {
+                    listOf()
+                } else {
+                    _state.value.locations
+                }
             )
         )
         loadLocations()
@@ -52,7 +63,8 @@ class MemberDetailViewModel @Inject constructor(
             )
 
             val locationJourneys = (state.value.locations + locations).distinctBy { it.id }
-            val hasMoreItems = !state.value.locations.map { it.id }.containsAll(locations.map { it.id })
+            val hasMoreItems =
+                !state.value.locations.map { it.id }.containsAll(locations.map { it.id })
 
             _state.value = _state.value.copy(
                 locations = locationJourneys,
@@ -70,6 +82,17 @@ class MemberDetailViewModel @Inject constructor(
             if (it.hasMoreLocations && !it.isLoading) {
                 loadLocations()
             }
+        }
+    }
+
+    fun navigateToUserJourneyDetail(journeyId: String? = null) {
+        state.value.selectedUser?.let { selectedUser ->
+            navigator.navigateTo(
+                AppDestinations.UserJourney.args(
+                    selectedUser.user.id,
+                    journeyId ?: ""
+                ).path
+            )
         }
     }
 }

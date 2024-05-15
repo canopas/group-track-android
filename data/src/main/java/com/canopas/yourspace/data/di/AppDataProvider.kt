@@ -1,6 +1,7 @@
 package com.canopas.yourspace.data.di
 
 import android.content.Context
+import com.canopas.yourspace.data.storage.room.LocationTableDatabase
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.libraries.places.api.Places
@@ -34,6 +35,11 @@ class AppDataProvider {
     @Singleton
     fun provideFirebaseFunctions(): FirebaseFunctions =
         FirebaseFunctions.getInstance()
+
+    @Provides
+    @Singleton
+    fun provideLocationTableDatabase(@ApplicationContext context: Context): LocationTableDatabase =
+        LocationTableDatabase.getInstance(context)
 
     @Provides
     @Singleton

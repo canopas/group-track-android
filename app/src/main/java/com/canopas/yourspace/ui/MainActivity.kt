@@ -36,6 +36,7 @@ import com.canopas.yourspace.ui.flow.geofence.places.EXTRA_RESULT_PLACE_NAME
 import com.canopas.yourspace.ui.flow.geofence.places.PlacesListScreen
 import com.canopas.yourspace.ui.flow.geofence.places.PlacesListViewModel
 import com.canopas.yourspace.ui.flow.home.home.HomeScreen
+import com.canopas.yourspace.ui.flow.home.map.journeyview.UserJourneyView
 import com.canopas.yourspace.ui.flow.home.space.create.CreateSpaceHomeScreen
 import com.canopas.yourspace.ui.flow.home.space.create.SpaceInvite
 import com.canopas.yourspace.ui.flow.home.space.join.JoinSpaceScreen
@@ -78,7 +79,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    override fun onNewIntent(intent: Intent?) {
+    override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         val viewModel = ViewModelProvider(this)[MainViewModel::class.java]
         viewModel.handleIntentData(intent)
@@ -227,6 +228,10 @@ fun MainApp(viewModel: MainViewModel) {
 
         slideComposable(AppDestinations.addNewPlace.path) {
             AddNewPlaceScreen()
+        }
+
+        slideComposable(AppDestinations.UserJourney.path) {
+            UserJourneyView()
         }
     }
 }

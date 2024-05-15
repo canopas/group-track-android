@@ -263,4 +263,5 @@
         <item>Restaurant</item>
     </string-array>
 
+    <string name="user_journey_view_today_text">Today</string>
 </resources>

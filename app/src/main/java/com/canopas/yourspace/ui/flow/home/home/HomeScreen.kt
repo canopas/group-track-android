@@ -65,7 +65,7 @@ fun HomeScreen(verifyingSpace: Boolean) {
     }
 
     LaunchedEffect(Unit) {
-        if (context.isBatteryOptimizationEnabled) {
+        if (context.isBatteryOptimizationEnabled && context.isBackgroundLocationPermissionGranted) {
             viewModel.showBatteryOptimizationDialog()
         }
     }
