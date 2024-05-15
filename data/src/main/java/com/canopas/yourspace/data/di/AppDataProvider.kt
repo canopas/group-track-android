@@ -2,7 +2,6 @@ package com.canopas.yourspace.data.di
 
 import android.content.Context
 import com.canopas.yourspace.data.storage.room.LocationTableDatabase
-import android.content.Context
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.libraries.places.api.Places
