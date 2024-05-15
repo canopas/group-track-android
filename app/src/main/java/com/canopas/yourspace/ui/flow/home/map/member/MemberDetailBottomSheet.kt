@@ -8,7 +8,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,7 +31,6 @@ import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -229,10 +227,10 @@ private fun LocationHistoryItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .clickable(onClick = {
-                viewModel.navigateToUserJourneyDetail(location.id)
-            }),
+            .padding(horizontal = 16.dp),
+//            .clickable(onClick = {
+//                viewModel.navigateToUserJourneyDetail(location.id)
+//            })
         horizontalArrangement = if (index % 2 == 0) Arrangement.Start else Arrangement.End,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -510,26 +508,26 @@ fun UserInfoContent(userInfo: UserInfo, viewModel: MemberDetailViewModel) {
             }
         }
 
-        IconButton(
-            modifier = Modifier
-                .size(40.dp)
-                .background(
-                    color = AppTheme.colorScheme.primary,
-                    shape = CircleShape
-                ),
-            onClick = {
-                viewModel.navigateToUserJourneyDetail()
-            }
-        ) {
-            Icon(
-                painterResource(id = R.drawable.ic_location_journey),
-                contentDescription = "",
-                tint = AppTheme.colorScheme.surface,
-                modifier = Modifier
-                    .size(36.dp)
-                    .padding(4.dp)
-            )
-        }
+//        IconButton(
+//            modifier = Modifier
+//                .size(40.dp)
+//                .background(
+//                    color = AppTheme.colorScheme.primary,
+//                    shape = CircleShape
+//                ),
+//            onClick = {
+//                viewModel.navigateToUserJourneyDetail()
+//            }
+//        ) {
+//            Icon(
+//                painterResource(id = R.drawable.ic_location_journey),
+//                contentDescription = "",
+//                tint = AppTheme.colorScheme.surface,
+//                modifier = Modifier
+//                    .size(36.dp)
+//                    .padding(4.dp)
+//            )
+//        }
     }
 }
 

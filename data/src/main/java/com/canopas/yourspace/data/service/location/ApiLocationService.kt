@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
-import java.util.Date
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -87,7 +86,7 @@ class ApiLocationService @Inject constructor(
     ) {
         val data = locationTableDatabase.locationTableDao().getLocationData(userId)
         if (data == null) {
-          //  Timber.d("XXX insert latestLocation")
+            //  Timber.d("XXX insert latestLocation")
             locationTableDatabase.locationTableDao().insertLocationData(
                 LocationTable(
                     userId = userId,
@@ -95,7 +94,7 @@ class ApiLocationService @Inject constructor(
                 )
             )
         } else {
-           // Timber.d("XXX update latestLocation")
+            // Timber.d("XXX update latestLocation")
             locationTableDatabase.locationTableDao().updateLocationTable(
                 data.copy(latestLocation = converters.locationToString(location))
             )

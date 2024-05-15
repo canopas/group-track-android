@@ -13,7 +13,6 @@ import com.canopas.yourspace.data.service.location.LocationJourneyService
 import com.canopas.yourspace.data.service.location.LocationManager
 import com.canopas.yourspace.data.service.user.ApiUserService
 import com.canopas.yourspace.data.utils.AppDispatcher
-import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppDestinations.UserJourney.KEY_JOURNEY_ID
 import com.canopas.yourspace.ui.navigation.AppDestinations.UserJourney.KEY_SELECTED_USER_ID
 import com.google.android.gms.maps.model.LatLng
@@ -22,7 +21,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.util.Calendar
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -85,7 +83,9 @@ class UserJourneyViewModel @Inject constructor(
 
             val apiLocations = if (journey.isSteadyLocation().not()) {
                 apiLocationService.getLocationsBetweenTime(
-                    userId, createdTime, createdTime + (journey.route_duration ?: 0)
+                    userId,
+                    createdTime,
+                    createdTime + (journey.route_duration ?: 0)
                 ) ?: emptyList()
             } else {
                 emptyList()
@@ -172,7 +172,7 @@ data class UserJourneyState(
     val journeyWithLocation: JourneyWithLocations? = null,
     val journeyWithLocations: List<JourneyWithLocations> = emptyList(),
     val cameraTarget: LatLng? = null,
-    val error: String? = null,
+    val error: String? = null
 )
 
 data class JourneyWithLocations(

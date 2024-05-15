@@ -172,7 +172,7 @@ object AppDestinations {
 
         fun args(
             selectedUserId: String,
-            journeyId: String,
+            journeyId: String
         ) = object : AppRoute {
 
             override val arguments = listOf(
@@ -185,7 +185,6 @@ object AppDestinations {
             )
 
             override val path = "$PATH/$selectedUserId?$KEY_JOURNEY_ID=$journeyId"
-
         }
     }
 }

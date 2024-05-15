@@ -36,9 +36,14 @@ class MemberDetailViewModel @Inject constructor(
                 selectedUser = userInfo,
                 selectedTimeFrom = from,
                 selectedTimeTo = to,
-                locations = if (_state.value.selectedUser != userInfo
-                    || _state.value.selectedTimeTo != to
-                    || _state.value.selectedTimeFrom != from) listOf() else _state.value.locations
+                locations = if (_state.value.selectedUser != userInfo ||
+                    _state.value.selectedTimeTo != to ||
+                    _state.value.selectedTimeFrom != from
+                ) {
+                    listOf()
+                } else {
+                    _state.value.locations
+                }
             )
         )
         loadLocations()
@@ -54,7 +59,7 @@ class MemberDetailViewModel @Inject constructor(
                 _state.value.selectedUser?.user?.id ?: "",
                 _state.value.selectedTimeFrom ?: 0,
                 _state.value.locations.lastOrNull()?.created_at ?: _state.value.selectedTimeTo
-                ?: 0
+                    ?: 0
             )
 
             val locationJourneys = (state.value.locations + locations).distinctBy { it.id }
@@ -84,7 +89,8 @@ class MemberDetailViewModel @Inject constructor(
         state.value.selectedUser?.let { selectedUser ->
             navigator.navigateTo(
                 AppDestinations.UserJourney.args(
-                    selectedUser.user.id, journeyId ?: "",
+                    selectedUser.user.id,
+                    journeyId ?: ""
                 ).path
             )
         }
