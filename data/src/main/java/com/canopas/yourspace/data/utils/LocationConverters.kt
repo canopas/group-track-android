@@ -16,7 +16,7 @@ import javax.inject.Inject
  *
  * Similarly, converting ApiLocation to String and vice versa
  * */
-class Converters @Inject constructor() {
+class LocationConverters @Inject constructor() {
 
     private val moshi = Moshi.Builder().addLast(KotlinJsonAdapterFactory()).build()
     private val type = Types.newParameterizedType(List::class.java, ApiLocation::class.java)

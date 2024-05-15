@@ -28,6 +28,7 @@ import com.canopas.yourspace.ui.flow.auth.phone.EXTRA_RESULT_IS_NEW_USER
 import com.canopas.yourspace.ui.flow.auth.phone.SignInWithPhoneScreen
 import com.canopas.yourspace.ui.flow.auth.verification.PhoneVerificationScreen
 import com.canopas.yourspace.ui.flow.home.home.HomeScreen
+import com.canopas.yourspace.ui.flow.home.map.journeyview.UserJourneyView
 import com.canopas.yourspace.ui.flow.home.space.create.CreateSpaceHomeScreen
 import com.canopas.yourspace.ui.flow.home.space.create.SpaceInvite
 import com.canopas.yourspace.ui.flow.home.space.join.JoinSpaceScreen
@@ -173,6 +174,10 @@ fun MainApp(viewModel: MainViewModel) {
 
         slideComposable(AppDestinations.contactSupport.path) {
             SupportScreen()
+        }
+
+        slideComposable(AppDestinations.UserJourney.path) {
+            UserJourneyView()
         }
     }
 }

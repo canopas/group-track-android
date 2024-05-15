@@ -54,6 +54,7 @@ import com.canopas.yourspace.data.models.space.ApiSpace
 import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.utils.Config
 import com.canopas.yourspace.ui.component.AppAlertDialog
+import com.canopas.yourspace.ui.component.AppProgressIndicator
 import com.canopas.yourspace.ui.component.motionClickEvent
 import com.canopas.yourspace.ui.theme.AppTheme
 
@@ -119,16 +120,8 @@ private fun SettingsContent(modifier: Modifier) {
             )
         }
 
-        state.selectedSpace?.let { space ->
-            SpaceSettingsContent(space) {
-                viewModel.navigateToSpaceSettings()
-            }
-            Divider(
-                modifier = Modifier
-                    .padding(bottom = 16.dp)
-                    .fillMaxWidth(),
-                color = AppTheme.colorScheme.outline
-            )
+        SpaceSettingsContent(state.spaces, state.loadingSpaces) {
+            viewModel.navigateToSpaceSettings(it)
         }
 
         OtherSettingsContent(viewModel)
@@ -201,34 +194,58 @@ private fun openUrl(context: Activity, url: String) {
 
 @Composable
 private fun SpaceSettingsContent(
-    space: ApiSpace,
-    openSpaceSettings: () -> Unit
+    spaces: List<ApiSpace>,
+    loading: Boolean,
+    openSpaceSettings: (String) -> Unit
 ) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .motionClickEvent {
-                openSpaceSettings()
-            }
-            .padding(bottom = 16.dp)
-            .padding(horizontal = 16.dp)
-    ) {
+    Row(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = stringResource(id = R.string.setting_space_settings, space.name),
+            text = stringResource(id = R.string.setting_spaces),
             style = AppTheme.appTypography.header3,
             color = AppTheme.colorScheme.textPrimary,
             textAlign = TextAlign.Start,
             modifier = Modifier
-                .weight(1f)
+                .padding(start = 16.dp, bottom = 16.dp, end = 10.dp)
         )
-        Icon(
-            Icons.Default.KeyboardArrowRight,
-            contentDescription = "",
-            modifier = Modifier.padding(horizontal = 8.dp),
-            tint = AppTheme.colorScheme.textSecondary
-        )
+        if (loading) {
+            AppProgressIndicator()
+        }
     }
+
+    spaces.forEach { space ->
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .motionClickEvent {
+                    openSpaceSettings(space.id)
+                }
+                .padding(bottom = 16.dp)
+                .padding(horizontal = 16.dp)
+        ) {
+            Text(
+                text = space.name,
+                style = AppTheme.appTypography.subTitle2,
+                color = AppTheme.colorScheme.textPrimary,
+                textAlign = TextAlign.Start,
+                modifier = Modifier
+                    .weight(1f)
+            )
+            Icon(
+                Icons.Default.KeyboardArrowRight,
+                contentDescription = "",
+                modifier = Modifier.padding(horizontal = 8.dp),
+                tint = AppTheme.colorScheme.textSecondary
+            )
+        }
+    }
+
+    Divider(
+        modifier = Modifier
+            .padding(bottom = 16.dp)
+            .fillMaxWidth(),
+        color = AppTheme.colorScheme.outline
+    )
 }
 
 @Composable

@@ -14,17 +14,17 @@ data class LocationTable(
     val userId: String = "",
 
     @ColumnInfo(name = "latest_location")
-    val latestLocation: String? = null,
+    val latestLocation: String? = null, // last ApiLocation
 
     @ColumnInfo(name = "last_five_minutes_locations")
-    val lastFiveMinutesLocations: String? = null,
+    val lastFiveMinutesLocations: String? = null, // last 5 min ApiLocations
 
     @ColumnInfo(name = "last_steady_location")
-    val lastSteadyLocation: String? = null,
+    val lastSteadyLocation: String? = null, // last steady journey
 
     @ColumnInfo(name = "last_moving_location")
-    val lastMovingLocation: String? = null,
+    val lastMovingLocation: String? = null, // last moving journey
 
     @ColumnInfo(name = "last_location_journey")
-    val lastLocationJourney: String? = null
+    val lastLocationJourney: String? = null // last journey
 )

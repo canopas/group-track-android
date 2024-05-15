@@ -28,15 +28,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.outlined.Refresh
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -65,6 +62,7 @@ import com.canopas.yourspace.data.models.location.isSteadyLocation
 import com.canopas.yourspace.data.models.user.UserInfo
 import com.canopas.yourspace.domain.utils.getAddress
 import com.canopas.yourspace.ui.component.AppProgressIndicator
+import com.canopas.yourspace.ui.component.ShowDatePicker
 import com.canopas.yourspace.ui.component.UserProfile
 import com.canopas.yourspace.ui.component.reachedBottom
 import com.canopas.yourspace.ui.theme.AppTheme
@@ -96,7 +94,7 @@ fun MemberDetailBottomSheetContent(
     }
 
     Column(modifier = Modifier.fillMaxHeight(0.9f)) {
-        UserInfoContent(userInfo)
+        UserInfoContent(userInfo, viewModel)
         Spacer(modifier = Modifier.height(16.dp))
         Divider(thickness = 1.dp, color = AppTheme.colorScheme.outline)
         Spacer(modifier = Modifier.height(10.dp))
@@ -110,7 +108,7 @@ fun MemberDetailBottomSheetContent(
             calendar.set(Calendar.HOUR_OF_DAY, 0)
             val timestamp = calendar.timeInMillis
             calendar.set(Calendar.HOUR_OF_DAY, 23)
-            viewModel.fetchUserLocationHistory(from = timestamp, to = calendar.timeInMillis)
+            viewModel.fetchUserLocationHistory(from = timestamp, to = calendar.timeInMillis, refresh = true)
         }
         LocationHistory()
     }
@@ -157,7 +155,8 @@ fun LocationHistory() {
                             location,
                             previousLocationJourney,
                             index,
-                            isLastItem = index == locations.lastIndex
+                            isLastItem = index == locations.lastIndex,
+                            viewModel
                         )
                     }
 
@@ -207,7 +206,8 @@ private fun LocationHistoryItem(
     location: LocationJourney,
     previousLocationJourney: LocationJourney?,
     index: Int,
-    isLastItem: Boolean
+    isLastItem: Boolean,
+    viewModel: MemberDetailViewModel
 ) {
     val context = LocalContext.current
     var fromAddress by remember { mutableStateOf("") }
@@ -228,6 +228,9 @@ private fun LocationHistoryItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
+//            .clickable(onClick = {
+//                viewModel.navigateToUserJourneyDetail(location.id)
+//            })
         horizontalArrangement = if (index % 2 == 0) Arrangement.Start else Arrangement.End,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -433,42 +436,6 @@ object PastOrPresentSelectableDates : SelectableDates {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ShowDatePicker(
-    selectedTimestamp: Long? = null,
-    confirmButtonClick: (Long) -> Unit,
-    dismissButtonClick: () -> Unit
-) {
-    val calendar = Calendar.getInstance()
-
-    val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = selectedTimestamp ?: calendar.timeInMillis,
-        selectableDates = PastOrPresentSelectableDates
-    )
-    DatePickerDialog(
-        onDismissRequest = {},
-        confirmButton = {
-            TextButton(onClick = {
-                confirmButtonClick(
-                    datePickerState.selectedDateMillis ?: calendar.timeInMillis
-                )
-            }) {
-                Text(text = "Confirm")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = dismissButtonClick) {
-                Text(text = "Cancel")
-            }
-        }
-    ) {
-        DatePicker(
-            state = datePickerState
-        )
-    }
-}
-
 @Composable
 fun Shimmer() {
     val gradient = listOf(
@@ -508,53 +475,57 @@ fun Shimmer() {
 }
 
 @Composable
-fun UserInfoContent(userInfo: UserInfo) {
+fun UserInfoContent(userInfo: UserInfo, viewModel: MemberDetailViewModel) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        UserProfile(modifier = Modifier.size(54.dp), user = userInfo.user)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            UserProfile(modifier = Modifier.size(54.dp), user = userInfo.user)
 
-        Column(
-            modifier = Modifier
-                .padding(start = 16.dp)
-                .weight(1f),
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = userInfo.user.fullName,
-                style = AppTheme.appTypography.header3,
-                maxLines = 1
-            )
-            if (!userInfo.isLocationEnable) {
+            Column(
+                modifier = Modifier
+                    .padding(start = 16.dp),
+                verticalArrangement = Arrangement.Center
+            ) {
                 Text(
-                    text = stringResource(id = R.string.map_user_item_location_off),
-                    style = AppTheme.appTypography.label1.copy(
-                        color = Color.Red,
-                        fontWeight = FontWeight.Normal
-                    )
+                    text = userInfo.user.fullName,
+                    style = AppTheme.appTypography.header3,
+                    maxLines = 1
                 )
+                if (!userInfo.isLocationEnable) {
+                    Text(
+                        text = stringResource(id = R.string.map_user_item_location_off),
+                        style = AppTheme.appTypography.label1.copy(
+                            color = Color.Red,
+                            fontWeight = FontWeight.Normal
+                        )
+                    )
+                }
             }
         }
 
-//        Box(
+//        IconButton(
 //            modifier = Modifier
-//                .size(38.dp)
+//                .size(40.dp)
 //                .background(
-//                    color = AppTheme.colorScheme.containerNormal,
+//                    color = AppTheme.colorScheme.primary,
 //                    shape = CircleShape
 //                ),
-//            contentAlignment = Alignment.Center
+//            onClick = {
+//                viewModel.navigateToUserJourneyDetail()
+//            }
 //        ) {
 //            Icon(
-//                painter = painterResource(id = R.drawable.ic_messages),
+//                painterResource(id = R.drawable.ic_location_journey),
 //                contentDescription = "",
-//                tint = AppTheme.colorScheme.textSecondary,
+//                tint = AppTheme.colorScheme.surface,
 //                modifier = Modifier
-//                    .size(24.dp)
-//                    .padding(2.dp)
+//                    .size(36.dp)
+//                    .padding(4.dp)
 //            )
 //        }
     }
@@ -587,11 +558,11 @@ private fun getDistanceString(
     routeDistance: Double
 ): String {
     return if (routeDistance < 1000) {
-        "$routeDistance m"
+        String.format(Locale.getDefault(), "%.2f", routeDistance) + " m"
     } else {
         // Take maximum of 2 decimal places
         val distanceInKm = (routeDistance / 1000)
-        String.format("%.2f", distanceInKm) + " km"
+        String.format(Locale.getDefault(), "%.2f", distanceInKm) + " km"
     }
 }
 

@@ -4,7 +4,7 @@ import com.canopas.yourspace.data.models.location.LocationJourney
 import com.canopas.yourspace.data.models.location.isSteadyLocation
 import com.canopas.yourspace.data.storage.room.LocationTableDatabase
 import com.canopas.yourspace.data.utils.Config
-import com.canopas.yourspace.data.utils.Converters
+import com.canopas.yourspace.data.utils.LocationConverters
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
@@ -17,7 +17,7 @@ class LocationJourneyService @Inject constructor(
     db: FirebaseFirestore,
     private val locationManager: LocationManager,
     private val locationTableDatabase: LocationTableDatabase,
-    private val converters: Converters
+    private val converters: LocationConverters
 ) {
     private val userRef = db.collection(Config.FIRESTORE_COLLECTION_USERS)
     private fun journeyRef(userId: String) =
@@ -33,7 +33,6 @@ class LocationJourneyService @Inject constructor(
         routeDistance: Double? = null,
         routeDuration: Long? = null,
         currentLocationDuration: Long? = null,
-        recordedAt: Long,
         persistentLocationDate: Long? = null
     ) {
         val docRef = journeyRef(userId).document()
@@ -48,10 +47,11 @@ class LocationJourneyService @Inject constructor(
             route_distance = routeDistance,
             route_duration = routeDuration,
             current_location_duration = currentLocationDuration,
-            created_at = recordedAt,
+            created_at = System.currentTimeMillis(),
             persistent_location_date = persistentLocationDate
         )
 
+        Timber.d("XXX saveCurrentJourney ${journey.id}")
         journey.updateLocationJourney(userId)
 
         docRef.set(journey).await()
@@ -71,7 +71,11 @@ class LocationJourneyService @Inject constructor(
                 )
             }
             newLocationData?.let {
-                locationTableDatabase.locationTableDao().updateLocationTable(it)
+                try {
+                    locationTableDatabase.locationTableDao().updateLocationTable(it)
+                } catch (e: Exception) {
+                    Timber.e(e, "Error while updating location journey")
+                }
             }
         }
     }
@@ -121,6 +125,16 @@ class LocationJourneyService @Inject constructor(
             .documents.mapNotNull { it.toObject(LocationJourney::class.java) }
 
     fun updateLastLocationJourney(userId: String, newJourney: LocationJourney) {
-        journeyRef(userId).document(newJourney.id).set(newJourney)
+        try {
+            Timber.d("XXX updateLastLocationJourney ${newJourney.id}")
+            journeyRef(userId).document(newJourney.id).set(newJourney)
+        } catch (e: Exception) {
+            Timber.e(e, "Error while updating last location journey")
+        }
+    }
+
+    suspend fun getLocationJourneyFromId(userId: String, journeyId: String): LocationJourney? {
+        return journeyRef(userId).document(journeyId).get().await()
+            .toObject(LocationJourney::class.java)
     }
 }

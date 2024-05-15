@@ -1,5 +1,8 @@
 package com.canopas.yourspace.ui.flow.home.home
 
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.animateFloatAsState
@@ -37,7 +40,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.utils.isBackgroundLocationPermissionGranted
+import com.canopas.yourspace.data.utils.isBatteryOptimizationEnabled
 import com.canopas.yourspace.ui.component.AppProgressIndicator
+import com.canopas.yourspace.ui.component.PermissionDialog
 import com.canopas.yourspace.ui.flow.home.activity.ActivityScreen
 import com.canopas.yourspace.ui.flow.home.home.component.SpaceSelectionMenu
 import com.canopas.yourspace.ui.flow.home.home.component.SpaceSelectionPopup
@@ -56,6 +61,12 @@ fun HomeScreen() {
     LaunchedEffect(Unit) {
         if (context.isBackgroundLocationPermissionGranted) {
             viewModel.startTracking()
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        if (context.isBatteryOptimizationEnabled && context.isBackgroundLocationPermissionGranted) {
+            viewModel.showBatteryOptimizationDialog()
         }
     }
 
@@ -143,6 +154,23 @@ fun HomeTopBar() {
                 }
             }
         }
+    }
+
+    if (state.showBatteryOptimizationPopup) {
+        val context = LocalContext.current
+        PermissionDialog(
+            title = stringResource(R.string.battery_optimization_dialog_title),
+            subTitle1 = stringResource(R.string.battery_optimization_dialog_message),
+            dismissBtn = stringResource(R.string.common_btn_cancel),
+            confirmBtn = stringResource(R.string.battery_optimization_dialog_btn_change_now),
+            onDismiss = { viewModel.dismissBatteryOptimizationDialog() },
+            goToSettings = {
+                val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+                intent.data = Uri.parse("package:${context.packageName}")
+                context.startActivity(intent)
+                viewModel.dismissBatteryOptimizationDialog()
+            }
+        )
     }
 }
 

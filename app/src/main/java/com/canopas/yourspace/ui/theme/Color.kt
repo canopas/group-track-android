@@ -42,6 +42,10 @@ private val surfaceDarkColor = Color(0xFF121212)
 private val permissionWarningColor = Color(0xFFf4bb41)
 private val awarenessAlertColor = Color(0xFFCA2F27)
 
+private val iconsBackgroundColor = Color(0xFFFF9800)
+private val locationMarkerColor = Color(0xFFFF5722)
+private val markerInfoWindowColor = Color(0xE7E0E0E0)
+
 internal val themeLightColorScheme = lightColorScheme().copy(
     primary = primaryColor,
     onPrimary = textPrimaryLightColor,
@@ -138,7 +142,10 @@ data class AppColorScheme(
     val onSecondary: Color = textSecondaryDarkColor,
     val onDisabled: Color = textDisabledLightColor,
     val permissionWarning: Color = permissionWarningColor,
-    val alertColor: Color = awarenessAlertColor
+    val alertColor: Color = awarenessAlertColor,
+    val iconsBackground: Color = iconsBackgroundColor,
+    val locationMarker: Color = locationMarkerColor,
+    val markerInfoWindow: Color = markerInfoWindowColor
 ) {
     val containerNormalOnSurface: Color
         get() {
