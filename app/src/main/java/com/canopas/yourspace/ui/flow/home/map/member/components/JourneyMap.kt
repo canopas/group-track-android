@@ -1,5 +1,6 @@
 package com.canopas.yourspace.ui.flow.home.map.member.components
 
+import android.location.Location
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -18,6 +19,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.location.LocationJourney
+import com.canopas.yourspace.data.models.location.toLocationFromMovingJourney
+import com.canopas.yourspace.data.models.location.toLocationFromSteadyJourney
 import com.canopas.yourspace.ui.component.gesturesDisabled
 import com.canopas.yourspace.ui.theme.AppTheme
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -41,6 +44,7 @@ import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
 import com.google.maps.android.ktx.model.cameraPosition
+import kotlinx.coroutines.delay
 
 @Composable
 fun JourneyMap(
@@ -48,6 +52,18 @@ fun JourneyMap(
 ) {
     val fromLatLang = LatLng(location.from_latitude, location.from_longitude)
     val toLatLang = LatLng(location.to_latitude!!, location.to_longitude!!)
+
+
+    val fromLocation = Location("").apply {
+        latitude = fromLatLang.latitude
+        longitude = fromLatLang.longitude
+    }
+
+    val toLocation = Location("").apply {
+        latitude = toLatLang.latitude
+        longitude = toLatLang.longitude
+    }
+
 
     val isDarkMode = isSystemInDarkTheme()
     val context = LocalContext.current
@@ -64,11 +80,13 @@ fun JourneyMap(
     val cameraPositionState = rememberCameraPositionState()
 
     LaunchedEffect(key1 = Unit) {
+         delay(500)
         val boundsBuilder = LatLngBounds.builder()
             .include(fromLatLang)
             .include(toLatLang)
             .build()
-        cameraPositionState.move(CameraUpdateFactory.newLatLngBounds(boundsBuilder, 150))
+        val update = CameraUpdateFactory.newLatLngBounds(boundsBuilder, 60)
+        cameraPositionState.move(update)
     }
 
     GoogleMap(
