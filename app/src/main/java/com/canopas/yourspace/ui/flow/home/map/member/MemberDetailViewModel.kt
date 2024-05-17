@@ -104,6 +104,10 @@ class MemberDetailViewModel @Inject constructor(
             ).path
         )
     }
+
+    fun showJourneyDetails(journeyId: String) {
+        navigator.navigateTo(AppDestinations.UserJourney.args(state.value.selectedUser?.user?.id ?: "", journeyId).path)
+    }
 }
 
 data class MemberDetailState(

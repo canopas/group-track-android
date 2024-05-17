@@ -1,11 +1,6 @@
 package com.canopas.yourspace.ui.flow.home.map.member.components
 
 import android.location.Address
-import androidx.compose.animation.core.FastOutLinearInEasing
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -21,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -42,8 +38,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -67,13 +61,15 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
+import kotlin.math.roundToInt
 
 @Composable
 fun LocationHistory(
     isLoading: Boolean,
     locations: List<LocationJourney>,
     loadMore: () -> Unit,
-    addPlaceTap: (latitute: Double, longitude: Double) -> Unit
+    addPlaceTap: (latitute: Double, longitude: Double) -> Unit,
+    showJourneyDetails: (journeyId: String) -> Unit
 ) {
     val lazyListState = rememberLazyListState()
     val reachedBottom by remember {
@@ -98,17 +94,18 @@ fun LocationHistory(
             }
 
             else -> {
-                LazyColumn(
-                    state = lazyListState
-                ) {
-                    items(locations.size) { index ->
-                        val location = locations[index]
-                        val previousLocationJourney = locations.getOrNull(index - 1)
-
+                LazyColumn(state = lazyListState) {
+                    itemsIndexed(
+                        locations,
+                        key = { index, location -> location.id }
+                    ) { index, location ->
                         LocationHistoryItem(
                             location,
                             isLastItem = index == locations.lastIndex,
-                            addPlaceTap = addPlaceTap
+                            addPlaceTap = addPlaceTap,
+                            showJourneyDetails = {
+                                showJourneyDetails(location.id)
+                            }
                         )
                     }
 
@@ -130,16 +127,15 @@ fun LocationHistory(
 private fun LocationHistoryItem(
     location: LocationJourney,
     isLastItem: Boolean,
-    addPlaceTap: (latitute: Double, longitude: Double) -> Unit
+    addPlaceTap: (latitude: Double, longitude: Double) -> Unit,
+    showJourneyDetails: () -> Unit
 ) {
     if (location.isSteadyLocation()) {
         SteadyLocationItem(location, isLastItem) {
             addPlaceTap(location.from_latitude, location.from_longitude)
         }
     } else {
-        JourneyLocationItem(location, isLastItem) {
-            // show journey
-        }
+        JourneyLocationItem(location, isLastItem, showJourneyDetails)
     }
 }
 
@@ -178,7 +174,31 @@ fun JourneyLocationItem(location: LocationJourney, lastItem: Boolean, onTap: () 
                 title,
                 "$time - $distance"
             )
-            JourneyMap(location, onTap)
+            JourneyMap(
+                modifier = Modifier
+                    .padding(end = 16.dp)
+                    .height(125.dp)
+                    .clip(shape = RoundedCornerShape(8.dp)),
+                location,
+                false,
+                fromMarkerContent = {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_tab_places_filled),
+                        contentDescription = null,
+                        tint = AppTheme.colorScheme.primary,
+                        modifier = Modifier.size(30.dp)
+                    )
+                },
+                toMarkerContent = {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_journey_destination),
+                        contentDescription = null,
+                        tint = AppTheme.colorScheme.alertColor,
+                        modifier = Modifier.size(28.dp)
+                    )
+                },
+                onMapTap = onTap
+            )
         }
     }
 }
@@ -241,7 +261,7 @@ fun SteadyLocationItem(location: LocationJourney, lastItem: Boolean, addPlace: (
 }
 
 @Composable
-private fun PlaceInfo(title: String, formattedTime: String) {
+internal fun PlaceInfo(title: String, formattedTime: String) {
     Text(
         text = title,
         style = AppTheme.appTypography.body2.copy(
@@ -265,7 +285,7 @@ private fun PlaceInfo(title: String, formattedTime: String) {
 }
 
 @Composable
-private fun DottedTimeline(isSteadyLocation: Boolean, isLastItem: Boolean) {
+fun DottedTimeline(isSteadyLocation: Boolean, isLastItem: Boolean) {
     Column(
         modifier = Modifier
             .padding(start = 16.dp)
@@ -316,44 +336,6 @@ private fun DottedTimeline(isSteadyLocation: Boolean, isLastItem: Boolean) {
 }
 
 @Composable
-private fun Shimmer() {
-    val gradient = listOf(
-        Color.LightGray.copy(alpha = 0.9f), // darker grey (90% opacity)
-        Color.LightGray.copy(alpha = 0.5f) // lighter grey (30% opacity)
-    )
-
-    val transition = rememberInfiniteTransition(label = "") // animate infinite times
-
-    val translateAnimation = transition.animateFloat( // animate the transition
-        initialValue = 0f,
-        targetValue = 1000f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(
-                durationMillis = 1000, // duration for the animation
-                easing = FastOutLinearInEasing
-            )
-        ),
-        label = ""
-    )
-    val brush = Brush.linearGradient(
-        colors = gradient,
-        start = Offset(200f, 200f),
-        end = Offset(
-            x = translateAnimation.value,
-            y = translateAnimation.value
-        )
-    )
-    Spacer(
-        modifier = Modifier
-            .padding(4.dp)
-            .fillMaxWidth()
-            .height(30.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(brush)
-    )
-}
-
-@Composable
 private fun EmptyHistory() {
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -380,7 +362,7 @@ private fun EmptyHistory() {
     }
 }
 
-private fun getFormattedLocationTime(timestamp1: Long, timestamp2: Long): String {
+internal fun getFormattedLocationTime(timestamp1: Long, timestamp2: Long): String {
     val inputFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
 
     val timeString1 = inputFormat.format(Date(timestamp1))
@@ -389,19 +371,18 @@ private fun getFormattedLocationTime(timestamp1: Long, timestamp2: Long): String
     return "$timeString1 - $timeString2"
 }
 
-private fun getDistanceString(
+internal fun getDistanceString(
     routeDistance: Double
 ): String {
     return if (routeDistance < 1000) {
-        String.format(Locale.getDefault(), "%.2f", routeDistance) + " m"
+        "${routeDistance.roundToInt()} m"
     } else {
-        // Take maximum of 2 decimal places
         val distanceInKm = (routeDistance / 1000)
-        String.format(Locale.getDefault(), "%.2f", distanceInKm) + " km"
+        "${distanceInKm.roundToInt()} km"
     }
 }
 
-private fun getRouteDurationString(
+internal fun getRouteDurationString(
     routeDuration: Long
 ): String {
     val hours = TimeUnit.MILLISECONDS.toHours(routeDuration)
@@ -422,30 +403,27 @@ private fun getRouteDurationString(
     }
 }
 
-private fun getFormattedCreatedAt(createdAt: Long): String {
+internal fun getFormattedCreatedAt(createdAt: Long): String {
     val createdAtTime = Date(createdAt)
     val createdAtFormat = SimpleDateFormat("d MMM HH:mm", Locale.getDefault())
     return createdAtFormat.format(createdAtTime)
 }
 
-private fun getFormattedFilterLabel(startTimestamp: Long): String {
-    val startDate = Date(startTimestamp)
-    val startDateFormat = SimpleDateFormat("d MMM", Locale.getDefault())
-    return startDateFormat.format(startDate)
-}
-
 fun Address.formattedTitle(toAddress: Address?): String {
     val fromCity = this.locality
-    val toCity = toAddress?.locality
+    val toCity = toAddress?.locality ?: ""
 
     val fromArea = this.subLocality
-    val toArea = toAddress?.subLocality
+    val toArea = toAddress?.subLocality ?: ""
 
     val fromState = this.adminArea
-    val toState = toAddress?.adminArea
+    val toState = toAddress?.adminArea ?: ""
 
-    if (fromArea == toArea) return "$fromArea, $fromCity"
-    if (fromCity == toCity) return "$fromArea to $toArea, $fromCity"
-    if (fromState == toState) return "$fromArea, $fromCity to $toArea, $toCity"
-    return "$fromCity, $fromState to $toCity, $toState"
+    return when {
+        toAddress == null -> "$fromArea, $fromCity"
+        fromArea == toArea -> "$fromArea, $fromCity"
+        fromCity == toCity -> "$fromArea to $toArea, $fromCity"
+        fromState == toState -> "$fromArea, $fromCity to $toArea, $toCity"
+        else -> "$fromCity, $fromState to $toCity, $toState"
+    }
 }

@@ -60,7 +60,7 @@ fun MemberDetailBottomSheetContent(
             modifier = Modifier.padding(horizontal = 16.dp)
         )
         Spacer(modifier = Modifier.height(16.dp))
-        LocationHistory(state.isLoading, state.locations, viewModel::loadMoreLocations, viewModel::addPlace)
+        LocationHistory(state.isLoading, state.locations, viewModel::loadMoreLocations, viewModel::addPlace, viewModel::showJourneyDetails)
     }
 }
 
