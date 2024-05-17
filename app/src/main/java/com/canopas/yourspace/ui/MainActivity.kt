@@ -28,6 +28,7 @@ import com.canopas.yourspace.ui.flow.auth.phone.SignInWithPhoneScreen
 import com.canopas.yourspace.ui.flow.auth.verification.PhoneVerificationScreen
 import com.canopas.yourspace.ui.flow.geofence.add.addnew.AddNewPlaceScreen
 import com.canopas.yourspace.ui.flow.geofence.add.locate.LocateOnMapScreen
+import com.canopas.yourspace.ui.flow.geofence.add.locate.LocateOnMapViewModel
 import com.canopas.yourspace.ui.flow.geofence.add.placename.ChoosePlaceNameScreen
 import com.canopas.yourspace.ui.flow.geofence.edit.EditPlaceScreen
 import com.canopas.yourspace.ui.flow.geofence.places.EXTRA_RESULT_PLACE_LATITUDE
@@ -142,6 +143,13 @@ fun MainApp(viewModel: MainViewModel) {
         }
 
         slideComposable(AppDestinations.home.path) {
+            navController.currentBackStackEntry
+                ?.savedStateHandle?.apply {
+                    remove<Int>(KEY_RESULT)
+                    remove<Double>(EXTRA_RESULT_PLACE_LATITUDE)
+                    remove<Double>(EXTRA_RESULT_PLACE_LONGITUDE)
+                    remove<String>(EXTRA_RESULT_PLACE_NAME)
+                }
             HomeScreen(state.verifyingSpace)
         }
 
@@ -190,6 +198,7 @@ fun MainApp(viewModel: MainViewModel) {
 
             val result = navController.currentBackStackEntry
                 ?.savedStateHandle?.get<Int>(KEY_RESULT)
+
             result?.let {
                 val latitude = navController.currentBackStackEntry
                     ?.savedStateHandle?.get<Double>(EXTRA_RESULT_PLACE_LATITUDE) ?: 0.0
@@ -215,6 +224,23 @@ fun MainApp(viewModel: MainViewModel) {
         }
 
         slideComposable(AppDestinations.LocateOnMap.path) {
+            val locateOnMapViewModel = hiltViewModel<LocateOnMapViewModel>()
+
+            val result = navController.currentBackStackEntry
+                ?.savedStateHandle?.get<Int>(KEY_RESULT)
+
+            LaunchedEffect(key1 = result) {
+                if (result == RESULT_OKAY) {
+                    val latitude = navController.currentBackStackEntry
+                        ?.savedStateHandle?.get<Double>(EXTRA_RESULT_PLACE_LATITUDE) ?: 0.0
+                    val longitude = navController.currentBackStackEntry
+                        ?.savedStateHandle?.get<Double>(EXTRA_RESULT_PLACE_LONGITUDE) ?: 0.0
+                    val placeName = navController.currentBackStackEntry
+                        ?.savedStateHandle?.get<String>(EXTRA_RESULT_PLACE_NAME) ?: ""
+                    locateOnMapViewModel.navigateBack(latitude, longitude, placeName)
+                }
+            }
+
             LocateOnMapScreen()
         }
 

@@ -40,8 +40,8 @@ class AppTypography {
 
     val header4: TextStyle = TextStyle(
         fontFamily = InterFontFamily,
-        fontWeight = FontWeight.W600,
-        fontSize = 18.sp,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 20.sp,
         letterSpacing = (-0.72).sp
     )
 
@@ -65,7 +65,7 @@ class AppTypography {
 
     val body2 = TextStyle(
         fontFamily = InterFontFamily,
-        fontWeight = FontWeight.W400,
+        fontWeight = FontWeight.Medium,
         fontSize = 14.sp,
         lineHeight = 20.sp
     )

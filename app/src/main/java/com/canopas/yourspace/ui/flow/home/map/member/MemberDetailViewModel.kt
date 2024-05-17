@@ -95,6 +95,15 @@ class MemberDetailViewModel @Inject constructor(
             )
         }
     }
+
+    fun addPlace(latitud: Double, longitud: Double) {
+        navigator.navigateTo(
+            AppDestinations.ChoosePlaceName.setArgs(
+                latitud,
+                longitud
+            ).path
+        )
+    }
 }
 
 data class MemberDetailState(

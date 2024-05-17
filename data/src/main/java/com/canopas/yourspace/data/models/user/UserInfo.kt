@@ -7,5 +7,6 @@ import com.canopas.yourspace.data.models.location.ApiLocation
 data class UserInfo(
     val user: ApiUser,
     val location: ApiLocation? = null,
-    val isLocationEnable: Boolean = true
+    val isLocationEnable: Boolean = true,
+    val session: ApiUserSession? = null
 )

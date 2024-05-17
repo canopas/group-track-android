@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -29,11 +30,22 @@ import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.ui.theme.AppTheme
 
 @Composable
-fun UserProfile(
+fun MarkerUserProfile(
     modifier: Modifier,
     user: ApiUser?,
     shape: RoundedCornerShape = RoundedCornerShape(16.dp),
     fontSize: TextUnit = 28.sp,
+    imagePainter: AsyncImagePainter? = null
+) {
+    UserProfile(modifier = modifier, user = user, shape, fontSize, imagePainter)
+}
+
+@Composable
+fun UserProfile(
+    modifier: Modifier,
+    user: ApiUser?,
+    shape: RoundedCornerShape = CircleShape,
+    fontSize: TextUnit = 20.sp,
     imagePainter: AsyncImagePainter? = null
 ) {
     val profileUrl = user?.profile_image

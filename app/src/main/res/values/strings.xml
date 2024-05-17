@@ -227,7 +227,7 @@
     <string name="locate_on_map_title">Locate on Map</string>
     <string name="choose_place_name_title">Choose place name</string>
     <string name="choose_place_name_hint">Enter place name</string>
-    <string name="choose_place_btn_add_place">Add Place</string>
+    <string name="common_btn_add_place">Add Place</string>
     <string name="place_added_popup_title">%s Added</string>
     <string name="place_added_popup_description">You will be notified when members of your space arrive/leave this place</string>
     <string name="locate_on_map_hint_getting_address">Getting Address…</string>
@@ -264,4 +264,5 @@
     </string-array>
 
     <string name="user_journey_view_today_text">Today</string>
+    <string name="member_detail_location_history_today">Earlier today</string>
 </resources>

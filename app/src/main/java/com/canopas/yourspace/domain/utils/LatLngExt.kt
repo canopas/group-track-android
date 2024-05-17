@@ -1,6 +1,7 @@
 package com.canopas.yourspace.domain.utils
 
 import android.content.Context
+import android.location.Address
 import android.location.Geocoder
 import com.google.android.gms.maps.model.LatLng
 import timber.log.Timber
@@ -14,6 +15,20 @@ fun LatLng.getAddress(context: Context): String? {
         if (addressList != null && addressList.size > 0) {
             val address = addressList[0]
             return address.getAddressLine(0)
+        }
+    } catch (e: IOException) {
+        Timber.e(e)
+    }
+    return null
+}
+
+fun LatLng.getPlaceAddress(context: Context): Address? {
+    try {
+        val geocoder = Geocoder(context, Locale.getDefault())
+        val addressList = geocoder.getFromLocation(latitude, longitude, 1)
+        if (addressList != null && addressList.size > 0) {
+            val address = addressList[0]
+            return address
         }
     } catch (e: IOException) {
         Timber.e(e)

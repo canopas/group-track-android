@@ -46,6 +46,7 @@ class LocationJourneyService @Inject constructor(
             to_longitude = toLongitude,
             route_distance = routeDistance,
             route_duration = routeDuration,
+            routes = emptyList(),
             current_location_duration = currentLocationDuration,
             created_at = System.currentTimeMillis(),
             persistent_location_date = persistentLocationDate
@@ -55,6 +56,16 @@ class LocationJourneyService @Inject constructor(
         journey.updateLocationJourney(userId)
 
         docRef.set(journey).await()
+    }
+
+    suspend fun updateLastLocationJourney(userId: String, newJourney: LocationJourney) {
+        try {
+            Timber.d("XXX updateLastLocationJourney ${newJourney.id}")
+            newJourney.updateLocationJourney(userId)
+            journeyRef(userId).document(newJourney.id).set(newJourney).await()
+        } catch (e: Exception) {
+            Timber.e(e, "Error while updating last location journey")
+        }
     }
 
     private suspend fun LocationJourney.updateLocationJourney(userId: String) {
@@ -123,15 +134,6 @@ class LocationJourneyService @Inject constructor(
             .limit(20)
             .get().await()
             .documents.mapNotNull { it.toObject(LocationJourney::class.java) }
-
-    fun updateLastLocationJourney(userId: String, newJourney: LocationJourney) {
-        try {
-            Timber.d("XXX updateLastLocationJourney ${newJourney.id}")
-            journeyRef(userId).document(newJourney.id).set(newJourney)
-        } catch (e: Exception) {
-            Timber.e(e, "Error while updating last location journey")
-        }
-    }
 
     suspend fun getLocationJourneyFromId(userId: String, journeyId: String): LocationJourney? {
         return journeyRef(userId).document(journeyId).get().await()

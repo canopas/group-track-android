@@ -125,10 +125,16 @@ class SpaceRepository @Inject constructor(
                 val flows = members
                     .mapNotNull { member ->
                         val user = userService.getUser(member.user_id)
+                        val session = userService.getUserSession(member.user_id)
                         user?.let {
                             locationService.getCurrentLocation(user.id)
                                 ?.map {
-                                    UserInfo(user, it.firstOrNull(), member.location_enabled)
+                                    UserInfo(
+                                        user,
+                                        it.firstOrNull(),
+                                        member.location_enabled,
+                                        session
+                                    )
                                 }
                         }
                     }
