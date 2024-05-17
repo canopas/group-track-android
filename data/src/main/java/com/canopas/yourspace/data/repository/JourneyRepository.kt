@@ -9,6 +9,7 @@ import com.canopas.yourspace.data.models.location.isSteadyLocation
 import com.canopas.yourspace.data.models.location.toApiLocation
 import com.canopas.yourspace.data.models.location.toLocation
 import com.canopas.yourspace.data.models.location.toLocationFromSteadyJourney
+import com.canopas.yourspace.data.models.location.toRoute
 import com.canopas.yourspace.data.service.location.ApiLocationService
 import com.canopas.yourspace.data.service.location.LocationJourneyService
 import com.canopas.yourspace.data.storage.room.LocationTableDatabase
@@ -58,7 +59,6 @@ class JourneyRepository @Inject constructor(
                     if ((calendar1.get(Calendar.DAY_OF_MONTH) != calendar2.get(Calendar.DAY_OF_MONTH)) ||
                         (calendar2.get(Calendar.DAY_OF_MONTH) != calendar3.get(Calendar.DAY_OF_MONTH))
                     ) {
-                        Timber.d("XXX day changed")
                         locationJourneyService.saveCurrentJourney(
                             userId = userId,
                             fromLatitude = lastSteadyLocation.from_latitude,
@@ -72,7 +72,6 @@ class JourneyRepository @Inject constructor(
             }
 
             if (lastJourneyLocation == null || userState == null) {
-                Timber.d("XXX has last journey ${lastJourneyLocation != null} or userState is  $userState")
                 saveJourneyIfNullLastLocation(
                     userId,
                     extractedLocation,
@@ -82,7 +81,6 @@ class JourneyRepository @Inject constructor(
             } else {
                 when (userState) {
                     UserState.STEADY.value -> {
-                        Timber.d("XXX steady user")
                         saveJourneyForSteadyUser(
                             userId,
                             extractedLocation,
@@ -92,7 +90,6 @@ class JourneyRepository @Inject constructor(
                     }
 
                     UserState.MOVING.value -> {
-                        Timber.d("XXX moving user")
                         saveJourneyForMovingUser(
                             userId,
                             extractedLocation,
@@ -187,18 +184,13 @@ class JourneyRepository @Inject constructor(
     ) {
         val locations =
             locationData.lastFiveMinutesLocations?.let { converters.locationListFromString(it) }
-        Timber.d("XXX local 5min location ${locations?.size}")
         if (locations.isNullOrEmpty()) {
             val lastFiveMinLocations =
                 locationService.getLastFiveMinuteLocations(userId).toList().flatten()
-            Timber.d("XXX getLastFiveMinuteLocations from remote ${lastFiveMinLocations.size}")
             updateLocationData(locationData, lastFiveMinLocations)
         } else {
-            updateLocationData(locationData, locations)
-
             val latest = locations.maxByOrNull { it.created_at!! }
             if (latest == null || latest.created_at!! < System.currentTimeMillis() - 60000) {
-                Timber.d("XXX add new location ${Date(extractedLocation.time)}")
                 val updated = locations.toMutableList()
                 updated.removeAll { extractedLocation.time - it.created_at!! > Config.FIVE_MINUTES }
                 updated.add(extractedLocation.toApiLocation(userId))
@@ -221,13 +213,12 @@ class JourneyRepository @Inject constructor(
         var locationData =
             locationTableDatabase.locationTableDao().getLocationData(userId)
 
-        val lastLocation = getLastLocation(locationData)
-
         locationData?.let { checkAndUpdateLastFiveMinLocations(userId, it, extractedLocation) }
 
         locationData =
             locationTableDatabase.locationTableDao().getLocationData(userId)
 
+        val lastLocation = getLastLocation(locationData)
         val userState = getUserState(locationData, extractedLocation, lastLocation)
 
         return userState
@@ -269,10 +260,6 @@ class JourneyRepository @Inject constructor(
             if ((timeDifference > 5 * 60 * 1000 && !lastJourneyLocation.isSteadyLocation()) ||
                 distance > Config.DISTANCE_TO_CHECK_SUDDEN_LOCATION_CHANGE
             ) {
-                Timber.d(
-                    "XXX Sudden location change detected distance $distance time ${timeDifference > 5 * 60 * 1000} " +
-                        "date newJourney ${Date(lastJourneyLocation.created_at!!)}"
-                )
                 locationJourneyService.saveCurrentJourney(
                     userId = currentUserId,
                     fromLatitude = extractedLocation.latitude,
@@ -321,15 +308,19 @@ class JourneyRepository @Inject constructor(
         )
 
         if (lastMovingLocation != null && !lastJourneyLocation.isSteadyLocation()) {
-            newJourney = newJourney.copy(id = lastMovingLocation.id)
-            Timber.d("XXX Updating last location journey ${newJourney.id}")
+            val updatedRoutes = lastJourneyLocation.routes.toMutableList()
+            updatedRoutes.add(extractedLocation.toRoute())
+            newJourney = newJourney.copy(
+                id = lastMovingLocation.id,
+                routes = updatedRoutes,
+                update_at = System.currentTimeMillis()
+            )
             locationJourneyService.updateLastLocationJourney(currentUserId, newJourney)
         } else {
-            Timber.d("XXX Saving new location journey")
             locationJourneyService.saveCurrentJourney(
                 userId = newJourney.user_id,
-                fromLatitude = newJourney.from_latitude,
-                fromLongitude = newJourney.from_longitude,
+                fromLatitude = extractedLocation.latitude,
+                fromLongitude = extractedLocation.longitude,
                 toLatitude = newJourney.to_latitude,
                 toLongitude = newJourney.to_longitude,
                 routeDistance = newJourney.route_distance,
@@ -352,19 +343,11 @@ class JourneyRepository @Inject constructor(
             distanceBetween(extractedLocation, location)
         }?.toDouble() ?: 0.0
         val timeDifference = extractedLocation.time - lastJourneyLocation.created_at!!
-        Timber.d(
-            "XXX SteadyUser distance $distance time $timeDifference  journey ${
-            Date(
-                lastJourneyLocation.created_at
-            )
-            }"
-        )
         if ((timeDifference < Config.FIVE_MINUTES && distance < Config.DISTANCE_TO_CHECK_SUDDEN_LOCATION_CHANGE) ||
             (lastJourneyLocation.isSteadyLocation() && distance < Config.DISTANCE_TO_CHECK_SUDDEN_LOCATION_CHANGE)
         ) {
             return
         }
-        Timber.d("XXX Saving steady location journey")
         locationJourneyService.saveCurrentJourney(
             userId = currentUserId,
             fromLatitude = extractedLocation.latitude,

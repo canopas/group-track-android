@@ -72,7 +72,8 @@ import java.util.concurrent.TimeUnit
 fun LocationHistory(
     isLoading: Boolean,
     locations: List<LocationJourney>,
-    loadMore: () -> Unit
+    loadMore: () -> Unit,
+    addPlaceTap: (latitute: Double, longitude: Double) -> Unit
 ) {
     val lazyListState = rememberLazyListState()
     val reachedBottom by remember {
@@ -106,7 +107,8 @@ fun LocationHistory(
 
                         LocationHistoryItem(
                             location,
-                            isLastItem = index == locations.lastIndex
+                            isLastItem = index == locations.lastIndex,
+                            addPlaceTap = addPlaceTap
                         )
                     }
 
@@ -127,11 +129,12 @@ fun LocationHistory(
 @Composable
 private fun LocationHistoryItem(
     location: LocationJourney,
-    isLastItem: Boolean
+    isLastItem: Boolean,
+    addPlaceTap: (latitute: Double, longitude: Double) -> Unit
 ) {
     if (location.isSteadyLocation()) {
         SteadyLocationItem(location, isLastItem) {
-            // addPlace()
+            addPlaceTap(location.from_latitude, location.from_longitude)
         }
     } else {
         JourneyLocationItem(location, isLastItem) {
@@ -163,33 +166,21 @@ fun JourneyLocationItem(location: LocationJourney, lastItem: Boolean, onTap: () 
         modifier = Modifier
             .height(210.dp)
     ) {
-
         DottedTimeline(false, isLastItem = lastItem)
         Column(
             modifier = Modifier
                 .padding(start = 16.dp)
                 .weight(1f)
         ) {
-            PlaceInfo(title, "12:10 AM - 12:30 AM(25 mins, 30secs)")
+            val time = getFormattedLocationTime(location.created_at ?: 0, location.update_at ?: 0)
+            val distance = getDistanceString(location.route_distance ?: 0.0)
+            PlaceInfo(
+                title,
+                "$time - $distance"
+            )
             JourneyMap(location, onTap)
         }
     }
-}
-
-fun Address.formattedTitle(toAddress: Address?): String {
-    val fromCity = this.locality
-    val toCity = toAddress?.locality
-
-    val fromArea = this.subLocality
-    val toArea = toAddress?.subLocality
-
-    val fromState = this.adminArea
-    val toState = toAddress?.adminArea
-
-    if (fromArea == toArea) return "$fromArea, $fromCity"
-    if (fromCity == toCity) return "$fromArea to $toArea, $fromCity"
-    if (fromState == toState) return "$fromArea, $fromCity to $toArea, $toCity"
-    return "$fromCity, $fromState to $toCity, $toState"
 }
 
 @Composable
@@ -210,7 +201,6 @@ fun SteadyLocationItem(location: LocationJourney, lastItem: Boolean, addPlace: (
         modifier = Modifier
             .height(140.dp)
     ) {
-
         DottedTimeline(isSteadyLocation = true, isLastItem = lastItem)
 
         Column(
@@ -237,17 +227,17 @@ fun SteadyLocationItem(location: LocationJourney, lastItem: Boolean, addPlace: (
                 )
                 Text(
                     text = stringResource(id = R.string.common_btn_add_place),
-                    style = AppTheme.appTypography.body2,
+                    style = AppTheme.appTypography.body2
                 )
             }
 
             Spacer(modifier = Modifier.size(8.dp))
 
-            if (!lastItem)
+            if (!lastItem) {
                 HorizontalDivider(thickness = 1.dp, color = AppTheme.colorScheme.outline)
+            }
         }
     }
-
 }
 
 @Composable
@@ -257,7 +247,9 @@ private fun PlaceInfo(title: String, formattedTime: String) {
         style = AppTheme.appTypography.body2.copy(
             color = AppTheme.colorScheme.textPrimary,
             fontWeight = FontWeight.Medium
-        ), maxLines = 2, overflow = TextOverflow.Ellipsis,
+        ),
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis,
         modifier = Modifier.padding(end = 16.dp)
     )
     Spacer(modifier = Modifier.size(6.dp))
@@ -284,8 +276,11 @@ private fun DottedTimeline(isSteadyLocation: Boolean, isLastItem: Boolean) {
             modifier = Modifier
                 .size(40.dp)
                 .background(
-                    if (isSteadyLocation) AppTheme.colorScheme.containerNormal else
-                        AppTheme.colorScheme.surface,
+                    if (isSteadyLocation) {
+                        AppTheme.colorScheme.containerNormal
+                    } else {
+                        AppTheme.colorScheme.surface
+                    },
                     shape = CircleShape
                 )
                 .border(
@@ -295,7 +290,7 @@ private fun DottedTimeline(isSteadyLocation: Boolean, isLastItem: Boolean) {
                 ),
             contentAlignment = Alignment.Center
         ) {
-            if (isSteadyLocation)
+            if (isSteadyLocation) {
                 Icon(
                     Icons.Default.LocationOn,
                     contentDescription = "",
@@ -304,7 +299,7 @@ private fun DottedTimeline(isSteadyLocation: Boolean, isLastItem: Boolean) {
                         .size(24.dp)
                         .padding(2.dp)
                 )
-            else
+            } else {
                 Box(
                     modifier = Modifier
                         .size(8.dp)
@@ -313,6 +308,7 @@ private fun DottedTimeline(isSteadyLocation: Boolean, isLastItem: Boolean) {
                             CircleShape
                         )
                 )
+            }
         }
 
         if (!isLastItem) DashedDivider(thickness = 1.dp, modifier = Modifier.weight(1f))
@@ -385,29 +381,12 @@ private fun EmptyHistory() {
 }
 
 private fun getFormattedLocationTime(timestamp1: Long, timestamp2: Long): String {
-    val elapsedTime = maxOf(timestamp1, timestamp2) - minOf(timestamp1, timestamp2)
-    val hours = TimeUnit.MILLISECONDS.toHours(elapsedTime)
-    val minutes = TimeUnit.MILLISECONDS.toMinutes(elapsedTime) % 60
-    val seconds = TimeUnit.MILLISECONDS.toSeconds(elapsedTime) % 60
-    return when {
-        hours > 24 -> {
-            val days = hours / 24
-            val remainingHours = hours % 24
-            "$days day $remainingHours hr $minutes min $seconds sec"
-        }
+    val inputFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
 
-        hours > 0 -> {
-            "$hours hr $minutes min $seconds sec"
-        }
+    val timeString1 = inputFormat.format(Date(timestamp1))
+    val timeString2 = inputFormat.format(Date(timestamp2))
 
-        minutes > 0 -> {
-            "$minutes min $seconds sec"
-        }
-
-        else -> {
-            "$seconds sec"
-        }
-    }
+    return "$timeString1 - $timeString2"
 }
 
 private fun getDistanceString(
@@ -430,11 +409,11 @@ private fun getRouteDurationString(
     val seconds = TimeUnit.MILLISECONDS.toSeconds(routeDuration) % 60
     return when {
         hours > 0 -> {
-            "$hours hr $minutes min $seconds sec"
+            "$hours hr $minutes mins"
         }
 
         minutes > 0 -> {
-            "$minutes min $seconds sec"
+            "$minutes mins"
         }
 
         else -> {
@@ -453,4 +432,20 @@ private fun getFormattedFilterLabel(startTimestamp: Long): String {
     val startDate = Date(startTimestamp)
     val startDateFormat = SimpleDateFormat("d MMM", Locale.getDefault())
     return startDateFormat.format(startDate)
+}
+
+fun Address.formattedTitle(toAddress: Address?): String {
+    val fromCity = this.locality
+    val toCity = toAddress?.locality
+
+    val fromArea = this.subLocality
+    val toArea = toAddress?.subLocality
+
+    val fromState = this.adminArea
+    val toState = toAddress?.adminArea
+
+    if (fromArea == toArea) return "$fromArea, $fromCity"
+    if (fromCity == toCity) return "$fromArea to $toArea, $fromCity"
+    if (fromState == toState) return "$fromArea, $fromCity to $toArea, $toCity"
+    return "$fromCity, $fromState to $toCity, $toState"
 }

@@ -147,7 +147,7 @@ data class AppColorScheme(
     val iconsBackground: Color = iconsBackgroundColor,
     val locationMarker: Color = locationMarkerColor,
     val markerInfoWindow: Color = markerInfoWindowColor,
-    val successColor:Color = successStatusColor
+    val successColor: Color = successStatusColor
 ) {
     val containerNormalOnSurface: Color
         get() {

@@ -45,7 +45,7 @@ data class ApiUserSession(
     val battery_pct: Float? = 0f,
     val state: Int = USER_STATE_UNKNOWN,
     val created_at: Long? = System.currentTimeMillis()
-){
+) {
     @get:Exclude
     val noNetwork: Boolean get() = state != USER_STATE_NO_NETWORK_OR_PHONE_OFF
 

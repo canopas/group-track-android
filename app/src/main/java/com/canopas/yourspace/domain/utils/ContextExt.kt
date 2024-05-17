@@ -17,7 +17,7 @@ fun Context.openLocationSettings() {
     startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
 }
 
-fun Context.isNetWorkConnected():Boolean{
+fun Context.isNetWorkConnected(): Boolean {
     val connMgr = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
     val networkInfo: NetworkInfo? = connMgr.activeNetworkInfo
     return networkInfo?.isConnected == true

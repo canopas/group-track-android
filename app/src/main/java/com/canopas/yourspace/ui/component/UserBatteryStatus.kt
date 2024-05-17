@@ -41,20 +41,21 @@ fun UserBatteryStatus(
 
     Row(
         modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            painter = painterResource(id = icon), contentDescription = null,
-            tint = color, modifier = Modifier
+            painter = painterResource(id = icon),
+            contentDescription = null,
+            tint = color,
+            modifier = Modifier
                 .size(16.dp)
                 .padding(end = 4.dp)
         )
 
         Text(
-            text = "${batteryPrc.toInt()}%", color = color,
+            text = "${batteryPrc.toInt()}%",
+            color = color,
             style = AppTheme.appTypography.caption
         )
     }
-
-
 }

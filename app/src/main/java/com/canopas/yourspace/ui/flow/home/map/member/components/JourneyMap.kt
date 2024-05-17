@@ -2,8 +2,6 @@ package com.canopas.yourspace.ui.flow.home.map.member.components
 
 import android.location.Location
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -19,40 +17,31 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.location.LocationJourney
-import com.canopas.yourspace.data.models.location.toLocationFromMovingJourney
-import com.canopas.yourspace.data.models.location.toLocationFromSteadyJourney
+import com.canopas.yourspace.data.models.location.toRoute
 import com.canopas.yourspace.ui.component.gesturesDisabled
 import com.canopas.yourspace.ui.theme.AppTheme
 import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.Cap
 import com.google.android.gms.maps.model.Dash
-import com.google.android.gms.maps.model.Dot
 import com.google.android.gms.maps.model.Gap
-import com.google.android.gms.maps.model.JointType
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.MapStyleOptions
-import com.google.android.gms.maps.model.PatternItem
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
-import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerComposable
-import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
-import com.google.maps.android.ktx.model.cameraPosition
 import kotlinx.coroutines.delay
 
 @Composable
 fun JourneyMap(
-    location: LocationJourney, onTap: () -> Unit
+    location: LocationJourney,
+    onTap: () -> Unit
 ) {
     val fromLatLang = LatLng(location.from_latitude, location.from_longitude)
     val toLatLang = LatLng(location.to_latitude!!, location.to_longitude!!)
-
 
     val fromLocation = Location("").apply {
         latitude = fromLatLang.latitude
@@ -63,7 +52,6 @@ fun JourneyMap(
         latitude = toLatLang.latitude
         longitude = toLatLang.longitude
     }
-
 
     val isDarkMode = isSystemInDarkTheme()
     val context = LocalContext.current
@@ -80,12 +68,16 @@ fun JourneyMap(
     val cameraPositionState = rememberCameraPositionState()
 
     LaunchedEffect(key1 = Unit) {
-         delay(500)
+        delay(500)
         val boundsBuilder = LatLngBounds.builder()
-            .include(fromLatLang)
-            .include(toLatLang)
-            .build()
-        val update = CameraUpdateFactory.newLatLngBounds(boundsBuilder, 60)
+            .apply {
+                include(fromLatLang)
+                location.toRoute().forEach { latLng ->
+                    include(latLng)
+                }
+                include(toLatLang)
+            }.build()
+        val update = CameraUpdateFactory.newLatLngBounds(boundsBuilder, 50)
         cameraPositionState.move(update)
     }
 
@@ -110,12 +102,12 @@ fun JourneyMap(
         ToLocationMarker(toLatLang)
 
         Polyline(
-            points = listOf(fromLatLang, toLatLang), color = AppTheme.colorScheme.primary,
+            points = location.toRoute(),
+            color = AppTheme.colorScheme.primary,
             width = 5f,
             pattern = listOf(Gap(8F), Dash(12F))
         )
     }
-
 }
 
 @Composable
@@ -134,7 +126,6 @@ fun ToLocationMarker(toLatLang: LatLng) {
 
 @Composable
 fun FromLocationMarker(fromLatLang: LatLng) {
-
     MarkerComposable(
         state = rememberMarkerState(position = fromLatLang)
     ) {

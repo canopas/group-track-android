@@ -2,6 +2,7 @@ package com.canopas.yourspace.data.models.location
 
 import android.location.Location
 import androidx.annotation.Keep
+import com.google.android.gms.maps.model.LatLng
 import com.squareup.moshi.JsonClass
 import java.util.UUID
 
@@ -16,10 +17,34 @@ data class LocationJourney(
     var to_longitude: Double? = null,
     val route_distance: Double? = null,
     val route_duration: Long? = null,
+    val routes: List<JourneyRoute> = emptyList(),
     val current_location_duration: Long? = null,
     val created_at: Long? = System.currentTimeMillis(),
+    val update_at: Long? = System.currentTimeMillis(),
     val persistent_location_date: Long? = null
 )
+
+@Keep
+data class JourneyRoute(val latitude: Double = 0.0, val longitude: Double = 0.0)
+
+fun Location.toRoute(): JourneyRoute {
+    return JourneyRoute(latitude, longitude)
+}
+
+fun JourneyRoute.toLatLng() = LatLng(latitude, longitude)
+fun LocationJourney.toRoute() =
+    if (isSteadyLocation()) {
+        emptyList<LatLng>()
+    } else {
+        listOf(
+            LatLng(
+                from_latitude,
+                from_longitude
+            )
+        ) + routes.map { it.toLatLng() } + listOf(
+            LatLng(to_latitude ?: 0.0, to_longitude ?: 0.0)
+        )
+    }
 
 fun LocationJourney.isSteadyLocation(): Boolean {
     return to_latitude == null && to_longitude == null

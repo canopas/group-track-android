@@ -68,40 +68,46 @@ class LocateOnMapViewModel @Inject constructor(
         }
     }
 
-    private fun addPlace(latitude: Double, longitude: Double) = viewModelScope.launch(appDispatcher.IO) {
-        val currentSpaceId = userPreferences.currentSpace ?: return@launch
-        val currentUser = userPreferences.currentUser ?: return@launch
+    private fun addPlace(latitude: Double, longitude: Double) =
+        viewModelScope.launch(appDispatcher.IO) {
+            val currentSpaceId = userPreferences.currentSpace ?: return@launch
+            val currentUser = userPreferences.currentUser ?: return@launch
 
-        _state.emit(state.value.copy(addingPlace = true))
-        try {
-            val memberIds = spaceRepository.getMemberBySpaceId(currentSpaceId)?.map { it.user_id }
-                ?: emptyList()
-            apiPlaceService.addPlace(
-                spaceId = currentSpaceId,
-                name = state.value.updatedPlaceName,
-                latitude = latitude,
-                longitude = longitude,
-                createdBy = currentUser.id,
-                spaceMemberIds = memberIds
-            )
-            appNavigator.navigateBack(
-                AppDestinations.places.path,
-                result = mapOf(
-                    KEY_RESULT to RESULT_OKAY,
-                    EXTRA_RESULT_PLACE_LATITUDE to latitude,
-                    EXTRA_RESULT_PLACE_LONGITUDE to longitude,
-                    EXTRA_RESULT_PLACE_NAME to state.value.updatedPlaceName
+            _state.emit(state.value.copy(addingPlace = true))
+            try {
+                val memberIds =
+                    spaceRepository.getMemberBySpaceId(currentSpaceId)?.map { it.user_id }
+                        ?: emptyList()
+                apiPlaceService.addPlace(
+                    spaceId = currentSpaceId,
+                    name = state.value.updatedPlaceName,
+                    latitude = latitude,
+                    longitude = longitude,
+                    createdBy = currentUser.id,
+                    spaceMemberIds = memberIds
                 )
-            )
-            _state.emit(state.value.copy(addingPlace = false))
-        } catch (e: Exception) {
-            Timber.e(e, "Error while adding place")
-            _state.emit(state.value.copy(error = e, addingPlace = false))
+                navigateBack(latitude, longitude, state.value.updatedPlaceName)
+                _state.emit(state.value.copy(addingPlace = false))
+            } catch (e: Exception) {
+                Timber.e(e, "Error while adding place")
+                _state.emit(state.value.copy(error = e, addingPlace = false))
+            }
         }
-    }
 
     fun onPlaceNameChanged(name: String) {
         _state.value = state.value.copy(updatedPlaceName = name)
+    }
+
+    fun navigateBack(latitude: Double, longitude: Double, placeName: String) {
+        appNavigator.navigateBack(
+            AppDestinations.places.path,
+            result = mapOf(
+                KEY_RESULT to RESULT_OKAY,
+                EXTRA_RESULT_PLACE_LATITUDE to latitude,
+                EXTRA_RESULT_PLACE_LONGITUDE to longitude,
+                EXTRA_RESULT_PLACE_NAME to placeName
+            )
+        )
     }
 }
 

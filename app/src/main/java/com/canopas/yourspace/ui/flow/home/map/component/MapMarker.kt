@@ -19,7 +19,6 @@ import coil.request.ImageRequest
 import com.canopas.yourspace.data.models.location.ApiLocation
 import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.ui.component.MarkerUserProfile
-import com.canopas.yourspace.ui.component.UserProfile
 import com.canopas.yourspace.ui.theme.AppTheme
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.MarkerComposable

@@ -16,7 +16,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -40,9 +39,13 @@ class BootCompleteReceiver : BroadcastReceiver() {
 
             val connected = context.isNetWorkConnected()
             val hasLocationPermission = context.isLocationPermissionGranted
-            val state = if (connected && hasLocationPermission) USER_STATE_UNKNOWN
-            else if (!connected) USER_STATE_NO_NETWORK_OR_PHONE_OFF
-            else USER_STATE_LOCATION_PERMISSION_DENIED
+            val state = if (connected && hasLocationPermission) {
+                USER_STATE_UNKNOWN
+            } else if (!connected) {
+                USER_STATE_NO_NETWORK_OR_PHONE_OFF
+            } else {
+                USER_STATE_LOCATION_PERMISSION_DENIED
+            }
 
             scope.launch { authService.updateUserSessionState(state) }
         }

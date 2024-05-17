@@ -10,7 +10,6 @@ import com.canopas.yourspace.data.utils.AppDispatcher
 import com.canopas.yourspace.ui.flow.geofence.places.EXTRA_RESULT_PLACE_LATITUDE
 import com.canopas.yourspace.ui.flow.geofence.places.EXTRA_RESULT_PLACE_LONGITUDE
 import com.canopas.yourspace.ui.flow.geofence.places.EXTRA_RESULT_PLACE_NAME
-import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppDestinations.ChoosePlaceName
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import com.canopas.yourspace.ui.navigation.KEY_RESULT
@@ -75,7 +74,6 @@ class ChoosePlaceNameViewModel @Inject constructor(
                 spaceMemberIds = memberIds
             )
             navigator.navigateBack(
-                AppDestinations.places.path,
                 result = mapOf(
                     KEY_RESULT to RESULT_OKAY,
                     EXTRA_RESULT_PLACE_LATITUDE to selectedLatitude,

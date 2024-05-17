@@ -40,7 +40,6 @@ fun MarkerUserProfile(
     UserProfile(modifier = modifier, user = user, shape, fontSize, imagePainter)
 }
 
-
 @Composable
 fun UserProfile(
     modifier: Modifier,
