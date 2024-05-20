@@ -1,4 +1,4 @@
-package com.canopas.yourspace.ui.flow.home.map.journey
+package com.canopas.yourspace.ui.flow.journey.detail
 
 import android.location.Address
 import androidx.compose.foundation.layout.Box
@@ -36,13 +36,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.location.LocationJourney
 import com.canopas.yourspace.domain.utils.getPlaceAddress
-import com.canopas.yourspace.ui.flow.home.map.member.components.DottedTimeline
-import com.canopas.yourspace.ui.flow.home.map.member.components.JourneyMap
-import com.canopas.yourspace.ui.flow.home.map.member.components.PlaceInfo
-import com.canopas.yourspace.ui.flow.home.map.member.components.formattedTitle
-import com.canopas.yourspace.ui.flow.home.map.member.components.getDistanceString
-import com.canopas.yourspace.ui.flow.home.map.member.components.getFormattedCreatedAt
-import com.canopas.yourspace.ui.flow.home.map.member.components.getRouteDurationString
+import com.canopas.yourspace.ui.flow.journey.components.DottedTimeline
+import com.canopas.yourspace.ui.flow.journey.components.JourneyMap
+import com.canopas.yourspace.ui.flow.journey.components.PlaceInfo
+import com.canopas.yourspace.ui.flow.journey.components.formattedTitle
+import com.canopas.yourspace.ui.flow.journey.components.getDistanceString
+import com.canopas.yourspace.ui.flow.journey.components.getFormattedCreatedAt
+import com.canopas.yourspace.ui.flow.journey.components.getRouteDurationString
 import com.canopas.yourspace.ui.theme.AppTheme
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.Dispatchers

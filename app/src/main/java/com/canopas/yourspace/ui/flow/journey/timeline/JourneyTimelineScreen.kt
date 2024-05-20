@@ -37,8 +37,8 @@ import com.canopas.yourspace.domain.utils.formattedMessageDateHeader
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.AppProgressIndicator
 import com.canopas.yourspace.ui.component.reachedBottom
-import com.canopas.yourspace.ui.flow.home.map.member.components.EmptyHistory
-import com.canopas.yourspace.ui.flow.home.map.member.components.LocationHistoryItem
+import com.canopas.yourspace.ui.flow.journey.components.EmptyHistory
+import com.canopas.yourspace.ui.flow.journey.components.LocationHistoryItem
 import com.canopas.yourspace.ui.theme.AppTheme
 
 @Composable
@@ -112,12 +112,10 @@ private fun TimelineContent(modifier: Modifier) {
             showJourneyDetails = viewModel::showJourneyDetails
         )
 
-        if (!state.isLoading && state.groupedLocation.isEmpty()) {
-            EmptyHistory()
-        }
-
         if (state.isLoading) {
             AppProgressIndicator()
+        } else if (state.groupedLocation.isEmpty()) {
+            EmptyHistory()
         }
     }
 }

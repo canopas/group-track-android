@@ -37,7 +37,7 @@ import com.canopas.yourspace.ui.flow.geofence.places.EXTRA_RESULT_PLACE_NAME
 import com.canopas.yourspace.ui.flow.geofence.places.PlacesListScreen
 import com.canopas.yourspace.ui.flow.geofence.places.PlacesListViewModel
 import com.canopas.yourspace.ui.flow.home.home.HomeScreen
-import com.canopas.yourspace.ui.flow.home.map.journey.UserJourneyDetailScreen
+import com.canopas.yourspace.ui.flow.journey.detail.UserJourneyDetailScreen
 import com.canopas.yourspace.ui.flow.home.space.create.CreateSpaceHomeScreen
 import com.canopas.yourspace.ui.flow.home.space.create.SpaceInvite
 import com.canopas.yourspace.ui.flow.home.space.join.JoinSpaceScreen

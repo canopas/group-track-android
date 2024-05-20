@@ -1,4 +1,4 @@
-package com.canopas.yourspace.ui.flow.home.map.member
+package com.canopas.yourspace.ui.flow.journey.member
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

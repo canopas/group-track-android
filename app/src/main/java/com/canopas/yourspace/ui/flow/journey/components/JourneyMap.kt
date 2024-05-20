@@ -1,4 +1,4 @@
-package com.canopas.yourspace.ui.flow.home.map.member.components
+package com.canopas.yourspace.ui.flow.journey.components
 
 import android.location.Location
 import androidx.compose.foundation.isSystemInDarkTheme

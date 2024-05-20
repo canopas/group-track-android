@@ -1,4 +1,4 @@
-package com.canopas.yourspace.ui.flow.home.map.journey
+package com.canopas.yourspace.ui.flow.journey.detail
 
 import android.location.Location
 import androidx.lifecycle.SavedStateHandle

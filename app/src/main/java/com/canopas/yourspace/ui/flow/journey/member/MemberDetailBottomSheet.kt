@@ -1,4 +1,4 @@
-package com.canopas.yourspace.ui.flow.home.map.member
+package com.canopas.yourspace.ui.flow.journey.member
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -31,7 +31,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.user.UserInfo
 import com.canopas.yourspace.ui.component.UserProfile
-import com.canopas.yourspace.ui.flow.home.map.member.components.LocationHistory
+import com.canopas.yourspace.ui.flow.journey.components.LocationHistory
 import com.canopas.yourspace.ui.theme.AppTheme
 import java.util.Calendar
 
