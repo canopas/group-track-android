@@ -50,6 +50,7 @@ class MapViewModel @Inject constructor(
             userPreferences.currentSpaceState.collectLatest { spaceId ->
                 locationJob?.cancel()
                 placeJob?.cancel()
+                dismissMemberDetail()
                 if (spaceId.isNotEmpty()) {
                     listenMemberLocation()
                     listenPlaces()

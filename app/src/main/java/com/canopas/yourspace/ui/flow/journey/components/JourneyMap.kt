@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.location.LocationJourney
@@ -34,6 +35,7 @@ fun JourneyMap(
     fromMarkerContent: @Composable () -> Unit,
     toMarkerContent: @Composable () -> Unit,
     polyLineWidth: Float = 5f,
+    anchor: Offset = Offset(0.5f, 1.0f),
     onMapTap: (() -> Unit) = { }
 ) {
     val fromLatLang = LatLng(location?.from_latitude ?: 0.0, location?.from_longitude ?: 0.0)
@@ -100,9 +102,9 @@ fun JourneyMap(
         )
     ) {
         location?.let {
-            FromLocationMarker(fromLatLang, fromMarkerContent)
+            LocationMarker(fromLatLang, anchor, fromMarkerContent)
             if (fromLocation.distanceTo(toLocation) > 200) {
-                ToLocationMarker(toLatLang, toMarkerContent)
+                LocationMarker(toLatLang, anchor, toMarkerContent)
             }
 
             Polyline(
@@ -116,17 +118,14 @@ fun JourneyMap(
 }
 
 @Composable
-fun ToLocationMarker(toLatLang: LatLng, toMarkerContent: @Composable () -> Unit) {
+private fun LocationMarker(
+    latLang: LatLng,
+    anchor: Offset,
+    markerContent: @Composable () -> Unit
+) {
     MarkerComposable(
-        state = rememberMarkerState(position = toLatLang),
-        content = toMarkerContent
-    )
-}
-
-@Composable
-fun FromLocationMarker(fromLatLang: LatLng, fromMarkerContent: @Composable () -> Unit) {
-    MarkerComposable(
-        state = rememberMarkerState(position = fromLatLang),
-        content = fromMarkerContent
+        state = rememberMarkerState(position = latLang),
+        content = markerContent,
+        anchor = anchor
     )
 }

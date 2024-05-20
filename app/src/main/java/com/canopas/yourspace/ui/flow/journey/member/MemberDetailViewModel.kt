@@ -28,31 +28,24 @@ class MemberDetailViewModel @Inject constructor(
     fun fetchUserLocationHistory(
         from: Long,
         to: Long,
-        userInfo: UserInfo? = _state.value.selectedUser,
-        refresh: Boolean = false
+        userInfo: UserInfo? = _state.value.selectedUser
     ) = viewModelScope.launch(appDispatcher.IO) {
         _state.emit(
             _state.value.copy(
                 selectedUser = userInfo,
                 selectedTimeFrom = from,
                 selectedTimeTo = to,
-                locations = if (_state.value.selectedUser != userInfo ||
-                    _state.value.selectedTimeTo != to ||
-                    _state.value.selectedTimeFrom != from
-                ) {
-                    listOf()
-                } else {
-                    _state.value.locations
-                }
+                locations = if (_state.value.selectedUser != userInfo) listOf() else _state.value.locations
             )
         )
+
         loadLocations()
     }
 
     private fun loadLocations() = viewModelScope.launch {
         if (state.value.selectedUser == null) return@launch
 
-        _state.value = _state.value.copy(isLoading = true)
+        _state.value = _state.value.copy(isLoading = state.value.locations.isEmpty())
 
         try {
             val locations = journeyService.getJourneyHistory(
