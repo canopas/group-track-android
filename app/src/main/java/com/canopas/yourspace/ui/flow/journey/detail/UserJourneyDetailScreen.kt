@@ -233,7 +233,7 @@ private fun ColumnScope.MapView(journey: LocationJourney?) {
         },
         toMarkerContent = {
             JourneyMarker(
-                AppTheme.colorScheme.successColor,
+                AppTheme.colorScheme.successColor
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_journey_destination),
@@ -242,9 +242,9 @@ private fun ColumnScope.MapView(journey: LocationJourney?) {
                     modifier = Modifier.size(16.dp)
                 )
             }
-
         },
-        polyLineWidth = 8f, anchor = Offset(0.5f, 0.5f)
+        polyLineWidth = 8f,
+        anchor = Offset(0.5f, 0.5f)
     )
 }
 
@@ -258,7 +258,7 @@ private fun JourneyMarker(bgColor: Color, content: @Composable BoxScope.() -> Un
                 shape = CircleShape
             )
             .border(0.5.dp, bgColor.copy(alpha = 0.8f), shape = CircleShape),
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.Center
     ) {
         Box(
             modifier = Modifier

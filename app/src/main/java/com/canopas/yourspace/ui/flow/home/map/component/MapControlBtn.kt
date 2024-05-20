@@ -19,7 +19,7 @@ import com.canopas.yourspace.ui.theme.AppTheme
 fun MapControlBtn(
     modifier: Modifier = Modifier,
     @DrawableRes icon: Int,
-    containerColor :Color = AppTheme.colorScheme.surface,
+    containerColor: Color = AppTheme.colorScheme.surface,
     contentColor: Color = AppTheme.colorScheme.primary,
     show: Boolean = true,
     onClick: () -> Unit

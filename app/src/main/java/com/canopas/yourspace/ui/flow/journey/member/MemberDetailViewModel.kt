@@ -30,7 +30,6 @@ class MemberDetailViewModel @Inject constructor(
         to: Long,
         userInfo: UserInfo? = _state.value.selectedUser
     ) = viewModelScope.launch(appDispatcher.IO) {
-
         _state.emit(
             _state.value.copy(
                 selectedUser = userInfo,

@@ -125,7 +125,7 @@ private fun LocationMarker(
 ) {
     MarkerComposable(
         state = rememberMarkerState(position = latLang),
-        content = markerContent, anchor = anchor
+        content = markerContent,
+        anchor = anchor
     )
 }
-
