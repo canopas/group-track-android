@@ -2,9 +2,11 @@ package com.canopas.yourspace.ui.flow.journey.timeline
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -15,6 +17,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -36,6 +39,7 @@ import com.canopas.yourspace.data.models.location.LocationJourney
 import com.canopas.yourspace.domain.utils.formattedMessageDateHeader
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.AppProgressIndicator
+import com.canopas.yourspace.ui.component.ShowDatePicker
 import com.canopas.yourspace.ui.component.reachedBottom
 import com.canopas.yourspace.ui.flow.journey.components.EmptyHistory
 import com.canopas.yourspace.ui.flow.journey.components.LocationHistoryItem
@@ -84,10 +88,18 @@ fun TimelineTopBar() {
             }
         },
         actions = {
-            IconButton(onClick = viewModel::showDatePicker) {
+            TextButton(onClick = viewModel::showDatePicker) {
+                Text(
+                    text = state.selectedTimeFrom?.formattedMessageDateHeader(LocalContext.current)
+                        ?: "",
+                    style = AppTheme.appTypography.body1,
+                    color = AppTheme.colorScheme.textPrimary
+                )
+                Spacer(modifier = Modifier.width(6.dp))
                 Icon(
                     painter = painterResource(id = R.drawable.ic_action_filter),
-                    contentDescription = ""
+                    contentDescription = "",
+                    tint = AppTheme.colorScheme.textPrimary
                 )
             }
         }
@@ -101,6 +113,14 @@ private fun TimelineContent(modifier: Modifier) {
 
     if (!state.error.isNullOrEmpty()) {
         AppBanner(msg = state.error!!, onDismiss = viewModel::resetErrorState)
+    }
+
+    if (state.showDatePicker) {
+        ShowDatePicker(
+            selectedTimestamp = state.selectedTimeTo,
+            confirmButtonClick = viewModel::onFilterByDate,
+            dismissButtonClick = viewModel::dismissDatePicker
+        )
     }
 
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

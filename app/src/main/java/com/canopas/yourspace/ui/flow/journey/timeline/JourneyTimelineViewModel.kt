@@ -40,13 +40,11 @@ class JourneyTimelineViewModel @Inject constructor(
         get() = state.value.groupedLocation.values.flatten()
 
     init {
-        fetchUserLocationHistory()
+        fetchUser()
+        loadLocations()
     }
 
-    private fun fetchUserLocationHistory(
-        from: Long? = null,
-        to: Long? = null
-    ) = viewModelScope.launch(appDispatcher.IO) {
+    private fun fetchUser() = viewModelScope.launch(appDispatcher.IO) {
         try {
             val user =
                 if (authService.currentUser?.id == userId) {
@@ -54,24 +52,11 @@ class JourneyTimelineViewModel @Inject constructor(
                 } else {
                     apiUserService.getUser(userId)
                 }
-
-            _state.emit(
+            _state.value =
                 _state.value.copy(
-                    isCurrentUserTimeline = authService.currentUser?.id == userId,
                     selectedUser = user,
-                    selectedTimeFrom = from,
-                    selectedTimeTo = to,
-                    groupedLocation = if (_state.value.selectedUser != user ||
-                        _state.value.selectedTimeTo != to ||
-                        _state.value.selectedTimeFrom != from
-                    ) {
-                        emptyMap()
-                    } else {
-                        _state.value.groupedLocation
-                    }
+                    isCurrentUserTimeline = authService.currentUser?.id == userId
                 )
-            )
-            loadLocations()
         } catch (e: Exception) {
             Timber.e(e, "Failed to fetch user")
             _state.value = _state.value.copy(error = e.localizedMessage, isLoading = false)
@@ -79,19 +64,16 @@ class JourneyTimelineViewModel @Inject constructor(
     }
 
     private fun loadLocations() = viewModelScope.launch {
-        if (state.value.selectedUser == null) return@launch
-
-        _state.value = _state.value.copy(isLoading = allJourneys.isEmpty(), appending = allJourneys.isNotEmpty())
+        _state.value = _state.value.copy(
+            isLoading = allJourneys.isEmpty(),
+            appending = allJourneys.isNotEmpty()
+        )
 
         try {
             val from =
                 if (allJourneys.isEmpty()) _state.value.selectedTimeFrom else allJourneys.minOfOrNull { it.created_at!! }
             val to = _state.value.selectedTimeTo
-            val locations = journeyService.getJourneyHistory(
-                _state.value.selectedUser?.id ?: "",
-                from = from,
-                to = to
-            )
+            val locations = journeyService.getJourneyHistory(userId, from, to)
 
             val locationJourneys = (allJourneys + locations).groupByDate()
             val hasMoreItems = locations.isNotEmpty()
@@ -104,7 +86,12 @@ class JourneyTimelineViewModel @Inject constructor(
             )
         } catch (e: Exception) {
             Timber.e(e, "Failed to fetch location history")
-            _state.value = _state.value.copy(error = e.localizedMessage, isLoading = false, appending = false)
+            _state.value =
+                _state.value.copy(
+                    error = e.localizedMessage,
+                    isLoading = false,
+                    appending = false
+                )
         }
     }
 
@@ -171,6 +158,28 @@ class JourneyTimelineViewModel @Inject constructor(
     }
 
     fun showDatePicker() {
+        _state.value = _state.value.copy(showDatePicker = true)
+    }
+
+    fun onFilterByDate(selectedTimeStamp: Long) {
+        dismissDatePicker()
+        val calendar = Calendar.getInstance().apply {
+            timeInMillis = selectedTimeStamp
+        }
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        val timestamp = calendar.timeInMillis
+        calendar.set(Calendar.HOUR_OF_DAY, 23)
+
+        _state.value = _state.value.copy(
+            selectedTimeFrom = timestamp,
+            selectedTimeTo = calendar.timeInMillis,
+            groupedLocation = emptyMap()
+        )
+        loadLocations()
+    }
+
+    fun dismissDatePicker() {
+        _state.value = _state.value.copy(showDatePicker = false)
     }
 }
 
@@ -183,5 +192,6 @@ data class JourneyTimelineState(
     val appending: Boolean = false,
     val groupedLocation: Map<Long, List<LocationJourney>> = emptyMap(),
     val hasMoreLocations: Boolean = true,
+    val showDatePicker: Boolean = false,
     val error: String? = null
 )

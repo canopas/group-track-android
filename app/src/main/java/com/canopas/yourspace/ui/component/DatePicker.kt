@@ -8,7 +8,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
-import java.util.Calendar
+import androidx.compose.ui.res.stringResource
+import com.canopas.yourspace.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 object PastOrPresentSelectableDates : SelectableDates {
@@ -20,14 +21,12 @@ object PastOrPresentSelectableDates : SelectableDates {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShowDatePicker(
-    selectedTimestamp: Long? = null,
+    selectedTimestamp: Long? = System.currentTimeMillis(),
     confirmButtonClick: (Long) -> Unit,
     dismissButtonClick: () -> Unit
 ) {
-    val calendar = Calendar.getInstance()
-
     val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = selectedTimestamp ?: calendar.timeInMillis,
+        initialSelectedDateMillis = selectedTimestamp ?: System.currentTimeMillis(),
         selectableDates = PastOrPresentSelectableDates
     )
     DatePickerDialog(
@@ -35,15 +34,15 @@ fun ShowDatePicker(
         confirmButton = {
             TextButton(onClick = {
                 confirmButtonClick(
-                    datePickerState.selectedDateMillis ?: calendar.timeInMillis
+                    datePickerState.selectedDateMillis ?: System.currentTimeMillis()
                 )
             }) {
-                Text(text = "Confirm")
+                Text(text = stringResource(id = R.string.common_btn_select))
             }
         },
         dismissButton = {
             TextButton(onClick = dismissButtonClick) {
-                Text(text = "Cancel")
+                Text(text = stringResource(id = R.string.common_btn_cancel))
             }
         }
     ) {
