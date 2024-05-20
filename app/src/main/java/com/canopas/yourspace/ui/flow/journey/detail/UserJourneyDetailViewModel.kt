@@ -1,4 +1,4 @@
-package com.canopas.yourspace.ui.flow.home.map.journey
+package com.canopas.yourspace.ui.flow.journey.detail
 
 import android.location.Location
 import androidx.lifecycle.SavedStateHandle
@@ -10,8 +10,8 @@ import com.canopas.yourspace.data.service.location.LocationJourneyService
 import com.canopas.yourspace.data.service.location.LocationManager
 import com.canopas.yourspace.data.service.user.ApiUserService
 import com.canopas.yourspace.data.utils.AppDispatcher
-import com.canopas.yourspace.ui.navigation.AppDestinations.UserJourney.KEY_JOURNEY_ID
-import com.canopas.yourspace.ui.navigation.AppDestinations.UserJourney.KEY_SELECTED_USER_ID
+import com.canopas.yourspace.ui.navigation.AppDestinations.UserJourneyDetails.KEY_JOURNEY_ID
+import com.canopas.yourspace.ui.navigation.AppDestinations.UserJourneyDetails.KEY_SELECTED_USER_ID
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
-class UserJourneyViewModel @Inject constructor(
+class UserJourneyDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val journeyService: LocationJourneyService,
     private val appDispatcher: AppDispatcher,
@@ -35,12 +35,12 @@ class UserJourneyViewModel @Inject constructor(
     private var userId: String = savedStateHandle.get<String>(KEY_SELECTED_USER_ID)
         ?: throw IllegalArgumentException("User id is required")
 
-    private val _state = MutableStateFlow(UserJourneyState())
+    private val _state = MutableStateFlow(UserJourneyDetailState())
     val state = _state.asStateFlow()
 
     init {
         viewModelScope.launch(appDispatcher.IO) {
-            val user = apiUserService.getUser(userId!!)
+            val user = apiUserService.getUser(userId)
             val currentLocation = locationManager.getLastLocation()
             _state.value = _state.value.copy(
                 journeyId = journeyId,
@@ -93,7 +93,7 @@ class UserJourneyViewModel @Inject constructor(
     }
 }
 
-data class UserJourneyState(
+data class UserJourneyDetailState(
     val isLoading: Boolean = false,
     val user: ApiUser? = null,
     val selectedTimeFrom: Long = System.currentTimeMillis(),

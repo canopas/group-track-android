@@ -234,7 +234,7 @@ object AppDestinations {
         override val path: String = "add-new-place"
     }
 
-    object UserJourney {
+    object UserJourneyDetails {
         const val KEY_JOURNEY_ID = "journey_id"
         const val KEY_SELECTED_USER_ID = "selected_user_id"
 
@@ -252,6 +252,24 @@ object AppDestinations {
             )
 
             override val path = "$PATH/$selectedUserId/$journeyId"
+        }
+    }
+
+    object JourneyTimeline {
+        const val KEY_SELECTED_USER_ID = "selected_user_id"
+
+        private const val PATH = "user-journey-timeline"
+        const val path = "$PATH/{$KEY_SELECTED_USER_ID}"
+
+        fun args(
+            selectedUserId: String
+        ) = object : AppRoute {
+
+            override val arguments = listOf(
+                navArgument(KEY_SELECTED_USER_ID) { type = NavType.StringType }
+            )
+
+            override val path = "$PATH/$selectedUserId"
         }
     }
 }

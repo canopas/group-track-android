@@ -1,4 +1,4 @@
-package com.canopas.yourspace.ui.flow.home.map.member.components
+package com.canopas.yourspace.ui.flow.journey.components
 
 import android.location.Address
 import androidx.compose.foundation.Image
@@ -29,7 +29,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,7 +51,6 @@ import com.canopas.yourspace.domain.utils.getAddress
 import com.canopas.yourspace.domain.utils.getPlaceAddress
 import com.canopas.yourspace.ui.component.AppProgressIndicator
 import com.canopas.yourspace.ui.component.DashedDivider
-import com.canopas.yourspace.ui.component.reachedBottom
 import com.canopas.yourspace.ui.theme.AppTheme
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.Dispatchers
@@ -67,18 +65,10 @@ import kotlin.math.roundToInt
 fun LocationHistory(
     isLoading: Boolean,
     locations: List<LocationJourney>,
-    loadMore: () -> Unit,
     addPlaceTap: (latitute: Double, longitude: Double) -> Unit,
     showJourneyDetails: (journeyId: String) -> Unit
 ) {
     val lazyListState = rememberLazyListState()
-    val reachedBottom by remember {
-        derivedStateOf { lazyListState.reachedBottom() }
-    }
-
-    LaunchedEffect(reachedBottom) {
-        if (reachedBottom) loadMore()
-    }
 
     Box {
         when {
@@ -124,7 +114,7 @@ fun LocationHistory(
 }
 
 @Composable
-private fun LocationHistoryItem(
+fun LocationHistoryItem(
     location: LocationJourney,
     isLastItem: Boolean,
     addPlaceTap: (latitude: Double, longitude: Double) -> Unit,
@@ -336,7 +326,7 @@ fun DottedTimeline(isSteadyLocation: Boolean, isLastItem: Boolean) {
 }
 
 @Composable
-private fun EmptyHistory() {
+fun EmptyHistory() {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,

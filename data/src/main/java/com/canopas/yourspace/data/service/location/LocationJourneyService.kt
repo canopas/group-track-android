@@ -7,6 +7,7 @@ import com.canopas.yourspace.data.utils.Config
 import com.canopas.yourspace.data.utils.LocationConverters
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 import javax.inject.Inject
@@ -124,14 +125,27 @@ class LocationJourneyService @Inject constructor(
         null
     }
 
-    suspend fun getJourneyHistory(userId: String, from: Long, to: Long) =
-        journeyRef(userId).whereEqualTo("user_id", userId)
-            .whereGreaterThanOrEqualTo("created_at", from)
-            .whereLessThan("created_at", to)
-            .orderBy("created_at", Query.Direction.DESCENDING)
-            .limit(20)
-            .get().await()
-            .documents.mapNotNull { it.toObject(LocationJourney::class.java) }
+    suspend fun getJourneyHistory(userId: String, from: Long?, to: Long?): List<LocationJourney> {
+        if (from == null) {
+            return journeyRef(userId).whereEqualTo("user_id", userId)
+                .orderBy("created_at", Query.Direction.DESCENDING)
+                .limit(20)
+                .get().await().documents.mapNotNull { it.toObject<LocationJourney>() }
+        } else if (to == null) {
+            return journeyRef(userId).whereEqualTo("user_id", userId)
+                .whereGreaterThanOrEqualTo("created_at", from)
+                .orderBy("created_at", Query.Direction.DESCENDING)
+                .limit(20)
+                .get().await().documents.mapNotNull { it.toObject<LocationJourney>() }
+        } else {
+            return journeyRef(userId).whereEqualTo("user_id", userId)
+                .whereGreaterThanOrEqualTo("created_at", from)
+                .whereLessThanOrEqualTo("created_at", to)
+                .orderBy("created_at", Query.Direction.DESCENDING)
+                .limit(20)
+                .get().await().documents.mapNotNull { it.toObject<LocationJourney>() }
+        }
+    }
 
     suspend fun getLocationJourneyFromId(userId: String, journeyId: String): LocationJourney? {
         return journeyRef(userId).document(journeyId).get().await()

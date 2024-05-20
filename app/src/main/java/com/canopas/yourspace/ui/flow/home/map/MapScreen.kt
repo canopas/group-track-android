@@ -63,7 +63,7 @@ import com.canopas.yourspace.ui.flow.home.map.component.MapCircles
 import com.canopas.yourspace.ui.flow.home.map.component.MapControlBtn
 import com.canopas.yourspace.ui.flow.home.map.component.MapMarker
 import com.canopas.yourspace.ui.flow.home.map.component.MapUserItem
-import com.canopas.yourspace.ui.flow.home.map.member.MemberDetailBottomSheetContent
+import com.canopas.yourspace.ui.flow.journey.member.MemberDetailBottomSheetContent
 import com.canopas.yourspace.ui.theme.AppTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus

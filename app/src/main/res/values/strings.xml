@@ -15,6 +15,7 @@
     <string name="common_btn_add">Add</string>
     <string name="common_btn_cancel">Cancel</string>
     <string name="common_btn_delete">Delete</string>
+    <string name="common_btn_select">Select</string>
     <string name="common_unknown">Unknown</string>
     <string name="common_today">Today</string>
     <string name="common_yesterday">Yesterday</string>
@@ -265,4 +266,8 @@
 
     <string name="user_journey_view_today_text">Today</string>
     <string name="member_detail_location_history_today">Earlier today</string>
+    <string name="journey_timeline_title">Timeline</string>
+
+    <string name="journey_timeline_title_your_timeline">Your Timeline</string>
+    <string name="journey_timeline_title_other_user">%s\'s Timeline</string>
 </resources>

@@ -37,11 +37,12 @@ import com.canopas.yourspace.ui.flow.geofence.places.EXTRA_RESULT_PLACE_NAME
 import com.canopas.yourspace.ui.flow.geofence.places.PlacesListScreen
 import com.canopas.yourspace.ui.flow.geofence.places.PlacesListViewModel
 import com.canopas.yourspace.ui.flow.home.home.HomeScreen
-import com.canopas.yourspace.ui.flow.home.map.journey.UserJourneyView
 import com.canopas.yourspace.ui.flow.home.space.create.CreateSpaceHomeScreen
 import com.canopas.yourspace.ui.flow.home.space.create.SpaceInvite
 import com.canopas.yourspace.ui.flow.home.space.join.JoinSpaceScreen
 import com.canopas.yourspace.ui.flow.intro.IntroScreen
+import com.canopas.yourspace.ui.flow.journey.detail.UserJourneyDetailScreen
+import com.canopas.yourspace.ui.flow.journey.timeline.JourneyTimelineScreen
 import com.canopas.yourspace.ui.flow.messages.chat.MessagesScreen
 import com.canopas.yourspace.ui.flow.messages.thread.ThreadsScreen
 import com.canopas.yourspace.ui.flow.onboard.OnboardScreen
@@ -256,8 +257,12 @@ fun MainApp(viewModel: MainViewModel) {
             AddNewPlaceScreen()
         }
 
-        slideComposable(AppDestinations.UserJourney.path) {
-            UserJourneyView()
+        slideComposable(AppDestinations.UserJourneyDetails.path) {
+            UserJourneyDetailScreen()
+        }
+
+        slideComposable(AppDestinations.JourneyTimeline.path) {
+            JourneyTimelineScreen()
         }
     }
 }
