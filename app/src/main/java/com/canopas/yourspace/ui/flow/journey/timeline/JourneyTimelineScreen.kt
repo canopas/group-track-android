@@ -37,6 +37,7 @@ import com.canopas.yourspace.domain.utils.formattedMessageDateHeader
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.AppProgressIndicator
 import com.canopas.yourspace.ui.component.reachedBottom
+import com.canopas.yourspace.ui.flow.home.map.member.components.EmptyHistory
 import com.canopas.yourspace.ui.flow.home.map.member.components.LocationHistoryItem
 import com.canopas.yourspace.ui.theme.AppTheme
 
@@ -111,6 +112,10 @@ private fun TimelineContent(modifier: Modifier) {
             showJourneyDetails = viewModel::showJourneyDetails
         )
 
+        if (!state.isLoading && state.groupedLocation.isEmpty()) {
+            EmptyHistory()
+        }
+
         if (state.isLoading) {
             AppProgressIndicator()
         }
@@ -146,7 +151,8 @@ private fun JourneyList(
                 Text(
                     text = section.key.formattedMessageDateHeader(LocalContext.current),
                     style = AppTheme.appTypography.subTitle1.copy(color = AppTheme.colorScheme.textSecondary),
-                    modifier = Modifier.padding(bottom = 10.dp)
+                    modifier = Modifier
+                        .padding(bottom = 10.dp)
                         .fillMaxWidth()
                         .padding(vertical = 16.dp, horizontal = 16.dp)
                 )

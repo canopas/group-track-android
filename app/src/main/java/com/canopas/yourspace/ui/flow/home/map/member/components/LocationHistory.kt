@@ -326,7 +326,7 @@ fun DottedTimeline(isSteadyLocation: Boolean, isLastItem: Boolean) {
 }
 
 @Composable
-private fun EmptyHistory() {
+fun EmptyHistory() {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
