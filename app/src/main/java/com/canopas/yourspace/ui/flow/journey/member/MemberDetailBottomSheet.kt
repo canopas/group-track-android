@@ -19,7 +19,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -108,7 +107,7 @@ private fun UserInfoContent(userInfo: UserInfo, onTapTimeline: () -> Unit) {
 
             IconButton(
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(38.dp)
                     .background(
                         color = AppTheme.colorScheme.primary.copy(alpha = 0.2f),
                         shape = CircleShape

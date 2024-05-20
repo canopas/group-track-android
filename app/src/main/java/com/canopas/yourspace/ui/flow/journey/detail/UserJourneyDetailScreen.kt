@@ -1,15 +1,20 @@
 package com.canopas.yourspace.ui.flow.journey.detail
 
 import android.location.Address
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
@@ -29,6 +34,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -81,7 +88,12 @@ fun UserJourneyDetailScreen() {
 
 @Composable
 private fun FooterContent(loading: Boolean, journey: LocationJourney?) {
-    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 100.dp),
+        contentAlignment = Alignment.Center
+    ) {
         journey?.let { location ->
             JourneyInfo(location)
         }
@@ -96,7 +108,6 @@ private fun JourneyInfo(journey: LocationJourney) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .fillMaxHeight(0.3f)
             .padding(vertical = 16.dp)
     ) {
         val context = LocalContext.current
@@ -134,7 +145,7 @@ private fun JourneyInfo(journey: LocationJourney) {
         Row(
             verticalAlignment = Alignment.Top,
             modifier = Modifier
-                .weight(1f)
+                .height(90.dp)
         ) {
             DottedTimeline(isSteadyLocation = true, isLastItem = false)
             Column(
@@ -149,7 +160,7 @@ private fun JourneyInfo(journey: LocationJourney) {
         Row(
             verticalAlignment = Alignment.Top,
             modifier = Modifier
-                .weight(1f)
+                .height(90.dp)
         ) {
             DottedTimeline(isSteadyLocation = false, isLastItem = true)
             Column(
@@ -211,21 +222,54 @@ private fun ColumnScope.MapView(journey: LocationJourney?) {
         location = journey,
         true,
         fromMarkerContent = {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_tab_places_filled),
-                contentDescription = null,
-                tint = AppTheme.colorScheme.alertColor,
-                modifier = Modifier.size(38.dp)
-            )
+            JourneyMarker(bgColor = AppTheme.colorScheme.primary) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_tab_places_filled),
+                    contentDescription = null,
+                    tint = AppTheme.colorScheme.primary,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
         },
         toMarkerContent = {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_journey_destination),
-                contentDescription = null,
-                tint = AppTheme.colorScheme.successColor,
-                modifier = Modifier.size(40.dp)
-            )
+            JourneyMarker(
+                AppTheme.colorScheme.successColor,
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_journey_destination),
+                    contentDescription = null,
+                    tint = AppTheme.colorScheme.successColor,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+
         },
-        polyLineWidth = 8f
+        polyLineWidth = 8f, anchor = Offset(0.5f, 0.5f)
     )
+}
+
+@Composable
+private fun JourneyMarker(bgColor: Color, content: @Composable BoxScope.() -> Unit) {
+    Box(
+        modifier = Modifier
+            .size(80.dp)
+            .background(
+                bgColor.copy(alpha = 0.4f),
+                shape = CircleShape
+            )
+            .border(0.5.dp, bgColor.copy(alpha = 0.8f), shape = CircleShape),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(28.dp)
+                .background(
+                    AppTheme.colorScheme.surface,
+                    shape = CircleShape
+                )
+                .padding(5.dp),
+            contentAlignment = Alignment.Center,
+            content = content
+        )
+    }
 }
