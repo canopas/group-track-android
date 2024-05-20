@@ -35,7 +35,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.location.LocationJourney
-import com.canopas.yourspace.data.models.location.isSteadyLocation
 import com.canopas.yourspace.domain.utils.getPlaceAddress
 import com.canopas.yourspace.ui.flow.home.map.member.components.DottedTimeline
 import com.canopas.yourspace.ui.flow.home.map.member.components.JourneyMap
@@ -51,8 +50,8 @@ import kotlinx.coroutines.withContext
 import java.util.Calendar
 
 @Composable
-fun UserJourneyView() {
-    val viewModel = hiltViewModel<UserJourneyViewModel>()
+fun UserJourneyDetailScreen() {
+    val viewModel = hiltViewModel<UserJourneyDetailViewModel>()
     val state by viewModel.state.collectAsState()
 
     LaunchedEffect(key1 = Unit) {

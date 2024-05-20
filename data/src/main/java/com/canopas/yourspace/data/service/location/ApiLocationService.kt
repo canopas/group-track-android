@@ -83,7 +83,6 @@ class ApiLocationService @Inject constructor(
     ) {
         val data = locationTableDatabase.locationTableDao().getLocationData(userId)
         if (data == null) {
-            //  Timber.d("XXX insert latestLocation")
             locationTableDatabase.locationTableDao().insertLocationData(
                 LocationTable(
                     userId = userId,
@@ -91,7 +90,6 @@ class ApiLocationService @Inject constructor(
                 )
             )
         } else {
-            // Timber.d("XXX update latestLocation")
             locationTableDatabase.locationTableDao().updateLocationTable(
                 data.copy(latestLocation = converters.locationToString(location))
             )
@@ -137,79 +135,6 @@ class ApiLocationService @Inject constructor(
 
         return flow {
             emit(locations)
-        }
-    }
-
-    suspend fun getLastLocation(userId: String): ApiLocation? {
-        return try {
-            locationRef(userId)?.whereEqualTo("user_id", userId)
-                ?.orderBy("created_at", Query.Direction.DESCENDING)
-                ?.limit(1)
-                ?.get()?.await()?.documents?.firstOrNull()?.toObject(ApiLocation::class.java)
-        } catch (e: Exception) {
-            Timber.e(e, "Error while getting last location")
-            null
-        }
-    }
-
-    suspend fun getLocationsBetweenTime(
-        userId: String,
-        from: Long,
-        to: Long
-    ): List<ApiLocation>? {
-        try {
-            val minutesInMilliseconds = 60000
-            val minutesThreshold5 = 5
-            val minutesThreshold60 = 60
-            val minutesThreshold120 = 120
-            val minutesThreshold180 = 180
-
-            val minutes = (to - from) / minutesInMilliseconds
-            val locations = mutableListOf<ApiLocation>()
-
-            val reference = locationRef(userId) ?: return null
-
-            val count = when (minutes) {
-                in 0..minutesThreshold5 -> 0
-                in minutesThreshold5..minutesThreshold60 -> 5
-                in minutesThreshold60..minutesThreshold120 -> 10
-                in minutesThreshold120..minutesThreshold180 -> 15
-                else -> 20
-            }
-
-            if (count == 0) {
-                val apiLocation = reference
-                    .whereEqualTo("user_id", userId)
-                    .whereGreaterThanOrEqualTo("created_at", from)
-                    .whereLessThan("created_at", to)
-                    .orderBy("created_at", Query.Direction.DESCENDING).limit(10)
-                    .get().await().documents.mapNotNull {
-                        it.toObject(ApiLocation::class.java)
-                    }
-                locations.addAll(apiLocation)
-                return locations
-            }
-            for (i in 0 until count) {
-                val startTime = to - (i + 1) * (minutes / count) * minutesInMilliseconds
-                val endTime = to - i * (minutes / count) * minutesInMilliseconds
-
-                val apiLocation = reference
-                    .whereEqualTo("user_id", userId)
-                    .whereGreaterThanOrEqualTo("created_at", startTime)
-                    .whereLessThan("created_at", endTime)
-                    .orderBy("created_at", Query.Direction.DESCENDING).limit(1)
-                    .get().await().documents
-                    .randomOrNull()?.toObject(ApiLocation::class.java)
-
-                apiLocation?.let {
-                    locations.add(it)
-                }
-            }
-
-            return locations
-        } catch (e: Exception) {
-            Timber.e(e, "Error while getting locations between time")
-            return null
         }
     }
 }

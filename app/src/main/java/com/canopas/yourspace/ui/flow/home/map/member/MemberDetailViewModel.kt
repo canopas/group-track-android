@@ -58,8 +58,7 @@ class MemberDetailViewModel @Inject constructor(
             val locations = journeyService.getJourneyHistory(
                 _state.value.selectedUser?.user?.id ?: "",
                 _state.value.selectedTimeFrom ?: 0,
-                _state.value.locations.lastOrNull()?.created_at ?: _state.value.selectedTimeTo
-                    ?: 0
+                _state.value.selectedTimeTo ?: 0
             )
 
             val locationJourneys = (state.value.locations + locations).distinctBy { it.id }
@@ -77,25 +76,6 @@ class MemberDetailViewModel @Inject constructor(
         }
     }
 
-    fun loadMoreLocations() {
-        state.value.let {
-            if (it.hasMoreLocations && !it.isLoading) {
-                loadLocations()
-            }
-        }
-    }
-
-    fun navigateToUserJourneyDetail(journeyId: String? = null) {
-        state.value.selectedUser?.let { selectedUser ->
-            navigator.navigateTo(
-                AppDestinations.UserJourney.args(
-                    selectedUser.user.id,
-                    journeyId ?: ""
-                ).path
-            )
-        }
-    }
-
     fun addPlace(latitud: Double, longitud: Double) {
         navigator.navigateTo(
             AppDestinations.ChoosePlaceName.setArgs(
@@ -106,7 +86,20 @@ class MemberDetailViewModel @Inject constructor(
     }
 
     fun showJourneyDetails(journeyId: String) {
-        navigator.navigateTo(AppDestinations.UserJourney.args(state.value.selectedUser?.user?.id ?: "", journeyId).path)
+        navigator.navigateTo(
+            AppDestinations.UserJourneyDetails.args(
+                state.value.selectedUser?.user?.id ?: "",
+                journeyId
+            ).path
+        )
+    }
+
+    fun showJourneyTimeline() {
+        navigator.navigateTo(
+            AppDestinations.JourneyTimeline.args(
+                state.value.selectedUser?.user?.id ?: ""
+            ).path
+        )
     }
 }
 
