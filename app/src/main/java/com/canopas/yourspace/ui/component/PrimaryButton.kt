@@ -45,7 +45,7 @@ fun PrimaryButton(
 
         Text(
             text = label,
-            style = AppTheme.appTypography.subTitle2.copy(color = contentColor),
+            style = AppTheme.appTypography.button.copy(color = contentColor),
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(vertical = 6.dp)
         )

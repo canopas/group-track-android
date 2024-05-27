@@ -19,7 +19,7 @@ class AppTypography {
     val header1: TextStyle = TextStyle(
         fontFamily = InterFontFamily,
         fontWeight = FontWeight.W600,
-        fontSize = 24.sp,
+        fontSize = 26.sp,
         letterSpacing = (-0.96).sp
 
     )
@@ -27,21 +27,21 @@ class AppTypography {
     val header2: TextStyle = TextStyle(
         fontFamily = InterFontFamily,
         fontWeight = FontWeight.W600,
-        fontSize = 22.sp,
+        fontSize = 24.sp,
         letterSpacing = (-0.88).sp
     )
 
     val header3: TextStyle = TextStyle(
         fontFamily = InterFontFamily,
         fontWeight = FontWeight.W600,
-        fontSize = 18.sp,
+        fontSize = 20.sp,
         letterSpacing = (-0.72).sp
     )
 
     val header4: TextStyle = TextStyle(
         fontFamily = InterFontFamily,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 20.sp,
+        fontSize = 18.sp,
         letterSpacing = (-0.72).sp
     )
 
@@ -53,19 +53,26 @@ class AppTypography {
 
     val subTitle2: TextStyle = TextStyle(
         fontFamily = InterFontFamily,
+        fontWeight = FontWeight.W500,
+        fontSize = 16.sp
+    )
+
+    val subTitle3: TextStyle = TextStyle(
+        fontFamily = InterFontFamily,
+        fontWeight = FontWeight.W400,
         fontSize = 16.sp
     )
 
     val body1 = TextStyle(
         fontFamily = InterFontFamily,
         fontWeight = FontWeight.W400,
-        fontSize = 16.sp,
+        fontSize = 15.sp,
         lineHeight = 24.sp
     )
 
     val body2 = TextStyle(
         fontFamily = InterFontFamily,
-        fontWeight = FontWeight.Medium,
+        fontWeight = FontWeight.W400,
         fontSize = 14.sp,
         lineHeight = 20.sp
     )
@@ -100,6 +107,13 @@ class AppTypography {
 
     val caption = TextStyle(
         fontFamily = InterFontFamily,
+        fontWeight = FontWeight.W500,
         fontSize = 12.sp
+    )
+
+    val button = TextStyle(
+        fontFamily = InterFontFamily,
+        fontWeight = FontWeight.W600,
+        fontSize = 14.sp
     )
 }
