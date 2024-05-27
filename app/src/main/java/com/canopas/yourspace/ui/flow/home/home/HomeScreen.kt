@@ -7,6 +7,7 @@ import androidx.annotation.DrawableRes
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -18,7 +19,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -26,8 +26,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -41,7 +41,7 @@ import androidx.navigation.compose.rememberNavController
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.utils.isBackgroundLocationPermissionGranted
 import com.canopas.yourspace.data.utils.isBatteryOptimizationEnabled
-import com.canopas.yourspace.ui.component.AppProgressIndicator
+import com.canopas.yourspace.ui.component.ActionIconButton
 import com.canopas.yourspace.ui.component.PermissionDialog
 import com.canopas.yourspace.ui.flow.geofence.places.PlacesListScreen
 import com.canopas.yourspace.ui.flow.home.activity.ActivityScreen
@@ -115,34 +115,33 @@ fun HomeTopBar(verifyingSpace: Boolean) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 10.dp)
-            .padding(horizontal = 6.dp),
+            .background(color = AppTheme.colorScheme.surface)
+            .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        MapControl(
-            icon = R.drawable.ic_settings,
-            modifier = Modifier,
-            visible = !state.showSpaceSelectionPopup
-        ) {
-            viewModel.navigateToSettings()
+        if (!state.showSpaceSelectionPopup) {
+            MapControl(icon = R.drawable.ic_settings) {
+                viewModel.navigateToSettings()
+            }
         }
 
-        SpaceSelectionMenu(modifier = Modifier.weight(1f), verifyingSpace = verifyingSpace)
+        SpaceSelectionMenu(
+            modifier = Modifier
+                .padding(horizontal = 4.dp)
+                .weight(1f),
+            verifyingSpace = verifyingSpace,
+            isExpand = state.showSpaceSelectionPopup
+        )
 
-        if (!state.selectedSpaceId.isNullOrEmpty()) {
-            MapControl(
-                icon = R.drawable.ic_messages,
-                visible = !state.showSpaceSelectionPopup
-            ) {
+        if (!state.selectedSpaceId.isNullOrEmpty() && !state.showSpaceSelectionPopup) {
+            MapControl(icon = R.drawable.ic_messages) {
                 viewModel.navigateToThreads()
             }
         }
 
         Box {
             if (state.showSpaceSelectionPopup) {
-                MapControl(
-                    icon = R.drawable.ic_add_member
-                ) {
+                MapControl(icon = R.drawable.ic_add_member) {
                     viewModel.addMember()
                 }
             } else if (!state.selectedSpaceId.isNullOrEmpty()) {
@@ -176,30 +175,27 @@ fun HomeTopBar(verifyingSpace: Boolean) {
 
 @Composable
 private fun MapControl(
-    modifier: Modifier = Modifier,
     @DrawableRes icon: Int,
     visible: Boolean = true,
     showLoader: Boolean = false,
     onClick: () -> Unit
 ) {
-    val alpha by animateFloatAsState(targetValue = if (visible) 1f else 0f, tween(100), label = "")
+    val alpha by animateFloatAsState(
+        targetValue = if (visible) 1f else 0f,
+        tween(durationMillis = 100),
+        label = ""
+    )
 
-    SmallFloatingActionButton(
-        modifier = modifier.alpha(alpha),
-        onClick = { if (visible) onClick() },
-        containerColor = AppTheme.colorScheme.surface,
-        contentColor = AppTheme.colorScheme.primary
-    ) {
-        if (showLoader) {
-            AppProgressIndicator(strokeWidth = 2.dp)
-        } else {
-            Icon(
-                painter = painterResource(id = icon),
-                contentDescription = "",
-                modifier = Modifier.size(24.dp)
-            )
-        }
-    }
+    ActionIconButton(
+        modifier = Modifier
+            .padding(horizontal = 4.dp)
+            .graphicsLayer(alpha = alpha),
+        icon = icon,
+        showLoader = showLoader,
+        containerColor = AppTheme.colorScheme.containerNormalOnSurface,
+        contentColor = AppTheme.colorScheme.textPrimary,
+        onClick = onClick
+    )
 }
 
 @OptIn(ExperimentalAnimationApi::class)
