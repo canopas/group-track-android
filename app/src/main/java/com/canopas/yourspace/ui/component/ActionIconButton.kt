@@ -33,7 +33,7 @@ fun ActionIconButton(
             .clip(shape)
             .wrapContentSize(),
         enabled = enabled,
-        onClick = { if (enabled) onClick() },
+        onClick = onClick,
         colors = IconButtonDefaults.iconButtonColors(
             containerColor = containerColor,
             contentColor = contentColor
