@@ -174,7 +174,7 @@ fun HomeTopBar(verifyingSpace: Boolean) {
 }
 
 @Composable
-fun MapControl(
+private fun MapControl(
     @DrawableRes icon: Int,
     visible: Boolean = true,
     showLoader: Boolean = false,
