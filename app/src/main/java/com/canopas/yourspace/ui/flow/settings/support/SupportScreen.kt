@@ -27,7 +27,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
@@ -82,13 +81,13 @@ fun SupportScreen() {
                 title = {
                     Text(
                         text = stringResource(id = R.string.support_title),
-                        style = AppTheme.appTypography.header3
+                        style = AppTheme.appTypography.subTitle1
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = { viewModel.popBackStack() }) {
                         Icon(
-                            Icons.Default.ArrowBack,
+                            painter = painterResource(id = R.drawable.ic_nav_back_arrow_icon),
                             contentDescription = ""
                         )
                     }

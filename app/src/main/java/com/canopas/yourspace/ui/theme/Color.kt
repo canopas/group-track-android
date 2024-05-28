@@ -20,12 +20,12 @@ private val tertiaryLightColor = Color(0xFFDCE8B4)
 private val containerHighLightColor = Color(0x1F2884B2)
 private val containerNormalLightColor = Color(0x0F2884B2)
 private val containerLowLightColor = Color(0x0A2884B2)
+private val containerB40LightColor = Color(0x0A61A4C6)
 
-private val containerHighDarkColor = Color(0x1F2884B2)
-private val containerNormalDarkColor = Color(0x0F2884B2)
-private val containerLowDarkColor = Color(0x0A2884B2)
-
-private val containerB40Color = Color(0x0A61A4C6)
+private val containerHighDarkColor = Color(0x3DABCFE1)
+private val containerNormalDarkColor = Color(0x1FABCFE1)
+private val containerLowDarkColor = Color(0x14ABCFE1)
+private val containerB40DarkColor = Color(0x0AABCFE1)
 
 private val textPrimaryLightColor = Color(0xDE000000)
 private val textSecondaryLightColor = Color(0x99000000)
@@ -77,7 +77,8 @@ internal val appLightColorScheme = AppColorScheme(
     secondaryInverseVariant = secondaryVariantDarkColor,
     containerHigh = containerHighLightColor,
     containerNormal = containerNormalLightColor,
-    containerLow = containerLowLightColor
+    containerLow = containerLowLightColor,
+    containerB40 = containerB40LightColor
 )
 
 internal val themeDarkColorScheme = darkColorScheme().copy(
@@ -108,7 +109,8 @@ internal val appDarkColorScheme = AppColorScheme(
     secondaryInverseVariant = secondaryVariantLightColor,
     containerHigh = containerHighDarkColor,
     containerNormal = containerNormalDarkColor,
-    containerLow = containerLowDarkColor
+    containerLow = containerLowDarkColor,
+    containerB40 = containerB40DarkColor
 )
 
 val LocalDarkMode = staticCompositionLocalOf {
@@ -140,7 +142,7 @@ data class AppColorScheme(
     val containerHigh: Color,
     val containerNormal: Color,
     val containerLow: Color,
-    val containerB40: Color = containerB40Color,
+    val containerB40: Color,
     val onPrimary: Color = textPrimaryDarkColor,
     val onPrimaryVariant: Color = textPrimaryLightColor,
     val onSecondary: Color = textSecondaryDarkColor,

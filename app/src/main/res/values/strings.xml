@@ -163,7 +163,7 @@
     <string name="setting_space_notifications">Notifications</string>
     <string name="setting_space_management">Space settings</string>
     <string name="setting_location_sharing">Location Sharing</string>
-    <string name="setting_other">Other</string>
+    <string name="setting_other">Others</string>
     <string name="setting_contact_support">Contact support</string>
     <string name="setting_privacy">Privacy Policy</string>
     <string name="setting_about_us">About Us</string>
@@ -179,7 +179,6 @@
     <string name="edit_profile_email_label">Email</string>
     <string name="edit_profile_phone_label">Phone</string>
 
-    <string name="space_setting_title_details">Space details</string>
     <string name="space_setting_title_your_location">Your location sharing</string>
     <string name="space_setting_title_members_location_status">Space member status</string>
     <string name="space_setting_hint_space_name">Space Name</string>
@@ -213,7 +212,7 @@
     <string name="support_btn_submit">Submit</string>
     <string name="support_attachment_size_limit_exceed">Attachment size should be less than 5MB</string>
     <string name="support_request_sent">Thanks! Your feedback has been recorded.</string>
-    <string name="setting_spaces">Spaces</string>
+    <string name="setting_spaces">Your spaces</string>
 
     <string name="battery_optimization_dialog_title">Turn off Battery Optimization for Location Sharing</string>
     <string name="battery_optimization_dialog_message">For location sharing feature to work properly for your Spaces, turn off Battery Optimization in your phone settings for the YourSpace app. This won\'t affect your other apps.</string>
