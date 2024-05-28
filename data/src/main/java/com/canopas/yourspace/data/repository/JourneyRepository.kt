@@ -53,7 +53,7 @@ class JourneyRepository @Inject constructor(
                     saveJourneyForSteadyUser(
                         userId,
                         extractedLocation,
-                        lastJourney,
+                        lastJourney
                     )
                 }
 
@@ -150,7 +150,7 @@ class JourneyRepository @Inject constructor(
 
     private fun getUserState(
         locationData: LocationTable?,
-        extractedLocation: Location,
+        extractedLocation: Location
     ): Int {
         val lastFiveMinuteLocations = getLastFiveMinuteLocations(locationData)
         if (lastFiveMinuteLocations.isMoving(extractedLocation)) return UserState.MOVING.value
@@ -178,7 +178,7 @@ class JourneyRepository @Inject constructor(
                     extractedLocation,
                     lastKnownJourney.toLocationFromSteadyJourney()
                 ).toDouble(),
-                routeDuration = extractedLocation.time - lastKnownJourney.update_at!!,
+                routeDuration = extractedLocation.time - lastKnownJourney.update_at!!
             )
         } else {
             val distance = lastKnownJourney.toLocationFromMovingJourney().distanceTo(
@@ -206,11 +206,14 @@ class JourneyRepository @Inject constructor(
     private suspend fun saveJourneyForSteadyUser(
         currentUserId: String,
         extractedLocation: Location,
-        lastKnownJourney: LocationJourney,
+        lastKnownJourney: LocationJourney
     ) {
         val lastLatLong =
-            if (lastKnownJourney.isSteadyLocation()) lastKnownJourney.toLocationFromSteadyJourney()
-            else lastKnownJourney.toLocationFromMovingJourney()
+            if (lastKnownJourney.isSteadyLocation()) {
+                lastKnownJourney.toLocationFromSteadyJourney()
+            } else {
+                lastKnownJourney.toLocationFromMovingJourney()
+            }
 
         val distance = distanceBetween(extractedLocation, lastLatLong)
         val timeDifference = extractedLocation.time - lastKnownJourney.created_at!!
@@ -227,7 +230,7 @@ class JourneyRepository @Inject constructor(
                         currentUserId,
                         fromLatitude = lastKnownJourney.to_latitude!!,
                         fromLongitude = lastKnownJourney.to_longitude!!,
-                        createdAt = lastKnownJourney.update_at,
+                        createdAt = lastKnownJourney.update_at
                     )
                 }
 
@@ -268,7 +271,7 @@ class JourneyRepository @Inject constructor(
                     locationJourneyService.updateLastLocationJourney(
                         userId = currentUserId,
                         lastKnownJourney.copy(
-                            update_at = System.currentTimeMillis(),
+                            update_at = System.currentTimeMillis()
                         )
                     )
                 } else {
@@ -276,7 +279,7 @@ class JourneyRepository @Inject constructor(
                         currentUserId,
                         fromLatitude = extractedLocation.latitude,
                         fromLongitude = extractedLocation.longitude,
-                        createdAt = System.currentTimeMillis(),
+                        createdAt = System.currentTimeMillis()
                     )
                 }
             }

@@ -3,7 +3,6 @@ package com.canopas.yourspace.data.receiver.location
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import com.canopas.yourspace.data.models.location.UserState
 import com.canopas.yourspace.data.repository.JourneyRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.location.ApiLocationService

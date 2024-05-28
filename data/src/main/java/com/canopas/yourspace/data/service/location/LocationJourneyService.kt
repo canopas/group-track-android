@@ -33,7 +33,7 @@ class LocationJourneyService @Inject constructor(
         routeDistance: Double? = null,
         routeDuration: Long? = null,
         createdAt: Long? = null,
-        updateAt: Long? = null,
+        updateAt: Long? = null
     ) {
         val docRef = journeyRef(userId).document()
 
