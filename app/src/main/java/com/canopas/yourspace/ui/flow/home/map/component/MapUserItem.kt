@@ -33,18 +33,12 @@ fun MapUserItem(
 ) {
     val user = userInfo.user
     Column(
-        modifier = Modifier.width(60.dp)
-            .clickable {
-                onClick()
-            }
-            .padding(vertical = 10.dp),
+        modifier = Modifier
+            .width(40.dp)
+            .clickable { onClick() },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        UserProfile(
-            Modifier
-                .size(40.dp),
-            user = user
-        )
+        UserProfile(Modifier.size(40.dp), user = user)
         Spacer(modifier = Modifier.height(2.dp))
         Text(
             text = user.first_name ?: "",
@@ -61,8 +55,7 @@ fun AddMemberBtn(
     onClick: () -> Unit
 ) {
     Column(
-        modifier = Modifier
-            .clickable { onClick() }.padding(10.dp),
+        modifier = Modifier.clickable { onClick() },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
@@ -72,10 +65,8 @@ fun AddMemberBtn(
                     1.dp,
                     AppTheme.colorScheme.primary.copy(alpha = 0.7f),
                     shape = CircleShape
-                ).background(
-                    AppTheme.colorScheme.surface,
-                    shape = CircleShape
-                ),
+                )
+                .background(AppTheme.colorScheme.surface, shape = CircleShape),
             contentAlignment = Alignment.Center
         ) {
             if (showLoader) {

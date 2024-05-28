@@ -26,6 +26,7 @@ fun ActionIconButton(
     containerColor: Color = AppTheme.colorScheme.containerNormalOnSurface,
     contentColor: Color = AppTheme.colorScheme.textPrimary,
     shape: RoundedCornerShape = RoundedCornerShape(30.dp),
+    contentDescription: String = "",
     onClick: () -> Unit
 ) {
     IconButton(
@@ -44,7 +45,7 @@ fun ActionIconButton(
         } else {
             Icon(
                 painter = painterResource(id = icon),
-                contentDescription = "",
+                contentDescription = contentDescription,
                 modifier = Modifier.size(iconSize)
             )
         }
