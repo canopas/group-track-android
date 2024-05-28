@@ -103,9 +103,8 @@ fun JourneyMap(
     ) {
         location?.let {
             LocationMarker(fromLatLang, anchor, fromMarkerContent)
-            if (fromLocation.distanceTo(toLocation) > 200) {
-                LocationMarker(toLatLang, anchor, toMarkerContent)
-            }
+
+            LocationMarker(toLatLang, anchor, toMarkerContent)
 
             Polyline(
                 points = location.toRoute(),

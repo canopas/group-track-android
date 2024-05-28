@@ -395,7 +395,7 @@ internal fun getRouteDurationString(
 
 internal fun getFormattedCreatedAt(createdAt: Long): String {
     val createdAtTime = Date(createdAt)
-    val createdAtFormat = SimpleDateFormat("d MMM HH:mm", Locale.getDefault())
+    val createdAtFormat = SimpleDateFormat("d MMM hh:mm a", Locale.getDefault())
     return createdAtFormat.format(createdAtTime)
 }
 

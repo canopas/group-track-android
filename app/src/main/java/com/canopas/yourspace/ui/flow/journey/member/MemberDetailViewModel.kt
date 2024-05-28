@@ -52,7 +52,7 @@ class MemberDetailViewModel @Inject constructor(
                 _state.value.selectedUser?.user?.id ?: "",
                 _state.value.selectedTimeFrom ?: 0,
                 _state.value.selectedTimeTo ?: 0
-            )
+            ).sortedByDescending { it.update_at }
 
             val locationJourneys = (state.value.locations + locations).distinctBy { it.id }
             val hasMoreItems =

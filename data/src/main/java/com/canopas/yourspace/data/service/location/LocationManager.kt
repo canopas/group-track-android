@@ -65,14 +65,12 @@ class LocationManager @Inject constructor(@ApplicationContext private val contex
 
     internal fun startLocationTracking() {
         if (context.hasFineLocationPermission) {
-            Timber.d("XXX Start location tracking")
             locationClient.requestLocationUpdates(request, locationUpdatePendingIntent)
         }
     }
 
     internal fun stopLocationTracking() {
         if (!context.isBackgroundLocationPermissionGranted) {
-            Timber.d("XXX Stop location tracking")
             locationClient.flushLocations()
             locationClient.removeLocationUpdates(locationUpdatePendingIntent)
         }

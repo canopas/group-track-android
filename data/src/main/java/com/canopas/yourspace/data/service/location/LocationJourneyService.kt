@@ -52,14 +52,12 @@ class LocationJourneyService @Inject constructor(
         )
 
         journey.updateLocationJourney(userId)
-        Timber.d("XXX Save last location journey ${journey.id}")
 
         docRef.set(journey).await()
     }
 
     suspend fun updateLastLocationJourney(userId: String, journey: LocationJourney) {
         try {
-            Timber.d("XXX Updating last location journey ${journey.id}")
             journey.updateLocationJourney(userId)
             journeyRef(userId).document(journey.id).set(journey).await()
         } catch (e: Exception) {

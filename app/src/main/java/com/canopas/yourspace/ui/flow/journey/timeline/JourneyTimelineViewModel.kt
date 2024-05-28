@@ -74,6 +74,7 @@ class JourneyTimelineViewModel @Inject constructor(
                 if (allJourneys.isEmpty()) _state.value.selectedTimeFrom else allJourneys.minOfOrNull { it.created_at!! }
             val to = _state.value.selectedTimeTo
             val locations = journeyService.getJourneyHistory(userId, from, to)
+                .sortedByDescending { it.update_at }
 
             val locationJourneys = (allJourneys + locations).groupByDate()
             val hasMoreItems = locations.isNotEmpty()

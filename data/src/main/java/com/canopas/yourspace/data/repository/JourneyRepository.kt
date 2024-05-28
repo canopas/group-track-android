@@ -38,8 +38,6 @@ class JourneyRepository @Inject constructor(
     ) {
         try {
             val locationData = getLocationData(userId)
-            val lastLocation = getLastLocation(locationData)
-
             val lastJourney = getLastJourneyLocation(userId, locationData)
 
             when {
@@ -102,12 +100,6 @@ class JourneyRepository @Inject constructor(
         return locationData?.lastFiveMinutesLocations?.let {
             converters.locationListFromString(it)
         } ?: emptyList()
-    }
-
-    private fun getLastLocation(locationData: LocationTable?): ApiLocation? {
-        return locationData?.latestLocation?.let {
-            converters.locationFromString(it)
-        }
     }
 
     private suspend fun checkAndUpdateLastFiveMinLocations(
@@ -174,6 +166,8 @@ class JourneyRepository @Inject constructor(
         lastKnownJourney: LocationJourney
     ) {
         if (lastKnownJourney.isSteadyLocation()) {
+            val updatedRoutes = lastKnownJourney.routes.toMutableList()
+            updatedRoutes.add(extractedLocation.toRoute())
             locationJourneyService.saveCurrentJourney(
                 userId = currentUserId,
                 fromLatitude = lastKnownJourney.from_latitude,
@@ -187,6 +181,9 @@ class JourneyRepository @Inject constructor(
                 routeDuration = extractedLocation.time - lastKnownJourney.update_at!!,
             )
         } else {
+            val distance = lastKnownJourney.toLocationFromMovingJourney().distanceTo(
+                extractedLocation
+            ).toDouble()
             val updatedRoutes = lastKnownJourney.routes.toMutableList()
             updatedRoutes.add(extractedLocation.toRoute())
             locationJourneyService.updateLastLocationJourney(
@@ -194,9 +191,7 @@ class JourneyRepository @Inject constructor(
                 lastKnownJourney.copy(
                     to_latitude = extractedLocation.latitude,
                     to_longitude = extractedLocation.longitude,
-                    route_distance = distanceBetween(
-                        lastKnownJourney.toLocationFromMovingJourney(), extractedLocation
-                    ).toDouble(),
+                    route_distance = (lastKnownJourney.route_distance ?: 0.0) + distance,
                     route_duration = extractedLocation.time - lastKnownJourney.created_at!!,
                     routes = updatedRoutes,
                     update_at = System.currentTimeMillis()
@@ -258,22 +253,32 @@ class JourneyRepository @Inject constructor(
                     journey = lastKnownJourney.copy(
                         to_longitude = extractedLocation.latitude,
                         to_latitude = extractedLocation.longitude,
-                        route_distance = distance.toDouble(),
+                        route_distance = lastKnownJourney.toLocationFromSteadyJourney().distanceTo(
+                            extractedLocation
+                        ).toDouble(),
                         routes = updatedRoutes,
                         route_duration = extractedLocation.time - lastKnownJourney.created_at,
                         update_at = System.currentTimeMillis()
                     )
                 )
-
             }
 
             timeDifference > MIN_TIME_DIFFERENCE && distance < MIN_DISTANCE -> {
-                locationJourneyService.updateLastLocationJourney(
-                    userId = currentUserId,
-                    lastKnownJourney.copy(
-                        update_at = System.currentTimeMillis(),
+                if (lastKnownJourney.isSteadyLocation()) {
+                    locationJourneyService.updateLastLocationJourney(
+                        userId = currentUserId,
+                        lastKnownJourney.copy(
+                            update_at = System.currentTimeMillis(),
+                        )
                     )
-                )
+                } else {
+                    locationJourneyService.saveCurrentJourney(
+                        currentUserId,
+                        fromLatitude = extractedLocation.latitude,
+                        fromLongitude = extractedLocation.longitude,
+                        createdAt = System.currentTimeMillis(),
+                    )
+                }
             }
 
             timeDifference < MIN_TIME_DIFFERENCE && distance < MIN_DISTANCE -> {
