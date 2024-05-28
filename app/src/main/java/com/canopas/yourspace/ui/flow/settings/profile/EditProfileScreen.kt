@@ -84,7 +84,7 @@ private fun EditProfileToolbar() {
         navigationIcon = {
             IconButton(onClick = { viewModel.popBackStack() }) {
                 Icon(
-                    Icons.Default.ArrowBack,
+                    painter = painterResource(id = R.drawable.ic_nav_back_arrow_icon),
                     contentDescription = ""
                 )
             }

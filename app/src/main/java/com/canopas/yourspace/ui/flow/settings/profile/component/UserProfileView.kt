@@ -201,13 +201,13 @@ fun ProfileView(user: ApiUser, onClick: () -> Unit) {
                 .weight(1f)
         ) {
             Text(
-                text = userName ?: "",
+                text = userName,
                 style = AppTheme.appTypography.subTitle2,
                 color = AppTheme.colorScheme.textPrimary
             )
         }
         Icon(
-            Icons.Default.KeyboardArrowRight,
+            painter = painterResource(id = R.drawable.ic_right_arrow_icon),
             contentDescription = "Consulting Image",
             modifier = Modifier.padding(horizontal = 8.dp),
             tint = AppTheme.colorScheme.textSecondary

@@ -86,7 +86,7 @@ fun PrimaryTextButton(
 
         Text(
             text = label,
-            style = AppTheme.appTypography.subTitle2,
+            style = AppTheme.appTypography.button,
             textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.width(24.dp))

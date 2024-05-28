@@ -79,7 +79,7 @@ fun SettingsScreen() {
                 navigationIcon = {
                     IconButton(onClick = { viewModel.popBackStack() }) {
                         Icon(
-                            Icons.Default.ArrowBack,
+                            painter = painterResource(id = R.drawable.ic_nav_back_arrow_icon),
                             contentDescription = ""
                         )
                     }
@@ -115,7 +115,7 @@ private fun SettingsContent(modifier: Modifier) {
         )
         state.user?.let {
             ProfileView(user = it) { viewModel.editProfile() }
-            Divider(
+            HorizontalDivider(
                 modifier = Modifier
                     .padding(bottom = 24.dp)
                     .fillMaxWidth(),
@@ -342,7 +342,7 @@ fun ProfileView(user: ApiUser, onClick: () -> Unit) {
                 .weight(1f)
         ) {
             Text(
-                text = userName ?: "",
+                text = userName,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 style = AppTheme.appTypography.subTitle2,
@@ -378,7 +378,7 @@ fun ProfileImageView(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = char ?: "?",
+                text = char,
                 style = AppTheme.appTypography.subTitle1.copy(
                     fontSize = (maxWidth.value + maxHeight.value).times(0.18).sp
                 ),
