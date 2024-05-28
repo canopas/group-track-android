@@ -1,7 +1,6 @@
 package com.canopas.yourspace.ui.flow.home.map.component
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -65,24 +64,23 @@ fun MapMarker(
 
 @Composable
 fun MarkerContent(user: ApiUser, isSelected: Boolean, painter: AsyncImagePainter?) {
-    val shape = RoundedCornerShape(16.dp, 16.dp, 16.dp, 3.dp)
+    val shape = RoundedCornerShape(20.dp, 20.dp, 20.dp, 0.dp)
 
     Box(
         modifier = Modifier
-            .size(64.dp)
+            .size(40.dp)
             .background(
                 if (isSelected) AppTheme.colorScheme.secondary else AppTheme.colorScheme.surface,
                 shape = shape
             )
-            .border(1.5.dp, AppTheme.colorScheme.containerHigh, shape = shape)
-            .padding(5.dp),
+            .padding(4.dp),
         contentAlignment = Alignment.Center
     ) {
         MarkerUserProfile(
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             user = user,
-            imagePainter = painter
+            imagePainter = painter,
+            shape = RoundedCornerShape(20.dp)
         )
     }
 }

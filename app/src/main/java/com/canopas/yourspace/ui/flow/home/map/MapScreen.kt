@@ -140,7 +140,8 @@ fun MapScreenContent(modifier: Modifier) {
         LatLng(location?.latitude ?: 0.0, location?.longitude ?: 0.0)
     }
 
-    val defaultCameraZoom = if (userLocation.latitude == 0.0 && userLocation.longitude == 0.0) 0f else DEFAULT_CAMERA_ZOOM
+    val defaultCameraZoom =
+        if (userLocation.latitude == 0.0 && userLocation.longitude == 0.0) 0f else DEFAULT_CAMERA_ZOOM
 
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(userLocation, defaultCameraZoom)
@@ -189,8 +190,7 @@ fun MapScreenContent(modifier: Modifier) {
                 MapControlBtn(
                     icon = R.drawable.ic_geofence,
                     containerColor = AppTheme.colorScheme.primary,
-                    contentColor = AppTheme.colorScheme.onPrimary,
-                    show = true
+                    contentColor = AppTheme.colorScheme.onPrimary
                 ) {
                     viewModel.navigateToPlaces()
                 }
@@ -199,15 +199,17 @@ fun MapScreenContent(modifier: Modifier) {
             if (state.members.isNotEmpty()) {
                 LazyRow(
                     modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .padding(bottom = 10.dp)
+                        .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
                         .widthIn(max = 600.dp)
                         .wrapContentSize()
-                        .background(AppTheme.colorScheme.surface.copy(alpha = 0.95f), shape = RoundedCornerShape(50.dp))
-                        .padding(horizontal = 16.dp)
+                        .background(
+                            AppTheme.colorScheme.surface.copy(alpha = 0.70f),
+                            shape = RoundedCornerShape(50.dp)
+                        )
+                        .padding(horizontal = 24.dp, vertical = 8.dp)
                         .align(Alignment.CenterHorizontally),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     item {
                         AddMemberBtn(state.loadingInviteCode) { viewModel.addMember() }

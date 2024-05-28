@@ -13,15 +13,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
@@ -34,10 +30,10 @@ fun MarkerUserProfile(
     modifier: Modifier,
     user: ApiUser?,
     shape: RoundedCornerShape = RoundedCornerShape(16.dp),
-    fontSize: TextUnit = 28.sp,
+    placeholderSize: Dp = 24.dp,
     imagePainter: AsyncImagePainter? = null
 ) {
-    UserProfile(modifier = modifier, user = user, shape, fontSize, imagePainter)
+    UserProfile(modifier = modifier, user = user, shape, placeholderSize, imagePainter)
 }
 
 @Composable
@@ -45,7 +41,7 @@ fun UserProfile(
     modifier: Modifier,
     user: ApiUser?,
     shape: RoundedCornerShape = CircleShape,
-    fontSize: TextUnit = 20.sp,
+    placeholderSize: Dp = 24.dp,
     imagePainter: AsyncImagePainter? = null
 ) {
     val profileUrl = user?.profile_image
@@ -64,32 +60,41 @@ fun UserProfile(
         contentAlignment = Alignment.Center
     ) {
         if (!profileUrl.isNullOrEmpty()) {
-            val painter = imagePainter ?: rememberAsyncImagePainter(
-                ImageRequest.Builder(LocalContext.current).data(
-                    profileUrl
-                ).placeholder(R.drawable.ic_user_profile_placeholder).build()
-            )
-            Image(
-                painter = painter,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize(),
-                contentDescription = "ProfileImage"
-            )
+            BuildUserProfileImage(profileUrl, imagePainter, placeholderSize)
         } else if (!user?.fullName.isNullOrEmpty()) {
             Text(
                 text = user?.fullName?.take(1)?.uppercase() ?: "?",
-                style = TextStyle(
-                    color = Color.White,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = fontSize
-                )
+                style = AppTheme.appTypography.header4.copy(color = AppTheme.colorScheme.onPrimary)
             )
         } else {
             Icon(
                 painter = painterResource(id = R.drawable.ic_user_profile_placeholder),
                 contentDescription = null,
                 tint = AppTheme.colorScheme.onPrimary,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(placeholderSize)
+            )
+        }
+    }
+}
+
+@Composable
+fun BuildUserProfileImage(profileUrl: String, imagePainter: AsyncImagePainter?, placeholderSize: Dp) {
+    Box(contentAlignment = Alignment.Center) {
+        val painter = imagePainter ?: rememberAsyncImagePainter(
+            ImageRequest.Builder(LocalContext.current).data(profileUrl).build()
+        )
+        Image(
+            painter = painter,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize(),
+            contentDescription = "ProfileImage"
+        )
+        if (painter.state !is AsyncImagePainter.State.Success) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_user_profile_placeholder),
+                contentDescription = null,
+                tint = AppTheme.colorScheme.onPrimary,
+                modifier = Modifier.size(placeholderSize)
             )
         }
     }

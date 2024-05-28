@@ -49,7 +49,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
@@ -295,7 +294,7 @@ private fun MemberItem(
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        UserProfile(modifier = Modifier.size(50.dp), user = user, fontSize = 20.sp)
+        UserProfile(modifier = Modifier.size(50.dp), user = user)
         Text(
             text = user.fullName,
             style = AppTheme.appTypography.subTitle2,

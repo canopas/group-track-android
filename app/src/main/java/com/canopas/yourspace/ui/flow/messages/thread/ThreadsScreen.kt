@@ -59,7 +59,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.messages.ThreadInfo
@@ -394,10 +393,10 @@ fun ThreadProfile(members: List<ApiUser>) {
             )
     ) {
         when (members.size) {
-            0 -> UserProfile(modifier = Modifier.fillMaxSize(), user = null, fontSize = 18.sp)
+            0 -> UserProfile(modifier = Modifier.fillMaxSize(), user = null)
             1 -> {
                 members.firstOrNull()?.let {
-                    UserProfile(modifier = Modifier.fillMaxSize(), user = it, fontSize = 18.sp)
+                    UserProfile(modifier = Modifier.fillMaxSize(), user = it)
                 }
             }
 
@@ -413,8 +412,7 @@ fun ThreadProfile(members: List<ApiUser>) {
                             )
                             .align(if (index == 0) Alignment.TopStart else Alignment.BottomEnd),
                         user = apiUser,
-                        shape = RoundedCornerShape(8.dp),
-                        fontSize = 16.sp
+                        shape = RoundedCornerShape(8.dp)
                     )
                 }
             }
@@ -432,8 +430,7 @@ fun ThreadProfile(members: List<ApiUser>) {
                             )
                             .align(if (index == 0) Alignment.TopStart else if (index == 1) Alignment.TopEnd else Alignment.BottomCenter),
                         user = apiUser,
-                        shape = RoundedCornerShape(8.dp),
-                        fontSize = 14.sp
+                        shape = RoundedCornerShape(8.dp)
                     )
                 }
             }
