@@ -18,10 +18,8 @@ data class LocationJourney(
     val route_distance: Double? = null,
     val route_duration: Long? = null,
     val routes: List<JourneyRoute> = emptyList(),
-    val current_location_duration: Long? = null,
     val created_at: Long? = System.currentTimeMillis(),
-    val update_at: Long? = System.currentTimeMillis(),
-    val persistent_location_date: Long? = null
+    val update_at: Long? = System.currentTimeMillis()
 )
 
 @Keep
@@ -34,7 +32,7 @@ fun Location.toRoute(): JourneyRoute {
 fun JourneyRoute.toLatLng() = LatLng(latitude, longitude)
 fun LocationJourney.toRoute() =
     if (isSteadyLocation()) {
-        emptyList<LatLng>()
+        emptyList()
     } else {
         listOf(
             LatLng(
