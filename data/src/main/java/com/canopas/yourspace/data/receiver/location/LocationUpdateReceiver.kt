@@ -53,14 +53,18 @@ class LocationUpdateReceiver : BroadcastReceiver() {
             scope.launch {
                 try {
                     val userId = authService.currentUser?.id ?: return@launch
+
+                    Timber.d("XXX Received location update ${locationResult.locations.size}")
+
                     locationResult.locations.forEach { extractedLocation ->
                         val userState = journeyRepository.getUserState(userId, extractedLocation)
+                        Timber.d("XXX Location update is moving: ${userState == UserState.MOVING.value}")
                         locationService.saveCurrentLocation(
                             userId,
                             extractedLocation.latitude,
                             extractedLocation.longitude,
                             System.currentTimeMillis(),
-                            userState = userState ?: UserState.STEADY.value
+                            userState = userState
                         )
                         journeyRepository.saveLocationJourney(userState, extractedLocation, userId)
                     }

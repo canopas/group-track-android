@@ -115,7 +115,6 @@ class ApiLocationService @Inject constructor(
             try {
                 val startTime = currentTime - (i + 1) * 60000
                 val endTime = startTime - 60000
-                Timber.d("XXX getLastFiveMinuteLocations $startTime : $endTime")
                 val reference = locationRef(userId) ?: continue
                 val apiLocation = reference
                     .whereEqualTo("user_id", userId)

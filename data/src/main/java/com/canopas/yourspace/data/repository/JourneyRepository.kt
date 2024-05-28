@@ -8,19 +8,20 @@ import com.canopas.yourspace.data.models.location.UserState
 import com.canopas.yourspace.data.models.location.isSteadyLocation
 import com.canopas.yourspace.data.models.location.toApiLocation
 import com.canopas.yourspace.data.models.location.toLocation
+import com.canopas.yourspace.data.models.location.toLocationFromMovingJourney
 import com.canopas.yourspace.data.models.location.toLocationFromSteadyJourney
 import com.canopas.yourspace.data.models.location.toRoute
 import com.canopas.yourspace.data.service.location.ApiLocationService
 import com.canopas.yourspace.data.service.location.LocationJourneyService
 import com.canopas.yourspace.data.storage.room.LocationTableDatabase
-import com.canopas.yourspace.data.utils.Config
 import com.canopas.yourspace.data.utils.LocationConverters
 import kotlinx.coroutines.flow.toList
 import timber.log.Timber
-import java.util.Calendar
-import java.util.Date
 import javax.inject.Inject
 import javax.inject.Singleton
+
+const val MIN_DISTANCE = 100.0
+const val MIN_TIME_DIFFERENCE = 5 * 60 * 1000
 
 @Singleton
 class JourneyRepository @Inject constructor(
@@ -28,11 +29,10 @@ class JourneyRepository @Inject constructor(
     private val locationJourneyService: LocationJourneyService,
     private val locationService: ApiLocationService,
     private val converters: LocationConverters
-
 ) {
 
     suspend fun saveLocationJourney(
-        userState: Int?,
+        userState: Int,
         extractedLocation: Location,
         userId: String
     ) {
@@ -40,64 +40,31 @@ class JourneyRepository @Inject constructor(
             val locationData = getLocationData(userId)
             val lastLocation = getLastLocation(locationData)
 
-            val lastSteadyLocation = getLastSteadyLocation(userId, locationData)
-            val lastMovingLocation = getLastMovingLocation(userId, locationData)
-            val lastJourneyLocation = getLastJourneyLocation(userId, locationData)
+            val lastJourney = getLastJourneyLocation(userId, locationData)
 
-            if (lastJourneyLocation?.isSteadyLocation() == true) {
-                lastSteadyLocation?.let {
-                    val calendar1 = Calendar.getInstance().apply {
-                        timeInMillis = lastSteadyLocation.created_at!!
-                    }
-                    val calendar2 = Calendar.getInstance().apply {
-                        timeInMillis = extractedLocation.time
-                    }
-                    val calendar3 = Calendar.getInstance().apply {
-                        timeInMillis = lastSteadyLocation.persistent_location_date ?: Date().time
-                    }
-                    // Check if day is changed
-                    if ((calendar1.get(Calendar.DAY_OF_MONTH) != calendar2.get(Calendar.DAY_OF_MONTH)) ||
-                        (calendar2.get(Calendar.DAY_OF_MONTH) != calendar3.get(Calendar.DAY_OF_MONTH))
-                    ) {
-                        locationJourneyService.saveCurrentJourney(
-                            userId = userId,
-                            fromLatitude = lastSteadyLocation.from_latitude,
-                            fromLongitude = lastSteadyLocation.from_longitude,
-                            currentLocationDuration = extractedLocation.time - lastSteadyLocation.created_at!!,
-                            persistentLocationDate = lastSteadyLocation.created_at
-                        )
-                        return
-                    }
+            when {
+                lastJourney == null -> {
+                    locationJourneyService.saveCurrentJourney(
+                        userId = userId,
+                        fromLatitude = extractedLocation.latitude,
+                        fromLongitude = extractedLocation.longitude
+                    )
                 }
-            }
 
-            if (lastJourneyLocation == null || userState == null) {
-                saveJourneyIfNullLastLocation(
-                    userId,
-                    extractedLocation,
-                    lastLocation,
-                    lastJourneyLocation
-                )
-            } else {
-                when (userState) {
-                    UserState.STEADY.value -> {
-                        saveJourneyForSteadyUser(
-                            userId,
-                            extractedLocation,
-                            lastJourneyLocation,
-                            lastSteadyLocation
-                        )
-                    }
+                userState == UserState.STEADY.value -> {
+                    saveJourneyForSteadyUser(
+                        userId,
+                        extractedLocation,
+                        lastJourney,
+                    )
+                }
 
-                    UserState.MOVING.value -> {
-                        saveJourneyForMovingUser(
-                            userId,
-                            extractedLocation,
-                            lastJourneyLocation,
-                            lastSteadyLocation,
-                            lastMovingLocation
-                        )
-                    }
+                userState == UserState.MOVING.value -> {
+                    saveJourneyForMovingUser(
+                        userId,
+                        extractedLocation,
+                        lastJourney
+                    )
                 }
             }
         } catch (e: Exception) {
@@ -109,40 +76,6 @@ class JourneyRepository @Inject constructor(
         userid: String
     ): LocationTable? {
         return locationTableDatabase.locationTableDao().getLocationData(userid)
-    }
-
-    private suspend fun getLastSteadyLocation(
-        userId: String,
-        locationData: LocationTable?
-    ): LocationJourney? {
-        locationData?.lastSteadyLocation?.let {
-            return converters.journeyFromString(it)
-        } ?: run {
-            val lastSteadyLocation =
-                locationJourneyService.getLastSteadyLocation(userId)
-            locationData?.copy(lastSteadyLocation = converters.journeyToString(lastSteadyLocation))
-                ?.let {
-                    locationTableDatabase.locationTableDao().updateLocationTable(it)
-                }
-            return lastSteadyLocation
-        }
-    }
-
-    private suspend fun getLastMovingLocation(
-        userId: String,
-        locationData: LocationTable?
-    ): LocationJourney? {
-        locationData?.lastMovingLocation?.let {
-            return converters.journeyFromString(it)
-        } ?: run {
-            val lastMovingLocation =
-                locationJourneyService.getLastMovingLocation(userId)
-            locationData?.copy(lastMovingLocation = converters.journeyToString(lastMovingLocation))
-                ?.let {
-                    locationTableDatabase.locationTableDao().updateLocationTable(it)
-                }
-            return lastMovingLocation
-        }
     }
 
     private suspend fun getLastJourneyLocation(
@@ -192,7 +125,7 @@ class JourneyRepository @Inject constructor(
             val latest = locations.maxByOrNull { it.created_at!! }
             if (latest == null || latest.created_at!! < System.currentTimeMillis() - 60000) {
                 val updated = locations.toMutableList()
-                updated.removeAll { extractedLocation.time - it.created_at!! > Config.FIVE_MINUTES }
+                updated.removeAll { extractedLocation.time - it.created_at!! > MIN_TIME_DIFFERENCE }
                 updated.add(extractedLocation.toApiLocation(userId))
                 updateLocationData(locationData, updated)
             }
@@ -209,7 +142,7 @@ class JourneyRepository @Inject constructor(
         locationTableDatabase.locationTableDao().updateLocationTable(updatedData)
     }
 
-    suspend fun getUserState(userId: String, extractedLocation: Location): Int? {
+    suspend fun getUserState(userId: String, extractedLocation: Location): Int {
         var locationData =
             locationTableDatabase.locationTableDao().getLocationData(userId)
 
@@ -218,8 +151,7 @@ class JourneyRepository @Inject constructor(
         locationData =
             locationTableDatabase.locationTableDao().getLocationData(userId)
 
-        val lastLocation = getLastLocation(locationData)
-        val userState = getUserState(locationData, extractedLocation, lastLocation)
+        val userState = getUserState(locationData, extractedLocation)
 
         return userState
     }
@@ -227,50 +159,10 @@ class JourneyRepository @Inject constructor(
     private fun getUserState(
         locationData: LocationTable?,
         extractedLocation: Location,
-        lastLocation: ApiLocation?
-    ): Int? {
+    ): Int {
         val lastFiveMinuteLocations = getLastFiveMinuteLocations(locationData)
-
-        if (lastFiveMinuteLocations.isEmpty()) return null
         if (lastFiveMinuteLocations.isMoving(extractedLocation)) return UserState.MOVING.value
-        if (lastLocation?.user_state != UserState.STEADY.value) return UserState.STEADY.value
-        return null
-    }
-
-    private suspend fun saveJourneyIfNullLastLocation(
-        currentUserId: String,
-        extractedLocation: Location,
-        lastLocation: ApiLocation?,
-        lastJourneyLocation: LocationJourney?
-    ) {
-        if (lastJourneyLocation == null) {
-            locationJourneyService.saveCurrentJourney(
-                userId = currentUserId,
-                fromLatitude = extractedLocation.latitude,
-                fromLongitude = extractedLocation.longitude,
-                currentLocationDuration = extractedLocation.time - (lastLocation?.created_at ?: 0L)
-            )
-        } else {
-            val timeDifference = extractedLocation.time - lastJourneyLocation.created_at!!
-            val distance = distanceBetween(
-                extractedLocation,
-                lastJourneyLocation.toLocationFromSteadyJourney()
-            ).toDouble()
-
-            if ((timeDifference > 5 * 60 * 1000 && !lastJourneyLocation.isSteadyLocation()) ||
-                distance > Config.DISTANCE_TO_CHECK_SUDDEN_LOCATION_CHANGE
-            ) {
-                locationJourneyService.saveCurrentJourney(
-                    userId = currentUserId,
-                    fromLatitude = extractedLocation.latitude,
-                    fromLongitude = extractedLocation.longitude,
-                    currentLocationDuration = extractedLocation.time - (
-                        lastLocation?.created_at
-                            ?: 0L
-                        )
-                )
-            }
-        }
+        return UserState.STEADY.value
     }
 
     /**
@@ -279,53 +171,36 @@ class JourneyRepository @Inject constructor(
     private suspend fun saveJourneyForMovingUser(
         currentUserId: String,
         extractedLocation: Location,
-        lastJourneyLocation: LocationJourney,
-        lastSteadyLocation: LocationJourney?,
-        lastMovingLocation: LocationJourney?
+        lastKnownJourney: LocationJourney
     ) {
-        var newJourney = LocationJourney(
-            user_id = currentUserId,
-            from_latitude = lastSteadyLocation?.from_latitude ?: extractedLocation.latitude,
-            from_longitude = lastSteadyLocation?.from_longitude ?: extractedLocation.longitude,
-            to_latitude = extractedLocation.latitude,
-            to_longitude = extractedLocation.longitude,
-            route_distance = lastSteadyLocation?.toLocationFromSteadyJourney()?.let { location ->
-                distanceBetween(extractedLocation, location).toDouble()
-            },
-            route_duration = extractedLocation.time - (
-                (
-                    lastMovingLocation?.created_at
-                        ?: lastSteadyLocation?.created_at
-                    ) ?: 0L
-                ),
-            current_location_duration = extractedLocation.time - (
-                (
-                    lastMovingLocation?.created_at
-                        ?: lastSteadyLocation?.created_at
-                    ) ?: 0L
-                ),
-            created_at = lastMovingLocation?.created_at ?: System.currentTimeMillis()
-        )
-
-        if (lastMovingLocation != null && !lastJourneyLocation.isSteadyLocation()) {
-            val updatedRoutes = lastJourneyLocation.routes.toMutableList()
-            updatedRoutes.add(extractedLocation.toRoute())
-            newJourney = newJourney.copy(
-                id = lastMovingLocation.id,
-                routes = updatedRoutes,
-                update_at = System.currentTimeMillis()
-            )
-            locationJourneyService.updateLastLocationJourney(currentUserId, newJourney)
-        } else {
+        if (lastKnownJourney.isSteadyLocation()) {
             locationJourneyService.saveCurrentJourney(
-                userId = newJourney.user_id,
-                fromLatitude = extractedLocation.latitude,
-                fromLongitude = extractedLocation.longitude,
-                toLatitude = newJourney.to_latitude,
-                toLongitude = newJourney.to_longitude,
-                routeDistance = newJourney.route_distance,
-                routeDuration = newJourney.route_duration,
-                currentLocationDuration = newJourney.current_location_duration
+                userId = currentUserId,
+                fromLatitude = lastKnownJourney.from_latitude,
+                fromLongitude = lastKnownJourney.from_longitude,
+                toLatitude = extractedLocation.latitude,
+                toLongitude = extractedLocation.longitude,
+                routeDistance = distanceBetween(
+                    extractedLocation,
+                    lastKnownJourney.toLocationFromSteadyJourney()
+                ).toDouble(),
+                routeDuration = extractedLocation.time - lastKnownJourney.update_at!!,
+            )
+        } else {
+            val updatedRoutes = lastKnownJourney.routes.toMutableList()
+            updatedRoutes.add(extractedLocation.toRoute())
+            locationJourneyService.updateLastLocationJourney(
+                userId = currentUserId,
+                lastKnownJourney.copy(
+                    to_latitude = extractedLocation.latitude,
+                    to_longitude = extractedLocation.longitude,
+                    route_distance = distanceBetween(
+                        lastKnownJourney.toLocationFromMovingJourney(), extractedLocation
+                    ).toDouble(),
+                    route_duration = extractedLocation.time - lastKnownJourney.created_at!!,
+                    routes = updatedRoutes,
+                    update_at = System.currentTimeMillis()
+                )
             )
         }
     }
@@ -336,24 +211,78 @@ class JourneyRepository @Inject constructor(
     private suspend fun saveJourneyForSteadyUser(
         currentUserId: String,
         extractedLocation: Location,
-        lastJourneyLocation: LocationJourney,
-        lastSteadyLocation: LocationJourney?
+        lastKnownJourney: LocationJourney,
     ) {
-        val distance = lastSteadyLocation?.toLocationFromSteadyJourney()?.let { location ->
-            distanceBetween(extractedLocation, location)
-        }?.toDouble() ?: 0.0
-        val timeDifference = extractedLocation.time - lastJourneyLocation.created_at!!
-        if ((timeDifference < Config.FIVE_MINUTES && distance < Config.DISTANCE_TO_CHECK_SUDDEN_LOCATION_CHANGE) ||
-            (lastJourneyLocation.isSteadyLocation() && distance < Config.DISTANCE_TO_CHECK_SUDDEN_LOCATION_CHANGE)
-        ) {
-            return
+        val lastLatLong =
+            if (lastKnownJourney.isSteadyLocation()) lastKnownJourney.toLocationFromSteadyJourney()
+            else lastKnownJourney.toLocationFromMovingJourney()
+
+        val distance = distanceBetween(extractedLocation, lastLatLong)
+        val timeDifference = extractedLocation.time - lastKnownJourney.created_at!!
+
+        when {
+            timeDifference > MIN_TIME_DIFFERENCE && distance > MIN_DISTANCE -> {
+                if (lastKnownJourney.isSteadyLocation()) {
+                    locationJourneyService.updateLastLocationJourney(
+                        userId = currentUserId,
+                        lastKnownJourney.copy(update_at = System.currentTimeMillis())
+                    )
+                } else {
+                    locationJourneyService.saveCurrentJourney(
+                        currentUserId,
+                        fromLatitude = lastKnownJourney.to_latitude!!,
+                        fromLongitude = lastKnownJourney.to_longitude!!,
+                        createdAt = lastKnownJourney.update_at,
+                    )
+                }
+
+                locationJourneyService.saveCurrentJourney(
+                    userId = currentUserId,
+                    fromLatitude = lastKnownJourney.to_latitude ?: lastKnownJourney.from_latitude,
+                    fromLongitude = lastKnownJourney.to_longitude
+                        ?: lastKnownJourney.from_longitude,
+                    toLatitude = extractedLocation.latitude,
+                    toLongitude = extractedLocation.longitude,
+                    routeDistance = distance.toDouble(),
+                    routeDuration = extractedLocation.time - lastKnownJourney.update_at!!,
+                    createdAt = lastKnownJourney.update_at,
+                    updateAt = System.currentTimeMillis()
+                )
+            }
+
+            timeDifference < MIN_TIME_DIFFERENCE && distance > MIN_DISTANCE -> {
+                val updatedRoutes = lastKnownJourney.routes.toMutableList()
+                updatedRoutes.add(extractedLocation.toRoute())
+                locationJourneyService.updateLastLocationJourney(
+                    userId = currentUserId,
+                    journey = lastKnownJourney.copy(
+                        to_longitude = extractedLocation.latitude,
+                        to_latitude = extractedLocation.longitude,
+                        route_distance = distance.toDouble(),
+                        routes = updatedRoutes,
+                        route_duration = extractedLocation.time - lastKnownJourney.created_at,
+                        update_at = System.currentTimeMillis()
+                    )
+                )
+
+            }
+
+            timeDifference > MIN_TIME_DIFFERENCE && distance < MIN_DISTANCE -> {
+                locationJourneyService.updateLastLocationJourney(
+                    userId = currentUserId,
+                    lastKnownJourney.copy(
+                        update_at = System.currentTimeMillis(),
+                    )
+                )
+            }
+
+            timeDifference < MIN_TIME_DIFFERENCE && distance < MIN_DISTANCE -> {
+                locationJourneyService.updateLastLocationJourney(
+                    userId = currentUserId,
+                    lastKnownJourney.copy(update_at = System.currentTimeMillis())
+                )
+            }
         }
-        locationJourneyService.saveCurrentJourney(
-            userId = currentUserId,
-            fromLatitude = extractedLocation.latitude,
-            fromLongitude = extractedLocation.longitude,
-            currentLocationDuration = extractedLocation.time - lastJourneyLocation.created_at
-        )
     }
 
     /**
@@ -378,6 +307,6 @@ class JourneyRepository @Inject constructor(
 fun List<ApiLocation>.isMoving(currentLocation: Location): Boolean {
     return any {
         val distance = currentLocation.distanceTo(it.toLocation()).toDouble()
-        distance > Config.RADIUS_TO_CHECK_USER_STATE
+        distance > MIN_DISTANCE
     }
 }

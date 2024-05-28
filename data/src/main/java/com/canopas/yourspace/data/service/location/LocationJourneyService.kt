@@ -16,7 +16,6 @@ import javax.inject.Singleton
 @Singleton
 class LocationJourneyService @Inject constructor(
     db: FirebaseFirestore,
-    private val locationManager: LocationManager,
     private val locationTableDatabase: LocationTableDatabase,
     private val converters: LocationConverters
 ) {
@@ -33,8 +32,8 @@ class LocationJourneyService @Inject constructor(
         toLongitude: Double? = null,
         routeDistance: Double? = null,
         routeDuration: Long? = null,
-        currentLocationDuration: Long? = null,
-        persistentLocationDate: Long? = null
+        createdAt: Long? = null,
+        updateAt: Long? = null,
     ) {
         val docRef = journeyRef(userId).document()
 
@@ -48,20 +47,21 @@ class LocationJourneyService @Inject constructor(
             route_distance = routeDistance,
             route_duration = routeDuration,
             routes = emptyList(),
-            current_location_duration = currentLocationDuration,
-            created_at = System.currentTimeMillis(),
-            persistent_location_date = persistentLocationDate
+            created_at = createdAt ?: System.currentTimeMillis(),
+            update_at = updateAt ?: createdAt ?: System.currentTimeMillis()
         )
 
         journey.updateLocationJourney(userId)
+        Timber.d("XXX Save last location journey ${journey.id}")
 
         docRef.set(journey).await()
     }
 
-    suspend fun updateLastLocationJourney(userId: String, newJourney: LocationJourney) {
+    suspend fun updateLastLocationJourney(userId: String, journey: LocationJourney) {
         try {
-            newJourney.updateLocationJourney(userId)
-            journeyRef(userId).document(newJourney.id).set(newJourney).await()
+            Timber.d("XXX Updating last location journey ${journey.id}")
+            journey.updateLocationJourney(userId)
+            journeyRef(userId).document(journey.id).set(journey).await()
         } catch (e: Exception) {
             Timber.e(e, "Error while updating last location journey")
         }
@@ -128,6 +128,7 @@ class LocationJourneyService @Inject constructor(
     suspend fun getJourneyHistory(userId: String, from: Long?, to: Long?): List<LocationJourney> {
         if (from == null) {
             return journeyRef(userId).whereEqualTo("user_id", userId)
+                .whereLessThanOrEqualTo("created_at", System.currentTimeMillis())
                 .orderBy("created_at", Query.Direction.DESCENDING)
                 .limit(20)
                 .get().await().documents.mapNotNull { it.toObject<LocationJourney>() }
