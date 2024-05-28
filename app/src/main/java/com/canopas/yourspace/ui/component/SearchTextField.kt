@@ -16,7 +16,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,7 +47,7 @@ fun SearchTextField(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 16.dp),
+            .padding(horizontal = 16.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.Center
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -64,7 +64,7 @@ fun SearchTextField(
                 if (text.isEmpty()) {
                     Text(
                         text = hint,
-                        style = AppTheme.appTypography.subTitle2.copy(color = AppTheme.colorScheme.textDisabled)
+                        style = AppTheme.appTypography.subTitle3.copy(color = AppTheme.colorScheme.textDisabled)
                     )
                 }
                 BasicTextField(
@@ -72,10 +72,8 @@ fun SearchTextField(
                     onValueChange = { onValueChange(it) },
                     maxLines = 1,
                     interactionSource = interactionSource,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxWidth(),
-                    textStyle = AppTheme.appTypography.subTitle2.copy(color = AppTheme.colorScheme.textPrimary),
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = AppTheme.appTypography.subTitle3.copy(color = AppTheme.colorScheme.textPrimary),
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Text,
                         imeAction = ImeAction.Done
@@ -88,7 +86,7 @@ fun SearchTextField(
             }
         }
 
-        Divider(
+        HorizontalDivider(
             Modifier
                 .fillMaxWidth()
                 .padding(top = 4.dp),

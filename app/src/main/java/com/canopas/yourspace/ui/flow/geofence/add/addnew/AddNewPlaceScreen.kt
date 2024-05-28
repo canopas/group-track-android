@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -61,7 +62,7 @@ fun AddNewPlaceScreen() {
                 title = {
                     Text(
                         text = stringResource(id = R.string.add_new_place_title),
-                        style = AppTheme.appTypography.header3
+                        style = AppTheme.appTypography.subTitle1
                     )
                 },
                 navigationIcon = {
@@ -96,7 +97,7 @@ private fun AddNewPlace(
                 onValueChange = viewModel::onPlaceNameChanged
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
             LocateOnMap {
                 viewModel.navigateToLocateOnMap()
@@ -104,7 +105,6 @@ private fun AddNewPlace(
         }
         if (state.places.isNotEmpty() || state.loading) {
             item {
-                Spacer(modifier = Modifier.height(16.dp))
                 PlacesSuggestionHeader()
             }
         }
@@ -137,37 +137,29 @@ fun PlaceSuggestionItem(
 ) {
     Row(
         modifier = Modifier
-            .padding(vertical = 4.dp)
-            .clickable { onClick() }
-            .padding(horizontal = 16.dp, vertical = 4.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .background(color = AppTheme.colorScheme.containerLow, shape = CircleShape)
+            .padding(vertical = 4.dp, horizontal = 16.dp)
+            .clickable { onClick() },
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .background(
-                    AppTheme.colorScheme.containerLow,
-                    shape = RoundedCornerShape(8.dp)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_tab_places_outlined),
-                contentDescription = null,
-                tint = AppTheme.colorScheme.textPrimary,
-                modifier = Modifier.size(20.dp)
-            )
-        }
+        Icon(
+            painter = painterResource(id = R.drawable.ic_tab_places_outlined),
+            contentDescription = null,
+            tint = AppTheme.colorScheme.textPrimary,
+            modifier = Modifier.size(20.dp)
+        )
 
         Column(
             modifier = Modifier
-                .padding(start = 10.dp)
+                .padding(start = 8.dp)
                 .weight(1f)
         ) {
             Text(
                 text = place.name ?: "",
                 maxLines = 1,
-                style = AppTheme.appTypography.body1,
+                style = AppTheme.appTypography.body2,
+                color = AppTheme.colorScheme.textSecondary,
                 overflow = TextOverflow.Ellipsis
             )
             Spacer(modifier = Modifier.height(4.dp))
@@ -186,11 +178,11 @@ fun PlacesSuggestionHeader() {
     Text(
         text = stringResource(id = R.string.add_new_place_header_suggestions),
         style = AppTheme.appTypography.caption,
-        color = AppTheme.colorScheme.textSecondary,
+        color = AppTheme.colorScheme.textDisabled,
         textAlign = TextAlign.Start,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, top = 20.dp, bottom = 20.dp)
+            .padding(start = 16.dp, top = 40.dp, bottom = 16.dp)
     )
 }
 
@@ -207,8 +199,7 @@ private fun LocateOnMap(onClick: () -> Unit) {
             )
             .clip(RoundedCornerShape(8.dp))
             .clickable { onClick() }
-            .padding(vertical = 10.dp)
-            .padding(horizontal = 16.dp),
+            .padding(vertical = 12.dp, horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
@@ -216,7 +207,7 @@ private fun LocateOnMap(onClick: () -> Unit) {
                 .size(36.dp)
                 .background(
                     color = AppTheme.colorScheme.containerLow,
-                    shape = RoundedCornerShape(8.dp)
+                    shape = CircleShape
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -224,7 +215,7 @@ private fun LocateOnMap(onClick: () -> Unit) {
                 painter = painterResource(id = R.drawable.ic_tab_places_outlined),
                 contentDescription = null,
                 tint = AppTheme.colorScheme.textPrimary,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(24.dp)
             )
         }
 
@@ -232,7 +223,7 @@ private fun LocateOnMap(onClick: () -> Unit) {
             text = stringResource(id = R.string.locate_on_map_title),
             style = AppTheme.appTypography.subTitle2,
             modifier = Modifier
-                .padding(start = 10.dp)
+                .padding(start = 16.dp)
                 .weight(1f)
         )
     }

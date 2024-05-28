@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -58,7 +59,7 @@ fun ChoosePlaceNameScreen() {
                 title = {
                     Text(
                         text = stringResource(id = R.string.choose_place_name_title),
-                        style = AppTheme.appTypography.header3
+                        style = AppTheme.appTypography.subTitle1
                     )
                 },
                 navigationIcon = {
@@ -105,15 +106,15 @@ fun CreatePlace(
             onValueChange = onPlaceNameChanged
         )
 
-        Spacer(modifier = Modifier.height(30.dp))
+        Spacer(modifier = Modifier.height(40.dp))
         Text(
             text = stringResource(R.string.home_create_space_suggestions),
-            style = AppTheme.appTypography.label2.copy(color = AppTheme.colorScheme.textSecondary),
+            style = AppTheme.appTypography.caption.copy(color = AppTheme.colorScheme.textDisabled),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 28.dp)
+                .padding(horizontal = 16.dp)
         )
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         Suggestions {
             onPlaceNameChanged(it)
@@ -139,19 +140,18 @@ fun CreatePlace(
 @Composable
 fun Suggestions(onSelect: (String) -> Unit) {
     val suggestion = stringArrayResource(id = R.array.choose_place_name_suggestion)
-    FlowRow(modifier = Modifier.padding(horizontal = 20.dp), maxItemsInEachRow = 4) {
+    FlowRow(modifier = Modifier.padding(horizontal = 16.dp), maxItemsInEachRow = 4) {
         suggestion.forEach {
             Text(
                 text = it,
-                style = AppTheme.appTypography.label2,
+                style = AppTheme.appTypography.body2,
+                color = AppTheme.colorScheme.textSecondary,
                 modifier = Modifier
-                    .padding(horizontal = 6.dp, vertical = 4.dp)
-                    .background(AppTheme.colorScheme.containerNormal, RoundedCornerShape(12.dp))
-                    .clip(RoundedCornerShape(12.dp))
-                    .clickable {
-                        onSelect(it)
-                    }
-                    .padding(horizontal = 10.dp, vertical = 8.dp)
+                    .padding(end = 8.dp, bottom = 8.dp)
+                    .background(AppTheme.colorScheme.containerLow, CircleShape)
+                    .clip(RoundedCornerShape(30.dp))
+                    .clickable { onSelect(it) }
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
             )
         }
     }

@@ -4,7 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -27,7 +29,6 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -91,7 +92,7 @@ fun LocateOnMapScreen() {
                         } else {
                             stringResource(id = R.string.locate_on_map_title)
                         },
-                        style = AppTheme.appTypography.header3
+                        style = AppTheme.appTypography.subTitle1
                     )
                 },
                 navigationIcon = {
@@ -123,11 +124,9 @@ fun LocateOnMapScreen() {
                                 text = if (!state.selectedPlaceName.isNullOrEmpty()) {
                                     stringResource(id = R.string.common_btn_add)
                                 } else {
-                                    stringResource(
-                                        id = R.string.common_btn_next
-                                    )
+                                    stringResource(id = R.string.common_btn_next)
                                 },
-                                style = AppTheme.appTypography.subTitle1
+                                style = AppTheme.appTypography.button
                             )
                         }
                     }
@@ -163,6 +162,7 @@ private fun LocateOnMapContent(
                 onPlaceNameChanged = viewModel::onPlaceNameChanged
             )
         }
+        Spacer(modifier = Modifier.height(16.dp))
         MapView(Modifier.fillMaxSize(), cameraPositionState, userLocation)
     }
 }
