@@ -22,8 +22,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -97,7 +97,7 @@ fun EditPlaceScreen() {
                 title = {
                     Text(
                         text = stringResource(id = R.string.edit_place_title),
-                        style = AppTheme.appTypography.header3
+                        style = AppTheme.appTypography.subTitle1
                     )
                 },
                 navigationIcon = {
@@ -122,7 +122,7 @@ fun EditPlaceScreen() {
                         } else {
                             Text(
                                 text = stringResource(id = R.string.common_save),
-                                style = AppTheme.appTypography.subTitle1
+                                style = AppTheme.appTypography.button
                             )
                         }
                     }
@@ -215,6 +215,8 @@ private fun EditPlaceContent() {
             )
         }
 
+        Spacer(modifier = Modifier.height(16.dp))
+
         state.updatedSetting?.let {
             PlaceSettings(
                 it,
@@ -240,7 +242,8 @@ fun DeletePlaceFooter(admin: Boolean, deleting: Boolean, showDeletePlaceConfirma
             label = stringResource(id = R.string.edit_place_admin_btn_delete),
             onClick = showDeletePlaceConfirmation,
             showLoader = deleting,
-            containerColor = AppTheme.colorScheme.alertColor
+            containerColor = AppTheme.colorScheme.containerLow,
+            contentColor = AppTheme.colorScheme.alertColor
         )
     } else {
         Text(
@@ -262,6 +265,7 @@ fun PlaceSettings(
     Header(title = stringResource(id = R.string.edit_place_title_get_notified))
 
     members.forEach { member ->
+        val isLastItem = members.indexOf(member) == members.lastIndex
         val enableArrives = setting.arrival_alert_for.contains(member.user.id)
         val enableLeaves = setting.leave_alert_for.contains(member.user.id)
         MemberItem(
@@ -272,13 +276,13 @@ fun PlaceSettings(
             { toggleLeaves(member.user.id, it) }
         )
 
-        Divider(
-            thickness = 1.dp,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            color = AppTheme.colorScheme.outline
-        )
+        if (!isLastItem) {
+            HorizontalDivider(
+                modifier = Modifier.fillMaxWidth(),
+                thickness = 1.dp,
+                color = AppTheme.colorScheme.outline
+            )
+        }
     }
 }
 
@@ -291,54 +295,61 @@ private fun MemberItem(
     onLeaves: (Boolean) -> Unit
 ) {
     Row(
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
+        verticalAlignment = Alignment.Top
     ) {
-        UserProfile(modifier = Modifier.size(50.dp), user = user)
-        Text(
-            text = user.fullName,
-            style = AppTheme.appTypography.subTitle2,
-            color = AppTheme.colorScheme.textPrimary,
-            modifier = Modifier
-                .weight(1f)
-                .padding(start = 8.dp)
-        )
+        Row(
+            modifier = Modifier.weight(1f),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            UserProfile(modifier = Modifier.size(40.dp), user = user)
+            Text(
+                text = user.fullName,
+                style = AppTheme.appTypography.subTitle2,
+                color = AppTheme.colorScheme.textPrimary,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 16.dp)
+            )
+        }
 
         Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = stringResource(id = R.string.edit_place_notified_when_arrives),
-                    style = AppTheme.appTypography.label1,
-                    color = AppTheme.colorScheme.textSecondary
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-
-                Switch(
-                    checked = enableArrives,
-                    onCheckedChange = onArrives,
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = AppTheme.colorScheme.onPrimary
-                    )
-                )
-            }
+            PlaceSwitchView(
+                label = stringResource(id = R.string.edit_place_notified_when_arrives),
+                enableSwitch = enableArrives,
+                toggleSwitch = onArrives
+            )
             Spacer(modifier = Modifier.height(8.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = stringResource(id = R.string.edit_place_notified_when_leaves),
-                    style = AppTheme.appTypography.label1,
-                    color = AppTheme.colorScheme.textSecondary
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-
-                Switch(
-                    checked = enableLeaves,
-                    onCheckedChange = onLeaves,
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = AppTheme.colorScheme.onPrimary
-                    )
-                )
-            }
+            PlaceSwitchView(
+                label = stringResource(id = R.string.edit_place_notified_when_leaves),
+                enableSwitch = enableLeaves,
+                toggleSwitch = onLeaves
+            )
         }
+    }
+}
+
+@Composable
+private fun PlaceSwitchView(
+    label: String,
+    enableSwitch: Boolean,
+    toggleSwitch: (Boolean) -> Unit
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            text = label,
+            style = AppTheme.appTypography.body2,
+            color = AppTheme.colorScheme.textDisabled
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Switch(
+            checked = enableSwitch,
+            onCheckedChange = toggleSwitch,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = AppTheme.colorScheme.onPrimary
+            )
+        )
     }
 }
 
@@ -363,14 +374,12 @@ private fun PlaceDetails(
 private fun Header(title: String) {
     Text(
         text = title,
-        style = AppTheme.appTypography.header3,
-        color = AppTheme.colorScheme.textSecondary,
+        style = AppTheme.appTypography.subTitle1,
+        color = AppTheme.colorScheme.textDisabled,
         textAlign = TextAlign.Start,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 10.dp)
-            .background(color = AppTheme.colorScheme.containerLow)
-            .padding(start = 16.dp, top = 10.dp, bottom = 10.dp)
+            .padding(start = 16.dp, top = 24.dp)
     )
 }
 
@@ -388,7 +397,7 @@ private fun RadiusSlider(radius: Double, onPlaceRadiusChanged: (Double) -> Unit)
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 10.dp),
+            .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Slider(
@@ -407,7 +416,7 @@ private fun RadiusSlider(radius: Double, onPlaceRadiusChanged: (Double) -> Unit)
             text = radiusText,
             modifier = Modifier.widthIn(min = 40.dp),
             textAlign = TextAlign.End,
-            style = AppTheme.appTypography.label3,
+            style = AppTheme.appTypography.caption,
             color = AppTheme.colorScheme.textSecondary
         )
     }

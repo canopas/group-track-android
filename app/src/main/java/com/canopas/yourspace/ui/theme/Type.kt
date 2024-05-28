@@ -21,7 +21,6 @@ class AppTypography {
         fontWeight = FontWeight.W600,
         fontSize = 26.sp,
         letterSpacing = (-0.96).sp
-
     )
 
     val header2: TextStyle = TextStyle(

@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -75,14 +75,14 @@ fun PlaceNameContent(
         enable = enable
     )
 
+    Spacer(modifier = Modifier.height(16.dp))
+
     PlaceNameTextField(
         address.ifEmpty { stringResource(id = R.string.locate_on_map_hint_getting_address) },
-        leadingIcon = R.drawable.ic_tab_places_filled,
+        leadingIcon = R.drawable.ic_tab_places_outlined,
         maxLines = 2,
         enable = false
     )
-
-    Spacer(modifier = Modifier.height(10.dp))
 }
 
 @Composable
@@ -103,15 +103,15 @@ private fun PlaceNameTextField(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 16.dp),
+            .padding(top = 16.dp, start = 16.dp, end = 16.dp),
         verticalArrangement = Arrangement.Center
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 painterResource(id = leadingIcon),
                 contentDescription = null,
-                tint = AppTheme.colorScheme.onDisabled,
-                modifier = Modifier.size(20.dp)
+                tint = AppTheme.colorScheme.textPrimary,
+                modifier = Modifier.size(24.dp)
             )
 
             Spacer(modifier = Modifier.width(8.dp))
@@ -123,10 +123,7 @@ private fun PlaceNameTextField(
                 singleLine = true,
                 enabled = enable,
                 interactionSource = interactionSource,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxWidth(),
-                textStyle = AppTheme.appTypography.subTitle1.copy(color = AppTheme.colorScheme.textPrimary),
+                textStyle = AppTheme.appTypography.subTitle2.copy(color = AppTheme.colorScheme.textPrimary),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Done
@@ -138,7 +135,7 @@ private fun PlaceNameTextField(
             )
         }
 
-        Divider(
+        HorizontalDivider(
             Modifier
                 .fillMaxWidth()
                 .padding(top = 4.dp),
