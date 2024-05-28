@@ -206,7 +206,7 @@ fun MapScreenContent(modifier: Modifier) {
                             AppTheme.colorScheme.surface.copy(alpha = 0.70f),
                             shape = RoundedCornerShape(50.dp)
                         )
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .padding(horizontal = 24.dp, vertical = 8.dp)
                         .align(Alignment.CenterHorizontally),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
