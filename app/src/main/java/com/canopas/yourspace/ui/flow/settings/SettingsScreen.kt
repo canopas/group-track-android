@@ -6,7 +6,7 @@ import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,14 +16,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -37,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -70,7 +73,7 @@ fun SettingsScreen() {
                 title = {
                     Text(
                         text = stringResource(id = R.string.settings_title),
-                        style = AppTheme.appTypography.header3
+                        style = AppTheme.appTypography.subTitle1
                     )
                 },
                 navigationIcon = {
@@ -103,18 +106,18 @@ private fun SettingsContent(modifier: Modifier) {
     ) {
         Text(
             text = stringResource(id = R.string.setting_profile),
-            style = AppTheme.appTypography.header3,
-            color = AppTheme.colorScheme.textPrimary,
+            style = AppTheme.appTypography.subTitle1,
+            color = AppTheme.colorScheme.textDisabled,
             textAlign = TextAlign.Start,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 16.dp, top = 12.dp, bottom = 16.dp)
+                .padding(16.dp)
         )
         state.user?.let {
             ProfileView(user = it) { viewModel.editProfile() }
             Divider(
                 modifier = Modifier
-                    .padding(bottom = 18.dp)
+                    .padding(bottom = 24.dp)
                     .fillMaxWidth(),
                 color = AppTheme.colorScheme.outline
             )
@@ -124,13 +127,16 @@ private fun SettingsContent(modifier: Modifier) {
             viewModel.navigateToSpaceSettings(it)
         }
 
+        Spacer(modifier = Modifier.height(24.dp))
+
         OtherSettingsContent(viewModel)
-        Spacer(modifier = Modifier.height(16.dp))
+
+        Spacer(modifier = Modifier.height(30.dp))
 
         Text(
             text = stringResource(id = R.string.setting_app_version, BuildConfig.VERSION_NAME),
-            style = AppTheme.appTypography.label2,
-            color = AppTheme.colorScheme.textSecondary
+            style = AppTheme.appTypography.caption,
+            color = AppTheme.colorScheme.textDisabled
         )
 
         if (state.openSignOutDialog) {
@@ -144,17 +150,17 @@ private fun OtherSettingsContent(viewModel: SettingsViewModel) {
     val context = LocalContext.current
     Text(
         text = stringResource(id = R.string.setting_other),
-        style = AppTheme.appTypography.header3,
-        color = AppTheme.colorScheme.textPrimary,
+        style = AppTheme.appTypography.subTitle1,
+        color = AppTheme.colorScheme.textDisabled,
         textAlign = TextAlign.Start,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, bottom = 16.dp)
+            .padding(start = 16.dp)
     )
 
     SettingsItem(
         label = stringResource(id = R.string.setting_contact_support),
-        icon = R.drawable.ic_settings_contact_support,
+        icon = R.drawable.ic_setting_contact_support_icon,
         onClick = {
             viewModel.showContactSupport()
         }
@@ -162,7 +168,7 @@ private fun OtherSettingsContent(viewModel: SettingsViewModel) {
 
     SettingsItem(
         label = stringResource(id = R.string.setting_privacy),
-        icon = R.drawable.ic_settings_privacy,
+        icon = R.drawable.ic_setting_privacy_icon,
         onClick = {
             openUrl(context as Activity, Config.PRIVACY_POLICY_URL)
         }
@@ -170,7 +176,7 @@ private fun OtherSettingsContent(viewModel: SettingsViewModel) {
 
     SettingsItem(
         label = stringResource(id = R.string.setting_about_us),
-        icon = R.drawable.ic_settings_about_us,
+        icon = R.drawable.ic_setting_about_us_icon,
         onClick = {
             openUrl(context as Activity, Config.PRIVACY_POLICY_URL)
         }
@@ -178,7 +184,7 @@ private fun OtherSettingsContent(viewModel: SettingsViewModel) {
 
     SettingsItem(
         label = stringResource(id = R.string.setting_btn_sign_out),
-        icon = R.drawable.ic_settings_logout,
+        icon = R.drawable.ic_setting_sign_out_icon,
         onClick = {
             viewModel.showSignOutConfirmation(true)
         }
@@ -201,11 +207,10 @@ private fun SpaceSettingsContent(
     Row(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = stringResource(id = R.string.setting_spaces),
-            style = AppTheme.appTypography.header3,
-            color = AppTheme.colorScheme.textPrimary,
+            style = AppTheme.appTypography.subTitle1,
+            color = AppTheme.colorScheme.textDisabled,
             textAlign = TextAlign.Start,
-            modifier = Modifier
-                .padding(start = 16.dp, bottom = 16.dp, end = 10.dp)
+            modifier = Modifier.padding(start = 16.dp)
         )
         if (loading) {
             AppProgressIndicator()
@@ -213,59 +218,62 @@ private fun SpaceSettingsContent(
     }
 
     spaces.forEach { space ->
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .motionClickEvent {
-                    openSpaceSettings(space.id)
-                }
-                .padding(bottom = 16.dp)
-                .padding(horizontal = 16.dp)
-        ) {
-            Text(
-                text = space.name,
-                style = AppTheme.appTypography.subTitle2,
-                color = AppTheme.colorScheme.textPrimary,
-                textAlign = TextAlign.Start,
-                modifier = Modifier
-                    .weight(1f)
-            )
-            Icon(
-                Icons.Default.KeyboardArrowRight,
-                contentDescription = "",
-                modifier = Modifier.padding(horizontal = 8.dp),
-                tint = AppTheme.colorScheme.textSecondary
-            )
-        }
+        val isLastItem = spaces.last().id == space.id
+        SettingsItem(
+            label = space.name,
+            char = space.name.firstOrNull().toString(),
+            showDivider = !isLastItem,
+            onClick = { openSpaceSettings(space.id) }
+        )
     }
-
-    Divider(
+    HorizontalDivider(
         modifier = Modifier
-            .padding(bottom = 16.dp)
+            .padding(top = 16.dp)
             .fillMaxWidth(),
         color = AppTheme.colorScheme.outline
     )
 }
 
 @Composable
-private fun SettingsItem(label: String, icon: Int, onClick: () -> Unit) {
+private fun SettingsItem(
+    label: String,
+    char: String? = null,
+    icon: Int? = null,
+    showDivider: Boolean = false,
+    onClick: () -> Unit
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .clickable {
-                onClick()
-            }
-            .padding(horizontal = 16.dp, vertical = 10.dp)
+            .motionClickEvent { onClick() }
+            .padding(start = 16.dp, end = 16.dp, top = 16.dp)
     ) {
-        Image(
-            painter = painterResource(id = icon),
-            contentDescription = "",
+        Box(
             modifier = Modifier
-                .padding(end = 16.dp)
-                .size(38.dp)
-        )
+                .size(36.dp)
+                .background(
+                    color = AppTheme.colorScheme.containerLow,
+                    shape = RoundedCornerShape(8.dp)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            if (char != null) {
+                Text(
+                    text = char,
+                    style = AppTheme.appTypography.subTitle1,
+                    color = AppTheme.colorScheme.textPrimary
+                )
+            }
+            if (icon != null) {
+                Image(
+                    painter = painterResource(id = icon),
+                    contentDescription = "",
+                    colorFilter = ColorFilter.tint(AppTheme.colorScheme.textPrimary)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.width(16.dp))
         Text(
             text = label,
             style = AppTheme.appTypography.subTitle2,
@@ -274,10 +282,17 @@ private fun SettingsItem(label: String, icon: Int, onClick: () -> Unit) {
         )
 
         Icon(
-            Icons.Default.KeyboardArrowRight,
+            painter = painterResource(id = R.drawable.ic_right_arrow_icon),
             contentDescription = "",
-            modifier = Modifier.padding(horizontal = 8.dp),
             tint = AppTheme.colorScheme.textSecondary
+        )
+    }
+    if (showDivider) {
+        HorizontalDivider(
+            modifier = Modifier
+                .padding(start = 16.dp, end = 16.dp, top = 16.dp)
+                .fillMaxWidth(),
+            color = AppTheme.colorScheme.outline
         )
     }
 }
@@ -304,16 +319,19 @@ fun ProfileView(user: ApiUser, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .motionClickEvent {
-                onClick()
-            }
-            .padding(horizontal = 16.dp)
-            .padding(top = 12.dp, bottom = 16.dp)
+            .motionClickEvent { onClick() }
+            .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+            .background(
+                color = AppTheme.colorScheme.containerLow,
+                shape = RoundedCornerShape(16.dp)
+            )
+            .padding(vertical = 16.dp)
     ) {
         ProfileImageView(
             data = profileImageUrl,
             modifier = Modifier
-                .size(66.dp)
+                .padding(start = 16.dp)
+                .size(64.dp)
                 .border(1.dp, AppTheme.colorScheme.textDisabled, CircleShape),
             char = user.fullName.firstOrNull().toString()
         )
@@ -331,12 +349,6 @@ fun ProfileView(user: ApiUser, onClick: () -> Unit) {
                 color = AppTheme.colorScheme.textPrimary
             )
         }
-        Icon(
-            Icons.Default.KeyboardArrowRight,
-            contentDescription = "",
-            modifier = Modifier.padding(horizontal = 8.dp),
-            tint = AppTheme.colorScheme.textSecondary
-        )
     }
 }
 

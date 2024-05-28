@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -37,7 +38,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -127,7 +127,7 @@ private fun SpaceProfileToolbar() {
                     id = R.string.setting_space_settings,
                     state.spaceInfo?.space?.name ?: ""
                 ),
-                style = AppTheme.appTypography.header3
+                style = AppTheme.appTypography.subTitle1
             )
         },
         navigationIcon = {
@@ -142,7 +142,7 @@ private fun SpaceProfileToolbar() {
             Text(
                 text = stringResource(id = R.string.edit_profile_toolbar_save_text),
                 color = if (state.allowSave) AppTheme.colorScheme.primary else AppTheme.colorScheme.textDisabled,
-                style = AppTheme.appTypography.subTitle1,
+                style = AppTheme.appTypography.button,
                 modifier = Modifier
                     .padding(end = 8.dp)
                     .clickable(
@@ -171,8 +171,6 @@ private fun SpaceProfileContent() {
                 .verticalScroll(scrollState)
                 .padding(bottom = 80.dp)
         ) {
-            Header(title = stringResource(id = R.string.space_setting_title_details))
-
             UserTextField(
                 label = stringResource(R.string.space_setting_hint_space_name),
                 text = state.spaceName ?: "",
@@ -182,7 +180,10 @@ private fun SpaceProfileContent() {
                 }
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            HorizontalDivider(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
+                color = AppTheme.colorScheme.outline
+            )
 
             Header(title = stringResource(id = R.string.space_setting_title_your_location))
 
@@ -196,7 +197,11 @@ private fun SpaceProfileContent() {
                     }
                 )
             }
-            Spacer(modifier = Modifier.height(16.dp))
+
+            HorizontalDivider(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
+                color = AppTheme.colorScheme.outline
+            )
 
             Header(title = stringResource(id = R.string.space_setting_title_members_location_status))
 
@@ -282,9 +287,9 @@ private fun BoxScope.FooterButton(
         PrimaryTextButton(
             label = title,
             onClick = onClick,
+            containerColor = AppTheme.colorScheme.containerLow,
             contentColor = AppTheme.colorScheme.alertColor,
             showLoader = showLoader,
-            containerColor = Color.Transparent,
             icon = {
                 Icon(
                     imageVector = icon,
@@ -309,15 +314,14 @@ private fun UserItem(
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        UserProfile(modifier = Modifier.size(50.dp), user = userInfo.user)
-        Spacer(modifier = Modifier.width(10.dp))
+        UserProfile(modifier = Modifier.size(40.dp), user = userInfo.user)
+        Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = userInfo.user.fullName,
-            style = AppTheme.appTypography.subTitle1,
+            style = AppTheme.appTypography.subTitle2,
             color = AppTheme.colorScheme.textPrimary,
             textAlign = TextAlign.Start,
-            modifier = Modifier
-                .weight(1f)
+            modifier = Modifier.weight(1f)
         )
 
         Switch(
@@ -325,7 +329,8 @@ private fun UserItem(
             enabled = enable,
             colors = SwitchDefaults.colors(
                 checkedThumbColor = AppTheme.colorScheme.onPrimary,
-                uncheckedThumbColor = AppTheme.colorScheme.onPrimary
+                uncheckedThumbColor = AppTheme.colorScheme.onPrimary,
+                uncheckedTrackColor = AppTheme.colorScheme.containerHigh
             ),
             onCheckedChange = {
                 onCheckedChange(it)
@@ -338,13 +343,11 @@ private fun UserItem(
 private fun Header(title: String) {
     Text(
         text = title,
-        style = AppTheme.appTypography.header3,
-        color = AppTheme.colorScheme.textPrimary,
+        style = AppTheme.appTypography.subTitle1,
+        color = AppTheme.colorScheme.textDisabled,
         textAlign = TextAlign.Start,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 16.dp)
-            .background(color = AppTheme.colorScheme.containerLow)
-            .padding(start = 16.dp, top = 4.dp, bottom = 4.dp)
+            .padding(start = 16.dp, bottom = 8.dp)
     )
 }

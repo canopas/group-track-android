@@ -3,6 +3,7 @@ package com.canopas.yourspace.ui.component
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -65,8 +66,7 @@ fun PrimaryTextButton(
 ) {
     TextButton(
         onClick = onClick,
-        modifier = modifier
-            .fillMaxWidth(fraction = 0.9f),
+        modifier = modifier.height(48.dp),
         shape = RoundedCornerShape(50),
         colors = ButtonDefaults.buttonColors(
             containerColor = containerColor,
@@ -74,21 +74,22 @@ fun PrimaryTextButton(
         ),
         enabled = enabled
     ) {
+        Spacer(modifier = Modifier.width(24.dp))
         if (showLoader) {
             AppProgressIndicator(color = contentColor)
-            Spacer(modifier = Modifier.width(4.dp))
+            Spacer(modifier = Modifier.width(8.dp))
         }
         if (icon != null && !showLoader) {
             icon()
-            Spacer(modifier = Modifier.width(4.dp))
+            Spacer(modifier = Modifier.width(8.dp))
         }
 
         Text(
             text = label,
             style = AppTheme.appTypography.subTitle2,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(vertical = 6.dp, horizontal = 6.dp)
+            textAlign = TextAlign.Center
         )
+        Spacer(modifier = Modifier.width(24.dp))
     }
 }
 

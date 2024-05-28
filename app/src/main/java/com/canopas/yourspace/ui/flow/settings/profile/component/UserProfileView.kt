@@ -19,11 +19,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -37,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -120,9 +119,10 @@ fun UserProfileView(
         )
     }
 
-    Box(modifier = modifier.size(110.dp), contentAlignment = Alignment.Center) {
+    Box(modifier = modifier.size(128.dp), contentAlignment = Alignment.Center) {
+        val isProfileEmpty = profileUrl.isNullOrEmpty()
         val setProfile =
-            profileUrl ?: R.drawable.ic_user_profile_placeholder
+            if (isProfileEmpty) R.drawable.ic_user_profile_placeholder else profileUrl
 
         Image(
             painter = rememberAsyncImagePainter(
@@ -131,28 +131,28 @@ fun UserProfileView(
             modifier = Modifier
                 .fillMaxSize()
                 .clip(CircleShape)
-                .border(1.dp, AppTheme.colorScheme.textPrimary, CircleShape)
-                .background(AppTheme.colorScheme.containerHigh, CircleShape)
-                .padding(if (profileUrl == null) 32.dp else 0.dp),
+                .background(AppTheme.colorScheme.primary, CircleShape)
+                .padding(if (isProfileEmpty) 32.dp else 0.dp),
             contentScale = ContentScale.Crop,
             contentDescription = "ProfileImage"
         )
 
         Box(
             modifier = Modifier
-                .wrapContentSize()
+                .size(40.dp)
                 .align(Alignment.BottomEnd)
                 .clip(CircleShape)
                 .border(1.dp, AppTheme.colorScheme.textPrimary, CircleShape)
                 .background(AppTheme.colorScheme.onPrimary, CircleShape)
         ) {
             Icon(
-                Icons.Default.Edit,
+                painter = painterResource(id = R.drawable.ic_profile_image_edit_icon),
                 contentDescription = null,
+                tint = AppTheme.colorScheme.onPrimaryVariant,
                 modifier = Modifier
                     .align(Alignment.Center)
                     .padding(8.dp)
-                    .size(20.dp)
+                    .size(24.dp)
                     .motionClickEvent {
                         if (!isImageUploading) {
                             onProfileImageClicked()
@@ -184,9 +184,7 @@ fun ProfileView(user: ApiUser, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .motionClickEvent {
-                onClick()
-            }
+            .motionClickEvent { onClick() }
             .padding(vertical = 12.dp, horizontal = 16.dp)
     ) {
         ProfileImageView(

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -18,8 +19,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.ripple.rememberRipple
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -34,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -76,7 +78,7 @@ private fun EditProfileToolbar() {
         title = {
             Text(
                 text = stringResource(id = R.string.edit_profile_title),
-                style = AppTheme.appTypography.header3
+                style = AppTheme.appTypography.subTitle1
             )
         },
         navigationIcon = {
@@ -91,7 +93,7 @@ private fun EditProfileToolbar() {
             Text(
                 text = stringResource(id = R.string.edit_profile_toolbar_save_text),
                 color = if (state.allowSave) AppTheme.colorScheme.primary else AppTheme.colorScheme.textDisabled,
-                style = AppTheme.appTypography.subTitle1,
+                style = AppTheme.appTypography.button,
                 modifier = Modifier
                     .padding(end = 8.dp)
                     .clickable(
@@ -184,16 +186,26 @@ private fun EditProfileScreenContent(modifier: Modifier) {
                 onValueChange = { viewModel.onPhoneChanged(it.trimStart()) }
             )
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.weight(1f))
 
             PrimaryTextButton(
+                icon = {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_delete_icon),
+                        contentDescription = ""
+                    )
+                },
                 label = stringResource(id = R.string.settings_btn_delete_account),
                 onClick = {
                     viewModel.showDeleteAccountConfirmation(true)
                 },
+                containerColor = AppTheme.colorScheme.containerLow,
                 contentColor = AppTheme.colorScheme.alertColor,
                 showLoader = state.deletingAccount,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+                modifier = Modifier
+                    .padding(bottom = 40.dp)
+                    .wrapContentSize()
+                    .align(Alignment.CenterHorizontally)
             )
         }
 
@@ -245,7 +257,7 @@ fun UserTextField(
         Text(
             text = label,
             color = if (isFocused) AppTheme.colorScheme.primary else AppTheme.colorScheme.textDisabled,
-            style = AppTheme.appTypography.body2
+            style = AppTheme.appTypography.caption
         )
 
         BasicTextField(
@@ -259,14 +271,14 @@ fun UserTextField(
                 .padding(top = 8.dp)
                 .fillMaxWidth(),
             singleLine = true,
-            textStyle = AppTheme.appTypography.subTitle1.copy(color = AppTheme.colorScheme.textPrimary),
+            textStyle = AppTheme.appTypography.subTitle2.copy(color = AppTheme.colorScheme.textPrimary),
             keyboardOptions = keyboardOptions,
             keyboardActions = KeyboardActions(onDone = {
                 focusManager.clearFocus()
             }),
             cursorBrush = SolidColor(AppTheme.colorScheme.primary)
         )
-        Divider(
+        HorizontalDivider(
             Modifier
                 .fillMaxWidth()
                 .padding(top = 4.dp),
