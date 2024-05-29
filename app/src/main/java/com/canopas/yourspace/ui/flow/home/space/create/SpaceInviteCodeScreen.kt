@@ -93,6 +93,7 @@ private fun SpaceInviteContent(modifier: Modifier) {
         Spacer(modifier = Modifier.weight(1f))
 
         PrimaryButton(
+            modifier = Modifier.fillMaxWidth(),
             label = stringResource(R.string.onboard_share_space_code_btn),
             onClick = { shareInvitationCode(context, viewModel.spaceInviteCode) }
         )
