@@ -5,8 +5,8 @@ import android.content.Context
 import android.content.Intent
 import com.canopas.yourspace.data.repository.JourneyRepository
 import com.canopas.yourspace.data.service.auth.AuthService
+import com.canopas.yourspace.data.service.location.ApiJourneyService
 import com.canopas.yourspace.data.service.location.ApiLocationService
-import com.canopas.yourspace.data.service.location.LocationJourneyService
 import com.canopas.yourspace.data.service.location.LocationManager
 import com.canopas.yourspace.data.storage.room.LocationTableDatabase
 import com.canopas.yourspace.data.utils.LocationConverters
@@ -28,7 +28,7 @@ class LocationUpdateReceiver : BroadcastReceiver() {
     lateinit var locationService: ApiLocationService
 
     @Inject
-    lateinit var locationJourneyService: LocationJourneyService
+    lateinit var journeyService: ApiJourneyService
 
     @Inject
     lateinit var locationManager: LocationManager
