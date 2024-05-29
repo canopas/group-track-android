@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.canopas.yourspace.data.models.location.LocationJourney
 import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.service.auth.AuthService
-import com.canopas.yourspace.data.service.location.LocationJourneyService
+import com.canopas.yourspace.data.service.location.ApiJourneyService
 import com.canopas.yourspace.data.service.user.ApiUserService
 import com.canopas.yourspace.data.utils.AppDispatcher
 import com.canopas.yourspace.ui.navigation.AppDestinations
@@ -23,7 +23,7 @@ import javax.inject.Inject
 class JourneyTimelineViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val navigator: AppNavigator,
-    private val journeyService: LocationJourneyService,
+    private val journeyService: ApiJourneyService,
     private val apiUserService: ApiUserService,
     private val authService: AuthService,
     private val appDispatcher: AppDispatcher
@@ -63,18 +63,23 @@ class JourneyTimelineViewModel @Inject constructor(
         }
     }
 
-    private fun loadLocations() = viewModelScope.launch {
+    private fun loadLocations(loadMore: Boolean = false) = viewModelScope.launch(appDispatcher.IO) {
+        if (loadMore && !state.value.hasMoreLocations) return@launch
         _state.value = _state.value.copy(
             isLoading = allJourneys.isEmpty(),
-            appending = allJourneys.isNotEmpty()
+            appending = loadMore
         )
 
         try {
-            val from =
-                if (allJourneys.isEmpty()) _state.value.selectedTimeFrom else allJourneys.minOfOrNull { it.created_at!! }
+            val from = _state.value.selectedTimeFrom
             val to = _state.value.selectedTimeTo
-            val locations = journeyService.getJourneyHistory(userId, from, to)
-                .sortedByDescending { it.update_at }
+            val lastJourneyTime = allJourneys.minOfOrNull { it.created_at!! }
+
+            val locations = if (loadMore) {
+                journeyService.getMoreJourneyHistory(userId, lastJourneyTime)
+            } else {
+                journeyService.getJourneyHistory(userId, from, to)
+            }
 
             val locationJourneys = (allJourneys + locations).groupByDate()
             val hasMoreItems = locations.isNotEmpty()
@@ -117,14 +122,14 @@ class JourneyTimelineViewModel @Inject constructor(
     fun loadMoreLocations() {
         state.value.let {
             if (it.hasMoreLocations && !it.appending) {
-                loadLocations()
+                loadLocations(true)
             }
         }
     }
 
     private fun List<LocationJourney>.groupByDate(): Map<Long, List<LocationJourney>> {
         val journeys = this.distinctBy { it.id }
-            .sortedByDescending { it.created_at!! }
+            .sortedByDescending { it.update_at!! }
 
         val groupedItems = mutableMapOf<Long, MutableList<LocationJourney>>()
 

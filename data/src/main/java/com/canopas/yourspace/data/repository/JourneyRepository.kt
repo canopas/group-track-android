@@ -11,8 +11,8 @@ import com.canopas.yourspace.data.models.location.toLocation
 import com.canopas.yourspace.data.models.location.toLocationFromMovingJourney
 import com.canopas.yourspace.data.models.location.toLocationFromSteadyJourney
 import com.canopas.yourspace.data.models.location.toRoute
+import com.canopas.yourspace.data.service.location.ApiJourneyService
 import com.canopas.yourspace.data.service.location.ApiLocationService
-import com.canopas.yourspace.data.service.location.LocationJourneyService
 import com.canopas.yourspace.data.storage.room.LocationTableDatabase
 import com.canopas.yourspace.data.utils.LocationConverters
 import kotlinx.coroutines.flow.toList
@@ -26,7 +26,7 @@ const val MIN_TIME_DIFFERENCE = 5 * 60 * 1000
 @Singleton
 class JourneyRepository @Inject constructor(
     private val locationTableDatabase: LocationTableDatabase,
-    private val locationJourneyService: LocationJourneyService,
+    private val journeyService: ApiJourneyService,
     private val locationService: ApiLocationService,
     private val converters: LocationConverters
 ) {
@@ -42,7 +42,7 @@ class JourneyRepository @Inject constructor(
 
             when {
                 lastJourney == null -> {
-                    locationJourneyService.saveCurrentJourney(
+                    journeyService.saveCurrentJourney(
                         userId = userId,
                         fromLatitude = extractedLocation.latitude,
                         fromLongitude = extractedLocation.longitude
@@ -83,8 +83,7 @@ class JourneyRepository @Inject constructor(
         return locationData?.lastLocationJourney?.let {
             return converters.journeyFromString(it)
         } ?: run {
-            val lastJourneyLocation =
-                locationJourneyService.getLastJourneyLocation(userId)
+            val lastJourneyLocation = journeyService.getLastJourneyLocation(userId)
             locationData?.copy(lastLocationJourney = converters.journeyToString(lastJourneyLocation))
                 ?.let {
                     locationTableDatabase.locationTableDao().updateLocationTable(it)
@@ -168,7 +167,7 @@ class JourneyRepository @Inject constructor(
         if (lastKnownJourney.isSteadyLocation()) {
             val updatedRoutes = lastKnownJourney.routes.toMutableList()
             updatedRoutes.add(extractedLocation.toRoute())
-            locationJourneyService.saveCurrentJourney(
+            journeyService.saveCurrentJourney(
                 userId = currentUserId,
                 fromLatitude = lastKnownJourney.from_latitude,
                 fromLongitude = lastKnownJourney.from_longitude,
@@ -186,7 +185,7 @@ class JourneyRepository @Inject constructor(
             ).toDouble()
             val updatedRoutes = lastKnownJourney.routes.toMutableList()
             updatedRoutes.add(extractedLocation.toRoute())
-            locationJourneyService.updateLastLocationJourney(
+            journeyService.updateLastLocationJourney(
                 userId = currentUserId,
                 lastKnownJourney.copy(
                     to_latitude = extractedLocation.latitude,
@@ -221,12 +220,12 @@ class JourneyRepository @Inject constructor(
         when {
             timeDifference > MIN_TIME_DIFFERENCE && distance > MIN_DISTANCE -> {
                 if (lastKnownJourney.isSteadyLocation()) {
-                    locationJourneyService.updateLastLocationJourney(
+                    journeyService.updateLastLocationJourney(
                         userId = currentUserId,
                         lastKnownJourney.copy(update_at = System.currentTimeMillis())
                     )
                 } else {
-                    locationJourneyService.saveCurrentJourney(
+                    journeyService.saveCurrentJourney(
                         currentUserId,
                         fromLatitude = lastKnownJourney.to_latitude!!,
                         fromLongitude = lastKnownJourney.to_longitude!!,
@@ -234,7 +233,7 @@ class JourneyRepository @Inject constructor(
                     )
                 }
 
-                locationJourneyService.saveCurrentJourney(
+                journeyService.saveCurrentJourney(
                     userId = currentUserId,
                     fromLatitude = lastKnownJourney.to_latitude ?: lastKnownJourney.from_latitude,
                     fromLongitude = lastKnownJourney.to_longitude
@@ -251,7 +250,7 @@ class JourneyRepository @Inject constructor(
             timeDifference < MIN_TIME_DIFFERENCE && distance > MIN_DISTANCE -> {
                 val updatedRoutes = lastKnownJourney.routes.toMutableList()
                 updatedRoutes.add(extractedLocation.toRoute())
-                locationJourneyService.updateLastLocationJourney(
+                journeyService.updateLastLocationJourney(
                     userId = currentUserId,
                     journey = lastKnownJourney.copy(
                         to_longitude = extractedLocation.latitude,
@@ -268,14 +267,14 @@ class JourneyRepository @Inject constructor(
 
             timeDifference > MIN_TIME_DIFFERENCE && distance < MIN_DISTANCE -> {
                 if (lastKnownJourney.isSteadyLocation()) {
-                    locationJourneyService.updateLastLocationJourney(
+                    journeyService.updateLastLocationJourney(
                         userId = currentUserId,
                         lastKnownJourney.copy(
                             update_at = System.currentTimeMillis()
                         )
                     )
                 } else {
-                    locationJourneyService.saveCurrentJourney(
+                    journeyService.saveCurrentJourney(
                         currentUserId,
                         fromLatitude = extractedLocation.latitude,
                         fromLongitude = extractedLocation.longitude,
@@ -285,7 +284,7 @@ class JourneyRepository @Inject constructor(
             }
 
             timeDifference < MIN_TIME_DIFFERENCE && distance < MIN_DISTANCE -> {
-                locationJourneyService.updateLastLocationJourney(
+                journeyService.updateLastLocationJourney(
                     userId = currentUserId,
                     lastKnownJourney.copy(update_at = System.currentTimeMillis())
                 )

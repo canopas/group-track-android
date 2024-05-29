@@ -48,13 +48,13 @@ import com.canopas.yourspace.ui.flow.journey.components.JourneyMap
 import com.canopas.yourspace.ui.flow.journey.components.PlaceInfo
 import com.canopas.yourspace.ui.flow.journey.components.formattedTitle
 import com.canopas.yourspace.ui.flow.journey.components.getDistanceString
-import com.canopas.yourspace.ui.flow.journey.components.getFormattedCreatedAt
-import com.canopas.yourspace.ui.flow.journey.components.getRouteDurationString
+import com.canopas.yourspace.ui.flow.journey.components.getFormattedLocationTime
 import com.canopas.yourspace.ui.theme.AppTheme
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.Calendar
+import java.util.concurrent.TimeUnit
 
 @Composable
 fun UserJourneyDetailScreen() {
@@ -153,7 +153,7 @@ private fun JourneyInfo(journey: LocationJourney) {
                     .padding(start = 16.dp)
                     .weight(1f)
             ) {
-                PlaceInfo(fromAddressStr, getFormattedCreatedAt(journey.created_at!!))
+                PlaceInfo(fromAddressStr, getFormattedLocationTime(journey.created_at!!))
             }
         }
 
@@ -168,7 +168,7 @@ private fun JourneyInfo(journey: LocationJourney) {
                     .padding(start = 16.dp)
                     .weight(1f)
             ) {
-                PlaceInfo(toAddressStr, getFormattedCreatedAt(journey.update_at!!))
+                PlaceInfo(toAddressStr, getFormattedLocationTime(journey.update_at!!))
             }
         }
     }
@@ -271,5 +271,26 @@ private fun JourneyMarker(bgColor: Color, content: @Composable BoxScope.() -> Un
             contentAlignment = Alignment.Center,
             content = content
         )
+    }
+}
+
+internal fun getRouteDurationString(
+    routeDuration: Long
+): String {
+    val hours = TimeUnit.MILLISECONDS.toHours(routeDuration)
+    val minutes = TimeUnit.MILLISECONDS.toMinutes(routeDuration) % 60
+    val seconds = TimeUnit.MILLISECONDS.toSeconds(routeDuration) % 60
+    return when {
+        hours > 0 -> {
+            "$hours hr $minutes mins"
+        }
+
+        minutes > 0 -> {
+            "$minutes mins"
+        }
+
+        else -> {
+            "$seconds sec"
+        }
     }
 }

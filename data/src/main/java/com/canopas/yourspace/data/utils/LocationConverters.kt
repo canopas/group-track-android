@@ -21,7 +21,6 @@ class LocationConverters @Inject constructor() {
     private val moshi = Moshi.Builder().addLast(KotlinJsonAdapterFactory()).build()
     private val type = Types.newParameterizedType(List::class.java, ApiLocation::class.java)
     private val listJsonAdapter = moshi.adapter<List<ApiLocation>>(type)
-    private val apiLocationAdapter = moshi.adapter(ApiLocation::class.java)
     private val journeyAdapter = moshi.adapter(LocationJourney::class.java)
 
     /**
@@ -46,32 +45,6 @@ class LocationConverters @Inject constructor() {
             listJsonAdapter.toJson(list)
         } catch (e: Exception) {
             Timber.e(e, "Error converting location list to string")
-            ""
-        }
-    }
-
-    /**
-     * Convert String to ApiLocation
-     * */
-    @TypeConverter
-    fun locationFromString(value: String): ApiLocation? {
-        return try {
-            apiLocationAdapter.fromJson(value)
-        } catch (e: Exception) {
-            Timber.e(e, "Error converting location from string")
-            null
-        }
-    }
-
-    /**
-     * Convert ApiLocation to String
-     * */
-    @TypeConverter
-    fun locationToString(apiLocation: ApiLocation?): String {
-        return try {
-            apiLocationAdapter.toJson(apiLocation)
-        } catch (e: Exception) {
-            Timber.e(e, "Error converting location to string")
             ""
         }
     }

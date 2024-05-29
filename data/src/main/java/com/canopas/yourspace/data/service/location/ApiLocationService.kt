@@ -1,7 +1,6 @@
 package com.canopas.yourspace.data.service.location
 
 import com.canopas.yourspace.data.models.location.ApiLocation
-import com.canopas.yourspace.data.models.location.LocationTable
 import com.canopas.yourspace.data.models.location.UserState
 import com.canopas.yourspace.data.storage.room.LocationTableDatabase
 import com.canopas.yourspace.data.utils.Config
@@ -49,8 +48,6 @@ class ApiLocationService @Inject constructor(
             user_state = UserState.STEADY.value
         )
 
-        setLocationTableData(userId, location)
-
         docRef.set(location).await()
     }
 
@@ -72,31 +69,10 @@ class ApiLocationService @Inject constructor(
             user_state = userState
         )
 
-        setLocationTableData(userId, location)
-
         docRef.set(location).await()
     }
 
-    private suspend fun setLocationTableData(
-        userId: String,
-        location: ApiLocation
-    ) {
-        val data = locationTableDatabase.locationTableDao().getLocationData(userId)
-        if (data == null) {
-            locationTableDatabase.locationTableDao().insertLocationData(
-                LocationTable(
-                    userId = userId,
-                    latestLocation = converters.locationToString(location)
-                )
-            )
-        } else {
-            locationTableDatabase.locationTableDao().updateLocationTable(
-                data.copy(latestLocation = converters.locationToString(location))
-            )
-        }
-    }
-
-    suspend fun getCurrentLocation(userId: String): Flow<List<ApiLocation>>? {
+    fun getCurrentLocation(userId: String): Flow<List<ApiLocation>>? {
         return try {
             locationRef(userId)?.whereEqualTo("user_id", userId)
                 ?.orderBy("created_at", Query.Direction.DESCENDING)?.limit(1)
