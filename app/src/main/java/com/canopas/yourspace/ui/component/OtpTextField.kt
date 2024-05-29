@@ -1,7 +1,6 @@
 package com.canopas.yourspace.ui.component
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -15,7 +14,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,7 +24,6 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
@@ -37,7 +35,7 @@ import com.canopas.yourspace.ui.theme.AppTheme
 fun OtpInputField(
     pinText: String,
     onPinTextChange: (String) -> Unit,
-    textStyle: TextStyle = AppTheme.appTypography.header1,
+    textStyle: TextStyle = AppTheme.appTypography.header2,
     digitCount: Int = 6
 ) {
     val focusRequester = remember { FocusRequester() }
@@ -57,13 +55,13 @@ fun OtpInputField(
                     OTPDigit(index, pinText, textStyle, focusRequester)
                     Spacer(modifier = Modifier.width(8.dp))
                     if (index == 2) {
-                        Divider(
-                            thickness = 2.dp,
+                        HorizontalDivider(
                             modifier = Modifier
-                                .padding(horizontal = 4.dp)
-                                .width(12.dp)
+                                .padding(horizontal = 16.dp)
+                                .width(16.dp)
                                 .align(Alignment.CenterVertically),
-                            color = AppTheme.colorScheme.secondary
+                            thickness = 2.dp,
+                            color = AppTheme.colorScheme.textPrimary
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                     }
@@ -99,19 +97,15 @@ private fun OTPDigit(
         Text(
             text = if (index >= pinText.length) "" else pinText[index].toString().uppercase(),
             modifier = Modifier
-                .width(40.dp)
-                .height(60.dp)
-                .border(
-                    width = 2.dp,
-                    color = if (isFocused) AppTheme.colorScheme.primary else Color.Transparent,
-                    shape = RoundedCornerShape(8.dp)
-                )
+                .width(48.dp)
+                .height(64.dp)
                 .background(
                     color = if (isFocused) AppTheme.colorScheme.containerLow else AppTheme.colorScheme.containerNormal,
                     shape = RoundedCornerShape(8.dp)
                 )
                 .wrapContentHeight(align = Alignment.CenterVertically),
             style = textStyle,
+            color = AppTheme.colorScheme.textPrimary,
             textAlign = TextAlign.Center
         )
     }

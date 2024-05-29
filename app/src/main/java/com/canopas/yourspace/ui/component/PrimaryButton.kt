@@ -29,27 +29,30 @@ fun PrimaryButton(
     containerColor: Color = AppTheme.colorScheme.primary,
     contentColor: Color = AppTheme.colorScheme.onPrimary
 ) {
+    val textColor = if (enabled) contentColor else AppTheme.colorScheme.textDisabled
     Button(
         onClick = onClick,
-        modifier = modifier
-            .fillMaxWidth(fraction = 0.9f),
+        modifier = modifier.height(48.dp),
         shape = RoundedCornerShape(50),
         colors = ButtonDefaults.buttonColors(
-            containerColor = containerColor
+            containerColor = containerColor,
+            disabledContainerColor = AppTheme.colorScheme.containerLow
         ),
         enabled = enabled
     ) {
+        Spacer(modifier = Modifier.width(24.dp))
         if (showLoader) {
-            AppProgressIndicator(color = contentColor)
-            Spacer(modifier = Modifier.width(4.dp))
+            AppProgressIndicator(color = textColor)
+            Spacer(modifier = Modifier.width(8.dp))
         }
 
         Text(
             text = label,
-            style = AppTheme.appTypography.button.copy(color = contentColor),
+            style = AppTheme.appTypography.button.copy(color = textColor),
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(vertical = 6.dp)
         )
+        Spacer(modifier = Modifier.width(24.dp))
     }
 }
 
