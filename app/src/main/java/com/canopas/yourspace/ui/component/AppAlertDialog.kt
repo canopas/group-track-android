@@ -45,7 +45,7 @@ fun AppAlertDialog(
                 ) {
                     Text(
                         text = confirmBtnText,
-                        style = AppTheme.appTypography.subTitle2,
+                        style = AppTheme.appTypography.button,
                         color = if (isConfirmDestructive) AppTheme.colorScheme.alertColor else AppTheme.colorScheme.primary
                     )
                 }
@@ -56,7 +56,7 @@ fun AppAlertDialog(
                 TextButton(onClick = (onDismissClick)) {
                     Text(
                         text = dismissBtnText,
-                        style = AppTheme.appTypography.subTitle2,
+                        style = AppTheme.appTypography.button,
                         color = if (isConfirmDestructive) AppTheme.colorScheme.textSecondary else AppTheme.colorScheme.primary
                     )
                 }

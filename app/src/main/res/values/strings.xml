@@ -75,10 +75,10 @@
     <string name="onboard_space_btn_create_new">Create a new Space</string>
     <string name="onboard_space_create_title">Don\'t have an invitation code?</string>
     <string name="onboard_space_create_subtitle">No worries. We\'ll provide you with one to share</string>
-    <string name="onboard_create_space_name_label">Space Name</string>
+    <string name="onboard_create_space_name_label">Space name</string>
     <string name="onboard_create_space_initial_name">"%s\'s Family"</string>
-    <string name="onboard_create_space_give_name_title">Give your Space a name</string>
-    <string name="onboard_create_space_subtitle">Tips: You can create dedicated Spaces for work, family, friends, and more.</string>
+    <string name="onboard_create_space_give_name_title">Give your space a name</string>
+    <string name="onboard_create_space_subtitle">Tips: You can create dedicated spaces for work, family, friends, and more.</string>
     <string name="onboard_share_space_code_title">Unlock the Space!</string>
     <string name="onboard_share_space_code_tips">Share this code in your own style. Connecting is as flexible as you are.</string>
     <string name="onboard_share_space_code_subtitle">Share this invite code with your trusted ones.</string>

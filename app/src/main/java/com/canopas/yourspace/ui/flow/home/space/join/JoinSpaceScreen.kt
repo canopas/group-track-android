@@ -5,8 +5,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -21,6 +19,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -43,13 +42,13 @@ fun JoinSpaceScreen() {
             title = {
                 Text(
                     text = stringResource(id = R.string.join_space_title),
-                    style = AppTheme.appTypography.header3
+                    style = AppTheme.appTypography.subTitle1
                 )
             },
             navigationIcon = {
                 IconButton(onClick = { viewModel.popBackStack() }) {
                     Icon(
-                        Icons.Default.ArrowBack,
+                        painter = painterResource(id = R.drawable.ic_nav_back_arrow_icon),
                         contentDescription = ""
                     )
                 }
@@ -67,16 +66,14 @@ private fun JoinSpaceContent(modifier: Modifier) {
     Column(
         modifier
             .fillMaxWidth()
-            .padding(20.dp),
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(20.dp))
         Text(
             text = stringResource(R.string.join_space_title_enter_code),
-            style = AppTheme.appTypography.header2,
+            style = AppTheme.appTypography.header3,
             textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
+            modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(40.dp))
@@ -86,14 +83,13 @@ private fun JoinSpaceContent(modifier: Modifier) {
         Spacer(modifier = Modifier.height(40.dp))
         Text(
             text = stringResource(R.string.onboard_space_join_subtitle),
-            style = AppTheme.appTypography.body1,
+            style = AppTheme.appTypography.subTitle1.copy(color = AppTheme.colorScheme.textDisabled),
             textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-
+            modifier = Modifier.fillMaxWidth()
         )
-        Spacer(modifier = Modifier.height(30.dp))
+        Spacer(modifier = Modifier.weight(1f))
         PrimaryButton(
+            modifier = Modifier.fillMaxWidth(),
             label = stringResource(id = R.string.common_btn_join_space),
             onClick = { viewModel.verifyAndJoinSpace() },
             enabled = state.inviteCode.length == 6,
@@ -108,7 +104,10 @@ private fun JoinSpaceContent(modifier: Modifier) {
     }
 
     if (state.errorInvalidInviteCode) {
-        AppBanner(msg = stringResource(id = R.string.onboard_space_invalid_invite_code)) {
+        AppBanner(
+            msg = stringResource(id = R.string.onboard_space_invalid_invite_code),
+            containerColor = AppTheme.colorScheme.alertColor
+        ) {
             viewModel.resetErrorState()
         }
     }

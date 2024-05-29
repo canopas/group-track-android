@@ -68,7 +68,7 @@ fun MarkerContent(user: ApiUser, isSelected: Boolean, painter: AsyncImagePainter
 
     Box(
         modifier = Modifier
-            .size(40.dp)
+            .size(48.dp)
             .background(
                 if (isSelected) AppTheme.colorScheme.secondary else AppTheme.colorScheme.surface,
                 shape = shape

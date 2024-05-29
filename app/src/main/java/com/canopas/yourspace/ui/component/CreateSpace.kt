@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -19,7 +18,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -54,25 +53,24 @@ fun CreateSpace(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(scrollState)
+            .padding(horizontal = 16.dp)
     ) {
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = stringResource(R.string.onboard_create_space_give_name_title),
-            style = AppTheme.appTypography.header1,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 28.dp)
+            style = AppTheme.appTypography.header4,
+            modifier = Modifier.fillMaxWidth()
+
         )
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         Text(
             text = stringResource(R.string.onboard_create_space_subtitle),
             style = AppTheme.appTypography.body1,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 28.dp)
+            color = AppTheme.colorScheme.textDisabled,
+            modifier = Modifier.fillMaxWidth()
         )
-        Spacer(modifier = Modifier.height(30.dp))
+        Spacer(modifier = Modifier.height(28.dp))
 
         PickNameTextField(
             stringResource(id = R.string.onboard_create_space_name_label),
@@ -81,15 +79,13 @@ fun CreateSpace(
             onSpaceNameChanged(it)
         }
 
-        Spacer(modifier = Modifier.height(30.dp))
+        Spacer(modifier = Modifier.height(28.dp))
         Text(
             text = stringResource(R.string.home_create_space_suggestions),
-            style = AppTheme.appTypography.label2.copy(color = AppTheme.colorScheme.textSecondary),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 28.dp)
+            style = AppTheme.appTypography.caption.copy(color = AppTheme.colorScheme.textDisabled)
+
         )
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         Suggestions {
             onSpaceNameChanged(it)
@@ -99,7 +95,7 @@ fun CreateSpace(
 
         PrimaryButton(
             label = stringResource(R.string.common_btn_next),
-            modifier = Modifier.align(Alignment.CenterHorizontally),
+            modifier = Modifier.fillMaxWidth().align(Alignment.CenterHorizontally),
             onClick = {
                 onNext()
                 keyboardController?.hide()
@@ -107,7 +103,7 @@ fun CreateSpace(
             enabled = spaceName.trim().isNotEmpty(),
             showLoader = showLoader
         )
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 
@@ -115,19 +111,18 @@ fun CreateSpace(
 @Composable
 fun Suggestions(onSelect: (String) -> Unit) {
     val suggestion = stringArrayResource(id = R.array.home_create_space_name_suggestion)
-    FlowRow(modifier = Modifier.padding(horizontal = 20.dp), maxItemsInEachRow = 4) {
+    FlowRow(modifier = Modifier, maxItemsInEachRow = 4) {
         suggestion.forEach {
             Text(
                 text = it,
-                style = AppTheme.appTypography.label2,
+                style = AppTheme.appTypography.body2,
+                color = AppTheme.colorScheme.textSecondary,
                 modifier = Modifier
-                    .padding(horizontal = 6.dp, vertical = 4.dp)
-                    .background(AppTheme.colorScheme.containerNormal, RoundedCornerShape(12.dp))
-                    .clip(RoundedCornerShape(12.dp))
-                    .clickable {
-                        onSelect(it)
-                    }
-                    .padding(horizontal = 10.dp, vertical = 8.dp)
+                    .padding(end = 8.dp, bottom = 8.dp)
+                    .background(AppTheme.colorScheme.containerNormal, RoundedCornerShape(30.dp))
+                    .clip(RoundedCornerShape(30.dp))
+                    .clickable { onSelect(it) }
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
             )
         }
     }
@@ -142,28 +137,19 @@ private fun PickNameTextField(title: String, value: String, onValueChanged: (Str
         if (isFocused) AppTheme.colorScheme.primary else AppTheme.colorScheme.outline
 
     Text(
-        text = title.uppercase(),
-        style = AppTheme.appTypography.subTitle2.copy()
-            .copy(color = AppTheme.colorScheme.textSecondary),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 28.dp)
+        text = title,
+        style = AppTheme.appTypography.caption.copy()
+            .copy(color = AppTheme.colorScheme.textDisabled),
+        modifier = Modifier.fillMaxWidth()
     )
 
     Spacer(modifier = Modifier.height(6.dp))
 
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 28.dp),
-        contentAlignment = Alignment.BottomEnd
-    ) {
+    Column {
         BasicTextField(
             value = value,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 14.dp),
-            textStyle = AppTheme.appTypography.header4.copy(AppTheme.colorScheme.textPrimary),
+            modifier = Modifier.fillMaxWidth(),
+            textStyle = AppTheme.appTypography.subTitle2.copy(AppTheme.colorScheme.textPrimary),
             onValueChange = { value ->
                 onValueChanged(value)
             },
@@ -179,8 +165,10 @@ private fun PickNameTextField(title: String, value: String, onValueChanged: (Str
             cursorBrush = SolidColor(AppTheme.colorScheme.primary)
         )
 
-        Divider(
-            Modifier.align(Alignment.BottomCenter),
+        HorizontalDivider(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp),
             thickness = 1.dp,
             color = outlineColor
         )

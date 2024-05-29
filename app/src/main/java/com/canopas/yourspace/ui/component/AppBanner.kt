@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -31,11 +32,19 @@ import java.io.IOException
 class ServerException(message: String? = null) : Exception(message)
 
 @Composable
-fun AppBanner(msg: String, onDismiss: (() -> Unit)?) {
+fun AppBanner(
+    msg: String,
+    containerColor: Color? = null,
+    contentColor: Color? = null,
+    onDismiss: (() -> Unit)?
+) {
     if (msg.isEmpty()) return
 
     var show by remember { mutableStateOf(false) }
-    val textStyle = AppTheme.appTypography.label1.copy(color = AppTheme.colorScheme.onPrimary)
+    val backgroundColor = containerColor ?: AppTheme.colorScheme.primary
+    val textColor = contentColor ?: AppTheme.colorScheme.onPrimary
+    val textStyle = AppTheme.appTypography.subTitle1.copy(color = textColor)
+
     LaunchedEffect(key1 = msg) {
         delay(200)
         show = true
@@ -62,9 +71,7 @@ fun AppBanner(msg: String, onDismiss: (() -> Unit)?) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(80.dp)
-                    .background(
-                        color = AppTheme.colorScheme.primary
-                    )
+                    .background(color = backgroundColor)
                     .padding(16.dp),
                 contentAlignment = Alignment.CenterStart
             ) {
@@ -80,9 +87,18 @@ fun AppBanner(msg: String, onDismiss: (() -> Unit)?) {
 }
 
 @Composable
-fun AppBanner(msg: Exception, customMsg: String? = null, onDismiss: (() -> Unit)? = {}) {
+fun AppBanner(
+    msg: Exception,
+    customMsg: String? = null,
+    containerColor: Color? = null,
+    contentColor: Color? = null,
+    onDismiss: (() -> Unit)? = {}
+) {
     var show by remember { mutableStateOf(false) }
-    val textStyle = AppTheme.appTypography.label1.copy(color = AppTheme.colorScheme.onPrimary)
+    val backgroundColor = containerColor ?: AppTheme.colorScheme.primary
+    val textColor = contentColor ?: AppTheme.colorScheme.onPrimary
+    val textStyle = AppTheme.appTypography.subTitle1.copy(color = textColor)
+
     LaunchedEffect(key1 = Unit) {
         delay(200)
         show = true
@@ -109,9 +125,7 @@ fun AppBanner(msg: Exception, customMsg: String? = null, onDismiss: (() -> Unit)
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(80.dp)
-                    .background(
-                        color = AppTheme.colorScheme.primary
-                    )
+                    .background(color = backgroundColor)
                     .padding(16.dp),
                 contentAlignment = Alignment.CenterStart
             ) {
