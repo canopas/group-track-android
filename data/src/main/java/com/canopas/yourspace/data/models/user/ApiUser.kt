@@ -47,7 +47,7 @@ data class ApiUserSession(
     val created_at: Long? = System.currentTimeMillis()
 ) {
     @get:Exclude
-    val noNetwork: Boolean get() = state != USER_STATE_NO_NETWORK_OR_PHONE_OFF
+    val noNetwork: Boolean get() = state == USER_STATE_NO_NETWORK_OR_PHONE_OFF
 
     @get:Exclude
     val locationPermissionDenied: Boolean get() = state == USER_STATE_LOCATION_PERMISSION_DENIED
