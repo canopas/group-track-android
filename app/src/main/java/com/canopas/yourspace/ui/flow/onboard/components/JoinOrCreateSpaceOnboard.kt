@@ -14,7 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -89,32 +89,32 @@ private fun JoinSpaceComponent(
     Column(
         Modifier
             .fillMaxWidth()
-            .padding(20.dp),
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(40.dp))
         Text(
             text = stringResource(R.string.onboard_space_join_title),
-            style = AppTheme.appTypography.header2,
+            style = AppTheme.appTypography.header3,
             textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
+            modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(40.dp))
         OtpInputField(pinText = code, onPinTextChange = {
             onCodeChanged(it)
         })
+
         Spacer(modifier = Modifier.height(40.dp))
         Text(
             text = stringResource(R.string.onboard_space_join_subtitle),
             style = AppTheme.appTypography.body1,
+            color = AppTheme.colorScheme.textDisabled,
             textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-
+            modifier = Modifier.fillMaxWidth()
         )
-        Spacer(modifier = Modifier.height(30.dp))
+
+        Spacer(modifier = Modifier.height(16.dp))
         PrimaryButton(
             label = stringResource(id = R.string.common_btn_verify),
             onClick = onJoin,
@@ -133,36 +133,32 @@ private fun CreateSpaceComponent(onCreateNewSpace: () -> Unit) {
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .padding(top = 25.dp)
-                .padding(bottom = 30.dp)
+            modifier = Modifier.padding(top = 24.dp)
         ) {
-            Divider(
+            HorizontalDivider(
+                modifier = Modifier.fillMaxWidth(),
                 thickness = 1.dp,
-                color = AppTheme.colorScheme.textSecondary.copy(alpha = 0.5f),
-                modifier = Modifier.fillMaxWidth()
+                color = AppTheme.colorScheme.outline
             )
             Spacer(modifier = Modifier.height(60.dp))
             Text(
                 text = stringResource(R.string.onboard_space_create_title),
-                style = AppTheme.appTypography.header2.copy(color = AppTheme.colorScheme.textPrimary),
+                style = AppTheme.appTypography.header3.copy(color = AppTheme.colorScheme.textPrimary),
                 textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
-
+            Spacer(modifier = Modifier.height(24.dp))
             Text(
                 text = stringResource(R.string.onboard_space_create_subtitle),
-                style = AppTheme.appTypography.body1.copy(color = AppTheme.colorScheme.textSecondary),
+                style = AppTheme.appTypography.body1.copy(color = AppTheme.colorScheme.textDisabled),
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 30.dp)
+                    .padding(horizontal = 16.dp)
 
             )
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             PrimaryButton(
                 label = stringResource(id = R.string.onboard_space_btn_create_new),
                 onClick = onCreateNewSpace,
@@ -176,7 +172,7 @@ private fun CreateSpaceComponent(onCreateNewSpace: () -> Unit) {
                 .background(color = AppTheme.colorScheme.surface, shape = RoundedCornerShape(40.dp))
                 .border(
                     width = 1.dp,
-                    color = AppTheme.colorScheme.textSecondary.copy(alpha = 0.5f),
+                    color = AppTheme.colorScheme.outline,
                     shape = CircleShape
                 ),
             contentAlignment = Alignment.Center
@@ -184,9 +180,7 @@ private fun CreateSpaceComponent(onCreateNewSpace: () -> Unit) {
             Text(
                 text = stringResource(R.string.common_label_or).uppercase(),
                 style = AppTheme.appTypography.subTitle2.copy(
-                    color = AppTheme.colorScheme.textSecondary.copy(
-                        alpha = 0.5f
-                    )
+                    color = AppTheme.colorScheme.textDisabled
                 ),
                 textAlign = TextAlign.Center,
                 modifier = Modifier
