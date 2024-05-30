@@ -109,8 +109,6 @@ class MapViewModel @Inject constructor(
         } else {
             val selectedLocation = userInfo.location?.toLocation()
 
-            apiUserService.getUserNetworkStatus(userInfo.user.id)
-
             _state.emit(
                 _state.value.copy(
                     selectedUser = userInfo,
@@ -118,6 +116,10 @@ class MapViewModel @Inject constructor(
                     showUserDetails = true
                 )
             )
+
+            apiUserService.getUserNetworkStatus(userInfo.user.id) {
+                Timber.d("Network status checked: isUserOnline$it")
+            }
         }
     }
 

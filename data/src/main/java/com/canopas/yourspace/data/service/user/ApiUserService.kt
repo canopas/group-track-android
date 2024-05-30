@@ -4,6 +4,7 @@ import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.models.user.ApiUserSession
 import com.canopas.yourspace.data.models.user.LOGIN_TYPE_GOOGLE
 import com.canopas.yourspace.data.models.user.LOGIN_TYPE_PHONE
+import com.canopas.yourspace.data.models.user.USER_STATE_UNKNOWN
 import com.canopas.yourspace.data.service.location.ApiLocationService
 import com.canopas.yourspace.data.utils.Config
 import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_USERS
@@ -13,8 +14,10 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.functions.FirebaseFunctions
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.tasks.await
-import timber.log.Timber
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -133,17 +136,44 @@ class ApiUserService @Inject constructor(
             .get().await().documents.firstOrNull()?.toObject(ApiUserSession::class.java)
     }
 
-    fun getUserNetworkStatus(userId: String): Boolean {
-        val networkStatusCheckFunction = functions.getHttpsCallable("networkStatusCheck")
-        val data = mapOf("userId" to userId)
-        var networkStatus = false
-        networkStatusCheckFunction.call(data).addOnSuccessListener {
-            Timber.d("Network status checked successfully")
-            networkStatus = true
-        }.addOnFailureListener {
-            Timber.e(it, "Failed to check network status")
-            networkStatus = false
+    suspend fun getUserNetworkStatus(
+        userId: String,
+        onStatusChecked: (Boolean) -> Unit
+    ) {
+        withContext(Dispatchers.IO) {
+            val data = hashMapOf("userId" to userId)
+            val function = functions.getHttpsCallable("networkStatusCheck")
+            try {
+                function.call(data).await()
+                val callTime = System.currentTimeMillis()
+                retryUserStatusCheck(userId, callTime) {
+                    onStatusChecked(it)
+                }
+            } catch (e: Exception) {
+                onStatusChecked(false)
+            }
         }
-        return networkStatus
+    }
+
+    private suspend fun retryUserStatusCheck(
+        userId: String,
+        callTime: Long,
+        onStatusChecked: (Boolean) -> Unit
+    ) {
+        val maxRetries = 3
+        val retryInterval = 5000L // 5 seconds
+        repeat(maxRetries) {
+            val userSession = getUserSession(userId)
+            if (userSession != null) {
+                // Check if the user state is updated after the call time and
+                // if not then retry the check after the interval until the max retries are reached
+                if (userSession.state == USER_STATE_UNKNOWN && (userSession.updated_at?.toDate()?.time ?: 0) > callTime) {
+                    onStatusChecked(true)
+                    return
+                }
+            }
+            delay(retryInterval)
+        }
+        onStatusChecked(false)
     }
 }

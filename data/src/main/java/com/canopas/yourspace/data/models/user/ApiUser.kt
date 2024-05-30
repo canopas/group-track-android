@@ -1,6 +1,7 @@
 package com.canopas.yourspace.data.models.user
 
 import androidx.annotation.Keep
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.Exclude
 import com.squareup.moshi.JsonClass
 import java.util.UUID
@@ -44,7 +45,8 @@ data class ApiUserSession(
     val app_version: Long? = 0,
     val battery_pct: Float? = 0f,
     val state: Int = USER_STATE_UNKNOWN,
-    val created_at: Long? = System.currentTimeMillis()
+    val created_at: Long? = System.currentTimeMillis(),
+    val updated_at: Timestamp? = null
 ) {
     @get:Exclude
     val noNetwork: Boolean get() = state == USER_STATE_NO_NETWORK_OR_PHONE_OFF
