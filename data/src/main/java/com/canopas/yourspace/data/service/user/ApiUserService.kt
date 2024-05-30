@@ -12,7 +12,9 @@ import com.canopas.yourspace.data.utils.snapshotFlow
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.functions.FirebaseFunctions
 import kotlinx.coroutines.tasks.await
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -20,7 +22,8 @@ import javax.inject.Singleton
 class ApiUserService @Inject constructor(
     db: FirebaseFirestore,
     private val device: Device,
-    private val locationService: ApiLocationService
+    private val locationService: ApiLocationService,
+    private val functions: FirebaseFunctions
 ) {
     private val userRef = db.collection(FIRESTORE_COLLECTION_USERS)
     private fun sessionRef(userId: String) =
@@ -128,5 +131,19 @@ class ApiUserService @Inject constructor(
     suspend fun getUserSession(userId: String): ApiUserSession? {
         return sessionRef(userId).whereEqualTo("session_active", true)
             .get().await().documents.firstOrNull()?.toObject(ApiUserSession::class.java)
+    }
+
+    fun getUserNetworkStatus(userId: String): Boolean {
+        val networkStatusCheckFunction = functions.getHttpsCallable("networkStatusCheck")
+        val data = mapOf("userId" to userId)
+        var networkStatus = false
+        networkStatusCheckFunction.call(data).addOnSuccessListener {
+            Timber.d("Network status checked successfully")
+            networkStatus = true
+        }.addOnFailureListener {
+            Timber.e(it, "Failed to check network status")
+            networkStatus = false
+        }
+        return networkStatus
     }
 }

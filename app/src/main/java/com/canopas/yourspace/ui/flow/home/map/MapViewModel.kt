@@ -10,6 +10,7 @@ import com.canopas.yourspace.data.models.user.UserInfo
 import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.location.LocationManager
 import com.canopas.yourspace.data.service.place.ApiPlaceService
+import com.canopas.yourspace.data.service.user.ApiUserService
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.utils.AppDispatcher
 import com.canopas.yourspace.ui.navigation.AppDestinations
@@ -32,6 +33,7 @@ class MapViewModel @Inject constructor(
     private val locationManager: LocationManager,
     private val apiPlaceService: ApiPlaceService,
     private val appDispatcher: AppDispatcher,
+    private val apiUserService: ApiUserService,
     private val navigator: AppNavigator
 ) : ViewModel() {
 
@@ -106,6 +108,9 @@ class MapViewModel @Inject constructor(
             dismissMemberDetail()
         } else {
             val selectedLocation = userInfo.location?.toLocation()
+
+            apiUserService.getUserNetworkStatus(userInfo.user.id)
+
             _state.emit(
                 _state.value.copy(
                     selectedUser = userInfo,
