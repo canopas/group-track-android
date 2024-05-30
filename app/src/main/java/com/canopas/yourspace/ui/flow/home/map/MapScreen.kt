@@ -2,14 +2,11 @@ package com.canopas.yourspace.ui.flow.home.map
 
 import android.Manifest
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
@@ -29,14 +26,8 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberBottomSheetScaffoldState
-import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -49,11 +40,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
@@ -89,50 +79,12 @@ import kotlinx.coroutines.launch
 const val DEFAULT_CAMERA_ZOOM = 15f
 private const val DEFAULT_CAMERA_ZOOM_FOR_SELECTED_USER = 17f
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun MapScreen() {
     val viewModel = hiltViewModel<MapViewModel>()
     val state by viewModel.state.collectAsState()
-    val configuration = LocalConfiguration.current
-    val screenHeight = configuration.screenHeightDp
-
-    val permissionState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
-    LaunchedEffect(permissionState) {
-        snapshotFlow { permissionState.status == PermissionStatus.Granted && state.defaultCameraPosition == null }
-            .collect {
-                if (it) {
-                    viewModel.startLocationTracking()
-                }
-            }
-    }
-
-    val bottomSheetState = rememberStandardBottomSheetState(
-        initialValue = SheetValue.Hidden,
-        skipHiddenState = false
-    )
-    val scaffoldState = rememberBottomSheetScaffoldState(
-        bottomSheetState = bottomSheetState
-    )
-
-    LaunchedEffect(bottomSheetState) {
-        snapshotFlow { bottomSheetState.currentValue }
-            .collect {
-                if (it == SheetValue.Hidden) {
-                    viewModel.dismissMemberDetail()
-                }
-            }
-    }
-//    state.selectedUser?.let { MemberDetailBottomSheetContent(state.selectedUser!!) }
-
-    MapScreenContent(modifier = Modifier)
-}
-
-@Composable
-fun MapScreenContent(modifier: Modifier) {
     val scope = rememberCoroutineScope()
-    val viewModel = hiltViewModel<MapViewModel>()
-    val state by viewModel.state.collectAsState()
 
     val userLocation = remember(state.defaultCameraPosition) {
         val location = state.defaultCameraPosition
@@ -153,6 +105,16 @@ fun MapScreenContent(modifier: Modifier) {
         }
     }
 
+    val permissionState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
+    LaunchedEffect(permissionState) {
+        snapshotFlow { permissionState.status == PermissionStatus.Granted && state.defaultCameraPosition == null }
+            .collect {
+                if (it) {
+                    viewModel.startLocationTracking()
+                }
+            }
+    }
+
     LaunchedEffect(userLocation) {
         val location = state.selectedUser?.location
         cameraPositionState.animate(
@@ -163,7 +125,7 @@ fun MapScreenContent(modifier: Modifier) {
         )
     }
 
-    Box(modifier = modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize()) {
         MapView(cameraPositionState)
 
         Column(
@@ -197,7 +159,9 @@ fun MapScreenContent(modifier: Modifier) {
             AnimatedVisibility(
                 visible = state.showUserDetails,
                 enter = slideInVertically { it } + scaleIn() + expandVertically(expandFrom = Alignment.Top),
-                exit = scaleOut() + slideOutVertically(targetOffsetY = { it }) + shrinkVertically(shrinkTowards = Alignment.Bottom)
+                exit = scaleOut() + slideOutVertically(targetOffsetY = { it }) + shrinkVertically(
+                    shrinkTowards = Alignment.Bottom
+                )
             ) {
                 SelectedUserDetail(
                     userInfo = selectedUser,
@@ -310,7 +274,7 @@ fun PermissionFooter(onClick: () -> Unit) {
             )
         }
         Icon(
-            Icons.Default.KeyboardArrowRight,
+            painter = painterResource(id = R.drawable.ic_right_arrow_icon),
             contentDescription = "",
             tint = AppTheme.colorScheme.textInversePrimary
         )
