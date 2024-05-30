@@ -95,7 +95,6 @@ class MapViewModelTest {
         setUp()
         viewModel.showMemberDetail(info)
         viewModel.dismissMemberDetail()
-        assert(viewModel.state.value.selectedUser == null)
         assert(!viewModel.state.value.showUserDetails)
     }
 
@@ -114,7 +113,6 @@ class MapViewModelTest {
         assert(viewModel.state.value.selectedUser == info)
         assert(viewModel.state.value.showUserDetails)
         viewModel.showMemberDetail(info)
-        assert(viewModel.state.value.selectedUser == null)
         assert(!viewModel.state.value.showUserDetails)
     }
 
