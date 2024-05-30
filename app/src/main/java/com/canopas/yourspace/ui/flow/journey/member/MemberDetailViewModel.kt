@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.canopas.yourspace.data.models.location.LocationJourney
 import com.canopas.yourspace.data.models.user.UserInfo
-import com.canopas.yourspace.data.service.location.LocationJourneyService
+import com.canopas.yourspace.data.service.location.ApiJourneyService
 import com.canopas.yourspace.data.utils.AppDispatcher
 import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppNavigator
@@ -17,7 +17,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MemberDetailViewModel @Inject constructor(
-    private val journeyService: LocationJourneyService,
+    private val journeyService: ApiJourneyService,
     private val appDispatcher: AppDispatcher,
     private val navigator: AppNavigator
 ) : ViewModel() {

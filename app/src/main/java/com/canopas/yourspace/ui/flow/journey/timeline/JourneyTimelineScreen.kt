@@ -162,35 +162,25 @@ private fun JourneyList(
     LazyColumn(
         state = lazyState,
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 24.dp)
+        contentPadding = PaddingValues(bottom = 24.dp, top = 10.dp)
     ) {
-        journeys.forEach { section ->
-            item(key = section.key, contentType = "Header") {
-                Text(
-                    text = section.key.formattedMessageDateHeader(LocalContext.current),
-                    style = AppTheme.appTypography.subTitle1.copy(color = AppTheme.colorScheme.textSecondary),
-                    modifier = Modifier
-                        .padding(bottom = 10.dp)
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp, horizontal = 16.dp)
-                )
-            }
-
-            itemsIndexed(
-                section.value,
-                key = { index, item -> item.id },
-                contentType = { _, _ -> "Journey" }
-            ) { index, journey ->
-                LocationHistoryItem(
-                    journey,
-                    isLastItem = index == section.value.lastIndex,
-                    addPlaceTap = onAddPlaceClicked,
-                    showJourneyDetails = {
-                        showJourneyDetails(journey.id)
-                    }
-                )
-            }
+        val allJourney = journeys.values.flatten()
+        itemsIndexed(
+            allJourney,
+            key = { _, item -> item.id },
+            contentType = { _, _ -> "Journey" }
+        ) { index, journey ->
+            LocationHistoryItem(
+                journey,
+                isFirstItem = index == 0,
+                isLastItem = index == allJourney.lastIndex,
+                addPlaceTap = onAddPlaceClicked,
+                showJourneyDetails = {
+                    showJourneyDetails(journey.id)
+                }
+            )
         }
+        //   }
 
         if (appending) {
             item {

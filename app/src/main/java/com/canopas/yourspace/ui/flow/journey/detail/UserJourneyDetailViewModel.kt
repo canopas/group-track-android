@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.canopas.yourspace.data.models.location.LocationJourney
 import com.canopas.yourspace.data.models.user.ApiUser
-import com.canopas.yourspace.data.service.location.LocationJourneyService
+import com.canopas.yourspace.data.service.location.ApiJourneyService
 import com.canopas.yourspace.data.service.location.LocationManager
 import com.canopas.yourspace.data.service.user.ApiUserService
 import com.canopas.yourspace.data.utils.AppDispatcher
@@ -23,7 +23,7 @@ import javax.inject.Inject
 @HiltViewModel
 class UserJourneyDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val journeyService: LocationJourneyService,
+    private val journeyService: ApiJourneyService,
     private val appDispatcher: AppDispatcher,
     private val locationManager: LocationManager,
     private val apiUserService: ApiUserService,

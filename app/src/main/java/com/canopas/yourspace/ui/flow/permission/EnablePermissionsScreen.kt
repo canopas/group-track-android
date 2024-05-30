@@ -19,7 +19,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,8 +38,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
@@ -75,7 +74,7 @@ private fun EnablePermissionsAppBar() {
         title = {
             Text(
                 text = stringResource(id = R.string.enable_permission_title),
-                style = AppTheme.appTypography.header3
+                style = AppTheme.appTypography.subTitle1
             )
         },
         navigationIcon = {
@@ -86,7 +85,7 @@ private fun EnablePermissionsAppBar() {
                 modifier = Modifier
             ) {
                 Icon(
-                    Icons.Filled.ArrowBack,
+                    painter = painterResource(id = R.drawable.ic_nav_back_arrow_icon),
                     contentDescription = null,
                     tint = AppTheme.colorScheme.textSecondary
                 )
@@ -104,7 +103,8 @@ fun EnablePermissionsContent(modifier: Modifier) {
         listOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION)
     )
 
-    val bgLocationPermissionStates = rememberPermissionState(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+    val bgLocationPermissionStates =
+        rememberPermissionState(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
 
     val notificationPermissionStates = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS)
@@ -138,20 +138,19 @@ fun EnablePermissionsContent(modifier: Modifier) {
             .fillMaxSize()
             .verticalScroll(scrollState)
             .background(AppTheme.colorScheme.surface)
-            .padding(vertical = 10.dp),
+            .padding(bottom = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             text = stringResource(R.string.enable_permission_subtitle),
-            style = AppTheme.appTypography.label1.copy(color = AppTheme.colorScheme.textSecondary),
-
+            style = AppTheme.appTypography.body1.copy(color = AppTheme.colorScheme.textDisabled),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
-                .padding(top = 2.dp)
+                .padding(top = 14.dp)
         )
 
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(28.dp))
 
         PermissionContent(
             title = stringResource(R.string.enable_permission_location_access_title),
@@ -204,11 +203,11 @@ fun EnablePermissionsContent(modifier: Modifier) {
         Spacer(modifier = Modifier.weight(1f))
         Text(
             text = stringResource(R.string.enable_permission_footer),
-            style = AppTheme.appTypography.label3,
+            style = AppTheme.appTypography.caption.copy(color = AppTheme.colorScheme.textDisabled),
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 28.dp)
+                .padding(horizontal = 16.dp)
         )
     }
 
@@ -295,11 +294,11 @@ private fun PermissionContent(
     isGranted: Boolean = false,
     onClick: () -> Unit = {}
 ) {
-    Row(modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
+    Row(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
         Box(
             modifier = Modifier
                 .clip(CircleShape)
-                .size(40.dp)
+                .size(24.dp)
                 .background(if (isGranted) AppTheme.colorScheme.primary else AppTheme.colorScheme.surface)
                 .border(1.dp, AppTheme.colorScheme.primary, CircleShape)
                 .clickable(enabled = !isGranted) {
@@ -311,7 +310,8 @@ private fun PermissionContent(
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = "",
-                    tint = AppTheme.colorScheme.onPrimary
+                    tint = AppTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(16.dp)
                 )
             }
         }
@@ -319,17 +319,16 @@ private fun PermissionContent(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 20.dp, end = 16.dp)
+                .padding(horizontal = 16.dp)
         ) {
             Text(
-                text = title.uppercase(),
-                style = AppTheme.appTypography.body1.copy(fontWeight = FontWeight.SemiBold)
-
+                text = title,
+                style = AppTheme.appTypography.subTitle2.copy(color = AppTheme.colorScheme.textPrimary)
             )
-            Spacer(modifier = Modifier.height(2.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = description,
-                style = AppTheme.appTypography.body2.copy(color = AppTheme.colorScheme.textSecondary)
+                style = AppTheme.appTypography.body2.copy(color = AppTheme.colorScheme.textDisabled)
             )
         }
     }

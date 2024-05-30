@@ -49,6 +49,7 @@ import com.canopas.yourspace.data.models.location.LocationJourney
 import com.canopas.yourspace.data.models.location.isSteadyLocation
 import com.canopas.yourspace.domain.utils.getAddress
 import com.canopas.yourspace.domain.utils.getPlaceAddress
+import com.canopas.yourspace.domain.utils.isToday
 import com.canopas.yourspace.ui.component.AppProgressIndicator
 import com.canopas.yourspace.ui.component.DashedDivider
 import com.canopas.yourspace.ui.theme.AppTheme
@@ -56,9 +57,7 @@ import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
-import java.util.concurrent.TimeUnit
 import kotlin.math.roundToInt
 
 @Composable
@@ -91,6 +90,7 @@ fun LocationHistory(
                     ) { index, location ->
                         LocationHistoryItem(
                             location,
+                            isFirstItem = index == 0,
                             isLastItem = index == locations.lastIndex,
                             addPlaceTap = addPlaceTap,
                             showJourneyDetails = {
@@ -116,12 +116,13 @@ fun LocationHistory(
 @Composable
 fun LocationHistoryItem(
     location: LocationJourney,
+    isFirstItem: Boolean = false,
     isLastItem: Boolean,
     addPlaceTap: (latitude: Double, longitude: Double) -> Unit,
     showJourneyDetails: () -> Unit
 ) {
     if (location.isSteadyLocation()) {
-        SteadyLocationItem(location, isLastItem) {
+        SteadyLocationItem(location, isFirstItem, isLastItem) {
             addPlaceTap(location.from_latitude, location.from_longitude)
         }
     } else {
@@ -158,7 +159,7 @@ fun JourneyLocationItem(location: LocationJourney, lastItem: Boolean, onTap: () 
                 .padding(start = 16.dp)
                 .weight(1f)
         ) {
-            val time = getFormattedLocationTime(location.created_at ?: 0, location.update_at ?: 0)
+            val time = getFormattedJourneyTime(location.created_at ?: 0, location.update_at ?: 0)
             val distance = getDistanceString(location.route_distance ?: 0.0)
             PlaceInfo(
                 title,
@@ -194,7 +195,12 @@ fun JourneyLocationItem(location: LocationJourney, lastItem: Boolean, onTap: () 
 }
 
 @Composable
-fun SteadyLocationItem(location: LocationJourney, lastItem: Boolean, addPlace: () -> Unit) {
+fun SteadyLocationItem(
+    location: LocationJourney,
+    isFirstItem: Boolean,
+    isLastItem: Boolean,
+    addPlace: () -> Unit
+) {
     val context = LocalContext.current
     var fromAddress by remember { mutableStateOf("") }
 
@@ -211,14 +217,21 @@ fun SteadyLocationItem(location: LocationJourney, lastItem: Boolean, addPlace: (
         modifier = Modifier
             .height(140.dp)
     ) {
-        DottedTimeline(isSteadyLocation = true, isLastItem = lastItem)
+        DottedTimeline(isSteadyLocation = true, isLastItem = isLastItem)
 
         Column(
             modifier = Modifier
                 .padding(start = 16.dp)
                 .weight(1f)
         ) {
-            PlaceInfo(fromAddress, getFormattedCreatedAt(location.created_at!!))
+            val formattedTime =
+                if (isFirstItem) {
+                    getFormattedLocationTimeForFirstItem(location.created_at!!)
+                } else {
+                    getFormattedLocationTime(location.created_at!!)
+                }
+
+            PlaceInfo(fromAddress, formattedTime)
 
             Button(
                 onClick = addPlace,
@@ -243,7 +256,7 @@ fun SteadyLocationItem(location: LocationJourney, lastItem: Boolean, addPlace: (
 
             Spacer(modifier = Modifier.size(8.dp))
 
-            if (!lastItem) {
+            if (!isLastItem) {
                 HorizontalDivider(thickness = 1.dp, color = AppTheme.colorScheme.outline)
             }
         }
@@ -352,13 +365,18 @@ fun EmptyHistory() {
     }
 }
 
-internal fun getFormattedLocationTime(timestamp1: Long, timestamp2: Long): String {
+internal fun getFormattedJourneyTime(startAt: Long, endsAt: Long): String {
     val inputFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
+    val dateFormatter = SimpleDateFormat("d MMMM", Locale.getDefault())
 
-    val timeString1 = inputFormat.format(Date(timestamp1))
-    val timeString2 = inputFormat.format(Date(timestamp2))
+    val formattedDate1 = dateFormatter.format(startAt)
+    val formattedDate2 = dateFormatter.format(endsAt)
 
-    return "$timeString1 - $timeString2"
+    return if (formattedDate1 == formattedDate2) {
+        "${getFormattedLocationTime(startAt)} - ${inputFormat.format(endsAt)}"
+    } else {
+        "${getFormattedLocationTime(startAt)} - ${getFormattedLocationTime(endsAt)}"
+    }
 }
 
 internal fun getDistanceString(
@@ -372,31 +390,24 @@ internal fun getDistanceString(
     }
 }
 
-internal fun getRouteDurationString(
-    routeDuration: Long
-): String {
-    val hours = TimeUnit.MILLISECONDS.toHours(routeDuration)
-    val minutes = TimeUnit.MILLISECONDS.toMinutes(routeDuration) % 60
-    val seconds = TimeUnit.MILLISECONDS.toSeconds(routeDuration) % 60
-    return when {
-        hours > 0 -> {
-            "$hours hr $minutes mins"
-        }
-
-        minutes > 0 -> {
-            "$minutes mins"
-        }
-
-        else -> {
-            "$seconds sec"
-        }
+internal fun getFormattedLocationTime(createdAt: Long): String {
+    if (createdAt.isToday()) {
+        val sdf = SimpleDateFormat("hh:mm a", Locale.getDefault())
+        return "Today ${sdf.format(createdAt)}"
+    } else {
+        val sdf = SimpleDateFormat("dd MMMM hh:mm a", Locale.getDefault())
+        return sdf.format(createdAt)
     }
 }
 
-internal fun getFormattedCreatedAt(createdAt: Long): String {
-    val createdAtTime = Date(createdAt)
-    val createdAtFormat = SimpleDateFormat("d MMM hh:mm a", Locale.getDefault())
-    return createdAtFormat.format(createdAtTime)
+internal fun getFormattedLocationTimeForFirstItem(createdAt: Long): String {
+    val sdf = if (createdAt.isToday()) {
+        SimpleDateFormat("hh:mm a", Locale.getDefault())
+    } else {
+        SimpleDateFormat("dd MMMM hh:mm a", Locale.getDefault())
+    }
+
+    return "Since ${sdf.format(createdAt)}"
 }
 
 fun Address.formattedTitle(toAddress: Address?): String {

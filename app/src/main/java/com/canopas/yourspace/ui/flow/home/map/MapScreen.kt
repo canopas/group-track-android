@@ -203,7 +203,7 @@ fun MapScreenContent(modifier: Modifier) {
                         .widthIn(max = 600.dp)
                         .wrapContentSize()
                         .background(
-                            AppTheme.colorScheme.surface.copy(alpha = 0.70f),
+                            AppTheme.colorScheme.surface,
                             shape = RoundedCornerShape(50.dp)
                         )
                         .padding(horizontal = 24.dp, vertical = 8.dp)

@@ -6,7 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.canopas.yourspace.data.models.location.LocationTable
 
-@Database(entities = [LocationTable::class], version = 1, exportSchema = false)
+@Database(entities = [LocationTable::class], version = 2, exportSchema = false)
 abstract class LocationTableDatabase : RoomDatabase() {
 
     abstract fun locationTableDao(): LocationTableDao

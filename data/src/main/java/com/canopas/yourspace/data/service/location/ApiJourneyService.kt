@@ -1,7 +1,6 @@
 package com.canopas.yourspace.data.service.location
 
 import com.canopas.yourspace.data.models.location.LocationJourney
-import com.canopas.yourspace.data.models.location.isSteadyLocation
 import com.canopas.yourspace.data.storage.room.LocationTableDatabase
 import com.canopas.yourspace.data.utils.Config
 import com.canopas.yourspace.data.utils.LocationConverters
@@ -14,7 +13,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class LocationJourneyService @Inject constructor(
+class ApiJourneyService @Inject constructor(
     db: FirebaseFirestore,
     private val locationTableDatabase: LocationTableDatabase,
     private val converters: LocationConverters
@@ -67,17 +66,9 @@ class LocationJourneyService @Inject constructor(
 
     private suspend fun LocationJourney.updateLocationJourney(userId: String) {
         locationTableDatabase.locationTableDao().getLocationData(userId).let { locationTable ->
-            val newLocationData = if (isSteadyLocation()) {
-                locationTable?.copy(
-                    lastSteadyLocation = converters.journeyToString(this),
-                    lastLocationJourney = converters.journeyToString(this)
-                )
-            } else {
-                locationTable?.copy(
-                    lastMovingLocation = converters.journeyToString(this),
-                    lastLocationJourney = converters.journeyToString(this)
-                )
-            }
+            val newLocationData =
+                locationTable?.copy(lastLocationJourney = converters.journeyToString(this))
+
             newLocationData?.let {
                 try {
                     locationTableDatabase.locationTableDao().updateLocationTable(it)
@@ -85,32 +76,6 @@ class LocationJourneyService @Inject constructor(
                     Timber.e(e, "Error while updating location journey")
                 }
             }
-        }
-    }
-
-    suspend fun getLastSteadyLocation(userId: String): LocationJourney? {
-        return try {
-            val journey = journeyRef(userId).whereEqualTo("user_id", userId)
-                .whereEqualTo("to_latitude", null)
-                .orderBy("created_at", Query.Direction.DESCENDING).limit(1)
-                .get().await().documents.firstOrNull()?.toObject(LocationJourney::class.java)
-            journey
-        } catch (e: Exception) {
-            Timber.e(e, "Error while getting last steady location")
-            null
-        }
-    }
-
-    suspend fun getLastMovingLocation(userId: String): LocationJourney? {
-        return try {
-            val journey = journeyRef(userId).whereEqualTo("user_id", userId)
-                .whereNotEqualTo("to_latitude", null)
-                .orderBy("created_at", Query.Direction.DESCENDING).limit(1)
-                .get().await().documents.firstOrNull()?.toObject(LocationJourney::class.java)
-            journey
-        } catch (e: Exception) {
-            Timber.e(e, "Error while getting last moving location")
-            null
         }
     }
 
@@ -123,10 +88,30 @@ class LocationJourneyService @Inject constructor(
         null
     }
 
-    suspend fun getJourneyHistory(userId: String, from: Long?, to: Long?): List<LocationJourney> {
+    suspend fun getMoreJourneyHistory(
+        userId: String,
+        from: Long?
+    ): List<LocationJourney> {
         if (from == null) {
             return journeyRef(userId).whereEqualTo("user_id", userId)
-                .whereLessThanOrEqualTo("created_at", System.currentTimeMillis())
+                .orderBy("created_at", Query.Direction.DESCENDING)
+                .limit(20)
+                .get().await().documents.mapNotNull { it.toObject<LocationJourney>() }
+        }
+        return journeyRef(userId).whereEqualTo("user_id", userId)
+            .orderBy("created_at", Query.Direction.DESCENDING)
+            .whereLessThan("created_at", from)
+            .limit(20)
+            .get().await().documents.mapNotNull { it.toObject<LocationJourney>() }
+    }
+
+    suspend fun getJourneyHistory(
+        userId: String,
+        from: Long? = null,
+        to: Long? = null
+    ): List<LocationJourney> {
+        if (from == null) {
+            return journeyRef(userId).whereEqualTo("user_id", userId)
                 .orderBy("created_at", Query.Direction.DESCENDING)
                 .limit(20)
                 .get().await().documents.mapNotNull { it.toObject<LocationJourney>() }
