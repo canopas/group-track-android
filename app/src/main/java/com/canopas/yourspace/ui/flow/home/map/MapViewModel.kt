@@ -152,6 +152,14 @@ class MapViewModel @Inject constructor(
     fun navigateToPlaces() {
         navigator.navigateTo(AppDestinations.places.path)
     }
+
+    fun showJourneyTimeline() {
+        navigator.navigateTo(
+            AppDestinations.JourneyTimeline.args(
+                state.value.selectedUser?.user?.id ?: ""
+            ).path
+        )
+    }
 }
 
 data class MapScreenState(

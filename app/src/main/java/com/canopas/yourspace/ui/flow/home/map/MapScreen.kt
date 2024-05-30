@@ -2,7 +2,14 @@ package com.canopas.yourspace.ui.flow.home.map
 
 import android.Manifest
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
@@ -24,7 +31,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SheetValue
@@ -47,6 +53,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
@@ -63,7 +70,7 @@ import com.canopas.yourspace.ui.flow.home.map.component.MapCircles
 import com.canopas.yourspace.ui.flow.home.map.component.MapControlBtn
 import com.canopas.yourspace.ui.flow.home.map.component.MapMarker
 import com.canopas.yourspace.ui.flow.home.map.component.MapUserItem
-import com.canopas.yourspace.ui.flow.journey.member.MemberDetailBottomSheetContent
+import com.canopas.yourspace.ui.flow.home.map.component.SelectedUserDetail
 import com.canopas.yourspace.ui.theme.AppTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
@@ -116,17 +123,9 @@ fun MapScreen() {
                 }
             }
     }
+//    state.selectedUser?.let { MemberDetailBottomSheetContent(state.selectedUser!!) }
 
-    BottomSheetScaffold(
-        scaffoldState = scaffoldState,
-        sheetContainerColor = AppTheme.colorScheme.surface,
-        sheetPeekHeight = if (state.showUserDetails) (screenHeight / 3).dp else 0.dp,
-        sheetContent = {
-            state.selectedUser?.let { MemberDetailBottomSheetContent(state.selectedUser!!) }
-        }
-    ) {
-        MapScreenContent(modifier = Modifier)
-    }
+    MapScreenContent(modifier = Modifier)
 }
 
 @Composable
@@ -171,7 +170,6 @@ fun MapScreenContent(modifier: Modifier) {
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomEnd)
-
         ) {
             Column(modifier = Modifier.align(Alignment.End)) {
                 MapControlBtn(
@@ -194,6 +192,23 @@ fun MapScreenContent(modifier: Modifier) {
                 ) {
                     viewModel.navigateToPlaces()
                 }
+            }
+            val selectedUser = state.selectedUser
+            AnimatedVisibility(
+                visible = selectedUser != null,
+                enter = slideIn(tween(100, easing = LinearEasing)) { fullSize ->
+                    IntOffset(fullSize.width / 4, 100)
+                } + scaleIn() + expandVertically(expandFrom = Alignment.Top),
+                exit = scaleOut(
+                    animationSpec = tween(100, easing = LinearEasing),
+                    targetScale = 0f
+                ) + fadeOut() + shrinkVertically(shrinkTowards = Alignment.Bottom)
+            ) {
+                SelectedUserDetail(
+                    userInfo = selectedUser,
+                    onDismiss = { viewModel.dismissMemberDetail() },
+                    onTapTimeline = { viewModel.showJourneyTimeline() }
+                )
             }
 
             if (state.members.isNotEmpty()) {
