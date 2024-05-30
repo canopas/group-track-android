@@ -195,14 +195,9 @@ fun MapScreenContent(modifier: Modifier) {
             }
             val selectedUser = state.selectedUser
             AnimatedVisibility(
-                visible = selectedUser != null,
-                enter = slideIn(tween(100, easing = LinearEasing)) { fullSize ->
-                    IntOffset(fullSize.width / 4, 100)
-                } + scaleIn() + expandVertically(expandFrom = Alignment.Top),
-                exit = scaleOut(
-                    animationSpec = tween(100, easing = LinearEasing),
-                    targetScale = 0f
-                ) + fadeOut() + shrinkVertically(shrinkTowards = Alignment.Bottom)
+                visible = state.showUserDetails,
+                enter = slideInVertically { it } + scaleIn() + expandVertically(expandFrom = Alignment.Top),
+                exit = scaleOut() + slideOutVertically(targetOffsetY = { it }) + shrinkVertically(shrinkTowards = Alignment.Bottom)
             ) {
                 SelectedUserDetail(
                     userInfo = selectedUser,
