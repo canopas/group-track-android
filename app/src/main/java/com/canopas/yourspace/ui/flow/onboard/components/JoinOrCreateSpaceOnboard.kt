@@ -44,7 +44,10 @@ fun JoinOrCreateSpaceOnboard() {
     }
 
     if (state.errorInvalidInviteCode) {
-        AppBanner(msg = stringResource(id = R.string.onboard_space_invalid_invite_code)) {
+        AppBanner(
+            msg = stringResource(id = R.string.onboard_space_invalid_invite_code),
+            containerColor = AppTheme.colorScheme.alertColor
+        ) {
             viewModel.resetErrorState()
         }
     }
@@ -95,10 +98,9 @@ private fun JoinSpaceComponent(
         Spacer(modifier = Modifier.weight(1f))
 
         PrimaryButton(
+            modifier = Modifier.fillMaxWidth(),
             label = stringResource(id = R.string.common_btn_join_space),
             onClick = onJoin,
-            containerColor = if (code.length == 6) AppTheme.colorScheme.primary else AppTheme.colorScheme.containerLow,
-            contentColor = if (code.length == 6) AppTheme.colorScheme.onPrimary else AppTheme.colorScheme.textDisabled,
             enabled = code.length == 6,
             showLoader = verifyingInviteCode
         )
@@ -106,6 +108,7 @@ private fun JoinSpaceComponent(
         Spacer(modifier = Modifier.height(16.dp))
 
         PrimaryButton(
+            modifier = Modifier.fillMaxWidth(),
             label = stringResource(id = R.string.onboard_space_btn_create_new),
             onClick = onCreate
         )

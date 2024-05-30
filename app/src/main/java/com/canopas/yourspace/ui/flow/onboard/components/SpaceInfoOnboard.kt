@@ -50,9 +50,13 @@ fun SpaceInfoOnboard() {
         Spacer(modifier = Modifier.weight(0.5f))
         SubTitleTitleContent()
         Spacer(modifier = Modifier.height(30.dp))
-        PrimaryButton(label = stringResource(R.string.common_btn_continue), onClick = {
-            viewModel.navigateToJoinOrCreateSpace()
-        })
+        PrimaryButton(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+            label = stringResource(R.string.common_btn_continue),
+            onClick = {
+                viewModel.navigateToJoinOrCreateSpace()
+            }
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
