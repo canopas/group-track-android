@@ -2,7 +2,6 @@ package com.canopas.yourspace.ui.component
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -29,6 +28,7 @@ fun PrimaryButton(
     containerColor: Color = AppTheme.colorScheme.primary,
     contentColor: Color = AppTheme.colorScheme.onPrimary
 ) {
+    val isEnable = enabled && !showLoader
     val textColor = if (enabled) contentColor else AppTheme.colorScheme.textDisabled
     Button(
         onClick = onClick,
@@ -38,7 +38,7 @@ fun PrimaryButton(
             containerColor = containerColor,
             disabledContainerColor = AppTheme.colorScheme.containerLow
         ),
-        enabled = enabled
+        enabled = isEnable
     ) {
         Spacer(modifier = Modifier.width(24.dp))
         if (showLoader) {
@@ -67,6 +67,7 @@ fun PrimaryTextButton(
     contentColor: Color = AppTheme.colorScheme.primary,
     containerColor: Color = AppTheme.colorScheme.surface
 ) {
+    val isEnable = enabled && !showLoader
     TextButton(
         onClick = onClick,
         modifier = modifier.height(48.dp),
@@ -75,7 +76,7 @@ fun PrimaryTextButton(
             containerColor = containerColor,
             contentColor = contentColor
         ),
-        enabled = enabled
+        enabled = isEnable
     ) {
         Spacer(modifier = Modifier.width(24.dp))
         if (showLoader) {
@@ -101,26 +102,39 @@ fun PrimaryOutlinedButton(
     modifier: Modifier = Modifier,
     label: String,
     onClick: () -> Unit,
-    containerColor: Color = AppTheme.colorScheme.surface,
+    enabled: Boolean = true,
+    showLoader: Boolean = false,
+    icon: @Composable (() -> Unit)? = null,
+    containerColor: Color = Color.Transparent,
     contentColor: Color = AppTheme.colorScheme.primary,
     outlineColor: Color = AppTheme.colorScheme.primary,
-    enabled: Boolean = true
 ) {
+    val isEnable = enabled && !showLoader
     OutlinedButton(
         onClick = onClick,
-        modifier = modifier
-            .fillMaxWidth(fraction = 0.9f),
+        modifier = modifier.height(48.dp),
         border = BorderStroke(color = outlineColor, width = 1.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = containerColor
+            containerColor = containerColor,
+            disabledContainerColor = containerColor,
         ),
-        enabled = enabled
+        enabled = isEnable
     ) {
+        Spacer(modifier = Modifier.width(24.dp))
+        if (showLoader) {
+            AppProgressIndicator(color = contentColor)
+            Spacer(modifier = Modifier.width(8.dp))
+        }
+        if (icon != null && !showLoader) {
+            icon()
+            Spacer(modifier = Modifier.width(8.dp))
+        }
+
         Text(
             text = label,
-            style = AppTheme.appTypography.subTitle2.copy(color = contentColor),
+            style = AppTheme.appTypography.button.copy(color = contentColor),
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(vertical = 6.dp, horizontal = 6.dp)
         )
+        Spacer(modifier = Modifier.width(24.dp))
     }
 }

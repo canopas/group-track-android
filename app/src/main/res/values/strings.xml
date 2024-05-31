@@ -46,9 +46,13 @@
     <string name="server_error_text">Server error occurred. Please try again later.</string>
     <string name="unexpected_error_text">An unexpected error occurred.</string>
 
+
+    <string name="intro_title_one">Live location</string>
+    <string name="intro_title_two">Receive alerts</string>
+    <string name="intro_title_three">Location history</string>
     <string name="intro_content_one">Share your location seamlessly, connecting with just a click.</string>
-    <string name="intro_content_two">Stay in the know with instant alerts – whether loved ones enter or leave.</string>
-    <string name="intro_content_three">Simplify your connections and insights – explore drive reports, location history effortlessly.</string>
+    <string name="intro_content_two">Stay in the know with instant alerts whether loved ones enter or leave.</string>
+    <string name="intro_content_three">Simplify your connections and insights explore drive reports, location history effortlessly.</string>
     <string name="get_started">Get started</string>
 
     <string name="sign_in_btn_continue_with_phone">Continue with Phone Number</string>
