@@ -77,13 +77,13 @@ fun ColumnScope.MessageList(
         reverseLayout = true
     ) {
         itemsIndexed(newMessagesToAppend, key = { index, item -> item.id }) { index, message ->
-            val by =
-                members.firstOrNull { it.user.id == message.sender_id }
+            val by = members.firstOrNull { it.user.id == message.sender_id }
 
             val myLatestMsg =
                 newMessagesToAppend.firstOrNull { it.sender_id == currentUserId }?.id == message.id
             MessageContent(
                 previousMessage = if (index < newMessagesToAppend.size - 1) newMessagesToAppend[index + 1] else null,
+                nextMessage = if (index > 0 && index < newMessagesToAppend.size - 1) newMessagesToAppend[index - 1] else null,
                 message,
                 by = by,
                 seenBy = emptyList(),
@@ -97,8 +97,7 @@ fun ColumnScope.MessageList(
             val messages = section.value
 
             itemsIndexed(messages, key = { index, item -> item.id }) { index, message ->
-                val by =
-                    members.firstOrNull { it.user.id == message.sender_id }
+                val by = members.firstOrNull { it.user.id == message.sender_id }
 
                 val seenBy =
                     members.filter { message.seen_by.contains(it.user.id) && it.user.id != currentUserId }
@@ -107,6 +106,7 @@ fun ColumnScope.MessageList(
                     messages.firstOrNull { it.sender_id == currentUserId }?.id == message.id
                 MessageContent(
                     previousMessage = if (index < messages.size - 1) messages[index + 1] else null,
+                    nextMessage = if (index > 0 && index < messages.size - 1) messages[index - 1] else null,
                     message,
                     by = by,
                     seenBy = seenBy,
@@ -119,11 +119,10 @@ fun ColumnScope.MessageList(
                 item {
                     Text(
                         text = section.key.formattedMessageDateHeader(LocalContext.current),
-                        style = AppTheme.appTypography.label1.copy(color = AppTheme.colorScheme.textDisabled),
+                        style = AppTheme.appTypography.body1.copy(color = AppTheme.colorScheme.textSecondary),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(AppTheme.colorScheme.surface)
-                            .padding(bottom = 8.dp, top = 20.dp),
+                            .padding(top = 40.dp),
                         textAlign = TextAlign.Center
                     )
                 }
@@ -145,6 +144,7 @@ fun ColumnScope.MessageList(
 @Composable
 fun LazyItemScope.MessageContent(
     previousMessage: ApiThreadMessage?,
+    nextMessage: ApiThreadMessage?,
     message: ApiThreadMessage,
     by: UserInfo?,
     seenBy: List<UserInfo>,
@@ -153,36 +153,31 @@ fun LazyItemScope.MessageContent(
     isLatestMsg: Boolean
 ) {
     val showUserDetails = shouldShowUserDetails(previousMessage, message)
+    val isPreviousUser = previousMessage?.sender_id == message.sender_id
+    val lastMessage = nextMessage?.sender_id != message.sender_id
+    val userName =
+        if (!isSender && showUserDetails && isGroupChat) by?.user?.first_name ?: "" else ""
 
     Row(
         Modifier
-            .padding(top = if (showUserDetails) 8.dp else 6.dp)
+            .padding(top = if (showUserDetails) 24.dp else 4.dp)
             .fillMaxWidth()
             .animateItemPlacement(),
-        horizontalArrangement = if (isSender) {
-            Arrangement.End
-        } else {
-            Arrangement.Start
-        }
+        horizontalArrangement = if (isSender) Arrangement.End else Arrangement.Start
     ) {
         if (!isSender && showUserDetails) {
             UserProfile(
                 modifier = Modifier
-                    .padding(top = 12.dp)
-                    .size(50.dp),
+                    .padding(top = 16.dp)
+                    .size(24.dp),
+                placeholderSize = 16.dp,
                 user = by?.user
             )
+        } else {
+            Spacer(modifier = Modifier.width(24.dp))
         }
 
-        if (!isSender && !showUserDetails) {
-            Spacer(modifier = Modifier.width(50.dp))
-        }
-
-        Spacer(modifier = Modifier.width(10.dp))
-
-        val timeLabel = if (!showUserDetails) {
-            ""
-        } else if (isSender || by == null || !isGroupChat) message.formattedTime else "${by.user.first_name} • ${message.formattedTime}"
+        Spacer(modifier = Modifier.width(8.dp))
 
         val seenLabel = if (isSender && seenBy.isNotEmpty() && isLatestMsg) {
             if (isGroupChat) {
@@ -200,9 +195,12 @@ fun LazyItemScope.MessageContent(
         MessageBubble(
             isSent = message.isSent,
             message = message.message,
-            timeLabel = timeLabel,
+            timeLabel = if (!showUserDetails) "" else message.formattedTime,
             seenLabel = seenLabel,
-            isSender = isSender
+            isSender = isSender,
+            isSameUser = isPreviousUser,
+            isLastMsg = lastMessage,
+            userName = userName
         )
     }
 }
@@ -221,18 +219,36 @@ fun MessageBubble(
     message: String,
     timeLabel: String,
     seenLabel: String,
-    isSender: Boolean
+    isSender: Boolean,
+    isSameUser: Boolean,
+    isLastMsg: Boolean,
+    userName: String = ""
 ) {
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
     val align = if (isSender) Alignment.End else Alignment.Start
+    val containerColor = if (isSender) {
+        AppTheme.colorScheme.primary.copy(alpha = if (isSent) 0.7f else 0.5f)
+    } else {
+        AppTheme.colorScheme.containerLow
+    }
 
-    val shape = RoundedCornerShape(
-        if (isSender) 16.dp else 0.dp,
-        if (isSender) 0.dp else 16.dp,
-        bottomEnd = 16.dp,
-        bottomStart = 16.dp
-    )
+    val shape = if (isSender) {
+        RoundedCornerShape(
+            topStart = 16.dp,
+            topEnd = if (!isSameUser) 16.dp else 2.dp,
+            bottomStart = 16.dp,
+            bottomEnd = if (isLastMsg) 16.dp else 2.dp
+        )
+    } else {
+        RoundedCornerShape(
+            topStart = if (!isSameUser) 16.dp else 2.dp,
+            topEnd = 16.dp,
+            bottomStart = if (isLastMsg) 16.dp else 2.dp,
+            bottomEnd = 16.dp
+        )
+    }
+
     Column(
         modifier = Modifier
             .wrapContentWidth()
@@ -241,35 +257,38 @@ fun MessageBubble(
         if (timeLabel.isNotEmpty() && isSent) {
             Text(
                 text = timeLabel,
-                style = AppTheme.appTypography.label3.copy(color = AppTheme.colorScheme.textDisabled),
+                style = AppTheme.appTypography.caption.copy(color = AppTheme.colorScheme.textDisabled),
                 modifier = Modifier
-                    .padding(2.dp)
                     .align(align)
+                    .padding(bottom = 4.dp)
             )
         }
 
-        Text(
-            text = message,
-            style = AppTheme.appTypography.body1.copy(color = AppTheme.colorScheme.textPrimary),
+        Column(
             modifier = Modifier
-                .background(
-                    color = if (isSender) {
-                        AppTheme.colorScheme.primary.copy(alpha = if (isSent) 0.7f else 0.5f)
-                    } else {
-                        AppTheme.colorScheme.containerNormalOnSurface
-                    },
-                    shape = shape
-                )
-                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .background(color = containerColor, shape = shape)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
                 .align(align)
-        )
+        ) {
+            if (userName.isNotEmpty()) {
+                Text(
+                    text = userName,
+                    style = AppTheme.appTypography.caption.copy(color = AppTheme.colorScheme.successColor),
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+            }
+            Text(
+                text = message,
+                style = AppTheme.appTypography.subTitle3.copy(color = AppTheme.colorScheme.textPrimary)
+            )
+        }
 
         if (seenLabel.isNotEmpty()) {
             Text(
                 text = seenLabel,
                 style = AppTheme.appTypography.label3.copy(color = AppTheme.colorScheme.textDisabled),
                 modifier = Modifier
-                    .padding(2.dp)
+                    .padding(top = 4.dp)
                     .widthIn(max = screenWidth * 0.3f)
                     .align(align),
                 overflow = TextOverflow.Ellipsis

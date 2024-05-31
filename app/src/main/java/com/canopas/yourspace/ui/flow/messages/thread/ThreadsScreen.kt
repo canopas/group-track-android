@@ -3,7 +3,6 @@ package com.canopas.yourspace.ui.flow.messages.thread
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.foundation.gestures.DraggableAnchors
 import androidx.compose.foundation.gestures.Orientation
@@ -18,6 +17,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -29,11 +29,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -91,11 +91,11 @@ fun ThreadsScreen() {
                         Column {
                             Text(
                                 text = state.currentSpace?.space?.name ?: "",
-                                style = AppTheme.appTypography.header3
+                                style = AppTheme.appTypography.subTitle1
                             )
                             Text(
                                 text = stringResource(id = R.string.threads_screen_subtitle_messages),
-                                style = AppTheme.appTypography.body3
+                                style = AppTheme.appTypography.caption.copy(color = AppTheme.colorScheme.textDisabled)
                             )
                         }
                     }
@@ -103,7 +103,7 @@ fun ThreadsScreen() {
                 navigationIcon = {
                     IconButton(onClick = { viewModel.popBackStack() }) {
                         Icon(
-                            Icons.Default.ArrowBack,
+                            painter = painterResource(id = R.drawable.ic_nav_back_arrow_icon),
                             contentDescription = ""
                         )
                     }
@@ -115,9 +115,11 @@ fun ThreadsScreen() {
         floatingActionButton = {
             if (state.hasMembers) {
                 FloatingActionButton(
+                    shape = RoundedCornerShape(30.dp),
                     onClick = { viewModel.createNewThread() },
                     containerColor = AppTheme.colorScheme.primary,
-                    contentColor = AppTheme.colorScheme.onPrimary
+                    contentColor = AppTheme.colorScheme.onPrimary,
+                    elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 0.dp)
                 ) {
                     Icon(Icons.Filled.Add, "Floating action button.")
                 }
@@ -177,7 +179,7 @@ fun ThreadList(
             Text(
                 text = stringResource(id = R.string.threads_screen_no_threads),
                 textAlign = TextAlign.Center,
-                style = AppTheme.appTypography.subTitle2.copy(color = AppTheme.colorScheme.textPrimary)
+                style = AppTheme.appTypography.subTitle1.copy(color = AppTheme.colorScheme.textPrimary)
             )
         }
     } else {
@@ -207,7 +209,7 @@ fun ThreadList(
                     }
                 )
                 if (index != threadInfos.size - 1) {
-                    Divider(
+                    HorizontalDivider(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
@@ -345,15 +347,16 @@ private fun LazyItemScope.ThreadItem(
 
             Text(
                 text = threadTitle,
-                style = AppTheme.appTypography.body1,
+                style = AppTheme.appTypography.subTitle2,
                 color = AppTheme.colorScheme.textPrimary
             )
+            Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = message?.message ?: "",
-                style = AppTheme.appTypography.label2,
+                style = AppTheme.appTypography.caption,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                color = AppTheme.colorScheme.textSecondary
+                color = AppTheme.colorScheme.textDisabled
             )
         }
         Spacer(modifier = Modifier.width(16.dp))
@@ -366,8 +369,8 @@ private fun LazyItemScope.ThreadItem(
                 text = message?.createdAtMs?.formattedMessageTimeString(
                     LocalContext.current
                 ) ?: "",
-                style = AppTheme.appTypography.label3,
-                color = if (hasUnreadMsg) AppTheme.colorScheme.primary else AppTheme.colorScheme.textSecondary
+                style = AppTheme.appTypography.caption,
+                color = if (hasUnreadMsg) AppTheme.colorScheme.primary else AppTheme.colorScheme.textDisabled
             )
 
             if (hasUnreadMsg) {
@@ -384,14 +387,7 @@ private fun LazyItemScope.ThreadItem(
 
 @Composable
 fun ThreadProfile(members: List<ApiUser>) {
-    Box(
-        modifier = Modifier
-            .size(50.dp)
-            .background(
-                AppTheme.colorScheme.containerNormalOnSurface,
-                shape = RoundedCornerShape(16.dp)
-            )
-    ) {
+    Box(modifier = Modifier.size(56.dp), contentAlignment = Alignment.Center) {
         when (members.size) {
             0 -> UserProfile(modifier = Modifier.fillMaxSize(), user = null)
             1 -> {
@@ -400,38 +396,31 @@ fun ThreadProfile(members: List<ApiUser>) {
                 }
             }
 
-            2 -> {
-                members.forEachIndexed { index, apiUser ->
-                    UserProfile(
-                        modifier = Modifier
-                            .size(34.dp)
-                            .border(
-                                width = 2.dp,
-                                color = AppTheme.colorScheme.containerNormalOnSurface,
-                                shape = RoundedCornerShape(8.dp)
-                            )
-                            .align(if (index == 0) Alignment.TopStart else Alignment.BottomEnd),
-                        user = apiUser,
-                        shape = RoundedCornerShape(8.dp)
-                    )
-                }
-            }
-
             else -> {
-                val filter = members.take(3)
+                val takeCount = if (members.size - 1 > 1) 1 else 2
+                val remaining = members.drop(takeCount)
+                val filter = members.take(takeCount)
                 filter.forEachIndexed { index, apiUser ->
                     UserProfile(
                         modifier = Modifier
-                            .size(30.dp)
-                            .border(
-                                width = 2.dp,
-                                color = AppTheme.colorScheme.containerNormalOnSurface,
-                                shape = RoundedCornerShape(8.dp)
-                            )
-                            .align(if (index == 0) Alignment.TopStart else if (index == 1) Alignment.TopEnd else Alignment.BottomCenter),
-                        user = apiUser,
-                        shape = RoundedCornerShape(8.dp)
+                            .size(40.dp)
+                            .align(if (index == 0) Alignment.CenterStart else Alignment.CenterEnd),
+                        user = apiUser
                     )
+                }
+                if (remaining.isNotEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.CenterEnd)
+                            .size(40.dp)
+                            .background(AppTheme.colorScheme.primary, shape = CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "+${remaining.size}",
+                            style = AppTheme.appTypography.subTitle2.copy(color = AppTheme.colorScheme.onPrimary)
+                        )
+                    }
                 }
             }
         }
@@ -453,24 +442,26 @@ private fun NoMemberEmptyContent(
         Icon(
             painter = painterResource(id = R.drawable.ic_thread_no_member),
             contentDescription = null,
-            modifier = Modifier.size(60.dp),
+            modifier = Modifier.size(64.dp),
             tint = AppTheme.colorScheme.textPrimary
         )
-        Spacer(modifier = Modifier.padding(10.dp))
+        Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = stringResource(id = R.string.threads_screen_no_members_title),
             style = AppTheme.appTypography.header4
         )
+        Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = stringResource(id = R.string.threads_screen_no_members_subtitle),
-            style = AppTheme.appTypography.label1,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 16.dp)
+            style = AppTheme.appTypography.subTitle1,
+            color = AppTheme.colorScheme.textDisabled,
+            textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.padding(10.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         PrimaryButton(
+            modifier = Modifier.fillMaxWidth(),
             label = stringResource(id = R.string.thread_screen_add_new_member),
             onClick = addMember,
             showLoader = loadingInviteCode

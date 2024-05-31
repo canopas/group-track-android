@@ -20,9 +20,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,7 +35,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -70,7 +69,7 @@ fun MessagesScreen() {
                 navigationIcon = {
                     IconButton(onClick = { viewModel.popBackStack() }) {
                         Icon(
-                            Icons.Default.ArrowBack,
+                            painter = painterResource(id = R.drawable.ic_nav_back_arrow_icon),
                             contentDescription = ""
                         )
                     }
@@ -95,7 +94,7 @@ fun ToolbarTitle(selectedMember: List<UserInfo>) {
     if (selectedMember.isNotEmpty()) {
         Text(
             text = selectedMember.map { it.user.first_name ?: "" }.toFormattedTitle(),
-            style = AppTheme.appTypography.header3
+            style = AppTheme.appTypography.subTitle1
         )
     }
 }
@@ -186,7 +185,7 @@ fun NewMessageInput(
 ) {
     Row(
         modifier = Modifier
-            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp)
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -199,23 +198,22 @@ fun NewMessageInput(
             ),
             maxLines = 5,
             keyboardActions = KeyboardActions(onSend = { onSend() }),
-            textStyle = AppTheme.appTypography.body1.copy(color = AppTheme.colorScheme.textPrimary),
+            textStyle = AppTheme.appTypography.subTitle1.copy(color = AppTheme.colorScheme.textPrimary),
             cursorBrush = SolidColor(AppTheme.colorScheme.primary),
             decorationBox = { innerTextField ->
                 Box(
                     Modifier
                         .fillMaxWidth()
                         .background(
-                            AppTheme.colorScheme.containerNormalOnSurface,
-                            shape = RoundedCornerShape(18.dp)
+                            AppTheme.colorScheme.containerLow,
+                            shape = RoundedCornerShape(30.dp)
                         )
-                        .padding(vertical = 10.dp)
-                        .padding(start = 16.dp, end = 10.dp)
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
                 ) {
                     if (message.isEmpty()) {
                         Text(
                             text = stringResource(R.string.messages_new_message_hint),
-                            style = AppTheme.appTypography.body2,
+                            style = AppTheme.appTypography.subTitle2,
                             color = AppTheme.colorScheme.textDisabled
                         )
                     }
@@ -229,20 +227,22 @@ fun NewMessageInput(
             onClick = { onSend() },
             modifier = Modifier
                 .align(Alignment.Bottom)
-                .size(40.dp)
+                .size(48.dp)
                 .clip(shape = CircleShape),
             colors = IconButtonDefaults.iconButtonColors(
                 containerColor = AppTheme.colorScheme.primary,
                 contentColor = AppTheme.colorScheme.onPrimary,
-                disabledContainerColor = AppTheme.colorScheme.containerNormalOnSurface,
+                disabledContainerColor = AppTheme.colorScheme.containerLow,
                 disabledContentColor = AppTheme.colorScheme.textDisabled
             ),
             enabled = message.trim().isNotEmpty(),
             content = {
                 Icon(
-                    Icons.Default.ArrowForward,
+                    painter = painterResource(id = R.drawable.ic_nav_back_arrow_icon),
                     contentDescription = "",
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier
+                        .rotate(180f)
+                        .size(24.dp)
                 )
             }
         )
