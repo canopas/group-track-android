@@ -21,6 +21,9 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
+const val NETWORK_STATUS_CHECK_INTERVAL = 15 * 60 * 1000
+const val RETRY_INTERVAL = 5000L
+
 @Singleton
 class ApiUserService @Inject constructor(
     db: FirebaseFirestore,
@@ -141,6 +144,13 @@ class ApiUserService @Inject constructor(
         onStatusChecked: (Boolean) -> Unit
     ) {
         withContext(Dispatchers.IO) {
+            val userSession = getUserSession(userId)
+            if (userSession != null) {
+                if ((userSession.updated_at?.toDate()?.time ?: 0) > (System.currentTimeMillis() - NETWORK_STATUS_CHECK_INTERVAL)) {
+                    onStatusChecked(true)
+                    return@withContext
+                }
+            }
             val data = hashMapOf("userId" to userId)
             val function = functions.getHttpsCallable("networkStatusCheck")
             try {
@@ -160,13 +170,10 @@ class ApiUserService @Inject constructor(
         callTime: Long,
         onStatusChecked: (Boolean) -> Unit
     ) {
-        val maxRetries = 3
-        val retryInterval = 5000L // 5 seconds
-        repeat(maxRetries) {
+        val retryInterval = RETRY_INTERVAL
+        repeat(2) {
             val userSession = getUserSession(userId)
             if (userSession != null) {
-                // Check if the user state is updated after the call time and
-                // if not then retry the check after the interval until the max retries are reached
                 if (userSession.state == USER_STATE_UNKNOWN && (userSession.updated_at?.toDate()?.time ?: 0) > callTime) {
                     onStatusChecked(true)
                     return
