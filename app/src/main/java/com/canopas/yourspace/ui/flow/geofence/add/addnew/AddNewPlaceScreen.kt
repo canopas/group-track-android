@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -108,10 +109,20 @@ private fun AddNewPlace(
         }
 
         items(state.places) {
+            val isLast = it.id == state.places.last().id
             PlaceSuggestionItem(
                 place = it,
                 onClick = { viewModel.onPlaceSelected(it) }
             )
+            if (!isLast) {
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    color = AppTheme.colorScheme.outline,
+                    thickness = 1.dp
+                )
+            } else {
+                Spacer(modifier = Modifier.height(40.dp))
+            }
         }
 
         if (state.loading) {
@@ -136,16 +147,14 @@ fun PlaceSuggestionItem(
     Row(
         modifier = Modifier
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .background(color = AppTheme.colorScheme.containerLow, shape = CircleShape)
-            .padding(vertical = 4.dp, horizontal = 16.dp)
             .clickable { onClick() },
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.Top
     ) {
         Icon(
             painter = painterResource(id = R.drawable.ic_tab_places_outlined),
             contentDescription = null,
             tint = AppTheme.colorScheme.textPrimary,
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier.size(24.dp)
         )
 
         Column(
@@ -156,14 +165,14 @@ fun PlaceSuggestionItem(
             Text(
                 text = place.name ?: "",
                 maxLines = 1,
-                style = AppTheme.appTypography.body2,
-                color = AppTheme.colorScheme.textSecondary,
+                style = AppTheme.appTypography.subTitle2,
+                color = AppTheme.colorScheme.textPrimary,
                 overflow = TextOverflow.Ellipsis
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = place.address ?: "",
-                style = AppTheme.appTypography.caption,
+                style = AppTheme.appTypography.caption.copy(color = AppTheme.colorScheme.textSecondary),
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
