@@ -58,8 +58,11 @@ fun IntroScreen() {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
-            label = if (pagerState.currentPage == 2) stringResource(id = R.string.get_started) else
-                stringResource(id = R.string.common_btn_next),
+            label = if (pagerState.currentPage == 2) {
+                stringResource(id = R.string.get_started)
+            } else {
+                stringResource(id = R.string.common_btn_next)
+            },
             onClick = {
                 if (pagerState.currentPage == 2) {
                     viewModel.completedIntro()
@@ -133,5 +136,5 @@ private val introList = listOf(
         title = R.string.intro_title_three,
         content = R.string.intro_content_three,
         image = R.drawable.ic_intro_location_history
-    ),
+    )
 )

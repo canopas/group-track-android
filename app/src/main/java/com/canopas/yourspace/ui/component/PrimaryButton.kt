@@ -107,7 +107,7 @@ fun PrimaryOutlinedButton(
     icon: @Composable (() -> Unit)? = null,
     containerColor: Color = Color.Transparent,
     contentColor: Color = AppTheme.colorScheme.primary,
-    outlineColor: Color = AppTheme.colorScheme.primary,
+    outlineColor: Color = AppTheme.colorScheme.primary
 ) {
     val isEnable = enabled && !showLoader
     OutlinedButton(
@@ -116,7 +116,7 @@ fun PrimaryOutlinedButton(
         border = BorderStroke(color = outlineColor, width = 1.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = containerColor,
-            disabledContainerColor = containerColor,
+            disabledContainerColor = containerColor
         ),
         enabled = isEnable
     ) {
@@ -133,7 +133,7 @@ fun PrimaryOutlinedButton(
         Text(
             text = label,
             style = AppTheme.appTypography.button.copy(color = contentColor),
-            textAlign = TextAlign.Center,
+            textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.width(24.dp))
     }
