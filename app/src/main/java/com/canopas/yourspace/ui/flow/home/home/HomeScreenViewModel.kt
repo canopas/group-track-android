@@ -77,10 +77,13 @@ class HomeScreenViewModel @Inject constructor(
     private fun getAllSpaces() = viewModelScope.launch(appDispatcher.IO) {
         try {
             _state.emit(_state.value.copy(isLoadingSpaces = _state.value.spaces.isEmpty()))
+            Timber.d("XXX home Spaces called")
             spaceRepository.getAllSpaceInfo().collectLatest { spaces ->
+                Timber.d("XXX home Spaces get")
                 if (spaceRepository.currentSpaceId.isEmpty() && spaces.isNotEmpty()) {
                     spaceRepository.currentSpaceId = spaces.firstOrNull()?.space?.id ?: ""
                 }
+                Timber.d("XXX home Spaces: $spaces")
                 val tempSpaces = spaces.toMutableList()
                 val index =
                     tempSpaces.indexOfFirst { it.space.id == spaceRepository.currentSpaceId }
