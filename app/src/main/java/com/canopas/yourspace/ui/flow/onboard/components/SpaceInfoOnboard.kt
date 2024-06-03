@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
 import com.canopas.yourspace.ui.component.PrimaryButton
-import com.canopas.yourspace.ui.component.PrimaryTextButton
+import com.canopas.yourspace.ui.component.PrimaryOutlinedButton
 import com.canopas.yourspace.ui.flow.onboard.OnboardViewModel
 import com.canopas.yourspace.ui.theme.AppTheme
 
@@ -42,23 +42,25 @@ fun SpaceInfoOnboard() {
         TitleContent()
         Spacer(modifier = Modifier.weight(0.5f))
         Image(
-            painter = painterResource(id = R.drawable.ic_empty_location_history),
+            painter = painterResource(id = R.drawable.ic_solo_traveler_image),
             contentDescription = null,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(250.dp),
+            modifier = Modifier.fillMaxWidth(),
             contentScale = ContentScale.FillHeight
         )
         Spacer(modifier = Modifier.weight(0.5f))
         SubTitleTitleContent()
         Spacer(modifier = Modifier.height(30.dp))
-        PrimaryButton(label = stringResource(R.string.common_btn_continue), onClick = {
-            viewModel.navigateToJoinOrCreateSpace()
-        })
+        PrimaryButton(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+            label = stringResource(R.string.common_btn_continue),
+            onClick = {
+                viewModel.navigateToJoinOrCreateSpace()
+            }
+        )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        PrimaryTextButton(
+        PrimaryOutlinedButton(
             label = stringResource(R.string.common_btn_skip),
             onClick = { viewModel.navigateToHome() }
         )
@@ -69,11 +71,12 @@ fun SpaceInfoOnboard() {
 private fun TitleContent() {
     Text(
         text = stringResource(R.string.onboard_space_info_title),
-        style = AppTheme.appTypography.header1,
+        style = AppTheme.appTypography.header3,
+        color = AppTheme.colorScheme.textPrimary,
         textAlign = TextAlign.Center,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 28.dp)
+            .padding(horizontal = 16.dp)
     )
 }
 
@@ -81,10 +84,11 @@ private fun TitleContent() {
 private fun SubTitleTitleContent() {
     Text(
         text = stringResource(R.string.onboard_space_info_subtitle),
-        style = AppTheme.appTypography.body1,
+        style = AppTheme.appTypography.subTitle1,
+        color = AppTheme.colorScheme.textSecondary,
         textAlign = TextAlign.Center,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 28.dp)
+            .padding(horizontal = 16.dp)
     )
 }
