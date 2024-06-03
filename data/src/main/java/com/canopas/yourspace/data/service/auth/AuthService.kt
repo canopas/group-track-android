@@ -116,15 +116,13 @@ class AuthService @Inject constructor(
 
     suspend fun updateBatteryStatus(batteryPercentage: Float) {
         val currentUser = currentUser ?: return
-        val session = currentUserSession ?: return
-        apiUserService.updateBatteryPct(currentUser.id, session.id, batteryPercentage)
+        apiUserService.updateBatteryPct(currentUser.id, batteryPercentage)
     }
 
     suspend fun updateUserSessionState(state: Int) {
         val currentUser = currentUser ?: return
-        val session = currentUserSession ?: return
-        if (session.state == state) return
-        apiUserService.updateSessionState(currentUser.id, session.id, state)
+        if (currentUser.state == state) return
+        apiUserService.updateSessionState(currentUser.id, state)
     }
 }
 
