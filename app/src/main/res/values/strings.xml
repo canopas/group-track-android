@@ -141,10 +141,9 @@
     <string name="map_user_item_location_updated_hours_ago">%s hr ago</string>
     <string name="map_user_item_location_updated_since_days">Since %s</string>
     <string name="map_user_item_location_unknown">Location not found</string>
-    <string name="map_user_item_location_off">Location turned off</string>
 
     <string name="member_detail_location_history">Location History</string>
-    <string name="member_detail_empty_location_history">No Location History Found!</string>
+    <string name="member_detail_empty_location_history">No location history found!</string>
 
     <string name="settings_title">Settings</string>
     <string name="setting_profile">Profile</string>
@@ -262,7 +261,6 @@
     </string-array>
 
     <string name="user_journey_view_today_text">Today</string>
-    <string name="member_detail_location_history_today">Earlier today</string>
     <string name="journey_timeline_title">Timeline</string>
 
     <string name="journey_timeline_title_your_timeline">Your Timeline</string>

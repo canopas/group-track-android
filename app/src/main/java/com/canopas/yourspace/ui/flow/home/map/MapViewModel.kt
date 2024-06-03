@@ -16,6 +16,7 @@ import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
@@ -116,8 +117,10 @@ class MapViewModel @Inject constructor(
         }
     }
 
-    fun dismissMemberDetail() {
-        _state.value = _state.value.copy(showUserDetails = false, selectedUser = null)
+    fun dismissMemberDetail() = viewModelScope.launch(appDispatcher.IO) {
+        _state.value = _state.value.copy(showUserDetails = false)
+        delay(150)
+        _state.value = _state.value.copy(selectedUser = null)
     }
 
     fun addMember() = viewModelScope.launch(appDispatcher.IO) {
@@ -151,6 +154,14 @@ class MapViewModel @Inject constructor(
 
     fun navigateToPlaces() {
         navigator.navigateTo(AppDestinations.places.path)
+    }
+
+    fun showJourneyTimeline() {
+        navigator.navigateTo(
+            AppDestinations.JourneyTimeline.args(
+                state.value.selectedUser?.user?.id ?: ""
+            ).path
+        )
     }
 }
 

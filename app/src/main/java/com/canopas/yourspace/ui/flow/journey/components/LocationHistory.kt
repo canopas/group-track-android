@@ -11,13 +11,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -35,7 +31,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -50,7 +45,6 @@ import com.canopas.yourspace.data.models.location.isSteadyLocation
 import com.canopas.yourspace.domain.utils.getAddress
 import com.canopas.yourspace.domain.utils.getPlaceAddress
 import com.canopas.yourspace.domain.utils.isToday
-import com.canopas.yourspace.ui.component.AppProgressIndicator
 import com.canopas.yourspace.ui.component.DashedDivider
 import com.canopas.yourspace.ui.theme.AppTheme
 import com.google.android.gms.maps.model.LatLng
@@ -59,59 +53,6 @@ import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Locale
 import kotlin.math.roundToInt
-
-@Composable
-fun LocationHistory(
-    isLoading: Boolean,
-    locations: List<LocationJourney>,
-    addPlaceTap: (latitute: Double, longitude: Double) -> Unit,
-    showJourneyDetails: (journeyId: String) -> Unit
-) {
-    val lazyListState = rememberLazyListState()
-
-    Box {
-        when {
-            locations.isEmpty() && isLoading -> {
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) { AppProgressIndicator() }
-            }
-
-            locations.isEmpty() -> {
-                EmptyHistory()
-            }
-
-            else -> {
-                LazyColumn(state = lazyListState) {
-                    itemsIndexed(
-                        locations,
-                        key = { index, location -> location.id }
-                    ) { index, location ->
-                        LocationHistoryItem(
-                            location,
-                            isFirstItem = index == 0,
-                            isLastItem = index == locations.lastIndex,
-                            addPlaceTap = addPlaceTap,
-                            showJourneyDetails = {
-                                showJourneyDetails(location.id)
-                            }
-                        )
-                    }
-
-                    if (locations.isNotEmpty() && isLoading) {
-                        item {
-                            Box(
-                                modifier = Modifier.fillMaxWidth(),
-                                contentAlignment = Alignment.Center
-                            ) { AppProgressIndicator() }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
 
 @Composable
 fun LocationHistoryItem(
@@ -150,8 +91,7 @@ fun JourneyLocationItem(location: LocationJourney, lastItem: Boolean, onTap: () 
 
     Row(
         verticalAlignment = Alignment.Top,
-        modifier = Modifier
-            .height(210.dp)
+        modifier = Modifier.height(210.dp)
     ) {
         DottedTimeline(false, isLastItem = lastItem)
         Column(
@@ -161,10 +101,10 @@ fun JourneyLocationItem(location: LocationJourney, lastItem: Boolean, onTap: () 
         ) {
             val time = getFormattedJourneyTime(location.created_at ?: 0, location.update_at ?: 0)
             val distance = getDistanceString(location.route_distance ?: 0.0)
-            PlaceInfo(
-                title,
-                "$time - $distance"
-            )
+
+            PlaceInfo(title, "$time - $distance")
+            Spacer(modifier = Modifier.size(16.dp))
+
             JourneyMap(
                 modifier = Modifier
                     .padding(end = 16.dp)
@@ -214,8 +154,7 @@ fun SteadyLocationItem(
 
     Row(
         verticalAlignment = Alignment.Top,
-        modifier = Modifier
-            .height(140.dp)
+        modifier = Modifier.height(140.dp)
     ) {
         DottedTimeline(isSteadyLocation = true, isLastItem = isLastItem)
 
@@ -233,10 +172,11 @@ fun SteadyLocationItem(
 
             PlaceInfo(fromAddress, formattedTime)
 
+            Spacer(modifier = Modifier.height(8.dp))
             Button(
                 onClick = addPlace,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = AppTheme.colorScheme.primary.copy(0.1f),
+                    containerColor = AppTheme.colorScheme.containerLow,
                     contentColor = AppTheme.colorScheme.primary
                 )
             ) {
@@ -246,7 +186,6 @@ fun SteadyLocationItem(
                     modifier = Modifier
                         .padding(end = 4.dp)
                         .size(24.dp)
-
                 )
                 Text(
                     text = stringResource(id = R.string.common_btn_add_place),
@@ -254,7 +193,7 @@ fun SteadyLocationItem(
                 )
             }
 
-            Spacer(modifier = Modifier.size(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             if (!isLastItem) {
                 HorizontalDivider(thickness = 1.dp, color = AppTheme.colorScheme.outline)
@@ -275,16 +214,12 @@ internal fun PlaceInfo(title: String, formattedTime: String) {
         overflow = TextOverflow.Ellipsis,
         modifier = Modifier.padding(end = 16.dp)
     )
-    Spacer(modifier = Modifier.size(6.dp))
+    Spacer(modifier = Modifier.size(8.dp))
 
     Text(
         text = formattedTime,
-        style = AppTheme.appTypography.caption.copy(
-            fontWeight = FontWeight.Medium,
-            color = AppTheme.colorScheme.textSecondary
-        )
+        style = AppTheme.appTypography.caption.copy(color = AppTheme.colorScheme.textDisabled)
     )
-    Spacer(modifier = Modifier.size(10.dp))
 }
 
 @Composable
@@ -300,7 +235,7 @@ fun DottedTimeline(isSteadyLocation: Boolean, isLastItem: Boolean) {
                 .size(40.dp)
                 .background(
                     if (isSteadyLocation) {
-                        AppTheme.colorScheme.containerNormal
+                        AppTheme.colorScheme.containerLow
                     } else {
                         AppTheme.colorScheme.surface
                     },
@@ -308,7 +243,7 @@ fun DottedTimeline(isSteadyLocation: Boolean, isLastItem: Boolean) {
                 )
                 .border(
                     1.dp,
-                    if (isSteadyLocation) Color.Transparent else AppTheme.colorScheme.containerNormal,
+                    if (isSteadyLocation) Color.Transparent else AppTheme.colorScheme.outline,
                     CircleShape
                 ),
             contentAlignment = Alignment.Center
@@ -318,23 +253,24 @@ fun DottedTimeline(isSteadyLocation: Boolean, isLastItem: Boolean) {
                     Icons.Default.LocationOn,
                     contentDescription = "",
                     tint = AppTheme.colorScheme.primary,
-                    modifier = Modifier
-                        .size(24.dp)
-                        .padding(2.dp)
+                    modifier = Modifier.size(24.dp)
                 )
             } else {
                 Box(
                     modifier = Modifier
                         .size(8.dp)
-                        .background(
-                            AppTheme.colorScheme.primary,
-                            CircleShape
-                        )
+                        .background(AppTheme.colorScheme.primary, CircleShape)
                 )
             }
         }
 
-        if (!isLastItem) DashedDivider(thickness = 1.dp, modifier = Modifier.weight(1f))
+        if (!isLastItem) {
+            DashedDivider(
+                thickness = 1.dp,
+                color = AppTheme.colorScheme.textPrimary,
+                modifier = Modifier.weight(1f)
+            )
+        }
     }
 }
 
@@ -348,18 +284,12 @@ fun EmptyHistory() {
         Image(
             painter = painterResource(id = R.drawable.ic_empty_location_history),
             contentDescription = "",
-            modifier = Modifier
-                .padding(bottom = 30.dp)
-                .alpha(0.8f)
+            modifier = Modifier.padding(bottom = 16.dp)
         )
 
         Text(
             text = stringResource(id = R.string.member_detail_empty_location_history),
-            style = AppTheme.appTypography.body1.copy(
-                color = AppTheme.colorScheme.containerHigh.copy(
-                    alpha = 0.8f
-                )
-            ),
+            style = AppTheme.appTypography.subTitle3.copy(color = AppTheme.colorScheme.textDisabled),
             modifier = Modifier.padding(bottom = 30.dp)
         )
     }

@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -31,7 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
@@ -44,6 +41,7 @@ import com.canopas.yourspace.ui.component.reachedBottom
 import com.canopas.yourspace.ui.flow.journey.components.EmptyHistory
 import com.canopas.yourspace.ui.flow.journey.components.LocationHistoryItem
 import com.canopas.yourspace.ui.theme.AppTheme
+import java.util.Locale
 
 @Composable
 fun JourneyTimelineScreen() {
@@ -68,7 +66,9 @@ fun TimelineTopBar() {
         } else {
             stringResource(
                 id = R.string.journey_timeline_title_other_user,
-                state.selectedUser?.first_name?.capitalize() ?: ""
+                state.selectedUser?.first_name?.replaceFirstChar {
+                    if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString()
+                } ?: ""
             )
         }
     TopAppBar(
@@ -76,13 +76,13 @@ fun TimelineTopBar() {
         title = {
             Text(
                 text = title,
-                style = AppTheme.appTypography.header3
+                style = AppTheme.appTypography.subTitle1
             )
         },
         navigationIcon = {
             IconButton(onClick = viewModel::navigateBack) {
                 Icon(
-                    Icons.Default.ArrowBack,
+                    painter = painterResource(id = R.drawable.ic_nav_back_arrow_icon),
                     contentDescription = ""
                 )
             }

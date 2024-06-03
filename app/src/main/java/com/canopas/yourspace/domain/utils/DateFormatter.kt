@@ -78,3 +78,25 @@ fun Long.isToday(): Boolean {
         Calendar.DAY_OF_YEAR
     )
 }
+
+fun timeAgo(timestamp: Long): String {
+    val now = System.currentTimeMillis()
+    val seconds = (now - timestamp) / 1000
+
+    val minutes = TimeUnit.SECONDS.toMinutes(seconds)
+    val hours = TimeUnit.SECONDS.toHours(seconds)
+    val days = TimeUnit.SECONDS.toDays(seconds)
+    val weeks = days / 7
+    val months = days / 30
+    val years = days / 365
+
+    return when {
+        seconds < 60 -> "just now"
+        minutes < 60 -> "$minutes minutes ago"
+        hours < 24 -> "$hours hours ago"
+        days < 7 -> "$days days ago"
+        weeks < 4 -> "$weeks weeks ago"
+        months < 12 -> "$months months ago"
+        else -> "$years years ago"
+    }
+}
