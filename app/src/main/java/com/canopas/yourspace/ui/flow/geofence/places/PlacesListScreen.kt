@@ -288,7 +288,7 @@ fun PlaceItem(
                 true
             ) -> painterResource(id = R.drawable.ic_place_park)
 
-            else -> painterResource(id = R.drawable.ic_tab_places_filled)
+            else -> painterResource(id = R.drawable.ic_tab_places_outlined)
         }
 
     PlacesListItem(
@@ -312,7 +312,7 @@ private fun PlaceSuggestionItem(suggestion: String, onClick: () -> Unit) {
             "Gym" -> painterResource(id = R.drawable.ic_place_gym)
             "Library" -> painterResource(id = R.drawable.ic_place_library)
             "Local Park" -> painterResource(id = R.drawable.ic_place_park)
-            else -> painterResource(id = R.drawable.ic_tab_places_filled)
+            else -> painterResource(id = R.drawable.ic_tab_places_outlined)
         }
 
     PlacesListItem(
