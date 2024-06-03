@@ -135,14 +135,16 @@ private fun MemberProfileView(profileUrl: String?, name: String, session: ApiUse
 private fun MemberInfoView(userName: String, location: ApiLocation?, onTapTimeline: () -> Unit) {
     val context = LocalContext.current
     var address by remember { mutableStateOf("") }
-    val time = timeAgo(location?.created_at ?: 0)
+    val time = timeAgo(location?.created_at ?: System.currentTimeMillis())
 
     LaunchedEffect(location) {
+        if (location == null) return@LaunchedEffect
         withContext(Dispatchers.IO) {
-            val latLng = LatLng(location!!.latitude, location.longitude)
+            val latLng = LatLng(location.latitude, location.longitude)
             address = latLng.getAddress(context) ?: ""
         }
     }
+
     Column(modifier = Modifier.padding(start = 16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(

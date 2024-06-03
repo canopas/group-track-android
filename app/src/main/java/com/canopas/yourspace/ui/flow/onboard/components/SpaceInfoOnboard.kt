@@ -29,7 +29,6 @@ import com.canopas.yourspace.ui.theme.AppTheme
 @Composable
 fun SpaceInfoOnboard() {
     val viewModel = hiltViewModel<OnboardViewModel>()
-    val state by viewModel.state.collectAsState()
 
     Column(
         Modifier
@@ -61,6 +60,7 @@ fun SpaceInfoOnboard() {
         Spacer(modifier = Modifier.height(16.dp))
 
         PrimaryOutlinedButton(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
             label = stringResource(R.string.common_btn_skip),
             onClick = { viewModel.navigateToHome() }
         )
