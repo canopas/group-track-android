@@ -158,8 +158,8 @@ service cloud.firestore {
            }
 
           match /spaces/{spaceId}/space_places/{place}/place_settings_by_members/{member} {
-            allow read: if isAuthorized() && request.auth.uid == resource.data.user_id;
-            allow update: if isAuthorized() && request.auth.uid == resource.data.user_id &&
+            allow read: if isAuthorized() && isSpaceMember(spaceId);
+            allow update: if isAuthorized() && isSpaceMember(spaceId) &&
                             request.resource.data.diff(resource.data).affectedKeys().hasOnly(["alert_enable", "leave_alert_for", "arrival_alert_for"]) &&
                             request.resource.data.arrival_alert_for is list &&
                             request.resource.data.leave_alert_for is list &&
