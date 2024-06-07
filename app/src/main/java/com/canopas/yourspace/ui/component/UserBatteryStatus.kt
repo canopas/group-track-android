@@ -13,15 +13,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.canopas.yourspace.R
-import com.canopas.yourspace.data.models.user.ApiUserSession
+import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.ui.theme.AppTheme
 
 @Composable
 fun UserBatteryStatus(
     modifier: Modifier = Modifier,
-    session: ApiUserSession
+    user: ApiUser
 ) {
-    val batteryPrc = session.battery_pct ?: 0f
+    val batteryPrc = user.battery_pct ?: 0f
     val icon = if (batteryPrc > 70f) {
         R.drawable.ic_battery_full
     } else if (batteryPrc > 50f) {

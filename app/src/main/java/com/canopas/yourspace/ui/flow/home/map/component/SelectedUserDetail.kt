@@ -36,7 +36,7 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.location.ApiLocation
-import com.canopas.yourspace.data.models.user.ApiUserSession
+import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.models.user.UserInfo
 import com.canopas.yourspace.domain.utils.getAddress
 import com.canopas.yourspace.domain.utils.timeAgo
@@ -66,7 +66,7 @@ fun SelectedUserDetail(userInfo: UserInfo?, onDismiss: () -> Unit, onTapTimeline
                 .padding(16.dp),
             verticalAlignment = Alignment.Top
         ) {
-            MemberProfileView(user.profile_image, user.firstChar, userInfo.session)
+            MemberProfileView(user.profile_image, user.firstChar, userInfo.user)
 
             MemberInfoView(userName = user.fullName, userInfo.location) { onTapTimeline() }
         }
@@ -90,7 +90,7 @@ fun SelectedUserDetail(userInfo: UserInfo?, onDismiss: () -> Unit, onTapTimeline
 }
 
 @Composable
-private fun MemberProfileView(profileUrl: String?, name: String, session: ApiUserSession?) {
+private fun MemberProfileView(profileUrl: String?, name: String, user: ApiUser?) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             modifier = Modifier
@@ -124,9 +124,9 @@ private fun MemberProfileView(profileUrl: String?, name: String, session: ApiUse
                 }
             }
         }
-        if (session != null) {
+        if (user != null) {
             Spacer(modifier = Modifier.padding(top = 2.dp))
-            UserBatteryStatus(session = session)
+            UserBatteryStatus(user = user)
         }
     }
 }

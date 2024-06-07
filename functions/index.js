@@ -313,7 +313,7 @@ exports.sendGeoFenceNotification = onCall(async (request) => {
 
 exports.serviceCheck = onSchedule("every 3 minutes", async (event) => {
    const staleThreshold = admin.firestore.Timestamp.now().toMillis() - (30 * 60 * 1000);
-  console.log('staleThreshold', staleThreshold);
+   console.log('staleThreshold', staleThreshold);
 
    const db = admin.firestore();
    const usersSnapshot = await db.collection('users')
@@ -340,49 +340,44 @@ exports.serviceCheck = onSchedule("every 3 minutes", async (event) => {
   console.log('Scheduled stale data requests added');
 });
 
-//exports.userStateUpdateNotification = onDocumentCreated("staleData/{dataId}", async event => {
-//   const db = admin.firestore();
-//
-//   const outOfNetworkThreshold = db.Timestamp.now().toMillis() - (40 * 60 * 1000);
-//
-//    const snap = event.data.data();
-//    const userId = snap.userId;
-//    const fcm_token = snap.fcm_token;
-//    const last_updated_at = snap.last_updated_at;
-//    const isOutOfNetWork = last_updated_at < outOfNetworkThreshold;
-//
-//
-//    const hasActiveSession = await db.collection('users').doc(userId).collection('user_sessions')
-//                .where('session_active', '==',true)
-//                ..get();
-//    if(isOutOfNetWork) {
-//      const userRef = db.collection('users').doc(userId);
-//      const res = await userRef.update({state: 1, updated_at: admin.firestore.FieldValue.serverTimestamp()});
-//      console.log('User is not in network');
-//    }
-//
-//    const filteredTokens = [fcm_token];
-//    if (filteredTokens.length > 0) {
-//        const payload = {
-//            tokens: filteredTokens,
-//            data: {
-//                userId: userId,
-//                type: 'updateState'
-//            }
-//        };
-//
-//        admin.messaging().sendMulticast(payload).then((response) => {
-//            console.log("Successfully sent message:", response);
-//            return {
-//                success: true
-//            };
-//        }).catch((error) => {
-//            console.log("Failed to send message:", error.code);
-//            return {
-//                error: error.code
-//            };
-//        });
-//    }
-//
-//});
+exports.userStateUpdateNotification = onDocumentCreated("staleData/{dataId}", async event => {
+    const db = admin.firestore();
+
+    const outOfNetworkThreshold = db.Timestamp.now().toMillis() - (40 * 60 * 1000);
+
+    const snap = event.data.data();
+    const userId = snap.userId;
+    const fcm_token = snap.fcm_token;
+    const last_updated_at = snap.last_updated_at;
+    const isOutOfNetwork = last_updated_at < outOfNetworkThreshold;
+
+    if(isOutOfNetwork) {
+      const userRef = db.collection('users').doc(userId);
+      const res = await userRef.update({state: 1, updated_at: admin.firestore.Timestamp.now().toMillis()});
+      console.log('User is not in network');
+    }
+
+    const filteredTokens = [fcm_token];
+    if (filteredTokens.length > 0) {
+        const payload = {
+            tokens: filteredTokens,
+            data: {
+                userId: userId,
+                type: 'updateState'
+            }
+        };
+
+        admin.messaging().sendMulticast(payload).then((response) => {
+            console.log("Successfully sent message:", response);
+            return {
+                success: true
+            };
+        }).catch((error) => {
+            console.log("Failed to send message:", error.code);
+            return {
+                error: error.code
+            };
+        });
+    }
+});
 

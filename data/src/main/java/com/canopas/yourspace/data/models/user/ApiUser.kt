@@ -25,7 +25,7 @@ data class ApiUser(
     val state: Int = USER_STATE_UNKNOWN,
     val battery_pct: Float? = 0f,
     val created_at: Long? = System.currentTimeMillis(),
-    val updated_at: Long? = System.currentTimeMillis(),
+    val updated_at: Long? = System.currentTimeMillis()
 ) {
     @get:Exclude
     val fullName: String get() = "$first_name $last_name"
@@ -38,7 +38,6 @@ data class ApiUser(
 
     @get:Exclude
     val locationPermissionDenied: Boolean get() = state == USER_STATE_LOCATION_PERMISSION_DENIED
-
 }
 
 @Keep
@@ -51,7 +50,7 @@ data class ApiUserSession(
     val platform: Int = LOGIN_DEVICE_TYPE_ANDROID,
     val session_active: Boolean = true,
     val app_version: Long? = 0,
-    val created_at: Long? = System.currentTimeMillis(),
+    val created_at: Long? = System.currentTimeMillis()
 ) {
 
     @get:Exclude
