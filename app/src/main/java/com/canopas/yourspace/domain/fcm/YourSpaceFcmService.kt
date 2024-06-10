@@ -120,12 +120,13 @@ class YourSpaceFcmService : FirebaseMessagingService() {
                     NotificationGeofenceConst.NOTIFICATION_TYPE_GEOFENCE -> {
                         sendGeoFenceNotification(this, title, body, message.data)
                     }
-                    NotificationUpdateStateConst.NOTIFICATION_TYPE_UPDATE_STATE -> {
-                        Timber.d("Update state notification received")
-                        handleUpdateStateNotification()
-                    }
                 }
             }
+        }
+
+        if (message.data.isNotEmpty() && notification == null) {
+            Timber.d("Notification received for user state update")
+            handleUpdateStateNotification()
         }
     }
 

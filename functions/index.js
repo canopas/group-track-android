@@ -338,32 +338,40 @@ exports.serviceCheck = onSchedule("every 3 minutes", async (event) => {
       last_updated_at: doc.data().updated_at,
       created_at: admin.firestore.FieldValue.serverTimestamp()
     });
+    console.log('Scheduled stale data request added for user:', userId);
   });
 
   await batch.commit();
   console.log('Scheduled stale data requests added');
 });
 
-exports.userStateUpdateNotification = onDocumentCreated("staleData/{dataId}", async event => {
-    const db = admin.firestore();
-
-    const outOfNetworkThreshold = db.Timestamp.now().toMillis() - (40 * 60 * 1000);
-
+exports.updateUserStateNotification = onDocumentCreated("staleData/{dataId}", async event => {
     const snap = event.data.data();
-    const userId = snap.userId;
+    const userId = snap.user_id;
+
+    if(snap.fcm_token === undefined) {
+        console.log('fcm token is undefined');
+        return;
+    }
+
     const fcm_token = snap.fcm_token;
+
+    var userSnapShot = await admin.firestore().collection('users').doc(userId).get();
+    if (!userSnapShot.exists) {
+        console.log('User does not exist');
+        return;
+    }
+
+    const outOfNetworkThreshold = admin.firestore.Timestamp.now().toMillis() - (40 * 60 * 1000);
+
+    const db = admin.firestore();
     const last_updated_at = snap.last_updated_at;
     const isOutOfNetwork = last_updated_at < outOfNetworkThreshold;
 
     if(isOutOfNetwork) {
       const userRef = db.collection('users').doc(userId);
-      const res = await userRef.update({state: 1, updated_at: admin.firestore.Timestamp.now().toMillis()});
-      console.log('User is not in network');
-    }
-
-    if(fcm_token === undefined) {
-        console.log('fcm token is undefined');
-        return;
+      await userRef.update({state: 1, updated_at: admin.firestore.Timestamp.now().toMillis()});
+      console.log('User is not in network, updated state to 1:', userId);
     }
 
     const filteredTokens = [fcm_token];
@@ -377,12 +385,13 @@ exports.userStateUpdateNotification = onDocumentCreated("staleData/{dataId}", as
         };
 
         admin.messaging().sendMulticast(payload).then((response) => {
-            console.log("Successfully sent message:", response);
+            console.log("User:", userId);
+            console.log("Successfully sent state update notification:", response);
             return {
                 success: true
             };
         }).catch((error) => {
-            console.log("Failed to send message:", error.code);
+            console.log("Failed to send state update notification:", error.code);
             return {
                 error: error.code
             };

@@ -13,7 +13,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -114,7 +113,6 @@ class ApiUserService @Inject constructor(
     }
 
     suspend fun updateSessionState(id: String, state: Int) {
-        Timber.d("Updating session state to $state")
         userRef.document(id)
             .update("state", state, "updated_at", FieldValue.serverTimestamp()).await()
     }
