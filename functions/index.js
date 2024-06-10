@@ -325,6 +325,10 @@ exports.serviceCheck = onSchedule("every 3 minutes", async (event) => {
   console.log('usersSnapshot', usersSnapshot.docs.length);
 
   usersSnapshot.forEach(doc => {
+    if(doc.data().fcm_token === undefined) {
+        console.log('fcm token is undefined');
+        return;
+    }
     const userId = doc.data().id;
     const staleDataRef = db.collection('staleData').doc();
     batch.set(staleDataRef, {
@@ -355,6 +359,11 @@ exports.userStateUpdateNotification = onDocumentCreated("staleData/{dataId}", as
       const userRef = db.collection('users').doc(userId);
       const res = await userRef.update({state: 1, updated_at: admin.firestore.Timestamp.now().toMillis()});
       console.log('User is not in network');
+    }
+
+    if(fcm_token === undefined) {
+        console.log('fcm token is undefined');
+        return;
     }
 
     const filteredTokens = [fcm_token];
