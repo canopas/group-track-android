@@ -311,7 +311,7 @@ exports.sendGeoFenceNotification = onCall(async (request) => {
 
 });
 
-exports.serviceCheck = onSchedule("every 3 minutes", async (event) => {
+exports.serviceCheck = onSchedule("every 30 minutes", async (event) => {
    const staleThreshold = admin.firestore.Timestamp.now().toMillis() - (30 * 60 * 1000);
    console.log('staleThreshold', staleThreshold);
 
