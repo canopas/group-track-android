@@ -247,7 +247,7 @@ exports.sendGeoFenceNotification = onCall(async (request) => {
 
     const usersPromises = memberDocumentSnapshot.docs.map(async documentSnapshot => {
         const userId = documentSnapshot.data().user_id;
-        if (userId === eventBy) return null;
+        if (userId == eventBy) return null;
         const userSnapshot = await admin.firestore().collection('users').doc(userId).get();
         if (!userSnapshot.exists) {
             return null;
@@ -265,8 +265,8 @@ exports.sendGeoFenceNotification = onCall(async (request) => {
         const memberSettingsData = memberSettingsSnapshot.data();
 
         if (memberSettingsData.alert_enable &&
-            ((eventType === GEOFENCE_TRANSITION_ENTER && memberSettingsData.arrival_alert_for.includes(eventBy)) ||
-                (eventType === GEOFENCE_TRANSITION_EXIT && memberSettingsData.leave_alert_for.includes(eventBy)))) {
+            ((eventType == GEOFENCE_TRANSITION_ENTER && memberSettingsData.arrival_alert_for.includes(eventBy)) ||
+                (eventType == GEOFENCE_TRANSITION_EXIT && memberSettingsData.leave_alert_for.includes(eventBy)))) {
 
             return userSnapshot.data();
         } else {
@@ -318,7 +318,6 @@ exports.serviceCheck = onSchedule("every 30 minutes", async (event) => {
    const db = admin.firestore();
    const usersSnapshot = await db.collection('users')
       .where('updated_at', '<', staleThreshold)
-      .where('fcm_token', '!=', undefined)
       .get();
 
   const batch = db.batch();
