@@ -109,12 +109,12 @@ class ApiUserService @Inject constructor(
 
     suspend fun updateBatteryPct(userId: String, batteryPct: Float) {
         userRef.document(userId)
-            .update("battery_pct", batteryPct, "updated_at", System.currentTimeMillis()).await()
+            .update(mapOf("battery_pct" to batteryPct, "updated_at" to System.currentTimeMillis())).await()
     }
 
     suspend fun updateSessionState(id: String, state: Int) {
         userRef.document(id)
-            .update("state", state, "updated_at", System.currentTimeMillis()).await()
+            .update(mapOf("state" to state, "updated_at" to System.currentTimeMillis())).await()
     }
 
     suspend fun getUserSession(userId: String): ApiUserSession? {
