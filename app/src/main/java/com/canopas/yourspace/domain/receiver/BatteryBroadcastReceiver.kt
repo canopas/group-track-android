@@ -18,12 +18,11 @@ class BatteryBroadcastReceiver @Inject constructor(
 ) : BroadcastReceiver() {
 
     override fun onReceive(context: Context?, intent: Intent?) {
-        if (intent?.action == Intent.ACTION_BATTERY_OKAY || intent?.action == Intent.ACTION_BATTERY_LOW) {
+        if (intent?.action == Intent.ACTION_BATTERY_CHANGED) {
             CoroutineScope(Dispatchers.IO).launch {
                 try {
-                    val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
-                    val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
-                    val batteryPct = level / scale.toFloat() * 100
+                    val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, 0)
+                    val batteryPct = level.toFloat()
                     authService.updateBatteryStatus(batteryPct)
                 } catch (e: Exception) {
                     Timber.e(e, "Failed to update battery status")

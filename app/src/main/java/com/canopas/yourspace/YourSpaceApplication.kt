@@ -3,6 +3,8 @@ package com.canopas.yourspace
 import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Build
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -17,6 +19,7 @@ import com.canopas.yourspace.domain.fcm.FcmRegisterWorker
 import com.canopas.yourspace.domain.fcm.YOURSPACE_CHANNEL_GEOFENCE
 import com.canopas.yourspace.domain.fcm.YOURSPACE_CHANNEL_MESSAGES
 import com.canopas.yourspace.domain.fcm.YOURSPACE_CHANNEL_PLACES
+import com.canopas.yourspace.domain.receiver.BatteryBroadcastReceiver
 import com.google.android.libraries.places.api.Places
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dagger.hilt.android.HiltAndroidApp
@@ -55,9 +58,24 @@ class YourSpaceApplication :
         authService.addListener(this)
         setNotificationChannel()
 
+        registerBatteryBroadcastReceiver()
+
         if (userPreferences.currentUser != null) {
             geoFenceRepository.init()
         }
+    }
+
+    override fun onDestroy(owner: LifecycleOwner) {
+        super.onDestroy(owner)
+        unregisterReceiver(BatteryBroadcastReceiver(authService))
+    }
+
+    private fun registerBatteryBroadcastReceiver() {
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_BATTERY_CHANGED)
+        }
+        val batteryBroadcastReceiver = BatteryBroadcastReceiver(authService)
+        registerReceiver(batteryBroadcastReceiver, filter)
     }
 
     private fun setNotificationChannel() {
