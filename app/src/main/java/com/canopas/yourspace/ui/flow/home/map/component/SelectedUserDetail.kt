@@ -29,6 +29,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImagePainter
@@ -68,7 +69,7 @@ fun SelectedUserDetail(userInfo: UserInfo?, onDismiss: () -> Unit, onTapTimeline
         ) {
             MemberProfileView(user.profile_image, user.firstChar, userInfo.user)
 
-            MemberInfoView(userName = user.fullName, userInfo.location) { onTapTimeline() }
+            MemberInfoView(user = user, userInfo.location) { onTapTimeline() }
         }
 
         Row(
@@ -132,10 +133,24 @@ private fun MemberProfileView(profileUrl: String?, name: String, user: ApiUser?)
 }
 
 @Composable
-private fun MemberInfoView(userName: String, location: ApiLocation?, onTapTimeline: () -> Unit) {
+private fun MemberInfoView(user: ApiUser, location: ApiLocation?, onTapTimeline: () -> Unit) {
     val context = LocalContext.current
     var address by remember { mutableStateOf("") }
     val time = timeAgo(location?.created_at ?: 0)
+    val userStateText = if (user.noNetwork) {
+        stringResource(R.string.map_selected_user_item_no_network_state)
+    } else if (user.locationPermissionDenied) {
+        stringResource(R.string.map_selected_user_item_location_off_state)
+    } else {
+        stringResource(R.string.map_selected_user_item_online_state)
+    }
+    val userStateTextColor = if (user.noNetwork) {
+        AppTheme.colorScheme.textSecondary
+    } else if (user.locationPermissionDenied) {
+        AppTheme.colorScheme.alertColor
+    } else {
+        AppTheme.colorScheme.successColor
+    }
 
     LaunchedEffect(location) {
         withContext(Dispatchers.IO) {
@@ -145,11 +160,17 @@ private fun MemberInfoView(userName: String, location: ApiLocation?, onTapTimeli
     }
     Column(modifier = Modifier.padding(start = 16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = userName,
-                style = AppTheme.appTypography.subTitle1.copy(color = AppTheme.colorScheme.textPrimary),
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
+            Column {
+                Text(
+                    text = user.fullName,
+                    style = AppTheme.appTypography.subTitle1.copy(color = AppTheme.colorScheme.textPrimary),
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+                Text(
+                    text = userStateText,
+                    style = AppTheme.appTypography.caption.copy(color = userStateTextColor)
+                )
+            }
 
             Spacer(modifier = Modifier.weight(1f))
             ActionIconButton(
