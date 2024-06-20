@@ -3,6 +3,7 @@ const firebase_tools = require('firebase-tools');
 const {setGlobalOptions} = require("firebase-functions/v2");
 const {onCall, HttpsError} = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
+const {onSchedule} = require("firebase-functions/v2/scheduler");
 admin.initializeApp();
 setGlobalOptions({maxInstances: 5});
 
@@ -224,88 +225,177 @@ exports.sendNewPlaceNotification = onCall(async (request) => {
 
 exports.sendGeoFenceNotification = onCall(async (request) => {
 
-            var data = request.data;
-            const GEOFENCE_TRANSITION_ENTER = 1;
-            const GEOFENCE_TRANSITION_EXIT = 2;
+    var data = request.data;
+    const GEOFENCE_TRANSITION_ENTER = 1;
+    const GEOFENCE_TRANSITION_EXIT = 2;
 
-            const placeId = data.placeId;
-            const eventType = data.eventType;
-            const spaceId = data.spaceId;
-            const eventBy = data.eventBy;
-            const message = data.message;
+    const placeId = data.placeId;
+    const eventType = data.eventType;
+    const spaceId = data.spaceId;
+    const eventBy = data.eventBy;
+    const message = data.message;
 
-            var spaceSnapShot = await admin.firestore().collection('spaces').doc(spaceId).get();
-            if (!spaceSnapShot.exists) {
-                console.log('Space does not exist');
-                return;
+    var spaceSnapShot = await admin.firestore().collection('spaces').doc(spaceId).get();
+    if (!spaceSnapShot.exists) {
+        console.log('Space does not exist');
+        return;
+    }
+
+    const spaceData = spaceSnapShot.data();
+
+    const memberDocumentSnapshot = await admin.firestore().collection('spaces').doc(spaceId).collection("space_members").get();
+
+    const usersPromises = memberDocumentSnapshot.docs.map(async documentSnapshot => {
+        const userId = documentSnapshot.data().user_id;
+        if (userId == eventBy) return null;
+        const userSnapshot = await admin.firestore().collection('users').doc(userId).get();
+        if (!userSnapshot.exists) {
+            return null;
+        }
+
+        const userData = userSnapshot.data();
+        const memberSettingsDocRef = admin.firestore().collection('spaces').doc(spaceId)
+            .collection('space_places').doc(placeId)
+            .collection('place_settings_by_members').doc(userId);
+
+        const memberSettingsSnapshot = await memberSettingsDocRef.get();
+        if (!memberSettingsSnapshot.exists) {
+            return null;
+        }
+        const memberSettingsData = memberSettingsSnapshot.data();
+
+        if (memberSettingsData.alert_enable &&
+            ((eventType == GEOFENCE_TRANSITION_ENTER && memberSettingsData.arrival_alert_for.includes(eventBy)) ||
+                (eventType == GEOFENCE_TRANSITION_EXIT && memberSettingsData.leave_alert_for.includes(eventBy)))) {
+
+            return userSnapshot.data();
+        } else {
+            return null;
+        }
+
+    });
+
+    const users = (await Promise.all(usersPromises)).filter(user => user);
+
+    const filteredTokens = users
+        .filter(user => user.fcm_token !== undefined)
+        .map(member => member.fcm_token);
+
+    if (filteredTokens.length > 0) {
+        const payload = {
+            tokens: filteredTokens,
+            notification: {
+                title: spaceData.name,
+                body: message
+            },
+            data: {
+                spaceId: spaceId,
+                placeId: placeId,
+                eventBy: eventBy,
+                type: 'geofence'
             }
+        };
 
-            const spaceData = spaceSnapShot.data();
+        admin.messaging().sendMulticast(payload).then((response) => {
+            console.log("Successfully sent geofence notification:", response);
+            return {
+                success: true
+            };
+        }).catch((error) => {
+            console.log("Failed to send geofence notification:", error.code);
+            return {
+                error: error.code
+            };
+        });
+    }
 
-            const memberDocumentSnapshot = await admin.firestore().collection('spaces').doc(spaceId).collection("space_members").get();
+});
 
-            const usersPromises = memberDocumentSnapshot.docs.map(async documentSnapshot => {
-                    const userId = documentSnapshot.data().user_id;
-                    if (userId == eventBy) return null;
-                    const userSnapshot = await admin.firestore().collection('users').doc(userId).get();
-                    if (!userSnapshot.exists) {
-                        return null;
-                    }
+exports.serviceCheck = onSchedule("every 30 minutes", async (event) => {
+   const staleThreshold = admin.firestore.Timestamp.now().toMillis() - (30 * 60 * 1000);
+   console.log('staleThreshold', staleThreshold);
 
-                    const userData = userSnapshot.data();
-                    const memberSettingsDocRef = admin.firestore().collection('spaces').doc(spaceId)
-                        .collection('space_places').doc(placeId)
-                        .collection('place_settings_by_members').doc(userId);
+   const db = admin.firestore();
+   const usersSnapshot = await db.collection('users')
+      .where('updated_at', '<', staleThreshold)
+      .get();
 
-                    const memberSettingsSnapshot = await memberSettingsDocRef.get();
-                    if (!memberSettingsSnapshot.exists) {
-                        return null;
-                    }
-                    const memberSettingsData = memberSettingsSnapshot.data();
+  const batch = db.batch();
 
-                    if (memberSettingsData.alert_enable &&
-                        ((eventType == GEOFENCE_TRANSITION_ENTER && memberSettingsData.arrival_alert_for.includes(eventBy)) ||
-                            (eventType == GEOFENCE_TRANSITION_EXIT && memberSettingsData.leave_alert_for.includes(eventBy)))) {
+  console.log('usersSnapshot', usersSnapshot.docs.length);
 
-                            return userSnapshot.data();
-                        } else {
-                            return null;
-                        }
+  usersSnapshot.forEach(doc => {
+    if(doc.data().fcm_token === undefined) {
+        console.log('fcm token is undefined');
+        return;
+    }
+    const userId = doc.data().id;
+    const staleDataRef = db.collection('staleData').doc();
+    batch.set(staleDataRef, {
+      user_id: userId,
+      reason: 'scheduled',
+      fcm_token: doc.data().fcm_token,
+      last_updated_at: doc.data().updated_at,
+      created_at: admin.firestore.FieldValue.serverTimestamp()
+    });
+    console.log('Scheduled stale data request added for user:', userId);
+  });
 
-                    });
+  await batch.commit();
+  console.log('Scheduled stale data requests added');
+});
 
-                const users = (await Promise.all(usersPromises)).filter(user => user);
+exports.updateUserStateNotification = onDocumentCreated("staleData/{dataId}", async event => {
+    const snap = event.data.data();
+    const userId = snap.user_id;
 
-                const filteredTokens = users
-                    .filter(user => user.fcm_token !== undefined)
-                    .map(member => member.fcm_token);
+    if(snap.fcm_token === undefined) {
+        console.log('fcm token is undefined');
+        return;
+    }
 
-                if (filteredTokens.length > 0) {
-                    const payload = {
-                        tokens: filteredTokens,
-                        notification: {
-                            title: spaceData.name,
-                            body: message
-                        },
-                        data: {
-                            spaceId: spaceId,
-                            placeId: placeId,
-                            eventBy: eventBy,
-                            type: 'geofence'
-                        }
-                    };
+    const fcm_token = snap.fcm_token;
 
-                    admin.messaging().sendMulticast(payload).then((response) => {
-                        console.log("Successfully sent geofence notification:", response);
-                        return {
-                            success: true
-                        };
-                    }).catch((error) => {
-                        console.log("Failed to send geofence notification:", error.code);
-                        return {
-                            error: error.code
-                        };
-                    });
-                }
+    var userSnapShot = await admin.firestore().collection('users').doc(userId).get();
+    if (!userSnapShot.exists) {
+        console.log('User does not exist');
+        return;
+    }
 
-            });
+    const outOfNetworkThreshold = admin.firestore.Timestamp.now().toMillis() - (40 * 60 * 1000);
+
+    const db = admin.firestore();
+    const last_updated_at = snap.last_updated_at;
+    const isOutOfNetwork = last_updated_at < outOfNetworkThreshold;
+
+    if(isOutOfNetwork) {
+      const userRef = db.collection('users').doc(userId);
+      await userRef.update({state: 1, updated_at: admin.firestore.Timestamp.now().toMillis()});
+      console.log('User is not in network, updated state to 1:', userId);
+    }
+
+    const filteredTokens = [fcm_token];
+    if (filteredTokens.length > 0) {
+        const payload = {
+            tokens: filteredTokens,
+            data: {
+                userId: userId,
+                type: 'updateState'
+            }
+        };
+
+        admin.messaging().sendMulticast(payload).then((response) => {
+            console.log("User:", userId);
+            console.log("Successfully sent state update notification:", response);
+            return {
+                success: true
+            };
+        }).catch((error) => {
+            console.log("Failed to send state update notification:", error.code);
+            return {
+                error: error.code
+            };
+        });
+    }
+});
+

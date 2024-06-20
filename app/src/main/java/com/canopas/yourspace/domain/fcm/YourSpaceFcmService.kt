@@ -15,7 +15,13 @@ import coil.ImageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
 import com.canopas.yourspace.R
+import com.canopas.yourspace.data.models.user.USER_STATE_LOCATION_PERMISSION_DENIED
+import com.canopas.yourspace.data.models.user.USER_STATE_NO_NETWORK_OR_PHONE_OFF
+import com.canopas.yourspace.data.models.user.USER_STATE_UNKNOWN
+import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.storage.UserPreferences
+import com.canopas.yourspace.data.utils.isLocationPermissionGranted
+import com.canopas.yourspace.domain.utils.isNetWorkConnected
 import com.canopas.yourspace.ui.MainActivity
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
@@ -24,6 +30,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 const val YOURSPACE_CHANNEL_MESSAGES = "your_space_notification_channel_messages"
@@ -57,6 +64,10 @@ object NotificationGeofenceConst {
     const val KEY_EVENT_BY = "eventBy"
 }
 
+object NotificationUpdateStateConst {
+    const val NOTIFICATION_TYPE_UPDATE_STATE = "updateState"
+}
+
 @AndroidEntryPoint
 class YourSpaceFcmService : FirebaseMessagingService() {
     @Inject
@@ -64,6 +75,9 @@ class YourSpaceFcmService : FirebaseMessagingService() {
 
     @Inject
     lateinit var notificationManager: NotificationManager
+
+    @Inject
+    lateinit var authService: AuthService
 
     private val job = SupervisorJob()
     private val scope = CoroutineScope(Dispatchers.IO + job)
@@ -86,25 +100,49 @@ class YourSpaceFcmService : FirebaseMessagingService() {
             val type = message.data[KEY_NOTIFICATION_TYPE]
 
             if (title != null && body != null) {
-                if (type == NotificationChatConst.NOTIFICATION_TYPE_CHAT) {
-                    scope.launch {
-                        val bitmap =
-                            if (profile.isNullOrEmpty()) null else getTrackBitmapFromUrl(profile)
-                        sendNotification(
-                            this@YourSpaceFcmService,
-                            title,
-                            body,
-                            message.data,
-                            bitmap
-                        )
+                when (type) {
+                    NotificationChatConst.NOTIFICATION_TYPE_CHAT -> {
+                        scope.launch {
+                            val bitmap =
+                                if (profile.isNullOrEmpty()) null else getTrackBitmapFromUrl(profile)
+                            sendNotification(
+                                this@YourSpaceFcmService,
+                                title,
+                                body,
+                                message.data,
+                                bitmap
+                            )
+                        }
                     }
-                } else if (type == NotificationPlaceConst.NOTIFICATION_TYPE_NEW_PLACE_ADDED) {
-                    sendPlaceNotification(this, title, body, message.data)
-                } else if (type == NotificationGeofenceConst.NOTIFICATION_TYPE_GEOFENCE) {
-                    sendGeoFenceNotification(this, title, body, message.data)
+                    NotificationPlaceConst.NOTIFICATION_TYPE_NEW_PLACE_ADDED -> {
+                        sendPlaceNotification(this, title, body, message.data)
+                    }
+                    NotificationGeofenceConst.NOTIFICATION_TYPE_GEOFENCE -> {
+                        sendGeoFenceNotification(this, title, body, message.data)
+                    }
                 }
             }
         }
+
+        if (message.data.isNotEmpty() && notification == null) {
+            Timber.d("Notification received for user state update")
+            handleUpdateStateNotification()
+        }
+    }
+
+    private fun handleUpdateStateNotification() {
+        if (authService.currentUser == null) return
+
+        val connected = isNetWorkConnected()
+        val state = if (connected && isLocationPermissionGranted) {
+            USER_STATE_UNKNOWN
+        } else if (!connected) {
+            USER_STATE_NO_NETWORK_OR_PHONE_OFF
+        } else {
+            USER_STATE_LOCATION_PERMISSION_DENIED
+        }
+
+        scope.launch { authService.updateUserSessionState(state) }
     }
 
     private fun sendGeoFenceNotification(
