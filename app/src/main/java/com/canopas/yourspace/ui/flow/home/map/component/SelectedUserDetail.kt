@@ -162,6 +162,7 @@ private fun MemberInfoView(user: ApiUser, location: ApiLocation?, onTapTimeline:
             address = latLng.getAddress(context) ?: ""
         }
     }
+
     Column(modifier = Modifier.padding(start = 16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column {
