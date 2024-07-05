@@ -156,6 +156,7 @@ private fun MemberInfoView(user: ApiUser, location: ApiLocation?, onTapTimeline:
         if (location == null) {
             address = ""; return@LaunchedEffect
         }
+
         withContext(Dispatchers.IO) {
             val latLng = LatLng(location.latitude, location.longitude)
             address = latLng.getAddress(context) ?: ""
