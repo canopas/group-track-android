@@ -145,6 +145,9 @@
     <string name="map_user_item_location_updated_hours_ago">%s hr ago</string>
     <string name="map_user_item_location_updated_since_days">Since %s</string>
     <string name="map_user_item_location_unknown">Location not found</string>
+    <string name="map_selected_user_item_no_network_state">No network or phone off</string>
+    <string name="map_selected_user_item_location_off_state">Location off</string>
+    <string name="map_selected_user_item_online_state">Online</string>
 
     <string name="member_detail_location_history">Location History</string>
     <string name="member_detail_empty_location_history">No location history found!</string>
