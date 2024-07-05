@@ -107,22 +107,14 @@ class ApiUserService @Inject constructor(
         userRef.document(userId).update("space_ids", FieldValue.arrayUnion(spaceId)).await()
     }
 
-    suspend fun updateBatteryPct(userId: String, sessionId: String, batteryPct: Float) {
-        sessionRef(userId).document(sessionId).update(
-            "battery_pct",
-            batteryPct,
-            "updated_at",
-            FieldValue.serverTimestamp()
-        ).await()
+    suspend fun updateBatteryPct(userId: String, batteryPct: Float) {
+        userRef.document(userId)
+            .update(mapOf("battery_pct" to batteryPct, "updated_at" to System.currentTimeMillis())).await()
     }
 
-    suspend fun updateSessionState(id: String, id1: String, state: Int) {
-        sessionRef(id).document(id1).update(
-            "user_state",
-            state,
-            "updated_at",
-            FieldValue.serverTimestamp()
-        ).await()
+    suspend fun updateSessionState(id: String, state: Int) {
+        userRef.document(id)
+            .update(mapOf("state" to state, "updated_at" to System.currentTimeMillis())).await()
     }
 
     suspend fun getUserSession(userId: String): ApiUserSession? {
