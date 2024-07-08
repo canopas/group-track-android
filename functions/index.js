@@ -5,9 +5,12 @@ const {onCall, HttpsError} = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
 const {onSchedule} = require("firebase-functions/v2/scheduler");
 admin.initializeApp();
-setGlobalOptions({maxInstances: 5});
+setGlobalOptions({maxInstances: 5, region: "asia-south1"});
 
-exports.deleteuser = onDocumentDeleted("users/{userId}", async event => {
+exports.deleteuser = onDocumentDeleted({
+    document: "users/{userId}",
+    region: "asia-south1"
+}, async event => {
     const snap = event.data;
     var userId = snap.data().id;
 
@@ -43,7 +46,10 @@ exports.deleteuser = onDocumentDeleted("users/{userId}", async event => {
     }
 });
 
-exports.deleteMessages = onDocumentDeleted("space_thread/{threadId}", async event => {
+exports.deleteMessages = onDocumentDeleted({
+    document: "space_thread/{threadId}",
+    region: "asia-south1"
+}, async event => {
     const snap = event.data;
     var threadId = snap.data().id;
 
@@ -63,27 +69,10 @@ exports.deleteMessages = onDocumentDeleted("space_thread/{threadId}", async even
     }
 });
 
-exports.deletePlace = onDocumentDeleted("spaces/{spaceId}/space_places/{placeId}".async event => {
-    const snap = event.data;
-    var placeId = snap.data().id;
-
-     try {
-            await firebase_tools.firestore
-                .delete(`spaces/{spaceId}/space_places/{placeId}/place_settings_by_members`, {
-                    project: process.env.GCLOUD_PROJECT,
-                    recursive: true,
-                    yes: true,
-                    force: true
-                });
-
-            console.log('Place collections deleted successfully.', placeId);
-        } catch (error) {
-            console.error('Error deleting places settings:', error);
-            throw new Error('Failed to delete place settings');
-        }
-});
-
-exports.sendNotification = onDocumentCreated("space_threads/{threadId}/thread_messages/{messageId}", async event => {
+exports.sendNotification = onDocumentCreated({
+    document: "space_threads/{threadId}/thread_messages/{messageId}",
+    region: "asia-south1"
+}, async event => {
 
     const snap = event.data.data();
     const message = snap.message;
@@ -164,7 +153,7 @@ exports.sendNotification = onDocumentCreated("space_threads/{threadId}/thread_me
 
 });
 
-exports.sendSupportRequest = onCall(async (request) => {
+exports.sendSupportRequest = onCall({ region: "asia-south1"}, async (request) => {
 
     const db = admin.firestore();
     var data = request.data;
@@ -182,7 +171,7 @@ exports.sendSupportRequest = onCall(async (request) => {
 
 });
 
-exports.sendNewPlaceNotification = onCall(async (request) => {
+exports.sendNewPlaceNotification = onCall({ region: "asia-south1"}, async (request) => {
 
     var data = request.data;
     const spaceId = request.data.spaceId;
@@ -243,7 +232,7 @@ exports.sendNewPlaceNotification = onCall(async (request) => {
 });
 
 
-exports.sendGeoFenceNotification = onCall(async (request) => {
+exports.sendGeoFenceNotification = onCall({ region: "asia-south1"}, async (request) => {
 
     var data = request.data;
     const GEOFENCE_TRANSITION_ENTER = 1;
@@ -332,44 +321,47 @@ exports.sendGeoFenceNotification = onCall(async (request) => {
 });
 
 exports.serviceCheck = onSchedule("every 30 minutes", async (event) => {
-   const staleThreshold = admin.firestore.Timestamp.now().toMillis() - (30 * 60 * 1000);
-   console.log('staleThreshold', staleThreshold);
+    const staleThreshold = admin.firestore.Timestamp.now().toMillis() - (30 * 60 * 1000);
+    console.log('staleThreshold', staleThreshold);
 
-   const db = admin.firestore();
-   const usersSnapshot = await db.collection('users')
-      .where('updated_at', '<', staleThreshold)
-      .get();
+    const db = admin.firestore();
+    const usersSnapshot = await db.collection('users')
+        .where('updated_at', '<', staleThreshold)
+        .get();
 
-  const batch = db.batch();
+    const batch = db.batch();
 
-  console.log('usersSnapshot', usersSnapshot.docs.length);
+    console.log('usersSnapshot', usersSnapshot.docs.length);
 
-  usersSnapshot.forEach(doc => {
-    if(doc.data().fcm_token === undefined) {
-        console.log('fcm token is undefined');
-        return;
-    }
-    const userId = doc.data().id;
-    const staleDataRef = db.collection('staleData').doc();
-    batch.set(staleDataRef, {
-      user_id: userId,
-      reason: 'scheduled',
-      fcm_token: doc.data().fcm_token,
-      last_updated_at: doc.data().updated_at,
-      created_at: admin.firestore.FieldValue.serverTimestamp()
+    usersSnapshot.forEach(doc => {
+        if (doc.data().fcm_token === undefined) {
+            console.log('fcm token is undefined');
+            return;
+        }
+        const userId = doc.data().id;
+        const staleDataRef = db.collection('staleData').doc();
+        batch.set(staleDataRef, {
+            user_id: userId,
+            reason: 'scheduled',
+            fcm_token: doc.data().fcm_token,
+            last_updated_at: doc.data().updated_at,
+            created_at: admin.firestore.FieldValue.serverTimestamp()
+        });
+        console.log('Scheduled stale data request added for user:', userId);
     });
-    console.log('Scheduled stale data request added for user:', userId);
-  });
 
-  await batch.commit();
-  console.log('Scheduled stale data requests added');
+    await batch.commit();
+    console.log('Scheduled stale data requests added');
 });
 
-exports.updateUserStateNotification = onDocumentCreated("staleData/{dataId}", async event => {
+exports.updateUserStateNotification = onDocumentCreated({
+    document: "staleData/{dataId}",
+    region: "asia-south1"
+}, async event => {
     const snap = event.data.data();
     const userId = snap.user_id;
 
-    if(snap.fcm_token === undefined) {
+    if (snap.fcm_token === undefined) {
         console.log('fcm token is undefined');
         return;
     }
@@ -388,10 +380,13 @@ exports.updateUserStateNotification = onDocumentCreated("staleData/{dataId}", as
     const last_updated_at = snap.last_updated_at;
     const isOutOfNetwork = last_updated_at < outOfNetworkThreshold;
 
-    if(isOutOfNetwork) {
-      const userRef = db.collection('users').doc(userId);
-      await userRef.update({state: 1, updated_at: admin.firestore.Timestamp.now().toMillis()});
-      console.log('User is not in network, updated state to 1:', userId);
+    if (isOutOfNetwork) {
+        const userRef = db.collection('users').doc(userId);
+        await userRef.update({
+            state: 1,
+            updated_at: admin.firestore.Timestamp.now().toMillis()
+        });
+        console.log('User is not in network, updated state to 1:', userId);
     }
 
     const filteredTokens = [fcm_token];
@@ -418,4 +413,3 @@ exports.updateUserStateNotification = onDocumentCreated("staleData/{dataId}", as
         });
     }
 });
-
