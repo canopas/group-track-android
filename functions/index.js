@@ -174,6 +174,8 @@ exports.sendSupportRequest = onCall({ region: "asia-south1"}, async (request) =>
 exports.sendNewPlaceNotification = onCall({ region: "asia-south1"}, async (request) => {
 
     var data = request.data;
+    console.log('check data ${data}');
+    
     const spaceId = request.data.spaceId;
     const placeName = request.data.placeName;
     const createdBy = request.data.createdBy;
