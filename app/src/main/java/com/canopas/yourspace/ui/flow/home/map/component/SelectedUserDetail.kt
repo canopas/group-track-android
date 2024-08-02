@@ -46,6 +46,7 @@ import com.canopas.yourspace.ui.component.UserBatteryStatus
 import com.canopas.yourspace.ui.theme.AppTheme
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
 @Composable
@@ -159,6 +160,7 @@ private fun MemberInfoView(user: ApiUser, location: ApiLocation?, onTapTimeline:
 
         withContext(Dispatchers.IO) {
             val latLng = LatLng(location.latitude, location.longitude)
+            delay(500)
             address = latLng.getAddress(context) ?: ""
         }
     }

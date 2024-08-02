@@ -13,6 +13,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -27,7 +28,12 @@ class ApiUserService @Inject constructor(
         userRef.document(userId).collection(Config.FIRESTORE_COLLECTION_USER_SESSIONS)
 
     suspend fun getUser(userId: String): ApiUser? {
-        return userRef.document(userId).get().await().toObject(ApiUser::class.java)
+        return try {
+            userRef.document(userId).get().await().toObject(ApiUser::class.java)
+        } catch (e: Exception) {
+            Timber.e(e, "Error while getting user")
+            null
+        }
     }
 
     suspend fun getUserFlow(userId: String) =
@@ -109,7 +115,8 @@ class ApiUserService @Inject constructor(
 
     suspend fun updateBatteryPct(userId: String, batteryPct: Float) {
         userRef.document(userId)
-            .update(mapOf("battery_pct" to batteryPct, "updated_at" to System.currentTimeMillis())).await()
+            .update(mapOf("battery_pct" to batteryPct, "updated_at" to System.currentTimeMillis()))
+            .await()
     }
 
     suspend fun updateSessionState(id: String, state: Int) {
