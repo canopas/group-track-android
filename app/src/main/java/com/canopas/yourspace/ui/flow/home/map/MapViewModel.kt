@@ -92,7 +92,7 @@ class MapViewModel @Inject constructor(
                 _state.emit(
                     _state.value.copy(
                         members = members,
-                        defaultCameraPosition = currentCameraPosition,
+                        defaultCameraPosition = currentCameraPosition
                     )
                 )
                 if (members.isEmpty() && _state.value.showUserDetails) {
