@@ -52,6 +52,7 @@ class MapViewModel @Inject constructor(
                 locationJob?.cancel()
                 placeJob?.cancel()
                 dismissMemberDetail()
+                _state.emit(_state.value.copy(enabledAddPlaces = spaceId.isNotEmpty()))
                 if (spaceId.isNotEmpty()) {
                     listenMemberLocation()
                     listenPlaces()
@@ -173,5 +174,6 @@ data class MapScreenState(
     val selectedUser: UserInfo? = null,
     val showUserDetails: Boolean = false,
     val loadingInviteCode: Boolean = false,
+    val enabledAddPlaces: Boolean = true,
     val error: Exception? = null
 )

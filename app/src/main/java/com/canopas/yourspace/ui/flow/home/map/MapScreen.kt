@@ -147,12 +147,14 @@ fun MapScreen() {
                         )
                     }
                 }
-                MapControlBtn(
-                    icon = R.drawable.ic_geofence,
-                    containerColor = AppTheme.colorScheme.primary,
-                    contentColor = AppTheme.colorScheme.onPrimary
-                ) {
-                    viewModel.navigateToPlaces()
+                if (state.enabledAddPlaces) {
+                    MapControlBtn(
+                        icon = R.drawable.ic_geofence,
+                        containerColor = AppTheme.colorScheme.primary,
+                        contentColor = AppTheme.colorScheme.onPrimary
+                    ) {
+                        viewModel.navigateToPlaces()
+                    }
                 }
             }
             val selectedUser = state.selectedUser

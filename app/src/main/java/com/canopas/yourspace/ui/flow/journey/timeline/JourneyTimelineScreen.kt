@@ -124,18 +124,18 @@ private fun TimelineContent(modifier: Modifier) {
     }
 
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        JourneyList(
-            appending = state.appending,
-            journeys = state.groupedLocation,
-            onScrollToBottom = viewModel::loadMoreLocations,
-            onAddPlaceClicked = viewModel::addPlace,
-            showJourneyDetails = viewModel::showJourneyDetails
-        )
-
         if (state.isLoading) {
             AppProgressIndicator()
         } else if (state.groupedLocation.isEmpty()) {
             EmptyHistory()
+        } else {
+            JourneyList(
+                appending = state.appending,
+                journeys = state.groupedLocation,
+                onScrollToBottom = viewModel::loadMoreLocations,
+                onAddPlaceClicked = viewModel::addPlace,
+                showJourneyDetails = viewModel::showJourneyDetails
+            )
         }
     }
 }
@@ -180,7 +180,6 @@ private fun JourneyList(
                 }
             )
         }
-        //   }
 
         if (appending) {
             item {

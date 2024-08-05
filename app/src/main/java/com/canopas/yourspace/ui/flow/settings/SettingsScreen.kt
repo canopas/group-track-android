@@ -120,11 +120,11 @@ private fun SettingsContent(modifier: Modifier) {
             )
         }
 
-        SpaceSettingsContent(state.spaces, state.loadingSpaces) {
-            viewModel.navigateToSpaceSettings(it)
+        if (state.spaces.isNotEmpty()) {
+            SpaceSettingsContent(state.spaces, state.loadingSpaces) {
+                viewModel.navigateToSpaceSettings(it)
+            }
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
 
         OtherSettingsContent(viewModel)
 
@@ -201,7 +201,11 @@ private fun SpaceSettingsContent(
     loading: Boolean,
     openSpaceSettings: (String) -> Unit
 ) {
-    Row(modifier = Modifier.fillMaxWidth()) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 24.dp)
+    ) {
         Text(
             text = stringResource(id = R.string.setting_spaces),
             style = AppTheme.appTypography.subTitle1,
