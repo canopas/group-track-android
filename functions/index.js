@@ -69,6 +69,24 @@ exports.deleteMessages = onDocumentDeleted({
     }
 });
 
+exports.deletePlace = onDocumentDeleted("spaces/{spaceId}/space_places/{placeId}".async event => {
+    const snap = event.data;
+    var placeId = snap.data().id;
+     try {
+            await firebase_tools.firestore
+                .delete(`spaces/{spaceId}/space_places/{placeId}/place_settings_by_members`, {
+                    project: process.env.GCLOUD_PROJECT,
+                    recursive: true,
+                    yes: true,
+                    force: true
+                });
+            console.log('Place collections deleted successfully.', placeId);
+        } catch (error) {
+            console.error('Error deleting places settings:', error);
+            throw new Error('Failed to delete place settings');
+        }
+});
+
 exports.sendNotification = onDocumentCreated({
     document: "space_threads/{threadId}/thread_messages/{messageId}",
     region: "asia-south1"
