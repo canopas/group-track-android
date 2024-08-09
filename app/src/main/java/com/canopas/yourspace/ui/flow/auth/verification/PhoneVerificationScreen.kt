@@ -164,7 +164,6 @@ private fun TitleContent() {
     )
 }
 
-
 @Composable
 private fun NextBtn() {
     val keyboardController = LocalSoftwareKeyboardController.current
