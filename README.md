@@ -63,7 +63,8 @@ For more information, refer to the [Firebase documentation](https://firebase.goo
 
 YourSpace uses the following Firebase services, Make sure you enable them in your Firebase project:
 - Authentication (Phone, Google)
-- Firestore (To store user data)
+- Firestore
+- Push notification
 - Cloud Functions
 </details>
 
