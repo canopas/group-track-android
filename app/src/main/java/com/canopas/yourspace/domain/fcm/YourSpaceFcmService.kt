@@ -68,6 +68,10 @@ object NotificationUpdateStateConst {
     const val NOTIFICATION_TYPE_UPDATE_STATE = "updateState"
 }
 
+object NotificationNetworkStatusConst {
+    const val NOTIFICATION_TYPE_NETWORK_CHECK = "network_status"
+}
+
 @AndroidEntryPoint
 class YourSpaceFcmService : FirebaseMessagingService() {
     @Inject
@@ -106,27 +110,29 @@ class YourSpaceFcmService : FirebaseMessagingService() {
                             val bitmap =
                                 if (profile.isNullOrEmpty()) null else getTrackBitmapFromUrl(profile)
                             sendNotification(
-                                this@YourSpaceFcmService,
-                                title,
-                                body,
-                                message.data,
-                                bitmap
+                                context = this@YourSpaceFcmService,
+                                title = title,
+                                body = body,
+                                data = message.data,
+                                profile = bitmap
                             )
                         }
                     }
+
                     NotificationPlaceConst.NOTIFICATION_TYPE_NEW_PLACE_ADDED -> {
                         sendPlaceNotification(this, title, body, message.data)
                     }
+
                     NotificationGeofenceConst.NOTIFICATION_TYPE_GEOFENCE -> {
                         sendGeoFenceNotification(this, title, body, message.data)
                     }
+
+                    NotificationNetworkStatusConst.NOTIFICATION_TYPE_NETWORK_CHECK -> {
+                        Timber.d("Notification received for user state update")
+                        handleUpdateStateNotification()
+                    }
                 }
             }
-        }
-
-        if (message.data.isNotEmpty() && notification == null) {
-            Timber.d("Notification received for user state update")
-            handleUpdateStateNotification()
         }
     }
 
