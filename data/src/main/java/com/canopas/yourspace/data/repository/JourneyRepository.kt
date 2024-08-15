@@ -176,7 +176,6 @@ class JourneyRepository @Inject constructor(
         extractedLocation: Location?,
         lastKnownJourney: LocationJourney
     ) {
-
         if (extractedLocation == null || extractedLocation.latitude.isNaN() || extractedLocation.longitude.isNaN()) {
             Timber.tag("LAT_LONG").d("saveJourneyForMovingUser: Invalid extracted location or location is null")
             return
@@ -198,7 +197,6 @@ class JourneyRepository @Inject constructor(
                 routeDuration = extractedLocation.time - lastKnownJourney.update_at!!
             )
         } else {
-
             val distance = lastKnownJourney.toLocationFromMovingJourney().distanceTo(
                 extractedLocation
             ).toDouble()
@@ -315,7 +313,6 @@ class JourneyRepository @Inject constructor(
      * Calculate distance between two locations
      * */
     private fun distanceBetween(location1: Location?, location2: Location?): Float {
-
         if (location1 == null || location2 == null) {
             Timber.tag("LAT_LONG").d("distanceBetween: One of the locations is null")
             return 0f
