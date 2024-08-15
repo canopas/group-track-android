@@ -198,6 +198,7 @@ class JourneyRepository @Inject constructor(
                 routeDuration = extractedLocation.time - lastKnownJourney.update_at!!
             )
         } else {
+
             val distance = lastKnownJourney.toLocationFromMovingJourney().distanceTo(
                 extractedLocation
             ).toDouble()
