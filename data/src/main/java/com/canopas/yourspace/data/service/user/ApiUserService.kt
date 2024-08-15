@@ -159,6 +159,7 @@ class ApiUserService @Inject constructor(
                     onStatusChecked(it)
                 }
             } catch (e: Exception) {
+                Timber.e(e, "Failed to check network status")
                 onStatusChecked(false)
             }
         }

@@ -440,14 +440,14 @@ exports.networkStatusCheck = onCall(async (request) => {
     const userSnapshot = await db.collection('users').doc(userId).get();
     if (!userSnapshot.exists) {
         console.log('User not found');
-        return;
+        return {error: 'User not found' };
     }
 
     const user = userSnapshot.data();
 
     if (user.fcm_token === undefined) {
         console.log('User does not have FCM token');
-        return;
+        return {error: 'FCM token not found' };
     }
 
     const payload = {
@@ -462,15 +462,12 @@ exports.networkStatusCheck = onCall(async (request) => {
         }
     };
 
-    admin.messaging().send(payload).then((response) => {
+    try {
+        const response = await admin.messaging().send(payload);
         console.log("Successfully sent network status message:", response);
-        return {
-            success: true
-        };
-    }).catch((error) => {
+        return { success: true };
+    }catch (error){
         console.log("Failed to send network status message:", error.code);
-        return {
-            error: error.code
-        };
-    });
+        return { error: error.code };
+    }
 });
