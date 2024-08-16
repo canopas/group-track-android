@@ -33,26 +33,15 @@ class JourneyRepository @Inject constructor(
 
     suspend fun saveLocationJourney(
         userState: Int,
-        extractedLocation: Location?,
+        extractedLocation: Location,
         userId: String
     ) {
         try {
             val locationData = getLocationData(userId)
             val lastJourney = getLastJourneyLocation(userId, locationData)
 
-            // Check if extractedLocation is null
-            if (extractedLocation == null) {
-                Timber.tag("LAT_LONG").d("saveLocationJourney: Extracted location is null")
-                return
-            }
-
             when {
                 lastJourney == null -> {
-                    if (extractedLocation.latitude.isNaN() || extractedLocation.longitude.isNaN()) {
-                        Timber.tag("LAT_LONG").d("saveLocationJourney: Invalid coordinates")
-                        return
-                    }
-
                     journeyService.saveCurrentJourney(
                         userId = userId,
                         fromLatitude = extractedLocation.latitude,
@@ -61,7 +50,6 @@ class JourneyRepository @Inject constructor(
                 }
 
                 userState == UserState.STEADY.value -> {
-                    Timber.tag("LAT_LONG").d("saveLocationJourney: Steady User")
                     saveJourneyForSteadyUser(
                         currentUserId = userId,
                         extractedLocation = extractedLocation,
@@ -173,14 +161,9 @@ class JourneyRepository @Inject constructor(
      * */
     private suspend fun saveJourneyForMovingUser(
         currentUserId: String,
-        extractedLocation: Location?,
+        extractedLocation: Location,
         lastKnownJourney: LocationJourney
     ) {
-        if (extractedLocation == null || extractedLocation.latitude.isNaN() || extractedLocation.longitude.isNaN()) {
-            Timber.tag("LAT_LONG").d("saveJourneyForMovingUser: Invalid extracted location or location is null")
-            return
-        }
-
         if (lastKnownJourney.isSteadyLocation()) {
             val updatedRoutes = lastKnownJourney.routes.toMutableList()
             updatedRoutes.add(extractedLocation.toRoute())
@@ -317,7 +300,6 @@ class JourneyRepository @Inject constructor(
             Timber.tag("LAT_LONG").d("distanceBetween: One of the locations is null")
             return 0f
         }
-
         val distance = FloatArray(1)
         Location.distanceBetween(
             location1.latitude,
@@ -339,3 +321,5 @@ fun List<ApiLocation>.isMoving(currentLocation: Location): Boolean {
         distance > MIN_DISTANCE
     }
 }
+
+
