@@ -321,5 +321,3 @@ fun List<ApiLocation>.isMoving(currentLocation: Location): Boolean {
         distance > MIN_DISTANCE
     }
 }
-
-
