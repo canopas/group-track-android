@@ -295,11 +295,7 @@ class JourneyRepository @Inject constructor(
     /**
      * Calculate distance between two locations
      * */
-    private fun distanceBetween(location1: Location?, location2: Location?): Float {
-        if (location1 == null || location2 == null) {
-            Timber.tag("LAT_LONG").d("distanceBetween: One of the locations is null")
-            return 0f
-        }
+    private fun distanceBetween(location1: Location, location2: Location): Float {
         val distance = FloatArray(1)
         Location.distanceBetween(
             location1.latitude,
