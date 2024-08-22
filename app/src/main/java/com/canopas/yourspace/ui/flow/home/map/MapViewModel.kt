@@ -170,6 +170,12 @@ class MapViewModel @Inject constructor(
             ).path
         )
     }
+
+    fun onMapLoaded() {
+        viewModelScope.launch(appDispatcher.IO) {
+            _state.emit(_state.value.copy(isMapLoaded = true))
+        }
+    }
 }
 
 data class MapScreenState(
@@ -181,5 +187,6 @@ data class MapScreenState(
     val showUserDetails: Boolean = false,
     val loadingInviteCode: Boolean = false,
     val enabledAddPlaces: Boolean = true,
+    val isMapLoaded: Boolean = false,
     val error: Exception? = null
 )

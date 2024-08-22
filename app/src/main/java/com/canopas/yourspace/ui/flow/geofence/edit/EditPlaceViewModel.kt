@@ -194,6 +194,12 @@ class EditPlaceViewModel @Inject constructor(
     fun resetErrorState() {
         _state.value = _state.value.copy(error = null)
     }
+
+    fun onMapLoaded() {
+        viewModelScope.launch(appDispatcher.IO) {
+            _state.emit(state.value.copy(isMapLoaded = true))
+        }
+    }
 }
 
 data class EditPlaceState(
@@ -208,5 +214,6 @@ data class EditPlaceState(
     val saving: Boolean = false,
     val deleting: Boolean = false,
     val showDeletePlaceConfirmation: Boolean = false,
+    val isMapLoaded: Boolean = false,
     val error: String? = null
 )

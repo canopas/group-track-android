@@ -1,10 +1,12 @@
 package com.canopas.yourspace.ui.flow.journey.components
 
-import android.location.Location
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
@@ -14,6 +16,7 @@ import com.canopas.yourspace.data.models.location.toRoute
 import com.canopas.yourspace.ui.theme.AppTheme
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMapOptions
+import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.Dash
 import com.google.android.gms.maps.model.Gap
 import com.google.android.gms.maps.model.LatLng
@@ -40,15 +43,8 @@ fun JourneyMap(
 ) {
     val fromLatLang = LatLng(location?.from_latitude ?: 0.0, location?.from_longitude ?: 0.0)
     val toLatLang = LatLng(location?.to_latitude ?: 0.0, location?.to_longitude ?: 0.0)
-
-    val fromLocation = Location("").apply {
-        latitude = fromLatLang.latitude
-        longitude = fromLatLang.longitude
-    }
-
-    val toLocation = Location("").apply {
-        latitude = toLatLang.latitude
-        longitude = toLatLang.longitude
+    var isMapLoaded by remember {
+        mutableStateOf(false)
     }
 
     val isDarkMode = isSystemInDarkTheme()
@@ -63,20 +59,27 @@ fun JourneyMap(
         )
     }
 
-    val cameraPositionState = rememberCameraPositionState()
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(fromLatLang, 15f)
+    }
 
-    LaunchedEffect(key1 = location) {
-        if (location == null) return@LaunchedEffect
-        val boundsBuilder = LatLngBounds.builder()
-            .apply {
-                include(fromLatLang)
-                location.toRoute().forEach { latLng ->
-                    include(latLng)
-                }
-                include(toLatLang)
-            }.build()
-        val update = CameraUpdateFactory.newLatLngBounds(boundsBuilder, 50)
-        cameraPositionState.move(update)
+    LaunchedEffect(key1 = location, isMapLoaded) {
+        if (isMapLoaded) {
+            try {
+                val boundsBuilder = LatLngBounds.builder()
+                    .apply {
+                        include(fromLatLang)
+                        location?.toRoute()?.forEach { latLng ->
+                            include(latLng)
+                        }
+                        include(toLatLang)
+                    }.build()
+                val update = CameraUpdateFactory.newLatLngBounds(boundsBuilder, 50)
+                cameraPositionState.move(update)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
     GoogleMap(
@@ -99,7 +102,10 @@ fun JourneyMap(
             zoomGesturesEnabled = gestureEnable,
             scrollGesturesEnabledDuringRotateOrZoom = gestureEnable,
             indoorLevelPickerEnabled = gestureEnable
-        )
+        ),
+        onMapLoaded = {
+            isMapLoaded = true
+        }
     ) {
         location?.let {
             LocationMarker(fromLatLang, anchor, fromMarkerContent)

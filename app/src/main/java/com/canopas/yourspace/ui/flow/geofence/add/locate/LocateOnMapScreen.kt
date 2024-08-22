@@ -67,13 +67,15 @@ fun LocateOnMapScreen() {
         position = CameraPosition.fromLatLngZoom(userLocation, DEFAULT_CAMERA_ZOOM)
     }
 
-    LaunchedEffect(userLocation) {
-        cameraPositionState.animate(
-            CameraUpdateFactory.newLatLngZoom(
-                userLocation,
-                DEFAULT_CAMERA_ZOOM
+    LaunchedEffect(userLocation, state.isMapLoaded) {
+        if (state.isMapLoaded) {
+            cameraPositionState.animate(
+                CameraUpdateFactory.newLatLngZoom(
+                    userLocation,
+                    DEFAULT_CAMERA_ZOOM
+                )
             )
-        )
+        }
     }
 
     Scaffold(
@@ -161,17 +163,19 @@ private fun LocateOnMapContent(
             )
         }
         Spacer(modifier = Modifier.height(16.dp))
-        MapView(Modifier.fillMaxSize(), cameraPositionState, userLocation)
+        MapView(Modifier.fillMaxSize(), viewModel, cameraPositionState, userLocation)
     }
 }
 
 @Composable
 private fun MapView(
     modifier: Modifier,
+    viewModel: LocateOnMapViewModel,
     cameraPositionState: CameraPositionState,
     userLocation: LatLng
 ) {
     val scope = rememberCoroutineScope()
+    val state by viewModel.state.collectAsState()
     val relocate by remember {
         derivedStateOf {
             val distance = cameraPositionState.position.target.distanceTo(userLocation)
@@ -200,7 +204,10 @@ private fun MapView(
                 myLocationButtonEnabled = false,
                 compassEnabled = false,
                 mapToolbarEnabled = false
-            )
+            ),
+            onMapLoaded = {
+                viewModel.onMapLoaded()
+            }
         )
 
         MapControlBtn(
@@ -210,13 +217,15 @@ private fun MapView(
             icon = R.drawable.ic_relocate,
             show = relocate
         ) {
-            scope.launch {
-                cameraPositionState.animate(
-                    CameraUpdateFactory.newLatLngZoom(
-                        userLocation,
-                        DEFAULT_CAMERA_ZOOM
+            if (state.isMapLoaded) {
+                scope.launch {
+                    cameraPositionState.animate(
+                        CameraUpdateFactory.newLatLngZoom(
+                            userLocation,
+                            DEFAULT_CAMERA_ZOOM
+                        )
                     )
-                )
+                }
             }
         }
 
