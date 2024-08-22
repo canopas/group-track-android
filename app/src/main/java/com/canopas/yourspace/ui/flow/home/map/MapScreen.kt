@@ -115,14 +115,16 @@ fun MapScreen() {
             }
     }
 
-    LaunchedEffect(userLocation) {
-        val location = state.selectedUser?.location
-        cameraPositionState.animate(
-            CameraUpdateFactory.newLatLngZoom(
-                userLocation,
-                if (location != null) DEFAULT_CAMERA_ZOOM_FOR_SELECTED_USER else defaultCameraZoom
+    LaunchedEffect(userLocation, state.isMapLoaded) {
+        if (state.isMapLoaded) {
+            val location = state.selectedUser?.location
+            cameraPositionState.animate(
+                CameraUpdateFactory.newLatLngZoom(
+                    userLocation,
+                    if (location != null) DEFAULT_CAMERA_ZOOM_FOR_SELECTED_USER else defaultCameraZoom
+                )
             )
-        )
+        }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -139,12 +141,14 @@ fun MapScreen() {
                     show = relocate
                 ) {
                     scope.launch {
-                        cameraPositionState.animate(
-                            CameraUpdateFactory.newLatLngZoom(
-                                userLocation,
-                                DEFAULT_CAMERA_ZOOM
+                        if (state.isMapLoaded) {
+                            cameraPositionState.animate(
+                                CameraUpdateFactory.newLatLngZoom(
+                                    userLocation,
+                                    DEFAULT_CAMERA_ZOOM
+                                )
                             )
-                        )
+                        }
                     }
                 }
                 if (state.enabledAddPlaces) {
@@ -322,7 +326,10 @@ private fun MapView(
             myLocationButtonEnabled = false,
             compassEnabled = false,
             mapToolbarEnabled = false
-        )
+        ),
+        onMapLoaded = {
+            viewModel.onMapLoaded()
+        }
     ) {
         if (state.members.isNotEmpty()) {
             state.members.filter { it.location != null && it.isLocationEnable }.forEach {

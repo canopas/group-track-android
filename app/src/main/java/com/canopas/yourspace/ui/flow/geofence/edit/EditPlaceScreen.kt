@@ -198,6 +198,7 @@ private fun EditPlaceContent() {
                 place.radius,
                 cameraPositionState,
                 enabled = state.isAdmin,
+                viewModel,
                 viewModel::onPlaceLocationChanged
             )
 
@@ -426,19 +427,23 @@ private fun MapView(
     placeRadius: Double,
     cameraPositionState: CameraPositionState,
     enabled: Boolean,
+    viewModel: EditPlaceViewModel,
     onPlaceLocationChanged: (LatLng) -> Unit
 ) {
     LaunchedEffect(key1 = cameraPositionState.position.target) {
         onPlaceLocationChanged(cameraPositionState.position.target)
     }
 
-    LaunchedEffect(placeRadius) {
+    val state by viewModel.state.collectAsState()
+    LaunchedEffect(placeRadius, state.isMapLoaded) {
         snapshotFlow { placeRadius }
             .distinctUntilChanged()
             .collect {
                 delay(500)
-                val newBound = toBounds(cameraPositionState.position.target, it)
-                cameraPositionState.animate(CameraUpdateFactory.newLatLngBounds(newBound, 50))
+                if (state.isMapLoaded) {
+                    val newBound = toBounds(cameraPositionState.position.target, it)
+                    cameraPositionState.animate(CameraUpdateFactory.newLatLngBounds(newBound, 50))
+                }
             }
     }
 
@@ -464,7 +469,10 @@ private fun MapView(
                 myLocationButtonEnabled = false,
                 compassEnabled = false,
                 mapToolbarEnabled = false
-            )
+            ),
+            onMapLoaded = {
+                viewModel.onMapLoaded()
+            }
         )
         PlaceMarker(placeRadius, cameraPositionState)
     }
