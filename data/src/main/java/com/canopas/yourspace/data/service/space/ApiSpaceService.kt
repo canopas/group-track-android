@@ -11,8 +11,11 @@ import com.canopas.yourspace.data.utils.Config
 import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_SPACES
 import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_SPACE_MEMBERS
 import com.canopas.yourspace.data.utils.snapshotFlow
+import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.tasks.await
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -24,8 +27,14 @@ class ApiSpaceService @Inject constructor(
     private val placeService: ApiPlaceService
 ) {
     private val spaceRef = db.collection(FIRESTORE_COLLECTION_SPACES)
-    private fun spaceMemberRef(spaceId: String) =
-        spaceRef.document(spaceId).collection(Config.FIRESTORE_COLLECTION_SPACE_MEMBERS)
+    private fun spaceMemberRef(spaceId: String): CollectionReference? {
+        return try {
+            spaceRef.document(spaceId).collection(Config.FIRESTORE_COLLECTION_SPACE_MEMBERS)
+        } catch (e: Exception) {
+            Timber.e(e, "Error while getting space member reference")
+            null
+        }
+    }
 
     suspend fun createSpace(spaceName: String): String {
         val docRef = spaceRef.document()
@@ -39,7 +48,8 @@ class ApiSpaceService @Inject constructor(
 
     suspend fun joinSpace(spaceId: String, role: Int = SPACE_MEMBER_ROLE_MEMBER) {
         val userId = authService.currentUser?.id ?: ""
-        spaceMemberRef(spaceId)
+        spaceMemberRef(spaceId) ?: return
+        spaceMemberRef(spaceId)!!
             .document(userId).also {
                 val member = ApiSpaceMember(
                     space_id = spaceId,
@@ -54,14 +64,16 @@ class ApiSpaceService @Inject constructor(
     }
 
     suspend fun enableLocation(spaceId: String, userId: String, enable: Boolean) {
-        spaceMemberRef(spaceId)
+        spaceMemberRef(spaceId) ?: return
+        spaceMemberRef(spaceId)!!
             .whereEqualTo("user_id", userId).get()
             .await().documents.firstOrNull()
             ?.reference?.update("location_enabled", enable)?.await()
     }
 
     suspend fun isMember(spaceId: String, userId: String): Boolean {
-        val query = spaceMemberRef(spaceId)
+        spaceMemberRef(spaceId) ?: return false
+        val query = spaceMemberRef(spaceId)!!
             .whereEqualTo("user_id", userId)
         val result = query.get().await()
         return result.documents.isNotEmpty()
@@ -77,10 +89,11 @@ class ApiSpaceService @Inject constructor(
             .snapshotFlow(ApiSpaceMember::class.java)
 
     fun getMemberBySpaceId(spaceId: String) =
-        spaceMemberRef(spaceId).snapshotFlow(ApiSpaceMember::class.java)
+        spaceMemberRef(spaceId)?.snapshotFlow(ApiSpaceMember::class.java) ?: emptyFlow()
 
     suspend fun deleteMembers(spaceId: String) {
-        spaceMemberRef(spaceId).get().await().documents.forEach { doc ->
+        spaceMemberRef(spaceId) ?: return
+        spaceMemberRef(spaceId)!!.get().await().documents.forEach { doc ->
             doc.reference.delete().await()
         }
     }
@@ -92,7 +105,8 @@ class ApiSpaceService @Inject constructor(
 
     suspend fun removeUserFromSpace(spaceId: String, userId: String) {
         placeService.removedUserFromExistingPlaces(spaceId, userId)
-        spaceMemberRef(spaceId)
+        spaceMemberRef(spaceId) ?: return
+        spaceMemberRef(spaceId)!!
             .whereEqualTo("user_id", userId).get().await().documents.forEach {
                 it.reference.delete().await()
             }
