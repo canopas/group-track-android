@@ -1,10 +1,10 @@
 package com.canopas.yourspace.ui.flow.journey.components
 
-import android.location.Location
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
@@ -26,6 +26,7 @@ import com.google.maps.android.compose.MarkerComposable
 import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
+import kotlinx.coroutines.launch
 
 @Composable
 fun JourneyMap(
@@ -40,16 +41,6 @@ fun JourneyMap(
 ) {
     val fromLatLang = LatLng(location?.from_latitude ?: 0.0, location?.from_longitude ?: 0.0)
     val toLatLang = LatLng(location?.to_latitude ?: 0.0, location?.to_longitude ?: 0.0)
-
-    val fromLocation = Location("").apply {
-        latitude = fromLatLang.latitude
-        longitude = fromLatLang.longitude
-    }
-
-    val toLocation = Location("").apply {
-        latitude = toLatLang.latitude
-        longitude = toLatLang.longitude
-    }
 
     val isDarkMode = isSystemInDarkTheme()
     val context = LocalContext.current
@@ -79,6 +70,8 @@ fun JourneyMap(
         cameraPositionState.move(update)
     }
 
+    val scope = rememberCoroutineScope()
+
     GoogleMap(
         mergeDescendants = false,
         modifier = modifier,
@@ -99,7 +92,26 @@ fun JourneyMap(
             zoomGesturesEnabled = gestureEnable,
             scrollGesturesEnabledDuringRotateOrZoom = gestureEnable,
             indoorLevelPickerEnabled = gestureEnable
-        )
+        ),
+        onMapLoaded = {
+            scope.launch {
+                if (location == null) return@launch
+                try {
+                    val boundsBuilder = LatLngBounds.builder()
+                        .apply {
+                            include(fromLatLang)
+                            location.toRoute().forEach { latLng ->
+                                include(latLng)
+                            }
+                            include(toLatLang)
+                        }.build()
+                    val update = CameraUpdateFactory.newLatLngBounds(boundsBuilder, 50)
+                    cameraPositionState.move(update)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
     ) {
         location?.let {
             LocationMarker(fromLatLang, anchor, fromMarkerContent)
