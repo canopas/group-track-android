@@ -37,6 +37,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -77,6 +78,7 @@ import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.roundToInt
@@ -432,15 +434,7 @@ private fun MapView(
         onPlaceLocationChanged(cameraPositionState.position.target)
     }
 
-    LaunchedEffect(placeRadius) {
-        snapshotFlow { placeRadius }
-            .distinctUntilChanged()
-            .collect {
-                delay(500)
-                val newBound = toBounds(cameraPositionState.position.target, it)
-                cameraPositionState.animate(CameraUpdateFactory.newLatLngBounds(newBound, 50))
-            }
-    }
+    val scope = rememberCoroutineScope()
 
     val isDarkMode = isSystemInDarkTheme()
     val context = LocalContext.current
@@ -464,7 +458,18 @@ private fun MapView(
                 myLocationButtonEnabled = false,
                 compassEnabled = false,
                 mapToolbarEnabled = false
-            )
+            ),
+            onMapLoaded = {
+                scope.launch {
+                    snapshotFlow { placeRadius }
+                        .distinctUntilChanged()
+                        .collect {
+                            delay(500)
+                            val newBound = toBounds(cameraPositionState.position.target, it)
+                            cameraPositionState.animate(CameraUpdateFactory.newLatLngBounds(newBound, 50))
+                        }
+                }
+            }
         )
         PlaceMarker(placeRadius, cameraPositionState)
     }
