@@ -2,9 +2,12 @@ package com.canopas.yourspace.ui.flow.home.space.join
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -65,7 +68,8 @@ private fun JoinSpaceContent(modifier: Modifier) {
     val state by viewModel.state.collectAsState()
     Column(
         modifier
-            .fillMaxWidth()
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -85,7 +89,9 @@ private fun JoinSpaceContent(modifier: Modifier) {
             text = stringResource(R.string.onboard_space_join_subtitle),
             style = AppTheme.appTypography.subTitle1.copy(color = AppTheme.colorScheme.textDisabled),
             textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp)
         )
         Spacer(modifier = Modifier.weight(1f))
         PrimaryButton(
