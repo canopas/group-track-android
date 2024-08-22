@@ -17,9 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
@@ -191,23 +189,18 @@ class HomeScreenViewModel @Inject constructor(
     fun showBatteryOptimizationDialog() = viewModelScope.launch(appDispatcher.IO) {
         delay(500)
 
-        val dateStr = userPreferences.getLastBatteryDialogDate()
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val now = System.currentTimeMillis()
-        val currentDateString = dateFormat.format(Date(now))
-        val currentDate = dateFormat.parse(currentDateString)?.time ?: 0
+        val lastDate = userPreferences.getLastBatteryDialogDate()
+        val currentTime = System.currentTimeMillis()
 
-        val shouldShowDialog = if (dateStr.isNullOrEmpty()) {
+        val shouldShowDialog = if (lastDate.isNullOrEmpty()) {
             true
         } else {
-            val lastDate = dateFormat.parse(dateStr)?.time ?: 0
-            val oneDayInMillis = 1000 * 60 * 60 * 24
-            currentDate - lastDate > oneDayInMillis
+            currentTime - lastDate.toLong() >= TimeUnit.DAYS.toMillis(1)
         }
 
         if (shouldShowDialog) {
             _state.value = _state.value.copy(showBatteryOptimizationPopup = true)
-            userPreferences.setLastBatteryDialogDate(now.toString())
+            userPreferences.setLastBatteryDialogDate(currentTime.toString())
         }
     }
 
