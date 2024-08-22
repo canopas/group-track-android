@@ -4,12 +4,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -27,6 +28,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.canopas.yourspace.ui.theme.AppTheme
 
@@ -38,36 +40,47 @@ fun OtpInputField(
     digitCount: Int = 6
 ) {
     val focusRequester = remember { FocusRequester() }
+    BoxWithConstraints(
+        Modifier
+            .widthIn(max = 600.dp)
+            .fillMaxWidth(),
+        contentAlignment = Alignment.Center
+    ) {
+        val width = (maxWidth - 32.dp) / (digitCount + 1)
 
-    BasicTextField(
-        value = pinText,
-        onValueChange = {
-            if (it.length <= digitCount) {
-                onPinTextChange(it)
-            }
-        },
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-        modifier = Modifier.focusRequester(focusRequester),
-        decorationBox = {
-            Row {
-                repeat(digitCount) { index ->
-                    OTPDigit(index, pinText, textStyle, focusRequester)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    if (index == 2) {
-                        HorizontalDivider(
-                            modifier = Modifier
-                                .padding(horizontal = 16.dp)
-                                .width(16.dp)
-                                .align(Alignment.CenterVertically),
-                            thickness = 2.dp,
-                            color = AppTheme.colorScheme.textPrimary
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
+        BasicTextField(
+            value = pinText,
+            onValueChange = {
+                if (it.length <= digitCount) {
+                    onPinTextChange(it)
+                }
+            },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+            modifier = Modifier.focusRequester(focusRequester),
+            decorationBox = {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.Center),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    repeat(digitCount) { index ->
+                        OTPDigit(index, pinText, textStyle, focusRequester, width = width)
+
+                        if (index == 2) {
+                            HorizontalDivider(
+                                modifier = Modifier
+                                    .width(16.dp)
+                                    .align(Alignment.CenterVertically),
+                                thickness = 2.dp,
+                                color = AppTheme.colorScheme.textPrimary
+                            )
+                        }
                     }
                 }
             }
-        }
-    )
+        )
+    }
 
     LaunchedEffect(key1 = Unit) {
         focusRequester.requestFocus()
@@ -79,7 +92,8 @@ private fun OTPDigit(
     index: Int,
     pinText: String,
     textStyle: TextStyle,
-    focusRequester: FocusRequester
+    focusRequester: FocusRequester,
+    width: Dp,
 ) {
     val isFocused = pinText.length == index
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -95,7 +109,7 @@ private fun OTPDigit(
         Text(
             text = if (index >= pinText.length) "" else pinText[index].toString().uppercase(),
             modifier = Modifier
-                .width(48.dp)
+                .width(width)
                 .height(64.dp)
                 .background(
                     color = if (isFocused) AppTheme.colorScheme.containerLow else AppTheme.colorScheme.containerNormal,

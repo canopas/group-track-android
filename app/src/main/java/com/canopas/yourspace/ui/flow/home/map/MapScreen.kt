@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -161,55 +162,62 @@ fun MapScreen() {
                     }
                 }
             }
-            val selectedUser = state.selectedUser
-            AnimatedVisibility(
-                visible = state.showUserDetails,
-                enter = slideInVertically { it } + scaleIn() + expandVertically(expandFrom = Alignment.Top),
-                exit = scaleOut() + slideOutVertically(targetOffsetY = { it }) + shrinkVertically(
-                    shrinkTowards = Alignment.Bottom
-                )
-            ) {
-                SelectedUserDetail(
-                    userInfo = selectedUser,
-                    onDismiss = { viewModel.dismissMemberDetail() },
-                    onTapTimeline = { viewModel.showJourneyTimeline() }
-                )
-            }
-
-            if (state.members.isNotEmpty()) {
-                LazyRow(
-                    modifier = Modifier
-                        .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
-                        .widthIn(max = 600.dp)
-                        .wrapContentSize()
-                        .background(
-                            AppTheme.colorScheme.surface,
-                            shape = RoundedCornerShape(50.dp)
+            LazyColumn(modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                item {
+                    val selectedUser = state.selectedUser
+                    AnimatedVisibility(
+                        visible = state.showUserDetails,
+                        enter = slideInVertically { it } + scaleIn() + expandVertically(expandFrom = Alignment.Top),
+                        exit = scaleOut() + slideOutVertically(targetOffsetY = { it }) + shrinkVertically(
+                            shrinkTowards = Alignment.Bottom
                         )
-                        .padding(horizontal = 24.dp, vertical = 8.dp)
-                        .align(Alignment.CenterHorizontally),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    item {
-                        AddMemberBtn(state.loadingInviteCode) { viewModel.addMember() }
+                    ) {
+                        SelectedUserDetail(
+                            userInfo = selectedUser,
+                            onDismiss = { viewModel.dismissMemberDetail() },
+                            onTapTimeline = { viewModel.showJourneyTimeline() }
+                        )
                     }
-                    items(state.members) {
-                        MapUserItem(it) {
-                            viewModel.showMemberDetail(it)
+                }
+                item {
+                    if (state.members.isNotEmpty()) {
+                        LazyRow(
+                            modifier = Modifier.fillMaxWidth()
+                                .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+                                .widthIn(max = 600.dp)
+                                .wrapContentSize()
+                                .background(
+                                    AppTheme.colorScheme.surface,
+                                    shape = RoundedCornerShape(50.dp)
+                                )
+                                .padding(horizontal = 24.dp, vertical = 8.dp)
+                                .align(Alignment.CenterHorizontally),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            item {
+                                AddMemberBtn(state.loadingInviteCode) { viewModel.addMember() }
+                            }
+                            items(state.members) {
+                                MapUserItem(it) {
+                                    viewModel.showMemberDetail(it)
+                                }
+                            }
                         }
                     }
                 }
-            }
 
-            val context = LocalContext.current
-            AnimatedVisibility(
-                visible = !context.hasAllPermission || !context.isLocationServiceEnabled() || !context.hasNotificationPermission,
-                enter = slideInVertically(tween(100)) { it },
-                exit = slideOutVertically(tween(100)) { it }
-            ) {
-                PermissionFooter() {
-                    viewModel.navigateToPermissionScreen()
+                item {
+                    val context = LocalContext.current
+                    AnimatedVisibility(
+                        visible = !context.hasAllPermission || !context.isLocationServiceEnabled() || !context.hasNotificationPermission,
+                        enter = slideInVertically(tween(100)) { it },
+                        exit = slideOutVertically(tween(100)) { it }
+                    ) {
+                        PermissionFooter() {
+                            viewModel.navigateToPermissionScreen()
+                        }
+                    }
                 }
             }
         }
