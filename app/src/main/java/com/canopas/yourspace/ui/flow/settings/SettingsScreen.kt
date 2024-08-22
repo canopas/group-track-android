@@ -114,7 +114,7 @@ private fun SettingsContent(modifier: Modifier) {
             ProfileView(user = it) { viewModel.editProfile() }
             HorizontalDivider(
                 modifier = Modifier
-                    .padding(bottom = 20.dp)
+                    .padding(bottom = 24.dp)
                     .fillMaxWidth(),
                 color = AppTheme.colorScheme.outline
             )
@@ -152,7 +152,7 @@ private fun OtherSettingsContent(viewModel: SettingsViewModel) {
         textAlign = TextAlign.Start,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, top = 16.dp)
+            .padding(start = 16.dp)
     )
 
     SettingsItem(
@@ -204,7 +204,7 @@ private fun SpaceSettingsContent(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 12.dp)
+            .padding(bottom = 24.dp)
     ) {
         Text(
             text = stringResource(id = R.string.setting_spaces),
