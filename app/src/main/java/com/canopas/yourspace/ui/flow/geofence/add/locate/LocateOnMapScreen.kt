@@ -21,6 +21,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -64,6 +65,17 @@ fun LocateOnMapScreen() {
 
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(userLocation, DEFAULT_CAMERA_ZOOM)
+    }
+
+    LaunchedEffect(userLocation, state.isMapLoaded) {
+        if (state.isMapLoaded) {
+            cameraPositionState.animate(
+                CameraUpdateFactory.newLatLngZoom(
+                    userLocation,
+                    DEFAULT_CAMERA_ZOOM
+                )
+            )
+        }
     }
 
     Scaffold(
@@ -151,17 +163,19 @@ private fun LocateOnMapContent(
             )
         }
         Spacer(modifier = Modifier.height(16.dp))
-        MapView(Modifier.fillMaxSize(), cameraPositionState, userLocation)
+        MapView(Modifier.fillMaxSize(), viewModel, cameraPositionState, userLocation)
     }
 }
 
 @Composable
 private fun MapView(
     modifier: Modifier,
+    viewModel: LocateOnMapViewModel,
     cameraPositionState: CameraPositionState,
     userLocation: LatLng
 ) {
     val scope = rememberCoroutineScope()
+    val state by viewModel.state.collectAsState()
     val relocate by remember {
         derivedStateOf {
             val distance = cameraPositionState.position.target.distanceTo(userLocation)
@@ -192,14 +206,7 @@ private fun MapView(
                 mapToolbarEnabled = false
             ),
             onMapLoaded = {
-                scope.launch {
-                    cameraPositionState.animate(
-                        CameraUpdateFactory.newLatLngZoom(
-                            userLocation,
-                            DEFAULT_CAMERA_ZOOM
-                        )
-                    )
-                }
+                viewModel.onMapLoaded()
             }
         )
 
@@ -210,13 +217,15 @@ private fun MapView(
             icon = R.drawable.ic_relocate,
             show = relocate
         ) {
-            scope.launch {
-                cameraPositionState.animate(
-                    CameraUpdateFactory.newLatLngZoom(
-                        userLocation,
-                        DEFAULT_CAMERA_ZOOM
+            if (state.isMapLoaded) {
+                scope.launch {
+                    cameraPositionState.animate(
+                        CameraUpdateFactory.newLatLngZoom(
+                            userLocation,
+                            DEFAULT_CAMERA_ZOOM
+                        )
                     )
-                )
+                }
             }
         }
 

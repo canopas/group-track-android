@@ -37,7 +37,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -78,7 +77,6 @@ import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.roundToInt
@@ -200,6 +198,7 @@ private fun EditPlaceContent() {
                 place.radius,
                 cameraPositionState,
                 enabled = state.isAdmin,
+                viewModel,
                 viewModel::onPlaceLocationChanged
             )
 
@@ -428,13 +427,25 @@ private fun MapView(
     placeRadius: Double,
     cameraPositionState: CameraPositionState,
     enabled: Boolean,
+    viewModel: EditPlaceViewModel,
     onPlaceLocationChanged: (LatLng) -> Unit
 ) {
     LaunchedEffect(key1 = cameraPositionState.position.target) {
         onPlaceLocationChanged(cameraPositionState.position.target)
     }
 
-    val scope = rememberCoroutineScope()
+    val state by viewModel.state.collectAsState()
+    LaunchedEffect(placeRadius, state.isMapLoaded) {
+        snapshotFlow { placeRadius }
+            .distinctUntilChanged()
+            .collect {
+                delay(500)
+                if (state.isMapLoaded) {
+                    val newBound = toBounds(cameraPositionState.position.target, it)
+                    cameraPositionState.animate(CameraUpdateFactory.newLatLngBounds(newBound, 50))
+                }
+            }
+    }
 
     val isDarkMode = isSystemInDarkTheme()
     val context = LocalContext.current
@@ -460,15 +471,7 @@ private fun MapView(
                 mapToolbarEnabled = false
             ),
             onMapLoaded = {
-                scope.launch {
-                    snapshotFlow { placeRadius }
-                        .distinctUntilChanged()
-                        .collect {
-                            delay(500)
-                            val newBound = toBounds(cameraPositionState.position.target, it)
-                            cameraPositionState.animate(CameraUpdateFactory.newLatLngBounds(newBound, 50))
-                        }
-                }
+                viewModel.onMapLoaded()
             }
         )
         PlaceMarker(placeRadius, cameraPositionState)

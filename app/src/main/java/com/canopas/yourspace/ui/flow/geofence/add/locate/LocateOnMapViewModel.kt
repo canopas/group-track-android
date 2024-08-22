@@ -109,6 +109,12 @@ class LocateOnMapViewModel @Inject constructor(
             )
         )
     }
+
+    fun onMapLoaded() {
+        viewModelScope.launch(appDispatcher.IO) {
+            _state.emit(state.value.copy(isMapLoaded = true))
+        }
+    }
 }
 
 data class LocateOnMapState(
@@ -116,5 +122,6 @@ data class LocateOnMapState(
     val selectedPlaceName: String? = "",
     val defaultLocation: Location? = null,
     val addingPlace: Boolean = false,
+    val isMapLoaded: Boolean = false,
     val error: Exception? = null
 )

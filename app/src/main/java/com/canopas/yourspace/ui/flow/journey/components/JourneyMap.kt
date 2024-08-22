@@ -2,8 +2,11 @@ package com.canopas.yourspace.ui.flow.journey.components
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
@@ -13,6 +16,7 @@ import com.canopas.yourspace.data.models.location.toRoute
 import com.canopas.yourspace.ui.theme.AppTheme
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMapOptions
+import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.Dash
 import com.google.android.gms.maps.model.Gap
 import com.google.android.gms.maps.model.LatLng
@@ -25,7 +29,6 @@ import com.google.maps.android.compose.MarkerComposable
 import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
-import kotlinx.coroutines.launch
 
 @Composable
 fun JourneyMap(
@@ -40,6 +43,9 @@ fun JourneyMap(
 ) {
     val fromLatLang = LatLng(location?.from_latitude ?: 0.0, location?.from_longitude ?: 0.0)
     val toLatLang = LatLng(location?.to_latitude ?: 0.0, location?.to_longitude ?: 0.0)
+    var isMapLoaded by remember {
+        mutableStateOf(false)
+    }
 
     val isDarkMode = isSystemInDarkTheme()
     val context = LocalContext.current
@@ -53,8 +59,28 @@ fun JourneyMap(
         )
     }
 
-    val cameraPositionState = rememberCameraPositionState()
-    val scope = rememberCoroutineScope()
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(fromLatLang, 15f)
+    }
+
+    LaunchedEffect(key1 = location, isMapLoaded) {
+        if (isMapLoaded) {
+            try {
+                val boundsBuilder = LatLngBounds.builder()
+                    .apply {
+                        include(fromLatLang)
+                        location?.toRoute()?.forEach { latLng ->
+                            include(latLng)
+                        }
+                        include(toLatLang)
+                    }.build()
+                val update = CameraUpdateFactory.newLatLngBounds(boundsBuilder, 50)
+                cameraPositionState.move(update)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 
     GoogleMap(
         mergeDescendants = false,
@@ -78,23 +104,7 @@ fun JourneyMap(
             indoorLevelPickerEnabled = gestureEnable
         ),
         onMapLoaded = {
-            scope.launch {
-                if (location == null) return@launch
-                try {
-                    val boundsBuilder = LatLngBounds.builder()
-                        .apply {
-                            include(fromLatLang)
-                            location.toRoute().forEach { latLng ->
-                                include(latLng)
-                            }
-                            include(toLatLang)
-                        }.build()
-                    val update = CameraUpdateFactory.newLatLngBounds(boundsBuilder, 50)
-                    cameraPositionState.move(update)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            }
+            isMapLoaded = true
         }
     ) {
         location?.let {
