@@ -55,21 +55,6 @@ fun JourneyMap(
     }
 
     val cameraPositionState = rememberCameraPositionState()
-
-    LaunchedEffect(key1 = location) {
-        if (location == null) return@LaunchedEffect
-        val boundsBuilder = LatLngBounds.builder()
-            .apply {
-                include(fromLatLang)
-                location.toRoute().forEach { latLng ->
-                    include(latLng)
-                }
-                include(toLatLang)
-            }.build()
-        val update = CameraUpdateFactory.newLatLngBounds(boundsBuilder, 50)
-        cameraPositionState.move(update)
-    }
-
     val scope = rememberCoroutineScope()
 
     GoogleMap(
