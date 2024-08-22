@@ -33,10 +33,12 @@ class JourneyTimelineViewModel @Inject constructor(
         savedStateHandle.get<String>(AppDestinations.JourneyTimeline.KEY_SELECTED_USER_ID)
             ?: throw IllegalArgumentException("User id is required")
 
-    private val _state = MutableStateFlow(JourneyTimelineState(
-        selectedTimeFrom = getTodayStartTimestamp(),
-        selectedTimeTo = getTodayEndTimestamp()
-    ))
+    private val _state = MutableStateFlow(
+        JourneyTimelineState(
+            selectedTimeFrom = getTodayStartTimestamp(),
+            selectedTimeTo = getTodayEndTimestamp()
+        )
+    )
     var state = _state.asStateFlow()
 
     private val allJourneys: List<LocationJourney>
