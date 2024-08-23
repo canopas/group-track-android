@@ -7,6 +7,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.firebase.Firebase
+import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
 import com.google.firebase.functions.FirebaseFunctions
@@ -34,7 +35,7 @@ class AppDataProvider {
     @Provides
     @Singleton
     fun provideFirebaseFunctions(): FirebaseFunctions =
-        FirebaseFunctions.getInstance()
+        FirebaseFunctions.getInstance(FirebaseApp.getInstance(), "asia-south1")
 
     @Provides
     @Singleton

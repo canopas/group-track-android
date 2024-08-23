@@ -4,7 +4,6 @@ import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.models.user.ApiUserSession
 import com.canopas.yourspace.data.models.user.LOGIN_TYPE_GOOGLE
 import com.canopas.yourspace.data.models.user.LOGIN_TYPE_PHONE
-import com.canopas.yourspace.data.models.user.USER_STATE_UNKNOWN
 import com.canopas.yourspace.data.service.location.ApiLocationService
 import com.canopas.yourspace.data.utils.Config
 import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_USERS
@@ -15,7 +14,6 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.functions.FirebaseFunctions
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -143,44 +141,18 @@ class ApiUserService @Inject constructor(
         onStatusChecked: (Boolean) -> Unit
     ) {
         withContext(Dispatchers.IO) {
-            val userSession = getUserSession(userId)
-            if (userSession != null) {
-                if ((userSession.updated_at?.toDate()?.time ?: 0) > (System.currentTimeMillis() - NETWORK_STATUS_CHECK_INTERVAL)) {
-                    onStatusChecked(true)
-                    return@withContext
-                }
-            }
             val data = hashMapOf("userId" to userId)
-            val function = functions.getHttpsCallable("networkStatusCheck")
             try {
-                function.call(data).await()
-                val callTime = System.currentTimeMillis()
-                retryUserStatusCheck(userId, callTime) {
-                    onStatusChecked(it)
+                functions.getHttpsCallable("networkStatusCheck").call(data).addOnSuccessListener {
+                    onStatusChecked(true)
+                }.addOnFailureListener {
+                    Timber.e(it, "Failed to check network status")
+                    onStatusChecked(false)
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to check network status")
                 onStatusChecked(false)
             }
         }
-    }
-
-    private suspend fun retryUserStatusCheck(
-        userId: String,
-        callTime: Long,
-        onStatusChecked: (Boolean) -> Unit
-    ) {
-        val retryInterval = RETRY_INTERVAL
-        repeat(2) {
-            val userSession = getUserSession(userId)
-            if (userSession != null) {
-                if (userSession.state == USER_STATE_UNKNOWN && (userSession.updated_at?.toDate()?.time ?: 0) > callTime) {
-                    onStatusChecked(true)
-                    return
-                }
-            }
-            delay(retryInterval)
-        }
-        onStatusChecked(false)
     }
 }

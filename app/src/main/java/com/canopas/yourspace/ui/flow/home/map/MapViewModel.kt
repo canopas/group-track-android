@@ -119,7 +119,7 @@ class MapViewModel @Inject constructor(
             )
 
             apiUserService.getUserNetworkStatus(userInfo.user.id) {
-                Timber.d("Network status checked: isUserOnline$it")
+                Timber.d("Network status checked: isUserOnline $it")
             }
         }
     }

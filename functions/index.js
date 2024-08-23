@@ -1,4 +1,4 @@
-const {onDocumentDeleted, onDocumentCreated} = require("firebase-functions/v2/firestore");
+const {onDocumentDeleted, onDocumentCreated, onDocumentUpdated} = require("firebase-functions/v2/firestore");
 const firebase_tools = require('firebase-tools');
 const {setGlobalOptions} = require("firebase-functions/v2");
 const {onCall, HttpsError} = require("firebase-functions/v2/https");
@@ -67,24 +67,6 @@ exports.deleteMessages = onDocumentDeleted({
         console.error('Error deleting thread messages:', error);
         throw new Error('Failed to delete thread');
     }
-});
-
-exports.deletePlace = onDocumentDeleted("spaces/{spaceId}/space_places/{placeId}".async event => {
-    const snap = event.data;
-    var placeId = snap.data().id;
-     try {
-            await firebase_tools.firestore
-                .delete(`spaces/{spaceId}/space_places/{placeId}/place_settings_by_members`, {
-                    project: process.env.GCLOUD_PROJECT,
-                    recursive: true,
-                    yes: true,
-                    force: true
-                });
-            console.log('Place collections deleted successfully.', placeId);
-        } catch (error) {
-            console.error('Error deleting places settings:', error);
-            throw new Error('Failed to delete place settings');
-        }
 });
 
 exports.sendNotification = onDocumentCreated({
@@ -192,6 +174,8 @@ exports.sendSupportRequest = onCall({ region: "asia-south1"}, async (request) =>
 exports.sendNewPlaceNotification = onCall({ region: "asia-south1"}, async (request) => {
 
     var data = request.data;
+   console.log('notification data: ', data);
+
     const spaceId = request.data.spaceId;
     const placeName = request.data.placeName;
     const createdBy = request.data.createdBy;
@@ -245,13 +229,9 @@ exports.sendNewPlaceNotification = onCall({ region: "asia-south1"}, async (reque
             };
         });
     }
-
-
 });
 
-
 exports.sendGeoFenceNotification = onCall({ region: "asia-south1"}, async (request) => {
-
     var data = request.data;
     const GEOFENCE_TRANSITION_ENTER = 1;
     const GEOFENCE_TRANSITION_EXIT = 2;
@@ -272,40 +252,41 @@ exports.sendGeoFenceNotification = onCall({ region: "asia-south1"}, async (reque
 
     const memberDocumentSnapshot = await admin.firestore().collection('spaces').doc(spaceId).collection("space_members").get();
 
-    const usersPromises = memberDocumentSnapshot.docs.map(async documentSnapshot => {
-        const userId = documentSnapshot.data().user_id;
-        if (userId == eventBy) return null;
-        const userSnapshot = await admin.firestore().collection('users').doc(userId).get();
-        if (!userSnapshot.exists) {
+    const memberIds = memberDocumentSnapshot.docs
+            .map(doc => doc.data().user_id)
+            .filter(userId => userId !== eventBy);
+
+    const membersPromises = memberIds.map(async memberId => {
+        const memberSnapshot = await admin.firestore().collection('users').doc(memberId).get();
+        if (!memberSnapshot.exists) {
+            console.log(`Member with ID ${memberId} does not exist`);
             return null;
         }
 
-        const userData = userSnapshot.data();
         const memberSettingsDocRef = admin.firestore().collection('spaces').doc(spaceId)
             .collection('space_places').doc(placeId)
-            .collection('place_settings_by_members').doc(userId);
+            .collection('place_settings_by_members').doc(memberId);
 
         const memberSettingsSnapshot = await memberSettingsDocRef.get();
         if (!memberSettingsSnapshot.exists) {
             return null;
         }
+
         const memberSettingsData = memberSettingsSnapshot.data();
 
         if (memberSettingsData.alert_enable &&
             ((eventType == GEOFENCE_TRANSITION_ENTER && memberSettingsData.arrival_alert_for.includes(eventBy)) ||
-                (eventType == GEOFENCE_TRANSITION_EXIT && memberSettingsData.leave_alert_for.includes(eventBy)))) {
-
-            return userSnapshot.data();
+            (eventType == GEOFENCE_TRANSITION_EXIT && memberSettingsData.leave_alert_for.includes(eventBy)))) {
+               return memberSnapshot.data();
         } else {
             return null;
         }
-
     });
 
-    const users = (await Promise.all(usersPromises)).filter(user => user);
+    const members = await Promise.all(membersPromises);
 
-    const filteredTokens = users
-        .filter(user => user.fcm_token !== undefined)
+    const filteredTokens = members
+        .filter(user => user && user.fcm_token !== undefined)
         .map(member => member.fcm_token);
 
     if (filteredTokens.length > 0) {
@@ -335,7 +316,6 @@ exports.sendGeoFenceNotification = onCall({ region: "asia-south1"}, async (reque
             };
         });
     }
-
 });
 
 exports.serviceCheck = onSchedule("every 30 minutes", async (event) => {
@@ -432,7 +412,7 @@ exports.updateUserStateNotification = onDocumentCreated({
     }
 });
 
-exports.networkStatusCheck = onCall(async (request) => {
+exports.networkStatusCheck = onCall({ region: "asia-south1"}, async (request) => {
     const db = admin.firestore();
     const data = request.data;
     const userId = data.userId;
@@ -470,4 +450,76 @@ exports.networkStatusCheck = onCall(async (request) => {
         console.log("Failed to send network status message:", error.code);
         return { error: error.code };
     }
+});
+
+exports.sendNewPlaceAddedNotification = onDocumentCreated({
+    document: "spaces/{spaceId}/space_places/{placeId}",
+    region: "asia-south1"
+}, async event => {
+    const snap = event.data.data();
+    const spaceId = event.params.spaceId;
+    const placeName = snap.name;
+    const createdBy = snap.created_by;
+    const spaceMemberIds = snap.space_member_ids;
+
+    if (!spaceId || !createdBy || !spaceMemberIds) {
+        return;
+    }
+
+    try {
+        const createdBySnapShot = await admin.firestore().collection('users').doc(createdBy).get();
+        if (!createdBySnapShot.exists) {
+            console.log("Created by does not exist");
+            return;
+        }
+
+        const creatorData = createdBySnapShot.data();
+        const memberIds = spaceMemberIds.filter(memberId => memberId !== createdBy);
+        const membersPromises = memberIds.map(async memberId => {
+            const memberSnapshot = await admin.firestore().collection('users').doc(memberId).get();
+            if (!memberSnapshot.exists) {
+                throw new Error(`Member with ID ${memberId} does not exist`);
+            }
+            return memberSnapshot.data();
+        });
+
+        const members = await Promise.all(membersPromises);
+        const filteredTokens = members.map(member => member.fcm_token).filter(token => token !== undefined);
+
+        if (filteredTokens.length > 0) {
+            const payload = {
+                tokens: filteredTokens,
+                notification: {
+                    title: 'New Place Added!',
+                    body: `${creatorData.first_name} added a new place called ${placeName}`
+                },
+                data: {
+                    spaceId: spaceId,
+                    type: 'new_place_added'
+                }
+            };
+            await admin.messaging().sendMulticast(payload);
+            console.log("Successfully sent place notification:", { spaceId, placeName, createdBy });
+        }
+    } catch (error) {
+        console.error("Error sending place notification", error);
+    }
+});
+
+exports.updateLastMessageAndTimeInThread = onDocumentCreated({
+    document: "space_threads/{threadId}/thread_messages/{messageId}",
+    region: "asia-south1",
+}, async event => {
+    const snap = event.data.data();
+    const threadId = event.params.threadId;
+
+    const message = snap.message;
+    const lastMessageAt = snap.created_at;
+
+    const threadRef = admin.firestore().collection('space_threads').doc(threadId);
+
+    await threadRef.update({
+        last_message: message,
+        last_message_at: lastMessageAt,
+    });
 });
