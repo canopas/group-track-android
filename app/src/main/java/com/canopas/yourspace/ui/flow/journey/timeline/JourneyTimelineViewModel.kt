@@ -33,7 +33,12 @@ class JourneyTimelineViewModel @Inject constructor(
         savedStateHandle.get<String>(AppDestinations.JourneyTimeline.KEY_SELECTED_USER_ID)
             ?: throw IllegalArgumentException("User id is required")
 
-    private val _state = MutableStateFlow(JourneyTimelineState())
+    private val _state = MutableStateFlow(
+        JourneyTimelineState(
+            selectedTimeFrom = getTodayStartTimestamp(),
+            selectedTimeTo = getTodayEndTimestamp()
+        )
+    )
     var state = _state.asStateFlow()
 
     private val allJourneys: List<LocationJourney>
@@ -81,7 +86,11 @@ class JourneyTimelineViewModel @Inject constructor(
                 journeyService.getJourneyHistory(userId, from, to)
             }
 
-            val locationJourneys = (allJourneys + locations).groupByDate()
+            val filteredLocations = locations.filter {
+                it.created_at!! in from!!..to!!
+            }
+
+            val locationJourneys = (allJourneys + filteredLocations).groupByDate()
             val hasMoreItems = locations.isNotEmpty()
 
             _state.value = _state.value.copy(
@@ -155,6 +164,20 @@ class JourneyTimelineViewModel @Inject constructor(
         return calendar.timeInMillis
     }
 
+    private fun getTodayStartTimestamp(): Long {
+        val calendar = Calendar.getInstance()
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        return calendar.timeInMillis
+    }
+
+    private fun getTodayEndTimestamp(): Long {
+        val calendar = Calendar.getInstance()
+        calendar.set(Calendar.HOUR_OF_DAY, 23)
+        calendar.set(Calendar.MINUTE, 59)
+        return calendar.timeInMillis
+    }
+
     fun navigateBack() {
         navigator.navigateBack()
     }
@@ -173,12 +196,16 @@ class JourneyTimelineViewModel @Inject constructor(
             timeInMillis = selectedTimeStamp
         }
         calendar.set(Calendar.HOUR_OF_DAY, 0)
-        val timestamp = calendar.timeInMillis
+        calendar.set(Calendar.MINUTE, 0)
+        val timestampFrom = calendar.timeInMillis
+
         calendar.set(Calendar.HOUR_OF_DAY, 23)
+        calendar.set(Calendar.MINUTE, 59)
+        val timestampTo = calendar.timeInMillis
 
         _state.value = _state.value.copy(
-            selectedTimeFrom = timestamp,
-            selectedTimeTo = calendar.timeInMillis,
+            selectedTimeFrom = timestampFrom,
+            selectedTimeTo = timestampTo,
             groupedLocation = emptyMap()
         )
         loadLocations()
