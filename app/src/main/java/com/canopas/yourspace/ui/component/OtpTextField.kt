@@ -93,7 +93,7 @@ private fun OTPDigit(
     pinText: String,
     textStyle: TextStyle,
     focusRequester: FocusRequester,
-    width: Dp,
+    width: Dp
 ) {
     val isFocused = pinText.length == index
     val keyboardController = LocalSoftwareKeyboardController.current
