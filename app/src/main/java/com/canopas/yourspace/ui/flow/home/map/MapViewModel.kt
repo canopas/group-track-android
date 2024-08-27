@@ -118,8 +118,17 @@ class MapViewModel @Inject constructor(
                 )
             )
 
-            apiUserService.getUserNetworkStatus(userInfo.user.id) {
-                Timber.d("Network status checked: isUserOnline $it")
+            apiUserService.getUserNetworkStatus(userInfo.user.id) { networkStatus ->
+                Timber.d("Network status checked: for ${userInfo.user.id} isUserOnline ${networkStatus.state}")
+                viewModelScope.launch(appDispatcher.IO) {
+                    _state.emit(
+                        _state.value.copy(
+                            selectedUser = userInfo.copy(
+                                session = userInfo.session?.copy(state = networkStatus.state)
+                            )
+                        )
+                    )
+                }
             }
         }
     }

@@ -20,9 +20,6 @@ import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
-const val NETWORK_STATUS_CHECK_INTERVAL = 15 * 60 * 1000
-const val RETRY_INTERVAL = 5000L
-
 @Singleton
 class ApiUserService @Inject constructor(
     db: FirebaseFirestore,
@@ -138,20 +135,22 @@ class ApiUserService @Inject constructor(
 
     suspend fun getUserNetworkStatus(
         userId: String,
-        onStatusChecked: (Boolean) -> Unit
+        onStatusChecked: (ApiUserSession) -> Unit
     ) {
         withContext(Dispatchers.IO) {
             val data = hashMapOf("userId" to userId)
+            val session = getUserSession(userId)
             try {
                 functions.getHttpsCallable("networkStatusCheck").call(data).addOnSuccessListener {
-                    onStatusChecked(true)
+                    if (session != null)
+                        onStatusChecked(session)
                 }.addOnFailureListener {
                     Timber.e(it, "Failed to check network status")
-                    onStatusChecked(false)
+                    onStatusChecked(ApiUserSession(session_active = false))
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to check network status")
-                onStatusChecked(false)
+                onStatusChecked(ApiUserSession(session_active = false))
             }
         }
     }
