@@ -1,7 +1,6 @@
 package com.canopas.yourspace.data.models.user
 
 import androidx.annotation.Keep
-import com.google.firebase.Timestamp
 import com.google.firebase.firestore.Exclude
 import com.squareup.moshi.JsonClass
 import java.util.UUID
@@ -51,7 +50,7 @@ data class ApiUserSession(
     val state: Int = USER_STATE_UNKNOWN,
     val platform: Int = LOGIN_DEVICE_TYPE_ANDROID,
     val session_active: Boolean = true,
-    val app_version: Long? = 0,
+    val app_version: Long? = 0
 ) {
     @get:Exclude
     val loggedOut: Boolean get() = !session_active
