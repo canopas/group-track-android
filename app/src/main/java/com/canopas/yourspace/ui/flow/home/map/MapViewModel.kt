@@ -125,7 +125,9 @@ class MapViewModel @Inject constructor(
                         _state.emit(
                             _state.value.copy(
                                 selectedUser = userInfo.copy(
-                                    session = userInfo.session?.copy(state = networkStatus.state)
+                                    user = userInfo.user.copy(
+                                        state = networkStatus.state
+                                    )
                                 )
                             )
                         )
