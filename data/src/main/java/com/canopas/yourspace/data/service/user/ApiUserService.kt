@@ -142,8 +142,9 @@ class ApiUserService @Inject constructor(
             val session = getUserSession(userId)
             try {
                 functions.getHttpsCallable("networkStatusCheck").call(data).addOnSuccessListener {
-                    if (session != null)
+                    if (session != null) {
                         onStatusChecked(session)
+                    }
                 }.addOnFailureListener {
                     Timber.e(it, "Failed to check network status")
                     onStatusChecked(ApiUserSession(session_active = false))
