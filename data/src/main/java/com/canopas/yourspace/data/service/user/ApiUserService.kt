@@ -14,6 +14,7 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.functions.FirebaseFunctions
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -135,23 +136,21 @@ class ApiUserService @Inject constructor(
 
     suspend fun getUserNetworkStatus(
         userId: String,
-        onStatusChecked: (ApiUserSession) -> Unit
+        onStatusChecked: (ApiUserSession?) -> Unit
     ) {
         withContext(Dispatchers.IO) {
             val data = hashMapOf("userId" to userId)
-            val session = getUserSession(userId)
             try {
                 functions.getHttpsCallable("networkStatusCheck").call(data).addOnSuccessListener {
-                    if (session != null) {
-                        onStatusChecked(session)
-                    }
+                    val session = runBlocking { getUserSession(userId) }
+                    onStatusChecked(session)
                 }.addOnFailureListener {
                     Timber.e(it, "Failed to check network status")
-                    onStatusChecked(ApiUserSession(session_active = false))
+                    onStatusChecked(null)
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to check network status")
-                onStatusChecked(ApiUserSession(session_active = false))
+                onStatusChecked(null)
             }
         }
     }
