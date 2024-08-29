@@ -51,13 +51,6 @@ class ApiJourneyService @Inject constructor(
             update_at = updateAt ?: createdAt ?: System.currentTimeMillis()
         )
 
-        val location = LocationTable(
-            userId = userId,
-            lastFiveMinutesLocations = routeDistance.toString(),
-            lastLocationJourney = routeDuration.toString()
-        )
-
-        locationTableDatabase.locationTableDao().insertLocationData(location)
         journey.updateLocationJourney(userId)
 
         docRef.set(journey).await()

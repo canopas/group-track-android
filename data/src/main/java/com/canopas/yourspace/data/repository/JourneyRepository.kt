@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.toList
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.math.sqrt
 
 const val MIN_DISTANCE = 100.0
 const val MIN_TIME_DIFFERENCE = 5 * 60 * 1000
@@ -111,6 +112,9 @@ class JourneyRepository @Inject constructor(
         if (locations.isNullOrEmpty()) {
             val lastFiveMinLocations =
                 locationService.getLastFiveMinuteLocations(userId).toList().flatten()
+            if (lastFiveMinLocations.isEmpty()) {
+                return
+            }
             updateLocationData(locationData, lastFiveMinLocations)
         } else {
             val latest = locations.maxByOrNull { it.created_at!! }
@@ -136,12 +140,25 @@ class JourneyRepository @Inject constructor(
     suspend fun getUserState(userId: String, extractedLocation: Location): Int {
         var locationData =
             locationTableDatabase.locationTableDao().getLocationData(userId)
-
-        locationData?.let { checkAndUpdateLastFiveMinLocations(userId, it, extractedLocation) }
+        if (locationData != null) {
+            checkAndUpdateLastFiveMinLocations(userId, locationData, extractedLocation)
+        } else {
+            val location = ApiLocation(
+                user_id = userId,
+                latitude = extractedLocation.latitude,
+                longitude = extractedLocation.longitude,
+                created_at = System.currentTimeMillis(),
+                user_state = UserState.STEADY.value
+            )
+            val locationTable = LocationTable(
+                userId = userId,
+                lastFiveMinutesLocations = converters.locationListToString(listOf(location)),
+            )
+            locationTableDatabase.locationTableDao().insertLocationData(locationTable)
+        }
 
         locationData =
             locationTableDatabase.locationTableDao().getLocationData(userId)
-
         val userState = getUserState(locationData, extractedLocation)
 
         return userState
@@ -152,8 +169,13 @@ class JourneyRepository @Inject constructor(
         extractedLocation: Location
     ): Int {
         val lastFiveMinuteLocations = getLastFiveMinuteLocations(locationData)
-        if (lastFiveMinuteLocations.isMoving(extractedLocation)) return UserState.MOVING.value
-        return UserState.STEADY.value
+        val medianLocation = geometricMedian(lastFiveMinuteLocations.map { it.toLocation() })
+        val distance = medianLocation.distanceTo(extractedLocation).toDouble()
+        return if (distance > MIN_DISTANCE) {
+            UserState.MOVING.value
+        } else {
+            UserState.STEADY.value
+        }
     }
 
     /**
@@ -306,14 +328,16 @@ class JourneyRepository @Inject constructor(
         )
         return distance[0]
     }
-}
 
-/**
- * Check if user is moving or steady
- * */
-fun List<ApiLocation>.isMoving(currentLocation: Location): Boolean {
-    return any {
-        val distance = currentLocation.distanceTo(it.toLocation()).toDouble()
-        distance > MIN_DISTANCE
+    private fun distance(loc1: Location, loc2: Location): Double {
+        val latDiff = loc1.latitude - loc2.latitude
+        val lonDiff = loc1.longitude - loc2.longitude
+        return sqrt(latDiff * latDiff + lonDiff * lonDiff)
+    }
+
+    private fun geometricMedian(locations: List<Location>): Location {
+        return locations.minByOrNull { candidate ->
+            locations.sumOf { location -> distance(candidate, location) }
+        } ?: throw IllegalArgumentException("Location list is empty")
     }
 }
