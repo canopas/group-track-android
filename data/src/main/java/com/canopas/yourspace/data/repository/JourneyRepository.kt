@@ -107,7 +107,7 @@ class JourneyRepository @Inject constructor(
             )
             val locationTable = LocationTable(
                 userId = userId,
-                lastFiveMinutesLocations = converters.locationListToString(listOf(location)),
+                lastFiveMinutesLocations = converters.locationListToString(listOf(location))
             )
             locationTableDatabase.locationTableDao().insertLocationData(locationTable)
         }
