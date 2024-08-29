@@ -93,13 +93,29 @@ class JourneyRepository @Inject constructor(
         }
     }
 
-    /**
-     * Get last five minute locations from local database ~ 1 location per minute
-     * */
-    private fun getLastFiveMinuteLocations(locationData: LocationTable?): List<ApiLocation> {
-        return locationData?.lastFiveMinutesLocations?.let {
-            converters.locationListFromString(it)
-        } ?: emptyList()
+    suspend fun getUserState(userId: String, extractedLocation: Location): Int {
+        var locationData = getLocationData(userId)
+        if (locationData != null) {
+            checkAndUpdateLastFiveMinLocations(userId, locationData, extractedLocation)
+        } else {
+            val location = ApiLocation(
+                user_id = userId,
+                latitude = extractedLocation.latitude,
+                longitude = extractedLocation.longitude,
+                created_at = System.currentTimeMillis(),
+                user_state = UserState.STEADY.value
+            )
+            val locationTable = LocationTable(
+                userId = userId,
+                lastFiveMinutesLocations = converters.locationListToString(listOf(location)),
+            )
+            locationTableDatabase.locationTableDao().insertLocationData(locationTable)
+        }
+
+        locationData = getLocationData(userId)
+        val userState = getUserState(locationData, extractedLocation)
+
+        return userState
     }
 
     private suspend fun checkAndUpdateLastFiveMinLocations(
@@ -137,33 +153,6 @@ class JourneyRepository @Inject constructor(
         locationTableDatabase.locationTableDao().updateLocationTable(updatedData)
     }
 
-    suspend fun getUserState(userId: String, extractedLocation: Location): Int {
-        var locationData =
-            locationTableDatabase.locationTableDao().getLocationData(userId)
-        if (locationData != null) {
-            checkAndUpdateLastFiveMinLocations(userId, locationData, extractedLocation)
-        } else {
-            val location = ApiLocation(
-                user_id = userId,
-                latitude = extractedLocation.latitude,
-                longitude = extractedLocation.longitude,
-                created_at = System.currentTimeMillis(),
-                user_state = UserState.STEADY.value
-            )
-            val locationTable = LocationTable(
-                userId = userId,
-                lastFiveMinutesLocations = converters.locationListToString(listOf(location)),
-            )
-            locationTableDatabase.locationTableDao().insertLocationData(locationTable)
-        }
-
-        locationData =
-            locationTableDatabase.locationTableDao().getLocationData(userId)
-        val userState = getUserState(locationData, extractedLocation)
-
-        return userState
-    }
-
     private fun getUserState(
         locationData: LocationTable?,
         extractedLocation: Location
@@ -176,6 +165,15 @@ class JourneyRepository @Inject constructor(
         } else {
             UserState.STEADY.value
         }
+    }
+
+    /**
+     * Get last five minute locations from local database ~ 1 location per minute
+     * */
+    private fun getLastFiveMinuteLocations(locationData: LocationTable?): List<ApiLocation> {
+        return locationData?.lastFiveMinutesLocations?.let {
+            converters.locationListFromString(it)
+        } ?: emptyList()
     }
 
     /**
