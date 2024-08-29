@@ -130,10 +130,18 @@ class JourneyTimelineViewModel @Inject constructor(
 
     fun loadMoreLocations() {
         if (state.value.loadingMoreData) return
-        _state.value = _state.value.copy(loadingMoreData = true)
-        state.value.let {
-            if (it.hasMoreLocations && !it.appending) {
-                loadLocations(true)
+        viewModelScope.launch(appDispatcher.IO) {
+            _state.value = _state.value.copy(loadingMoreData = true)
+            try {
+                state.value.let {
+                    if (it.hasMoreLocations && !it.appending) {
+                        loadLocations(true)
+                    }
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to load more locations")
+            } finally {
+                _state.value = _state.value.copy(loadingMoreData = false)
             }
         }
     }
