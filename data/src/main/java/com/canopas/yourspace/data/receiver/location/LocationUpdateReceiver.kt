@@ -54,7 +54,6 @@ class LocationUpdateReceiver : BroadcastReceiver() {
                     val userId = authService.currentUser?.id ?: return@launch
 
                     locationResult.locations.forEach { extractedLocation ->
-                        Timber.e("XXX position:$extractedLocation")
                         val userState = journeyRepository.getUserState(userId, extractedLocation)
                         locationService.saveCurrentLocation(
                             userId,
