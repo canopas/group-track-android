@@ -1,9 +1,9 @@
-<p align="center"> <a href="https://canopas.com/contact"><img src="./screenshots/cta_banner2.png"></a></p>
+<p align="center"> <a href="https://canopas.com/contact"><img src="./screenshots/cta_banner2.png" alt=""></a></p>
 
 # YourSpace - Stay connected, Anywhere!
 Enhancing family safety and communication with real-time location sharing and modern UIs.
 
-<img src="./screenshots/cover_image.png" />
+<img src="./screenshots/cover_image.png"  alt=""/>
 
 
 ## Overview
@@ -21,25 +21,37 @@ YourSpace is currently in active development 🚧, with plans to incorporate add
 YourSpace ensures your loved ones' well-being with:
 
 - [X] Real-time Location Sharing
-- Secure Communication
-- Geo-fencing
-- Real-time Alerts
-- Check-Ins
-- SOS Help Alert
+- [X] Secure Communication
+- [X] Location History with Routes
+- [X] Geo-fencing
+- [X] Real-time Alerts
+- [X] Check-Ins
+- [ ] SOS Help Alert
 
 ## Screenshots
 
 <table>
   <tr>
-  <th width="33%" >Create/Join Space</th>
-  <th  width="33%" >Share Location</th>
-   <th  width="33%" >Location History</th>
+    <th width="33%" >Create/Join Space</th>
+    <th  width="33%" >Share Location</th>
+    <th  width="33%" >Location History</th>
   </tr>
-    <tr>
-  <td><img src="./screenshots/yourspace_ss_2.png" /></td>
-  <td> <img src="./screenshots/yourspace_ss_1.png"  /> </td>
-  <td> <img src="./screenshots/yourspace_ss_4.png" /> </td>
-  </tr>  
+  <tr>
+    <td><img src="./screenshots/yourspace_ss_1.jpg"  alt="Family Safety At Your Fingertips"/></td>
+    <td> <img src="./screenshots/yourspace_ss_2.jpg"   alt="Say Goodbye to 'Where are You?' Texts "/> </td>
+    <td> <img src="./screenshots/yourspace_ss_3.jpg"  alt="Always Track Your Loved Ones"/> </td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <th width="33%" >Geofencing</th>
+    <th  width="33%" >Communication</th>
+  </tr>
+  <tr align="center">
+    <td><img src="./screenshots/yourspace_ss_4.jpg"  alt="Customize Your Places According to Your Needs" width="70%" /></td>
+    <td> <img src="./screenshots/yourspace_ss_5.jpg"   alt="Chat with Your Loved Ones Anytime, Anywhere" width="70%" /> </td>
+  </tr>
 </table>
 
 ## Requirements
@@ -76,6 +88,11 @@ YourSpace utilizes the latest Android technologies and adheres to industry best 
 - Coroutines + Flow
 - Jetpack Navigation
 - DataStore
+- Room Database
+- Firebase Authentication
+- Firebase Firestore
+- Cloud Functions
+- Google Maps SDK
 - Hilt
 
 ## Contribution
