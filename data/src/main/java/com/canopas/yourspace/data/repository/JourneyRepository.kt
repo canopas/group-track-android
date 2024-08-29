@@ -128,9 +128,6 @@ class JourneyRepository @Inject constructor(
         if (locations.isNullOrEmpty()) {
             val lastFiveMinLocations =
                 locationService.getLastFiveMinuteLocations(userId).toList().flatten()
-            if (lastFiveMinLocations.isEmpty()) {
-                return
-            }
             updateLocationData(locationData, lastFiveMinLocations)
         } else {
             val latest = locations.maxByOrNull { it.created_at!! }
