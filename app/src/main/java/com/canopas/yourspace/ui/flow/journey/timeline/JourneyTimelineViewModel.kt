@@ -91,7 +91,7 @@ class JourneyTimelineViewModel @Inject constructor(
             }
 
             val locationJourneys = (allJourneys + filteredLocations).groupByDate()
-            val hasMoreItems = locations.isNotEmpty()
+            val hasMoreItems = filteredLocations.isNotEmpty()
 
             _state.value = _state.value.copy(
                 groupedLocation = locationJourneys,
