@@ -17,4 +17,6 @@ object Config {
 
     const val FIRESTORE_COLLECTION_USER_LOCATIONS = "user_locations"
     const val FIRESTORE_COLLECTION_USER_JOURNEYS = "user_journeys"
+
+    const val FIREBASE_REGION = "asia-south1"
 }
