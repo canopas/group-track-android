@@ -15,11 +15,9 @@ import com.canopas.yourspace.data.service.location.ApiJourneyService
 import com.canopas.yourspace.data.service.location.ApiLocationService
 import com.canopas.yourspace.data.storage.room.LocationTableDatabase
 import com.canopas.yourspace.data.utils.LocationConverters
-import kotlinx.coroutines.flow.toList
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.math.sqrt
 
 const val MIN_DISTANCE = 100.0
 const val MIN_TIME_DIFFERENCE = 5 * 60 * 1000
@@ -94,28 +92,31 @@ class JourneyRepository @Inject constructor(
     }
 
     suspend fun getUserState(userId: String, extractedLocation: Location): Int {
-        var locationData = getLocationData(userId)
-        if (locationData != null) {
-            checkAndUpdateLastFiveMinLocations(userId, locationData, extractedLocation)
-        } else {
-            val location = ApiLocation(
-                user_id = userId,
-                latitude = extractedLocation.latitude,
-                longitude = extractedLocation.longitude,
-                created_at = System.currentTimeMillis(),
-                user_state = UserState.STEADY.value
-            )
-            val locationTable = LocationTable(
-                userId = userId,
-                lastFiveMinutesLocations = converters.locationListToString(listOf(location))
-            )
-            locationTableDatabase.locationTableDao().insertLocationData(locationTable)
-        }
+        val locationData = getLocationData(userId) ?: insertLocationData(userId, extractedLocation)
 
-        locationData = getLocationData(userId)
+        checkAndUpdateLastFiveMinLocations(userId, locationData, extractedLocation)
+
         val userState = getUserState(locationData, extractedLocation)
-
         return userState
+    }
+
+    private suspend fun insertLocationData(
+        userId: String,
+        extractedLocation: Location
+    ): LocationTable {
+        val location = ApiLocation(
+            user_id = userId,
+            latitude = extractedLocation.latitude,
+            longitude = extractedLocation.longitude,
+            created_at = System.currentTimeMillis(),
+            user_state = UserState.STEADY.value
+        )
+        val locationTable = LocationTable(
+            userId = userId,
+            lastFiveMinutesLocations = converters.locationListToString(listOf(location))
+        )
+        locationTableDatabase.locationTableDao().insertLocationData(locationTable)
+        return locationTable
     }
 
     private suspend fun checkAndUpdateLastFiveMinLocations(
@@ -125,18 +126,13 @@ class JourneyRepository @Inject constructor(
     ) {
         val locations =
             locationData.lastFiveMinutesLocations?.let { converters.locationListFromString(it) }
-        if (locations.isNullOrEmpty()) {
-            val lastFiveMinLocations =
-                locationService.getLastFiveMinuteLocations(userId).toList().flatten()
-            updateLocationData(locationData, lastFiveMinLocations)
-        } else {
-            val latest = locations.maxByOrNull { it.created_at!! }
-            if (latest == null || latest.created_at!! < System.currentTimeMillis() - 60000) {
-                val updated = locations.toMutableList()
-                updated.removeAll { extractedLocation.time - it.created_at!! > MIN_TIME_DIFFERENCE }
-                updated.add(extractedLocation.toApiLocation(userId))
-                updateLocationData(locationData, updated)
-            }
+
+        val latest = locations?.maxByOrNull { it.created_at!! }
+        if (latest == null || latest.created_at!! < System.currentTimeMillis() - 60000) {
+            val updated = locations!!.toMutableList()
+            updated.removeAll { extractedLocation.time - it.created_at!! > MIN_TIME_DIFFERENCE }
+            updated.add(extractedLocation.toApiLocation(userId))
+            updateLocationData(locationData, updated)
         }
     }
 
@@ -324,15 +320,9 @@ class JourneyRepository @Inject constructor(
         return distance[0]
     }
 
-    private fun distance(loc1: Location, loc2: Location): Double {
-        val latDiff = loc1.latitude - loc2.latitude
-        val lonDiff = loc1.longitude - loc2.longitude
-        return sqrt(latDiff * latDiff + lonDiff * lonDiff)
-    }
-
     private fun geometricMedian(locations: List<Location>): Location {
         return locations.minByOrNull { candidate ->
-            locations.sumOf { location -> distance(candidate, location) }
+            locations.sumOf { location -> candidate.distanceTo(location).toDouble() }
         } ?: throw IllegalArgumentException("Location list is empty")
     }
 }
