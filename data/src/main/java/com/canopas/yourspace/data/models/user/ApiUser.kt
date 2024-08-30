@@ -47,10 +47,10 @@ data class ApiUserSession(
     val user_id: String = "",
     val device_id: String? = "",
     val device_name: String? = "",
-    val state: Int = USER_STATE_UNKNOWN,
     val platform: Int = LOGIN_DEVICE_TYPE_ANDROID,
     val session_active: Boolean = true,
-    val app_version: Long? = 0
+    val app_version: Long? = 0,
+    val created_at: Long? = System.currentTimeMillis()
 ) {
     @get:Exclude
     val loggedOut: Boolean get() = !session_active

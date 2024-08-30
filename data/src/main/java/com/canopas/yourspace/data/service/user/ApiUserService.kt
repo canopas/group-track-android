@@ -136,14 +136,14 @@ class ApiUserService @Inject constructor(
 
     suspend fun getUserNetworkStatus(
         userId: String,
-        onStatusChecked: (ApiUserSession?) -> Unit
+        onStatusChecked: (ApiUser?) -> Unit
     ) {
         withContext(Dispatchers.IO) {
             val data = hashMapOf("userId" to userId)
             try {
                 functions.getHttpsCallable("networkStatusCheck").call(data).addOnSuccessListener {
-                    val session = runBlocking { getUserSession(userId) }
-                    onStatusChecked(session)
+                    val user = runBlocking { getUser(userId) }
+                    onStatusChecked(user)
                 }.addOnFailureListener {
                     Timber.e(it, "Failed to check network status")
                     onStatusChecked(null)
