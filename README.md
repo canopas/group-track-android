@@ -23,8 +23,6 @@ YourSpace ensures your loved ones' well-being with:
 - [X] Secure Communication
 - [X] Location History with Routes
 - [X] Geo-fencing
-- [X] Real-time Alerts
-- [X] Check-Ins
 - [ ] SOS Help Alert
 
 ## Screenshots
@@ -86,6 +84,9 @@ YourSpace utilizes the latest Android technologies and adheres to industry best 
 - Kotlin
 - Coroutines + Flow
 - Jetpack Navigation
+- Retrofit
+- Fusion Location Provider
+- Google Maps SDK
 - DataStore
 - Room Database
 - Firebase Authentication
