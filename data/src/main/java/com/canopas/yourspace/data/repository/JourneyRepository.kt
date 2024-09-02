@@ -313,7 +313,6 @@ class JourneyRepository @Inject constructor(
                         update_at = System.currentTimeMillis()
                     )
                 )
-
             }
 
             timeDifference > MIN_TIME_DIFFERENCE && distance < MIN_DISTANCE -> {

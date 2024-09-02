@@ -20,7 +20,6 @@ data class LocationTable(
     val lastLocationJourney: String? = null // last journey
 )
 
-
 @Entity(tableName = "logs")
 data class LogEntry(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
