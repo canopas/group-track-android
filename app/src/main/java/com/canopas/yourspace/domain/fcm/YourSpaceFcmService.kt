@@ -30,6 +30,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 const val YOURSPACE_CHANNEL_MESSAGES = "your_space_notification_channel_messages"
@@ -127,10 +128,14 @@ class YourSpaceFcmService : FirebaseMessagingService() {
                     }
 
                     NotificationNetworkStatusConst.NOTIFICATION_TYPE_NETWORK_CHECK -> {
-                        handleUpdateStateNotification()
+                        scope.launch { authService.updateUserSessionState(USER_STATE_UNKNOWN) }
                     }
                 }
             }
+        }
+        if (message.data.isNotEmpty() && notification == null) {
+            Timber.d("Notification received for user state update")
+            handleUpdateStateNotification()
         }
     }
 
