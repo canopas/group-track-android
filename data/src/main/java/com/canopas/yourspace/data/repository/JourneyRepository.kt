@@ -40,7 +40,7 @@ class JourneyRepository @Inject constructor(
         try {
             val locationData = getLocationData(userId)
             val lastJourney = getLastJourneyLocation(userId, locationData)
-            Timber.e("last location from local:$lastJourney")
+            Timber.e("last location from local: $lastJourney")
 
             when {
                 lastJourney == null -> {
@@ -79,7 +79,7 @@ class JourneyRepository @Inject constructor(
     private fun getLocationData(
         userid: String
     ): LocationTable? {
-        Timber.e("XXX get location data from local")
+        Timber.e("get location data from local")
         return locationTableDatabase.locationTableDao().getLocationData(userid)
     }
 
@@ -87,7 +87,7 @@ class JourneyRepository @Inject constructor(
         userId: String,
         locationData: LocationTable?
     ): LocationJourney? {
-        Timber.e("XXX get last location data from local")
+        Timber.e("get last location data from local")
         return locationData?.lastLocationJourney?.let {
             return converters.journeyFromString(it)
         } ?: run {
@@ -124,7 +124,7 @@ class JourneyRepository @Inject constructor(
             created_at = System.currentTimeMillis(),
             user_state = UserState.STEADY.value
         )
-        Timber.e("insert location data when local is empty:$location")
+        Timber.e("insert location data when local is empty: $location")
         val locationTable = LocationTable(
             userId = userId,
             lastFiveMinutesLocations = converters.locationListToString(listOf(location))
@@ -227,7 +227,7 @@ class JourneyRepository @Inject constructor(
             ).toDouble()
             val updatedRoutes = lastKnownJourney.routes.toMutableList()
             updatedRoutes.add(extractedLocation.toRoute())
-            Timber.e("moving distance:$distance")
+            Timber.e("moving distance: $distance")
             journeyService.updateLastLocationJourney(
                 userId = currentUserId,
                 lastKnownJourney.copy(
@@ -261,7 +261,8 @@ class JourneyRepository @Inject constructor(
         val distance = distanceBetween(extractedLocation, lastLatLong)
         val timeDifference = extractedLocation.time - lastKnownJourney.created_at!!
 
-        Timber.e("in steady function distance:$distance timeDifference:$timeDifference")
+        Timber.e("in steady function new location: $extractedLocation last location: $lastLatLong")
+        Timber.e("in steady function distance: $distance timeDifference: $timeDifference")
         when {
             timeDifference > MIN_TIME_DIFFERENCE && distance > MIN_DISTANCE -> {
                 Timber.e("time and distance in more then minimum")
