@@ -128,7 +128,7 @@ class YourSpaceFcmService : FirebaseMessagingService() {
                     }
 
                     NotificationNetworkStatusConst.NOTIFICATION_TYPE_NETWORK_CHECK -> {
-                        scope.launch { authService.updateUserSessionState(USER_STATE_UNKNOWN) }
+                        handleUpdateStateNotification()
                     }
                 }
             }
