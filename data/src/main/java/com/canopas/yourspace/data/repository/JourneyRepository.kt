@@ -17,8 +17,10 @@ import com.canopas.yourspace.data.storage.room.LocationTableDatabase
 import com.canopas.yourspace.data.utils.LocationConverters
 import kotlinx.coroutines.flow.toList
 import timber.log.Timber
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.math.roundToInt
 
 const val MIN_DISTANCE = 100.0
 const val MIN_TIME_DIFFERENCE = 5 * 60 * 1000
@@ -178,7 +180,7 @@ class JourneyRepository @Inject constructor(
         val medianLocation = geometricMedian(lastFiveMinuteLocations.map { it.toLocation() })
         val distance = medianLocation.distanceTo(extractedLocation).toDouble()
         Timber.e("median location:$medianLocation")
-        Timber.e("distance between last location:$distance")
+        Timber.e("distance between last location:${getDistanceString(distance)}")
         return if (distance > MIN_DISTANCE) {
             Timber.e(" user state: Moving")
             UserState.MOVING.value
@@ -262,7 +264,10 @@ class JourneyRepository @Inject constructor(
         val timeDifference = extractedLocation.time - lastKnownJourney.created_at!!
 
         Timber.e("in steady function new location: $extractedLocation last location: $lastLatLong")
-        Timber.e("in steady function distance: $distance timeDifference: $timeDifference")
+        Timber.e(
+            "in steady function distance: ${getDistanceString(distance.toDouble())} " +
+                    "timeDifference: ${getRouteDurationString(timeDifference)}"
+        )
         when {
             timeDifference > MIN_TIME_DIFFERENCE && distance > MIN_DISTANCE -> {
                 Timber.e("time and distance in more then minimum")
@@ -342,6 +347,7 @@ class JourneyRepository @Inject constructor(
                 )
             }
         }
+        Timber.e("Exit from steady function")
     }
 
     /**
@@ -363,5 +369,37 @@ class JourneyRepository @Inject constructor(
         return locations.minByOrNull { candidate ->
             locations.sumOf { location -> candidate.distanceTo(location).toDouble() }
         } ?: throw IllegalArgumentException("Location list is empty")
+    }
+}
+
+internal fun getDistanceString(
+    routeDistance: Double
+): String {
+    return if (routeDistance < 1000) {
+        "${routeDistance.roundToInt()} m"
+    } else {
+        val distanceInKm = (routeDistance / 1000)
+        "${distanceInKm.roundToInt()} km"
+    }
+}
+
+internal fun getRouteDurationString(
+    routeDuration: Long
+): String {
+    val hours = TimeUnit.MILLISECONDS.toHours(routeDuration)
+    val minutes = TimeUnit.MILLISECONDS.toMinutes(routeDuration) % 60
+    val seconds = TimeUnit.MILLISECONDS.toSeconds(routeDuration) % 60
+    return when {
+        hours > 0 -> {
+            "$hours hr $minutes mins"
+        }
+
+        minutes > 0 -> {
+            "$minutes mins"
+        }
+
+        else -> {
+            "$seconds sec"
+        }
     }
 }
