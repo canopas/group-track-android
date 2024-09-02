@@ -32,7 +32,7 @@ abstract class LocationTableDatabase : RoomDatabase() {
             }
         }
 
-       private val MIGRATION_2_3 = object : Migration(2, 3) {
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL(
                     """
@@ -43,7 +43,7 @@ abstract class LocationTableDatabase : RoomDatabase() {
                 `tag` TEXT,
                 `message` TEXT NOT NULL
             )
-            """.trimIndent()
+                    """.trimIndent()
                 )
             }
         }
