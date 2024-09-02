@@ -266,7 +266,7 @@ class JourneyRepository @Inject constructor(
         Timber.e("in steady function new location: $extractedLocation last location: $lastLatLong")
         Timber.e(
             "in steady function distance: ${getDistanceString(distance.toDouble())} " +
-                    "timeDifference: ${getRouteDurationString(timeDifference)}"
+                "timeDifference: ${getRouteDurationString(timeDifference)}"
         )
         when {
             timeDifference > MIN_TIME_DIFFERENCE && distance > MIN_DISTANCE -> {
