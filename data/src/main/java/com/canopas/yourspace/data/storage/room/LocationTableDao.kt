@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.canopas.yourspace.data.models.location.LocationTable
+import com.canopas.yourspace.data.models.location.LogEntry
 
 @Keep
 @Dao
@@ -23,4 +24,13 @@ interface LocationTableDao {
 
     @Query("DELETE FROM location_table")
     fun deleteLocationData()
+}
+
+@Dao
+interface LogDao {
+    @Insert
+    suspend fun insert(logEntry: LogEntry)
+
+    @Query("SELECT * FROM logs")
+    suspend fun getAllLogs(): List<LogEntry>
 }

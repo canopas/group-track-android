@@ -15,11 +15,13 @@ import com.canopas.yourspace.data.repository.GeofenceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.auth.AuthStateChangeListener
 import com.canopas.yourspace.data.storage.UserPreferences
+import com.canopas.yourspace.data.utils.Device
 import com.canopas.yourspace.domain.fcm.FcmRegisterWorker
 import com.canopas.yourspace.domain.fcm.YOURSPACE_CHANNEL_GEOFENCE
 import com.canopas.yourspace.domain.fcm.YOURSPACE_CHANNEL_MESSAGES
 import com.canopas.yourspace.domain.fcm.YOURSPACE_CHANNEL_PLACES
 import com.canopas.yourspace.domain.receiver.BatteryBroadcastReceiver
+import com.canopas.yourspace.utils.log.FileLoggingTree
 import com.google.android.libraries.places.api.Places
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dagger.hilt.android.HiltAndroidApp
@@ -48,6 +50,9 @@ class YourSpaceApplication :
     @Inject
     lateinit var notificationManager: NotificationManager
 
+    @Inject
+    lateinit var device: Device
+
     override fun onCreate() {
         Places.initializeWithNewPlacesApiEnabled(this, BuildConfig.PLACE_API_KEY)
 
@@ -59,6 +64,10 @@ class YourSpaceApplication :
         setNotificationChannel()
 
         registerBatteryBroadcastReceiver()
+
+        if (device.getAppVersionCode() <= 1000000) {
+            Timber.plant(FileLoggingTree(this))
+        }
 
         if (userPreferences.currentUser != null) {
             geoFenceRepository.init()

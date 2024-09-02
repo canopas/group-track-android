@@ -19,3 +19,13 @@ data class LocationTable(
     @ColumnInfo(name = "last_location_journey")
     val lastLocationJourney: String? = null // last journey
 )
+
+
+@Entity(tableName = "logs")
+data class LogEntry(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val timestamp: String,
+    val priority: String,
+    val tag: String?,
+    val message: String
+)

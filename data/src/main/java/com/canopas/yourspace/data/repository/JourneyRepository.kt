@@ -15,6 +15,7 @@ import com.canopas.yourspace.data.service.location.ApiJourneyService
 import com.canopas.yourspace.data.service.location.ApiLocationService
 import com.canopas.yourspace.data.storage.room.LocationTableDatabase
 import com.canopas.yourspace.data.utils.LocationConverters
+import kotlinx.coroutines.flow.toList
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -35,12 +36,15 @@ class JourneyRepository @Inject constructor(
         extractedLocation: Location,
         userId: String
     ) {
+        Timber.e("save location journey")
         try {
             val locationData = getLocationData(userId)
             val lastJourney = getLastJourneyLocation(userId, locationData)
+            Timber.e("last location from local:$lastJourney")
 
             when {
                 lastJourney == null -> {
+                    Timber.e("last journey is null")
                     journeyService.saveCurrentJourney(
                         userId = userId,
                         fromLatitude = extractedLocation.latitude,
@@ -49,6 +53,7 @@ class JourneyRepository @Inject constructor(
                 }
 
                 userState == UserState.STEADY.value -> {
+                    Timber.e("user state is steady")
                     saveJourneyForSteadyUser(
                         currentUserId = userId,
                         extractedLocation = extractedLocation,
@@ -57,6 +62,7 @@ class JourneyRepository @Inject constructor(
                 }
 
                 userState == UserState.MOVING.value -> {
+                    Timber.e("user state is moving")
                     saveJourneyForMovingUser(
                         currentUserId = userId,
                         extractedLocation = extractedLocation,
@@ -67,11 +73,13 @@ class JourneyRepository @Inject constructor(
         } catch (e: Exception) {
             Timber.e(e, "Error while saving location journey")
         }
+        Timber.e("Exit from save location journey------------")
     }
 
     private fun getLocationData(
         userid: String
     ): LocationTable? {
+        Timber.e("XXX get location data from local")
         return locationTableDatabase.locationTableDao().getLocationData(userid)
     }
 
@@ -79,6 +87,7 @@ class JourneyRepository @Inject constructor(
         userId: String,
         locationData: LocationTable?
     ): LocationJourney? {
+        Timber.e("XXX get last location data from local")
         return locationData?.lastLocationJourney?.let {
             return converters.journeyFromString(it)
         } ?: run {
@@ -92,10 +101,14 @@ class JourneyRepository @Inject constructor(
     }
 
     suspend fun getUserState(userId: String, extractedLocation: Location): Int {
-        val locationData = getLocationData(userId) ?: insertLocationData(userId, extractedLocation)
+        var locationData = getLocationData(userId)
+        if (locationData != null) {
+            checkAndUpdateLastFiveMinLocations(userId, locationData, extractedLocation)
+        } else {
+            insertLocationData(userId, extractedLocation)
+        }
 
-        checkAndUpdateLastFiveMinLocations(userId, locationData, extractedLocation)
-
+        locationData = getLocationData(userId)
         val userState = getUserState(locationData, extractedLocation)
         return userState
     }
@@ -111,6 +124,7 @@ class JourneyRepository @Inject constructor(
             created_at = System.currentTimeMillis(),
             user_state = UserState.STEADY.value
         )
+        Timber.e("insert location data when local is empty:$location")
         val locationTable = LocationTable(
             userId = userId,
             lastFiveMinutesLocations = converters.locationListToString(listOf(location))
@@ -124,15 +138,24 @@ class JourneyRepository @Inject constructor(
         locationData: LocationTable,
         extractedLocation: Location
     ) {
+        Timber.e("check and update last five min locations")
         val locations =
             locationData.lastFiveMinutesLocations?.let { converters.locationListFromString(it) }
 
-        val latest = locations?.maxByOrNull { it.created_at!! }
-        if (latest == null || latest.created_at!! < System.currentTimeMillis() - 60000) {
-            val updated = locations!!.toMutableList()
-            updated.removeAll { extractedLocation.time - it.created_at!! > MIN_TIME_DIFFERENCE }
-            updated.add(extractedLocation.toApiLocation(userId))
-            updateLocationData(locationData, updated)
+        if (locations.isNullOrEmpty()) {
+            Timber.e("last five min locations is empty get from firestore")
+            val lastFiveMinLocations =
+                locationService.getLastFiveMinuteLocations(userId).toList().flatten()
+            updateLocationData(locationData, lastFiveMinLocations)
+        } else {
+            Timber.e("last five min locations is not empty")
+            val latest = locations.maxByOrNull { it.created_at!! }
+            if (latest == null || latest.created_at!! < System.currentTimeMillis() - 60000) {
+                val updated = locations.toMutableList()
+                updated.removeAll { extractedLocation.time - it.created_at!! > MIN_TIME_DIFFERENCE }
+                updated.add(extractedLocation.toApiLocation(userId))
+                updateLocationData(locationData, updated)
+            }
         }
     }
 
@@ -140,6 +163,7 @@ class JourneyRepository @Inject constructor(
         locationData: LocationTable,
         updatedLocations: List<ApiLocation>
     ) {
+        Timber.e("update last five minutes location data into the local")
         val updatedData = locationData.copy(
             lastFiveMinutesLocations = converters.locationListToString(updatedLocations)
         )
@@ -153,9 +177,13 @@ class JourneyRepository @Inject constructor(
         val lastFiveMinuteLocations = getLastFiveMinuteLocations(locationData)
         val medianLocation = geometricMedian(lastFiveMinuteLocations.map { it.toLocation() })
         val distance = medianLocation.distanceTo(extractedLocation).toDouble()
+        Timber.e("median location:$medianLocation")
+        Timber.e("distance between last location:$distance")
         return if (distance > MIN_DISTANCE) {
+            Timber.e(" user state: Moving")
             UserState.MOVING.value
         } else {
+            Timber.e(" user state: Steady")
             UserState.STEADY.value
         }
     }
@@ -177,6 +205,7 @@ class JourneyRepository @Inject constructor(
         extractedLocation: Location,
         lastKnownJourney: LocationJourney
     ) {
+        Timber.e("in moving function")
         if (lastKnownJourney.isSteadyLocation()) {
             val updatedRoutes = lastKnownJourney.routes.toMutableList()
             updatedRoutes.add(extractedLocation.toRoute())
@@ -198,6 +227,7 @@ class JourneyRepository @Inject constructor(
             ).toDouble()
             val updatedRoutes = lastKnownJourney.routes.toMutableList()
             updatedRoutes.add(extractedLocation.toRoute())
+            Timber.e("moving distance:$distance")
             journeyService.updateLastLocationJourney(
                 userId = currentUserId,
                 lastKnownJourney.copy(
@@ -210,6 +240,7 @@ class JourneyRepository @Inject constructor(
                 )
             )
         }
+        Timber.e("Exit from moving function")
     }
 
     /**
@@ -230,8 +261,10 @@ class JourneyRepository @Inject constructor(
         val distance = distanceBetween(extractedLocation, lastLatLong)
         val timeDifference = extractedLocation.time - lastKnownJourney.created_at!!
 
+        Timber.e("in steady function distance:$distance timeDifference:$timeDifference")
         when {
             timeDifference > MIN_TIME_DIFFERENCE && distance > MIN_DISTANCE -> {
+                Timber.e("time and distance in more then minimum")
                 if (lastKnownJourney.isSteadyLocation()) {
                     journeyService.updateLastLocationJourney(
                         userId = currentUserId,
@@ -248,7 +281,8 @@ class JourneyRepository @Inject constructor(
 
                 journeyService.saveCurrentJourney(
                     userId = currentUserId,
-                    fromLatitude = lastKnownJourney.to_latitude ?: lastKnownJourney.from_latitude,
+                    fromLatitude = lastKnownJourney.to_latitude
+                        ?: lastKnownJourney.from_latitude,
                     fromLongitude = lastKnownJourney.to_longitude
                         ?: lastKnownJourney.from_longitude,
                     toLatitude = extractedLocation.latitude,
@@ -261,6 +295,7 @@ class JourneyRepository @Inject constructor(
             }
 
             timeDifference < MIN_TIME_DIFFERENCE && distance > MIN_DISTANCE -> {
+                Timber.e("time less then minimum distance and distance more then min distance")
                 val updatedRoutes = lastKnownJourney.routes.toMutableList()
                 updatedRoutes.add(extractedLocation.toRoute())
                 journeyService.updateLastLocationJourney(
@@ -268,17 +303,20 @@ class JourneyRepository @Inject constructor(
                     journey = lastKnownJourney.copy(
                         to_longitude = extractedLocation.longitude,
                         to_latitude = extractedLocation.latitude,
-                        route_distance = lastKnownJourney.toLocationFromSteadyJourney().distanceTo(
-                            extractedLocation
-                        ).toDouble(),
+                        route_distance = lastKnownJourney.toLocationFromSteadyJourney()
+                            .distanceTo(
+                                extractedLocation
+                            ).toDouble(),
                         routes = updatedRoutes,
                         route_duration = extractedLocation.time - lastKnownJourney.created_at,
                         update_at = System.currentTimeMillis()
                     )
                 )
+
             }
 
             timeDifference > MIN_TIME_DIFFERENCE && distance < MIN_DISTANCE -> {
+                Timber.e("time more then minimum distance and distance less then min distance")
                 if (lastKnownJourney.isSteadyLocation()) {
                     journeyService.updateLastLocationJourney(
                         userId = currentUserId,
@@ -297,6 +335,7 @@ class JourneyRepository @Inject constructor(
             }
 
             timeDifference < MIN_TIME_DIFFERENCE && distance < MIN_DISTANCE -> {
+                Timber.e("time and distance is less then minimum")
                 journeyService.updateLastLocationJourney(
                     userId = currentUserId,
                     lastKnownJourney.copy(update_at = System.currentTimeMillis())

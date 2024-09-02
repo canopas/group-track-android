@@ -51,11 +51,12 @@ class ApiJourneyService @Inject constructor(
         )
 
         journey.updateLocationJourney(userId)
-
+        Timber.e(" save current journey into the firebase and local:$journey")
         docRef.set(journey).await()
     }
 
     suspend fun updateLastLocationJourney(userId: String, journey: LocationJourney) {
+        Timber.e("update last location journey into the firebase and local")
         try {
             journey.updateLocationJourney(userId)
             journeyRef(userId).document(journey.id).set(journey).await()
@@ -65,6 +66,7 @@ class ApiJourneyService @Inject constructor(
     }
 
     private suspend fun LocationJourney.updateLocationJourney(userId: String) {
+        Timber.e("update last location journey in local")
         locationTableDatabase.locationTableDao().getLocationData(userId)?.let { locationTable ->
 
             val newLocationData =
