@@ -21,6 +21,9 @@ import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
+const val NETWORK_STATUS_CHECK_INTERVAL = 3 * 60 * 1000
+private var LAST_NETWORK_CHECK_TIME = 0L
+
 @Singleton
 class ApiUserService @Inject constructor(
     db: FirebaseFirestore,
@@ -138,6 +141,14 @@ class ApiUserService @Inject constructor(
         userId: String,
         onStatusChecked: (ApiUser?) -> Unit
     ) {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - LAST_NETWORK_CHECK_TIME < NETWORK_STATUS_CHECK_INTERVAL) {
+            Timber.d("Network status check called too soon. Skipping call.")
+            onStatusChecked(null)
+            return
+        }
+        LAST_NETWORK_CHECK_TIME = currentTime
+
         withContext(Dispatchers.IO) {
             val data = hashMapOf("userId" to userId)
             try {

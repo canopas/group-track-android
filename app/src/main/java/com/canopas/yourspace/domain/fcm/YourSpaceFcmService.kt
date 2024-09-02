@@ -30,7 +30,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 const val YOURSPACE_CHANNEL_MESSAGES = "your_space_notification_channel_messages"
@@ -66,6 +65,10 @@ object NotificationGeofenceConst {
 
 object NotificationUpdateStateConst {
     const val NOTIFICATION_TYPE_UPDATE_STATE = "updateState"
+}
+
+object NotificationNetworkStatusConst {
+    const val NOTIFICATION_TYPE_NETWORK_CHECK = "network_status"
 }
 
 @AndroidEntryPoint
@@ -122,13 +125,12 @@ class YourSpaceFcmService : FirebaseMessagingService() {
                     NotificationGeofenceConst.NOTIFICATION_TYPE_GEOFENCE -> {
                         sendGeoFenceNotification(this, title, body, message.data)
                     }
+
+                    NotificationNetworkStatusConst.NOTIFICATION_TYPE_NETWORK_CHECK -> {
+                        handleUpdateStateNotification()
+                    }
                 }
             }
-        }
-
-        if (message.data.isNotEmpty() && notification == null) {
-            Timber.d("Notification received for user state update")
-            handleUpdateStateNotification()
         }
     }
 
