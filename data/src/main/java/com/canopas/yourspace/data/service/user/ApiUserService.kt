@@ -138,10 +138,10 @@ class ApiUserService @Inject constructor(
 
     suspend fun getUserNetworkStatus(
         userId: String,
+        lastUpdatedTime:Long,
         onStatusChecked: (ApiUser?) -> Unit
     ) {
         val currentTime = System.currentTimeMillis()
-        val lastUpdatedTime = getUser(userId)?.updated_at ?: 0L
         if (currentTime - lastUpdatedTime < NETWORK_STATUS_CHECK_INTERVAL) {
             Timber.d("Network status check called too soon. Skipping call for $userId.")
             onStatusChecked(null)

@@ -118,7 +118,7 @@ class MapViewModel @Inject constructor(
                 )
             )
 
-            apiUserService.getUserNetworkStatus(userInfo.user.id) { user ->
+            apiUserService.getUserNetworkStatus(userInfo.user.id, userInfo.user.updated_at ?: 0L) { user ->
                 user?.let {
                     viewModelScope.launch(appDispatcher.IO) {
                         _state.emit(
