@@ -1,4 +1,4 @@
-const {onDocumentDeleted, onDocumentCreated, onDocumentUpdated} = require("firebase-functions/v2/firestore");
+const {onDocumentDeleted, onDocumentCreated} = require("firebase-functions/v2/firestore");
 const firebase_tools = require('firebase-tools');
 const {setGlobalOptions} = require("firebase-functions/v2");
 const {onCall, HttpsError} = require("firebase-functions/v2/https");
@@ -412,7 +412,7 @@ exports.updateUserStateNotification = onDocumentCreated({
     }
 });
 
-exports.networkStatusCheck = onCall({ region: "asia-south1"}, async (request) => {
+exports.networkStatusCheck = onCall(async (request) => {
     const db = admin.firestore();
     const data = request.data;
     const userId = data.userId;
@@ -420,32 +420,47 @@ exports.networkStatusCheck = onCall({ region: "asia-south1"}, async (request) =>
     const userSnapshot = await db.collection('users').doc(userId).get();
     if (!userSnapshot.exists) {
         console.log('User not found');
-        return {error: 'User not found' };
+        return;
     }
 
     const user = userSnapshot.data();
-
     if (user.fcm_token === undefined) {
         console.log('User does not have FCM token');
-        return {error: 'FCM token not found' };
+        return;
     }
 
     const payload = {
         token: user.fcm_token,
         data: {
             userId: userId,
-            type: 'network_status'
-        }
+            type: 'network_status',
+        },
+        android: {
+            priority: 'high',
+        },
+        apns: {
+            headers: {
+                'apns-priority': '10',
+            },
+            payload: {
+                aps: {
+                   'content-available': 1,
+                },
+            },
+        },
     };
 
-    try {
-        const response = await admin.messaging().send(payload);
+    admin.messaging().send(payload).then((response) => {
         console.log("Successfully sent network status message:", response);
-        return { success: true };
-    }catch (error){
+        return {
+            success: true
+        };
+    }).catch((error) => {
         console.log("Failed to send network status message:", error.code);
-        return { error: error.code };
-    }
+        return {
+            error: error.code
+        };
+    });
 });
 
 exports.sendNewPlaceAddedNotification = onDocumentCreated({
