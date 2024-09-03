@@ -432,6 +432,10 @@ exports.networkStatusCheck = onCall({ region: "asia-south1"}, async (request) =>
 
     const payload = {
         token: user.fcm_token,
+        notification: {
+            title: "Network Status",
+            body: "Checking network status..."
+        },
         data: {
             userId: userId,
             type: 'network_status'
