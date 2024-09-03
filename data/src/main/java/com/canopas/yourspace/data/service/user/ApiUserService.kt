@@ -138,7 +138,7 @@ class ApiUserService @Inject constructor(
 
     suspend fun getUserNetworkStatus(
         userId: String,
-        lastUpdatedTime:Long,
+        lastUpdatedTime: Long,
         onStatusChecked: (ApiUser?) -> Unit
     ) {
         val currentTime = System.currentTimeMillis()
