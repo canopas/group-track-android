@@ -21,7 +21,7 @@ import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
-const val NETWORK_STATUS_CHECK_INTERVAL = 1 * 60 * 1000
+const val NETWORK_STATUS_CHECK_INTERVAL = 3 * 60 * 1000
 
 @Singleton
 class ApiUserService @Inject constructor(
