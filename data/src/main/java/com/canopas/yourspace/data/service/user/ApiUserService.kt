@@ -21,8 +21,7 @@ import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
-const val NETWORK_STATUS_CHECK_INTERVAL = 3 * 60 * 1000
-private var LAST_NETWORK_CHECK_TIME = 0L
+const val NETWORK_STATUS_CHECK_INTERVAL = 1 * 60 * 1000
 
 @Singleton
 class ApiUserService @Inject constructor(
@@ -142,12 +141,12 @@ class ApiUserService @Inject constructor(
         onStatusChecked: (ApiUser?) -> Unit
     ) {
         val currentTime = System.currentTimeMillis()
-        if (currentTime - LAST_NETWORK_CHECK_TIME < NETWORK_STATUS_CHECK_INTERVAL) {
-            Timber.d("Network status check called too soon. Skipping call.")
+        val lastUpdatedTime = getUser(userId)?.updated_at ?: 0L
+        if (currentTime - lastUpdatedTime < NETWORK_STATUS_CHECK_INTERVAL) {
+            Timber.d("Network status check called too soon. Skipping call for $userId.")
             onStatusChecked(null)
             return
         }
-        LAST_NETWORK_CHECK_TIME = currentTime
 
         withContext(Dispatchers.IO) {
             val data = hashMapOf("userId" to userId)
