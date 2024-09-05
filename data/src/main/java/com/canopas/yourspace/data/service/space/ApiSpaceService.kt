@@ -39,7 +39,6 @@ class ApiSpaceService @Inject constructor(
     suspend fun joinSpace(spaceId: String, role: Int = SPACE_MEMBER_ROLE_MEMBER) {
         val userId = authService.currentUser?.id ?: ""
         spaceMemberRef(spaceId)
-        spaceMemberRef(spaceId)
             .document(userId).also {
                 val member = ApiSpaceMember(
                     space_id = spaceId,
@@ -55,14 +54,12 @@ class ApiSpaceService @Inject constructor(
 
     suspend fun enableLocation(spaceId: String, userId: String, enable: Boolean) {
         spaceMemberRef(spaceId)
-        spaceMemberRef(spaceId)
             .whereEqualTo("user_id", userId).get()
             .await().documents.firstOrNull()
             ?.reference?.update("location_enabled", enable)?.await()
     }
 
     suspend fun isMember(spaceId: String, userId: String): Boolean {
-        spaceMemberRef(spaceId)
         val query = spaceMemberRef(spaceId)
             .whereEqualTo("user_id", userId)
         val result = query.get().await()
@@ -82,7 +79,6 @@ class ApiSpaceService @Inject constructor(
         spaceMemberRef(spaceId).snapshotFlow(ApiSpaceMember::class.java)
 
     private suspend fun deleteMembers(spaceId: String) {
-        spaceMemberRef(spaceId)
         spaceMemberRef(spaceId).get().await().documents.forEach { doc ->
             doc.reference.delete().await()
         }
@@ -95,7 +91,6 @@ class ApiSpaceService @Inject constructor(
 
     suspend fun removeUserFromSpace(spaceId: String, userId: String) {
         placeService.removedUserFromExistingPlaces(spaceId, userId)
-        spaceMemberRef(spaceId)
         spaceMemberRef(spaceId)
             .whereEqualTo("user_id", userId).get().await().documents.forEach {
                 it.reference.delete().await()
