@@ -32,7 +32,7 @@ class ApiUserService @Inject constructor(
 ) {
     private val userRef = db.collection(FIRESTORE_COLLECTION_USERS)
     private fun sessionRef(userId: String) =
-        userRef.document(userId).collection(Config.FIRESTORE_COLLECTION_USER_SESSIONS)
+        userRef.document(userId.takeIf { it.isNotBlank() } ?: "null").collection(Config.FIRESTORE_COLLECTION_USER_SESSIONS)
 
     suspend fun getUser(userId: String): ApiUser? {
         return try {

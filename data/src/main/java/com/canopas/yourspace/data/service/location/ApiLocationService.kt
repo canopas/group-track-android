@@ -2,11 +2,8 @@ package com.canopas.yourspace.data.service.location
 
 import com.canopas.yourspace.data.models.location.ApiLocation
 import com.canopas.yourspace.data.models.location.UserState
-import com.canopas.yourspace.data.storage.room.LocationTableDatabase
 import com.canopas.yourspace.data.utils.Config
-import com.canopas.yourspace.data.utils.LocationConverters
 import com.canopas.yourspace.data.utils.snapshotFlow
-import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.flow.Flow
@@ -19,25 +16,18 @@ import javax.inject.Singleton
 @Singleton
 class ApiLocationService @Inject constructor(
     db: FirebaseFirestore,
-    private val locationManager: LocationManager,
-    private val locationTableDatabase: LocationTableDatabase,
-    private val converters: LocationConverters
+    private val locationManager: LocationManager
 ) {
     private val userRef = db.collection(Config.FIRESTORE_COLLECTION_USERS)
-    private fun locationRef(userId: String): CollectionReference? {
-        return try {
-            userRef.document(userId).collection(Config.FIRESTORE_COLLECTION_USER_LOCATIONS)
-        } catch (e: Exception) {
-            Timber.e(e, "Error while getting location reference")
-            null
-        }
-    }
+    private fun locationRef(userId: String) =
+        userRef.document(userId.takeIf { it.isNotBlank() } ?: "null")
+            .collection(Config.FIRESTORE_COLLECTION_USER_LOCATIONS)
 
     suspend fun saveLastKnownLocation(
         userId: String
     ) {
         val lastLocation = locationManager.getLastLocation() ?: return
-        val docRef = locationRef(userId)?.document() ?: return
+        val docRef = locationRef(userId).document()
 
         val location = ApiLocation(
             id = docRef.id,
@@ -58,7 +48,7 @@ class ApiLocationService @Inject constructor(
         recordedAt: Long,
         userState: Int?
     ) {
-        val docRef = locationRef(userId)?.document() ?: return
+        val docRef = locationRef(userId).document()
 
         val location = ApiLocation(
             id = docRef.id,
@@ -74,9 +64,9 @@ class ApiLocationService @Inject constructor(
 
     fun getCurrentLocation(userId: String): Flow<List<ApiLocation>>? {
         return try {
-            locationRef(userId)?.whereEqualTo("user_id", userId)
-                ?.orderBy("created_at", Query.Direction.DESCENDING)?.limit(1)
-                ?.snapshotFlow(ApiLocation::class.java)
+            locationRef(userId).whereEqualTo("user_id", userId)
+                .orderBy("created_at", Query.Direction.DESCENDING).limit(1)
+                .snapshotFlow(ApiLocation::class.java)
         } catch (e: Exception) {
             Timber.e(e, "Error while getting current location")
             null
@@ -91,7 +81,7 @@ class ApiLocationService @Inject constructor(
             try {
                 val startTime = currentTime - (i + 1) * 60000
                 val endTime = startTime - 60000
-                val reference = locationRef(userId) ?: continue
+                val reference = locationRef(userId)
                 val apiLocation = reference
                     .whereEqualTo("user_id", userId)
                     .whereGreaterThanOrEqualTo("created_at", endTime)
