@@ -25,11 +25,11 @@ class ApiPlaceService @Inject constructor(
     private val spaceRef = db.collection(Config.FIRESTORE_COLLECTION_SPACES)
 
     private fun spacePlacesRef(spaceId: String) =
-        spaceRef.document(spaceId).collection(Config.FIRESTORE_COLLECTION_SPACE_PLACES)
+        spaceRef.document(spaceId.takeIf { it.isNotBlank() } ?: "null").collection(Config.FIRESTORE_COLLECTION_SPACE_PLACES)
 
     private fun spacePlacesSettingsRef(spaceId: String, placeId: String) =
-        spaceRef.document(spaceId).collection(Config.FIRESTORE_COLLECTION_SPACE_PLACES)
-            .document(placeId).collection(
+        spaceRef.document(spaceId.takeIf { it.isNotBlank() } ?: "null").collection(Config.FIRESTORE_COLLECTION_SPACE_PLACES)
+            .document(placeId.takeIf { it.isNotBlank() } ?: "null").collection(
                 Config.FIRESTORE_COLLECTION_SPACE_PLACES_MEMBER_SETTINGS
             )
 
