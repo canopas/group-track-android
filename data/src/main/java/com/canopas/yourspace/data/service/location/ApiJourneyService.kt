@@ -20,8 +20,13 @@ class ApiJourneyService @Inject constructor(
     private val converters: LocationConverters
 ) {
     private val userRef = db.collection(Config.FIRESTORE_COLLECTION_USERS)
+
+    // App crashes sometimes because of the empty userId string passed to document().
+    // java.lang.IllegalArgumentException: Invalid document reference.
+    // Document references must have an even number of segments, but users has 1
+    // https://stackoverflow.com/a/51195713/22508023 [Explanation can be found in comments]
     private fun journeyRef(userId: String) =
-        userRef.document(userId)
+        userRef.document(userId.takeIf { it.isNotBlank() } ?: "null")
             .collection(Config.FIRESTORE_COLLECTION_USER_JOURNEYS)
 
     suspend fun saveCurrentJourney(

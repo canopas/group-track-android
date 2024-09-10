@@ -12,20 +12,27 @@ import com.canopas.yourspace.data.utils.snapshotFlow
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.functions.FirebaseFunctions
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
+
+const val NETWORK_STATUS_CHECK_INTERVAL = 3 * 60 * 1000
 
 @Singleton
 class ApiUserService @Inject constructor(
     db: FirebaseFirestore,
     private val device: Device,
-    private val locationService: ApiLocationService
+    private val locationService: ApiLocationService,
+    private val functions: FirebaseFunctions
 ) {
     private val userRef = db.collection(FIRESTORE_COLLECTION_USERS)
     private fun sessionRef(userId: String) =
-        userRef.document(userId).collection(Config.FIRESTORE_COLLECTION_USER_SESSIONS)
+        userRef.document(userId.takeIf { it.isNotBlank() } ?: "null").collection(Config.FIRESTORE_COLLECTION_USER_SESSIONS)
 
     suspend fun getUser(userId: String): ApiUser? {
         return try {
@@ -127,5 +134,34 @@ class ApiUserService @Inject constructor(
     suspend fun getUserSession(userId: String): ApiUserSession? {
         return sessionRef(userId).whereEqualTo("session_active", true)
             .get().await().documents.firstOrNull()?.toObject(ApiUserSession::class.java)
+    }
+
+    suspend fun getUserNetworkStatus(
+        userId: String,
+        lastUpdatedTime: Long,
+        onStatusChecked: (ApiUser?) -> Unit
+    ) {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastUpdatedTime < NETWORK_STATUS_CHECK_INTERVAL) {
+            Timber.d("Network status check called too soon. Skipping call for $userId.")
+            onStatusChecked(null)
+            return
+        }
+
+        withContext(Dispatchers.IO) {
+            val data = hashMapOf("userId" to userId)
+            try {
+                functions.getHttpsCallable("networkStatusCheck").call(data).addOnSuccessListener {
+                    val user = runBlocking { getUser(userId) }
+                    onStatusChecked(user)
+                }.addOnFailureListener {
+                    Timber.e(it, "Failed to check network status")
+                    onStatusChecked(null)
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to check network status")
+                onStatusChecked(null)
+            }
+        }
     }
 }

@@ -52,7 +52,6 @@ data class ApiUserSession(
     val app_version: Long? = 0,
     val created_at: Long? = System.currentTimeMillis()
 ) {
-
     @get:Exclude
     val loggedOut: Boolean get() = !session_active
 }
