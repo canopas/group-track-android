@@ -52,7 +52,7 @@ fun UserBatteryStatus(
             contentDescription = null,
             tint = color,
             modifier = Modifier
-                .size(16.dp)
+                .size(if (batteryPrc > 0) 16.dp else 24.dp)
                 .padding(end = 4.dp)
         )
         if (batteryPrc > 0f) {
