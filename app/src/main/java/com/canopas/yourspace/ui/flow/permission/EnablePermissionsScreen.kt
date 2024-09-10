@@ -275,16 +275,16 @@ fun NotificationPermissionRationaleDialog(
     AlertDialog(onDismissRequest = onSkip, title = {
         Text(text = stringResource(id = R.string.enable_permission_rational_title))
     }, text = {
-            Text(text = stringResource(id = R.string.enable_permission_rational_msg))
-        }, confirmButton = {
-            TextButton(onClick = onContinue) {
-                Text(stringResource(id = R.string.enable_permission_btn_enable))
-            }
-        }, dismissButton = {
-            TextButton(onClick = onSkip) {
-                Text(stringResource(id = R.string.common_btn_skip))
-            }
-        }, properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false))
+        Text(text = stringResource(id = R.string.enable_permission_rational_msg))
+    }, confirmButton = {
+        TextButton(onClick = onContinue) {
+            Text(stringResource(id = R.string.enable_permission_btn_enable))
+        }
+    }, dismissButton = {
+        TextButton(onClick = onSkip) {
+            Text(stringResource(id = R.string.common_btn_skip))
+        }
+    }, properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false))
 }
 
 @Composable
@@ -323,12 +323,14 @@ private fun PermissionContent(
         ) {
             Text(
                 text = title,
-                style = AppTheme.appTypography.subTitle2.copy(color = AppTheme.colorScheme.textPrimary)
+                style = AppTheme.appTypography.subTitle2.copy(color = AppTheme.colorScheme.textPrimary),
+                modifier = Modifier.clickable(enabled = !isGranted) { onClick() }
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = description,
-                style = AppTheme.appTypography.body2.copy(color = AppTheme.colorScheme.textDisabled)
+                style = AppTheme.appTypography.body2.copy(color = AppTheme.colorScheme.textDisabled),
+                modifier = Modifier.clickable(enabled = !isGranted) { onClick() }
             )
         }
     }

@@ -27,16 +27,20 @@ fun UserBatteryStatus(
         R.drawable.ic_battery_50
     } else if (batteryPrc > 30f) {
         R.drawable.ic_battery_30
-    } else {
+    } else if (batteryPrc > 0f) {
         R.drawable.ic_battery_low
+    } else {
+        R.drawable.ic_battery_unknown
     }
 
     val color = if (batteryPrc > 70f) {
         AppTheme.colorScheme.successColor
     } else if (batteryPrc > 30f) {
         AppTheme.colorScheme.permissionWarning
-    } else {
+    } else if (batteryPrc > 0f) {
         AppTheme.colorScheme.alertColor
+    } else {
+        AppTheme.colorScheme.textDisabled
     }
 
     Row(
@@ -51,11 +55,12 @@ fun UserBatteryStatus(
                 .size(16.dp)
                 .padding(end = 4.dp)
         )
-
-        Text(
-            text = "${batteryPrc.toInt()}%",
-            color = color,
-            style = AppTheme.appTypography.caption
-        )
+        if (batteryPrc > 0f) {
+            Text(
+                text = "${batteryPrc.toInt()}%",
+                color = color,
+                style = AppTheme.appTypography.caption
+            )
+        }
     }
 }
