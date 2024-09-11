@@ -323,12 +323,14 @@ private fun PermissionContent(
         ) {
             Text(
                 text = title,
-                style = AppTheme.appTypography.subTitle2.copy(color = AppTheme.colorScheme.textPrimary)
+                style = AppTheme.appTypography.subTitle2.copy(color = AppTheme.colorScheme.textPrimary),
+                modifier = Modifier.clickable(enabled = !isGranted) { onClick() }
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = description,
-                style = AppTheme.appTypography.body2.copy(color = AppTheme.colorScheme.textDisabled)
+                style = AppTheme.appTypography.body2.copy(color = AppTheme.colorScheme.textDisabled),
+                modifier = Modifier.clickable(enabled = !isGranted) { onClick() }
             )
         }
     }

@@ -125,7 +125,8 @@ class MapViewModel @Inject constructor(
                             _state.value.copy(
                                 selectedUser = userInfo.copy(
                                     user = userInfo.user.copy(
-                                        state = user.state
+                                        state = user.state,
+                                        battery_pct = user.battery_pct
                                     )
                                 )
                             )
