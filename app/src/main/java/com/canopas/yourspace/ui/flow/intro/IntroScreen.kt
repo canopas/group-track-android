@@ -38,11 +38,7 @@ fun IntroScreen() {
     val pagerState = rememberPagerState { introList.size }
     val coroutineScope = rememberCoroutineScope()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+    Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
         Spacer(modifier = Modifier.height(60.dp))
 
         HorizontalPager(state = pagerState, modifier = Modifier.weight(1f)) { page ->
@@ -89,7 +85,9 @@ fun IntroScreen() {
 @Composable
 fun IntroItem(intro: Intro) {
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
