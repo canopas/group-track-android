@@ -45,8 +45,6 @@ fun IntroScreen() {
             IntroItem(introList[page])
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
         PagerIndicator(
             pagerState = pagerState,
             count = introList.size,

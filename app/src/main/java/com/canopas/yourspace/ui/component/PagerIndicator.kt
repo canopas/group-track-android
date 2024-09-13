@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
@@ -36,7 +37,7 @@ fun PagerIndicator(
     indicatorShape: Shape = RoundedCornerShape(50)
 ) {
     Box(
-        modifier = modifier,
+        modifier = modifier.padding(top = 8.dp),
         contentAlignment = Alignment.CenterStart
     ) {
         Row(
