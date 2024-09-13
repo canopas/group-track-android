@@ -72,7 +72,7 @@ class ApiPlaceService @Inject constructor(
             "createdBy" to createdBy,
             "spaceMemberIds" to spaceMemberIds
         )
-        functions.getHttpsCallable("sendNewPlaceNotification").call(data).addOnSuccessListener {
+        functions.getHttpsCallable("sendNewPlaceAddedNotification").call(data).addOnSuccessListener {
             Timber.d("Notification sent successfully")
         }.addOnFailureListener {
             Timber.e(it, "Failed to send new place notification")
