@@ -58,6 +58,7 @@ class LocationManager @Inject constructor(@ApplicationContext private val contex
             .apply {
                 setGranularity(Granularity.GRANULARITY_PERMISSION_LEVEL)
                 setMinUpdateIntervalMillis(LOCATION_UPDATE_INTERVAL)
+                setWaitForAccurateLocation(true)
             }.build()
 
     internal fun startLocationTracking() {

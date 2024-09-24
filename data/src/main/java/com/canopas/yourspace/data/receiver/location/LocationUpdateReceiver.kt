@@ -8,7 +8,6 @@ import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.location.ApiJourneyService
 import com.canopas.yourspace.data.service.location.ApiLocationService
 import com.canopas.yourspace.data.service.location.LocationManager
-import com.canopas.yourspace.data.storage.LocationCache
 import com.google.android.gms.location.LocationResult
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -19,7 +18,6 @@ import timber.log.Timber
 import javax.inject.Inject
 
 const val ACTION_LOCATION_UPDATE = "action.LOCATION_UPDATE"
-const val MIN_LOCATION_DISTANCE = 10f
 
 @AndroidEntryPoint
 class LocationUpdateReceiver : BroadcastReceiver() {
@@ -39,9 +37,6 @@ class LocationUpdateReceiver : BroadcastReceiver() {
     @Inject
     lateinit var journeyRepository: JourneyRepository
 
-    @Inject
-    lateinit var locationCache: LocationCache
-
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -49,21 +44,14 @@ class LocationUpdateReceiver : BroadcastReceiver() {
             scope.launch {
                 try {
                     val userId = authService.currentUser?.id ?: return@launch
-
-                    val lastLocation = locationCache.getLastLocation(userId)
+                    Timber.e("XXXX Location update received: ${locationResult.locations.size}")
                     locationResult.locations.forEach { extractedLocation ->
-                        val distance = lastLocation?.distanceTo(extractedLocation) ?: 10f
-                        // Save location only if the distance is greater than 10 meters
-                        // to avoid saving the same location
-                        if (distance >= MIN_LOCATION_DISTANCE) {
-                            locationService.saveCurrentLocation(
-                                userId,
-                                extractedLocation.latitude,
-                                extractedLocation.longitude,
-                                System.currentTimeMillis()
-                            )
-                            locationCache.putLastLocation(extractedLocation, userId)
-                        }
+                        locationService.saveCurrentLocation(
+                            userId,
+                            extractedLocation.latitude,
+                            extractedLocation.longitude,
+                            System.currentTimeMillis()
+                        )
                         journeyRepository.saveLocationJourney(extractedLocation, userId)
                     }
                 } catch (e: Exception) {

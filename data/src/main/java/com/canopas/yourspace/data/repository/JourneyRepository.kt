@@ -81,9 +81,7 @@ class JourneyRepository @Inject constructor(
             fromLatitude = lastKnownJourney.from_latitude,
             fromLongitude = lastKnownJourney.from_longitude,
             toLatitude = lastKnownJourney.to_latitude,
-            toLongitude = lastKnownJourney.to_longitude,
-            routeDistance = lastKnownJourney.route_distance,
-            routeDuration = lastKnownJourney.route_duration
+            toLongitude = lastKnownJourney.to_longitude
         ) {
             newJourneyId = it
         }
@@ -168,8 +166,7 @@ class JourneyRepository @Inject constructor(
                 saveJourneyWhenUserStartsMoving(
                     userId,
                     extractedLocation,
-                    lastKnownJourney,
-                    distance
+                    lastKnownJourney
                 )
             }
         } else {
@@ -181,8 +178,7 @@ class JourneyRepository @Inject constructor(
                 updateJourneyForContinuedMovingUser(
                     userId,
                     extractedLocation,
-                    lastKnownJourney,
-                    distance
+                    lastKnownJourney
                 )
             } else if (distance < MIN_DISTANCE && timeDifference > MIN_TIME_DIFFERENCE) {
                 // Here, means last known journey is moving and user has stopped moving
@@ -190,8 +186,7 @@ class JourneyRepository @Inject constructor(
                 saveJourneyOnJourneyStopped(
                     userId,
                     extractedLocation,
-                    lastKnownJourney,
-                    distance
+                    lastKnownJourney
                 )
             }
         }
@@ -203,8 +198,7 @@ class JourneyRepository @Inject constructor(
     private suspend fun saveJourneyWhenUserStartsMoving(
         userId: String,
         extractedLocation: Location,
-        lastKnownJourney: LocationJourney,
-        distance: Float
+        lastKnownJourney: LocationJourney
     ) {
         var newJourneyId = ""
         val journey = LocationJourney(
@@ -213,8 +207,6 @@ class JourneyRepository @Inject constructor(
             from_longitude = lastKnownJourney.from_longitude,
             to_latitude = extractedLocation.latitude,
             to_longitude = extractedLocation.longitude,
-            route_distance = distance.toDouble(),
-            route_duration = null,
             routes = listOf(
                 lastKnownJourney.toLocationFromSteadyJourney().toRoute(),
                 extractedLocation.toRoute()
@@ -225,12 +217,7 @@ class JourneyRepository @Inject constructor(
             fromLatitude = lastKnownJourney.from_latitude,
             fromLongitude = lastKnownJourney.from_longitude,
             toLatitude = extractedLocation.latitude,
-            toLongitude = extractedLocation.longitude,
-            routeDistance = distance.toDouble() + (lastKnownJourney.route_distance ?: 0.0),
-            routeDuration = (extractedLocation.time - lastKnownJourney.created_at!!) + (
-                lastKnownJourney.route_duration
-                    ?: 0
-                )
+            toLongitude = extractedLocation.longitude
         ) {
             newJourneyId = it
         }
@@ -243,8 +230,7 @@ class JourneyRepository @Inject constructor(
     private suspend fun updateJourneyForContinuedMovingUser(
         userId: String,
         extractedLocation: Location,
-        lastKnownJourney: LocationJourney,
-        distance: Float
+        lastKnownJourney: LocationJourney
     ) {
         val journey = LocationJourney(
             id = lastKnownJourney.id,
@@ -253,16 +239,12 @@ class JourneyRepository @Inject constructor(
             from_longitude = lastKnownJourney.from_longitude,
             to_latitude = extractedLocation.latitude,
             to_longitude = extractedLocation.longitude,
-            route_distance = distance.toDouble() + (lastKnownJourney.route_distance ?: 0.0),
-            route_duration = (extractedLocation.time - lastKnownJourney.created_at!!) + (
-                lastKnownJourney.route_duration
-                    ?: 0
-                ),
-            routes = lastKnownJourney.routes + listOf(extractedLocation.toRoute())
+            routes = lastKnownJourney.routes + listOf(extractedLocation.toRoute()),
+            created_at = lastKnownJourney.created_at
         )
         journeyService.updateLastLocationJourney(
             userId = userId,
-            journey = journey.copy(created_at = lastKnownJourney.created_at)
+            journey = journey
         )
         locationCache.putLastJourney(journey, userId)
     }
@@ -273,8 +255,7 @@ class JourneyRepository @Inject constructor(
     private suspend fun saveJourneyOnJourneyStopped(
         userId: String,
         extractedLocation: Location,
-        lastKnownJourney: LocationJourney,
-        distance: Float
+        lastKnownJourney: LocationJourney
     ) {
         val movingJourney = LocationJourney(
             id = lastKnownJourney.id,
@@ -283,11 +264,6 @@ class JourneyRepository @Inject constructor(
             from_longitude = lastKnownJourney.from_longitude,
             to_latitude = extractedLocation.latitude,
             to_longitude = extractedLocation.longitude,
-            route_distance = distance.toDouble() + (lastKnownJourney.route_distance ?: 0.0),
-            route_duration = (extractedLocation.time - lastKnownJourney.created_at!!) + (
-                lastKnownJourney.route_duration
-                    ?: 0
-                ),
             routes = lastKnownJourney.routes + listOf(extractedLocation.toRoute()),
             created_at = lastKnownJourney.created_at,
             update_at = lastKnownJourney.update_at
@@ -319,7 +295,7 @@ class JourneyRepository @Inject constructor(
     /**
      * Calculate distance between two locations
      * */
-    private fun distanceBetween(location1: Location, location2: Location): Float {
+    fun distanceBetween(location1: Location, location2: Location): Float {
         val distance = FloatArray(1)
         Location.distanceBetween(
             location1.latitude,

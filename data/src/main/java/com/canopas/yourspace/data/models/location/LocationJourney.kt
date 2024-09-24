@@ -15,8 +15,6 @@ data class LocationJourney(
     val from_longitude: Double = 0.0,
     var to_latitude: Double? = null,
     var to_longitude: Double? = null,
-    val route_distance: Double? = null,
-    val route_duration: Long? = null,
     val routes: List<JourneyRoute> = emptyList(),
     val created_at: Long? = System.currentTimeMillis(),
     val update_at: Long? = System.currentTimeMillis()
