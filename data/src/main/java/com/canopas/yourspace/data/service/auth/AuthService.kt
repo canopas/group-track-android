@@ -4,6 +4,7 @@ import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.models.user.ApiUserSession
 import com.canopas.yourspace.data.service.location.LocationManager
 import com.canopas.yourspace.data.service.user.ApiUserService
+import com.canopas.yourspace.data.storage.LocationCache
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.firebase.auth.FirebaseAuth
@@ -15,7 +16,8 @@ class AuthService @Inject constructor(
     private val userPreferences: UserPreferences,
     private val apiUserService: ApiUserService,
     private val firebaseAuth: FirebaseAuth,
-    private val locationManager: LocationManager
+    private val locationManager: LocationManager,
+    private val locationCache: LocationCache
 ) {
     private val authStateChangeListeners = HashSet<AuthStateChangeListener>()
 
@@ -103,6 +105,7 @@ class AuthService @Inject constructor(
         userPreferences.currentSpace = ""
         firebaseAuth.signOut()
         locationManager.stopService()
+        locationCache.clear()
     }
 
     suspend fun deleteAccount() {
@@ -121,7 +124,6 @@ class AuthService @Inject constructor(
 
     suspend fun updateUserSessionState(state: Int) {
         val currentUser = currentUser ?: return
-        if (currentUser.state == state) return
         apiUserService.updateSessionState(currentUser.id, state)
     }
 }

@@ -354,8 +354,17 @@ fun Address.formattedTitle(toAddress: Address?): String {
     val fromState = this.adminArea ?: this.countryName ?: "Unknown"
     val toState = toAddress?.adminArea ?: toAddress?.countryName ?: "Unknown"
 
+    val fromAddressLine = this.getAddressLine(0).split(",").firstOrNull {
+        it.matches(Regex("^[a-zA-Z ]+\$"))
+    }?.trim()
+
+    val toAddressLine = toAddress?.getAddressLine(0)?.split(",")?.firstOrNull {
+        it.matches(Regex("^[a-zA-Z ]+\$"))
+    }?.trim()
+
     return when {
         toAddress == null -> "$fromArea, $fromCity"
+        fromArea == toArea && !fromAddressLine.isNullOrEmpty() && !toAddressLine.isNullOrEmpty() -> "$fromAddressLine to $toAddressLine, $fromCity"
         fromArea == toArea -> "$fromArea, $fromCity"
         fromCity == toCity -> "$fromArea to $toArea, $fromCity"
         fromState == toState -> "$fromArea, $fromCity to $toArea, $toCity"

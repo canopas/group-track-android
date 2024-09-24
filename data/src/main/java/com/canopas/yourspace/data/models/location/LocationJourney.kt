@@ -57,3 +57,10 @@ fun LocationJourney.toLocationFromMovingJourney() = Location("").apply {
     latitude = this@toLocationFromMovingJourney.to_latitude ?: 0.0
     longitude = this@toLocationFromMovingJourney.to_longitude ?: 0.0
 }
+
+fun Location.toLocationJourney(userId: String, journeyId: String) = LocationJourney(
+    id = journeyId,
+    user_id = userId,
+    from_latitude = latitude,
+    from_longitude = longitude
+)
