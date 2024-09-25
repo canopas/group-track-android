@@ -15,14 +15,13 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
@@ -39,7 +38,6 @@ import com.canopas.yourspace.ui.flow.onboard.OnboardViewModel
 import com.canopas.yourspace.ui.theme.AppTheme
 import com.canopas.yourspace.ui.theme.CatchMeTheme
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun PickNameOnboard() {
     val viewModel = hiltViewModel<OnboardViewModel>()
@@ -75,7 +73,7 @@ fun PickNameOnboard() {
         Spacer(modifier = Modifier.weight(1f))
         PrimaryButton(
             label = stringResource(R.string.common_btn_next),
-            modifier = Modifier.align(Alignment.CenterHorizontally),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
             onClick = {
                 keyboard?.hide()
                 viewModel.navigateToSpaceInfo()
@@ -135,7 +133,7 @@ private fun PickNameTextField(title: String, value: String, onValueChanged: (Str
             cursorBrush = SolidColor(AppTheme.colorScheme.primary)
         )
 
-        Divider(
+        HorizontalDivider(
             Modifier.align(Alignment.BottomCenter),
             thickness = 1.dp,
             color = outlineColor
