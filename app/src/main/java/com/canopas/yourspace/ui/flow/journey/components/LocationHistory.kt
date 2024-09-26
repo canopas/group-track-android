@@ -44,8 +44,6 @@ import androidx.compose.ui.unit.dp
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.location.LocationJourney
 import com.canopas.yourspace.data.models.location.isSteadyLocation
-import com.canopas.yourspace.data.models.location.toLocationFromMovingJourney
-import com.canopas.yourspace.data.models.location.toLocationFromSteadyJourney
 import com.canopas.yourspace.domain.utils.getAddress
 import com.canopas.yourspace.domain.utils.getPlaceAddress
 import com.canopas.yourspace.domain.utils.isToday
@@ -104,7 +102,7 @@ fun JourneyLocationItem(location: LocationJourney, lastItem: Boolean, onTap: () 
                 .weight(1f)
         ) {
             val time = getFormattedJourneyTime(location.created_at ?: 0, location.update_at ?: 0)
-            val distance = getDistanceString(location)
+            val distance = getDistanceString(location.route_distance ?: 0.0)
 
             PlaceInfo(title, "$time - $distance")
             Spacer(modifier = Modifier.size(16.dp))
@@ -316,16 +314,13 @@ internal fun getFormattedJourneyTime(startAt: Long, endsAt: Long): String {
 }
 
 internal fun getDistanceString(
-    location: LocationJourney
+    routeDistance: Double
 ): String {
-    return location.toLocationFromSteadyJourney().distanceTo(location.toLocationFromMovingJourney()).let {
-        val routeDistance = it
-        if (routeDistance < 1000) {
-            "${routeDistance.roundToInt()} m"
-        } else {
-            val distanceInKm = (routeDistance / 1000)
-            "${distanceInKm.roundToInt()} km"
-        }
+    return if (routeDistance < 1000) {
+        "${routeDistance.roundToInt()} m"
+    } else {
+        val distanceInKm = (routeDistance / 1000)
+        "${distanceInKm.roundToInt()} km"
     }
 }
 
@@ -359,17 +354,8 @@ fun Address.formattedTitle(toAddress: Address?): String {
     val fromState = this.adminArea ?: this.countryName ?: "Unknown"
     val toState = toAddress?.adminArea ?: toAddress?.countryName ?: "Unknown"
 
-    val fromAddressLine = this.getAddressLine(0).split(",").firstOrNull {
-        it.matches(Regex("^[a-zA-Z ]+\$"))
-    }?.trim()
-
-    val toAddressLine = toAddress?.getAddressLine(0)?.split(",")?.firstOrNull {
-        it.matches(Regex("^[a-zA-Z ]+\$"))
-    }?.trim()
-
     return when {
         toAddress == null -> "$fromArea, $fromCity"
-        fromArea == toArea && !fromAddressLine.isNullOrEmpty() && !toAddressLine.isNullOrEmpty() -> "$fromAddressLine to $toAddressLine, $fromCity"
         fromArea == toArea -> "$fromArea, $fromCity"
         fromCity == toCity -> "$fromArea to $toArea, $fromCity"
         fromState == toState -> "$fromArea, $fromCity to $toArea, $toCity"

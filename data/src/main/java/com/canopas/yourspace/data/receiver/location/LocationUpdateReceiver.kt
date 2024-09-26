@@ -8,6 +8,8 @@ import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.location.ApiJourneyService
 import com.canopas.yourspace.data.service.location.ApiLocationService
 import com.canopas.yourspace.data.service.location.LocationManager
+import com.canopas.yourspace.data.storage.room.LocationTableDatabase
+import com.canopas.yourspace.data.utils.LocationConverters
 import com.google.android.gms.location.LocationResult
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -32,7 +34,13 @@ class LocationUpdateReceiver : BroadcastReceiver() {
     lateinit var locationManager: LocationManager
 
     @Inject
+    lateinit var locationTableDatabase: LocationTableDatabase
+
+    @Inject
     lateinit var authService: AuthService
+
+    @Inject
+    lateinit var converters: LocationConverters
 
     @Inject
     lateinit var journeyRepository: JourneyRepository
@@ -44,15 +52,17 @@ class LocationUpdateReceiver : BroadcastReceiver() {
             scope.launch {
                 try {
                     val userId = authService.currentUser?.id ?: return@launch
-                    Timber.e("XXXX Location update received: ${locationResult.locations.size}")
+
                     locationResult.locations.forEach { extractedLocation ->
+                        val userState = journeyRepository.getUserState(userId, extractedLocation)
                         locationService.saveCurrentLocation(
                             userId,
                             extractedLocation.latitude,
                             extractedLocation.longitude,
-                            System.currentTimeMillis()
+                            System.currentTimeMillis(),
+                            userState = userState
                         )
-                        journeyRepository.saveLocationJourney(extractedLocation, userId)
+                        journeyRepository.saveLocationJourney(userState, extractedLocation, userId)
                     }
                 } catch (e: Exception) {
                     Timber.e(e, "Error while saving location")

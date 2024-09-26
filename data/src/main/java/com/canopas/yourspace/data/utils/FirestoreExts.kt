@@ -5,6 +5,7 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.EventListener
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -18,7 +19,7 @@ fun <T> Query.snapshotFlow(dataType: Class<T>): Flow<List<T>> = callbackFlow {
             return@addSnapshotListener
         }
         if (value != null) {
-            val data = value.documents.filter { it.exists() }.mapNotNull { it.toObject(dataType) }
+            val data = value.documents.filter { it.exists() }.mapNotNull { it.toObject(dataType) as? T }
             trySend(data)
         } else {
             trySend(emptyList())

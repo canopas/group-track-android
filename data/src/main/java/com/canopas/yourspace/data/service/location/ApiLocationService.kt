@@ -1,6 +1,7 @@
 package com.canopas.yourspace.data.service.location
 
 import com.canopas.yourspace.data.models.location.ApiLocation
+import com.canopas.yourspace.data.models.location.UserState
 import com.canopas.yourspace.data.utils.Config
 import com.canopas.yourspace.data.utils.snapshotFlow
 import com.google.firebase.firestore.FirebaseFirestore
@@ -33,7 +34,8 @@ class ApiLocationService @Inject constructor(
             user_id = userId,
             latitude = lastLocation.latitude,
             longitude = lastLocation.longitude,
-            created_at = System.currentTimeMillis()
+            created_at = System.currentTimeMillis(),
+            user_state = UserState.STEADY.value
         )
 
         docRef.set(location).await()
@@ -43,7 +45,8 @@ class ApiLocationService @Inject constructor(
         userId: String,
         latitude: Double,
         longitude: Double,
-        recordedAt: Long
+        recordedAt: Long,
+        userState: Int?
     ) {
         val docRef = locationRef(userId).document()
 
@@ -52,7 +55,8 @@ class ApiLocationService @Inject constructor(
             user_id = userId,
             latitude = latitude,
             longitude = longitude,
-            created_at = recordedAt
+            created_at = recordedAt,
+            user_state = userState
         )
 
         docRef.set(location).await()

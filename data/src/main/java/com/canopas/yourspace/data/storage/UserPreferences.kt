@@ -75,7 +75,7 @@ class UserPreferences @Inject constructor(
         }
     }
 
-    var currentUserSessionState = preferencesDataStore.data.map { _ ->
+    var currentUserSessionState = preferencesDataStore.data.map { preferences ->
         preferencesDataStore.data.first()[KEY_USER_SESSION_JSON]?.let {
             return@let userSessionJsonAdapter.fromJson(it)
         }
@@ -144,7 +144,7 @@ class UserPreferences @Inject constructor(
         }
         set(registered) = runBlocking {
             preferencesDataStore.edit { preferences ->
-                preferences[PreferencesKey.IS_FCM_REGISTERED] = registered
+                preferences[PreferencesKey.IS_FCM_REGISTERED] = registered ?: false
             }
         }
 }

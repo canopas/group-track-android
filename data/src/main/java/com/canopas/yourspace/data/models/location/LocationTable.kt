@@ -13,8 +13,8 @@ data class LocationTable(
     @ColumnInfo(name = "user_id")
     val userId: String = "",
 
-    @ColumnInfo(name = "last_five_locations")
-    val lastFiveLocations: String? = null, // last 5 extracted locations
+    @ColumnInfo(name = "last_five_minutes_locations")
+    val lastFiveMinutesLocations: String? = null, // last 5 min ApiLocations
 
     @ColumnInfo(name = "last_location_journey")
     val lastLocationJourney: String? = null // last journey
