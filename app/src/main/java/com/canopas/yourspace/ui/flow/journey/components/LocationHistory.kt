@@ -44,8 +44,6 @@ import androidx.compose.ui.unit.dp
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.location.LocationJourney
 import com.canopas.yourspace.data.models.location.isSteadyLocation
-import com.canopas.yourspace.data.models.location.toLocationFromMovingJourney
-import com.canopas.yourspace.data.models.location.toLocationFromSteadyJourney
 import com.canopas.yourspace.domain.utils.getAddress
 import com.canopas.yourspace.domain.utils.getPlaceAddress
 import com.canopas.yourspace.domain.utils.isToday
@@ -104,7 +102,7 @@ fun JourneyLocationItem(location: LocationJourney, lastItem: Boolean, onTap: () 
                 .weight(1f)
         ) {
             val time = getFormattedJourneyTime(location.created_at ?: 0, location.update_at ?: 0)
-            val distance = getDistanceString(location)
+            val distance = getDistanceString(location.route_distance ?: 0.0)
 
             PlaceInfo(title, "$time - $distance")
             Spacer(modifier = Modifier.size(16.dp))
@@ -316,16 +314,13 @@ internal fun getFormattedJourneyTime(startAt: Long, endsAt: Long): String {
 }
 
 internal fun getDistanceString(
-    location: LocationJourney
+    routeDistance: Double
 ): String {
-    return location.toLocationFromSteadyJourney().distanceTo(location.toLocationFromMovingJourney()).let {
-        val routeDistance = it
-        if (routeDistance < 1000) {
-            "${routeDistance.roundToInt()} m"
-        } else {
-            val distanceInKm = (routeDistance / 1000)
-            "${distanceInKm.roundToInt()} km"
-        }
+    return if (routeDistance < 1000) {
+        "${routeDistance.roundToInt()} m"
+    } else {
+        val distanceInKm = (routeDistance / 1000)
+        "${distanceInKm.roundToInt()} km"
     }
 }
 
@@ -350,11 +345,14 @@ internal fun getFormattedLocationTimeForFirstItem(createdAt: Long): String {
 }
 
 fun Address.formattedTitle(toAddress: Address?): String {
-    val fromCity = this.locality ?: this.subAdminArea ?: this.adminArea ?: this.featureName ?: "Unknown"
-    val toCity = toAddress?.locality ?: toAddress?.subAdminArea ?: toAddress?.adminArea ?: toAddress?.featureName ?: "Unknown"
+    val fromCity =
+        this.locality ?: this.subAdminArea ?: this.adminArea ?: this.featureName ?: "Unknown"
+    val toCity = toAddress?.locality ?: toAddress?.subAdminArea ?: toAddress?.adminArea
+    ?: toAddress?.featureName ?: "Unknown"
 
     val fromArea = this.subLocality ?: this.thoroughfare ?: this.featureName ?: fromCity
-    val toArea = toAddress?.subLocality ?: toAddress?.thoroughfare ?: toAddress?.featureName ?: toCity
+    val toArea =
+        toAddress?.subLocality ?: toAddress?.thoroughfare ?: toAddress?.featureName ?: toCity
 
     val fromState = this.adminArea ?: this.countryName ?: "Unknown"
     val toState = toAddress?.adminArea ?: toAddress?.countryName ?: "Unknown"
