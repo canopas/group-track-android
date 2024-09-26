@@ -345,14 +345,11 @@ internal fun getFormattedLocationTimeForFirstItem(createdAt: Long): String {
 }
 
 fun Address.formattedTitle(toAddress: Address?): String {
-    val fromCity =
-        this.locality ?: this.subAdminArea ?: this.adminArea ?: this.featureName ?: "Unknown"
-    val toCity = toAddress?.locality ?: toAddress?.subAdminArea ?: toAddress?.adminArea
-    ?: toAddress?.featureName ?: "Unknown"
+    val fromCity = this.locality ?: this.subAdminArea ?: this.adminArea ?: this.featureName ?: "Unknown"
+    val toCity = toAddress?.locality ?: toAddress?.subAdminArea ?: toAddress?.adminArea ?: toAddress?.featureName ?: "Unknown"
 
     val fromArea = this.subLocality ?: this.thoroughfare ?: this.featureName ?: fromCity
-    val toArea =
-        toAddress?.subLocality ?: toAddress?.thoroughfare ?: toAddress?.featureName ?: toCity
+    val toArea = toAddress?.subLocality ?: toAddress?.thoroughfare ?: toAddress?.featureName ?: toCity
 
     val fromState = this.adminArea ?: this.countryName ?: "Unknown"
     val toState = toAddress?.adminArea ?: toAddress?.countryName ?: "Unknown"
