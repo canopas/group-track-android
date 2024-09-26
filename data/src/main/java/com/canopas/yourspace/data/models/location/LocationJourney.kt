@@ -15,8 +15,6 @@ data class LocationJourney(
     val from_longitude: Double = 0.0,
     var to_latitude: Double? = null,
     var to_longitude: Double? = null,
-    val route_distance: Double? = null,
-    val route_duration: Long? = null,
     val routes: List<JourneyRoute> = emptyList(),
     val created_at: Long? = System.currentTimeMillis(),
     val update_at: Long? = System.currentTimeMillis()
@@ -57,3 +55,10 @@ fun LocationJourney.toLocationFromMovingJourney() = Location("").apply {
     latitude = this@toLocationFromMovingJourney.to_latitude ?: 0.0
     longitude = this@toLocationFromMovingJourney.to_longitude ?: 0.0
 }
+
+fun Location.toLocationJourney(userId: String, journeyId: String) = LocationJourney(
+    id = journeyId,
+    user_id = userId,
+    from_latitude = latitude,
+    from_longitude = longitude
+)

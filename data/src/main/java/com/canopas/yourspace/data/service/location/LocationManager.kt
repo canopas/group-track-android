@@ -21,7 +21,6 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 private const val LOCATION_UPDATE_INTERVAL = 10000L
-private const val LOCATION_UPDATE_DISTANCE = 10f
 
 @Singleton
 class LocationManager @Inject constructor(@ApplicationContext private val context: Context) {
@@ -58,7 +57,7 @@ class LocationManager @Inject constructor(@ApplicationContext private val contex
         LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, LOCATION_UPDATE_INTERVAL)
             .apply {
                 setGranularity(Granularity.GRANULARITY_PERMISSION_LEVEL)
-                setMinUpdateDistanceMeters(LOCATION_UPDATE_DISTANCE)
+                setMinUpdateIntervalMillis(LOCATION_UPDATE_INTERVAL)
                 setWaitForAccurateLocation(true)
             }.build()
 

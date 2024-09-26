@@ -8,7 +8,7 @@ import com.canopas.yourspace.data.models.user.LOGIN_TYPE_GOOGLE
 import com.canopas.yourspace.data.models.user.LOGIN_TYPE_PHONE
 import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
-import com.canopas.yourspace.data.storage.room.LocationTableDatabase
+import com.canopas.yourspace.data.storage.LocationCache
 import com.canopas.yourspace.data.utils.AppDispatcher
 import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppNavigator
@@ -26,7 +26,7 @@ class EditProfileViewModel @Inject constructor(
     private val appDispatcher: AppDispatcher,
     private val spaceRepository: SpaceRepository,
     private val authService: AuthService,
-    private val locationTableDatabase: LocationTableDatabase
+    private val locationCache: LocationCache
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(EditProfileState())
@@ -176,7 +176,7 @@ class EditProfileViewModel @Inject constructor(
             )
             spaceRepository.deleteUserSpaces()
             authService.deleteAccount()
-            locationTableDatabase.locationTableDao().deleteLocationData()
+            locationCache.clear()
             navigator.navigateTo(
                 AppDestinations.signIn.path,
                 clearStack = true
