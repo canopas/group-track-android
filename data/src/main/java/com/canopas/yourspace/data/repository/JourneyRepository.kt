@@ -225,8 +225,8 @@ class JourneyRepository @Inject constructor(
             fromLongitude = lastKnownJourney.from_longitude,
             toLatitude = extractedLocation.latitude,
             toLongitude = extractedLocation.longitude,
-            routeDistance = null,
-            routeDuration = (extractedLocation.time - lastKnownJourney.created_at!!)
+            routeDistance = distance.toDouble(),
+            routeDuration = null
         ) {
             newJourneyId = it
         }
