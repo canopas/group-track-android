@@ -250,7 +250,7 @@ class JourneyRepository @Inject constructor(
             to_latitude = extractedLocation.latitude,
             to_longitude = extractedLocation.longitude,
             route_distance = distance.toDouble() + (lastKnownJourney.route_distance ?: 0.0),
-            route_duration = (extractedLocation.time - lastKnownJourney.created_at!!),
+            route_duration = (lastKnownJourney.update_at!! - lastKnownJourney.created_at!!),
             routes = lastKnownJourney.routes + listOf(extractedLocation.toRoute()),
             created_at = lastKnownJourney.created_at
         )
@@ -278,7 +278,7 @@ class JourneyRepository @Inject constructor(
             to_latitude = extractedLocation.latitude,
             to_longitude = extractedLocation.longitude,
             route_distance = distance.toDouble() + (lastKnownJourney.route_distance ?: 0.0),
-            route_duration = (extractedLocation.time - lastKnownJourney.created_at!!),
+            route_duration = (lastKnownJourney.update_at!! - lastKnownJourney.created_at!!),
             routes = lastKnownJourney.routes + listOf(extractedLocation.toRoute()),
             created_at = lastKnownJourney.created_at,
             update_at = lastKnownJourney.update_at
