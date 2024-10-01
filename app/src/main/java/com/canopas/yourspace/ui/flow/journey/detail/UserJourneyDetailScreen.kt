@@ -130,8 +130,8 @@ private fun JourneyInfo(journey: LocationJourney) {
             }
         }
 
-        val distance = getDistanceString(location = journey)
-        val duration = getRouteDurationString(journey)
+        val distance = getDistanceString(journey.route_distance ?: 0.0)
+        val duration = getRouteDurationString(journey.route_duration ?: 0)
 
         Text(
             text = "$distance - $duration",
@@ -275,9 +275,8 @@ private fun JourneyMarker(bgColor: Color, content: @Composable BoxScope.() -> Un
 }
 
 internal fun getRouteDurationString(
-    journey: LocationJourney
+    routeDuration: Long
 ): String {
-    val routeDuration = journey.update_at!! - journey.created_at!!
     val hours = TimeUnit.MILLISECONDS.toHours(routeDuration)
     val minutes = TimeUnit.MILLISECONDS.toMinutes(routeDuration) % 60
     val seconds = TimeUnit.MILLISECONDS.toSeconds(routeDuration) % 60

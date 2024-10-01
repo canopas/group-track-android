@@ -156,7 +156,8 @@ class JourneyRepository @Inject constructor(
                 )
             }
 
-        val timeDifference = (geometricMedian?.time ?: extractedLocation.time) - lastKnownJourney.update_at!!
+        val timeDifference =
+            (geometricMedian?.time ?: extractedLocation.time) - lastKnownJourney.update_at!!
 
         if (lastKnownJourney.isSteadyLocation()) {
             // Handle steady user
@@ -166,7 +167,8 @@ class JourneyRepository @Inject constructor(
                 saveJourneyWhenUserStartsMoving(
                     userId,
                     extractedLocation,
-                    lastKnownJourney
+                    lastKnownJourney,
+                    distance
                 )
             }
         } else {
@@ -178,7 +180,8 @@ class JourneyRepository @Inject constructor(
                 updateJourneyForContinuedMovingUser(
                     userId,
                     extractedLocation,
-                    lastKnownJourney
+                    lastKnownJourney,
+                    distance
                 )
             } else if (distance < MIN_DISTANCE && timeDifference > MIN_TIME_DIFFERENCE) {
                 // Here, means last known journey is moving and user has stopped moving
@@ -186,7 +189,8 @@ class JourneyRepository @Inject constructor(
                 saveJourneyOnJourneyStopped(
                     userId,
                     extractedLocation,
-                    lastKnownJourney
+                    lastKnownJourney,
+                    distance
                 )
             }
         }
@@ -198,7 +202,8 @@ class JourneyRepository @Inject constructor(
     private suspend fun saveJourneyWhenUserStartsMoving(
         userId: String,
         extractedLocation: Location,
-        lastKnownJourney: LocationJourney
+        lastKnownJourney: LocationJourney,
+        distance: Float
     ) {
         var newJourneyId = ""
         val journey = LocationJourney(
@@ -207,6 +212,8 @@ class JourneyRepository @Inject constructor(
             from_longitude = lastKnownJourney.from_longitude,
             to_latitude = extractedLocation.latitude,
             to_longitude = extractedLocation.longitude,
+            route_distance = distance.toDouble(),
+            route_duration = null,
             routes = listOf(
                 lastKnownJourney.toLocationFromSteadyJourney().toRoute(),
                 extractedLocation.toRoute()
@@ -217,7 +224,9 @@ class JourneyRepository @Inject constructor(
             fromLatitude = lastKnownJourney.from_latitude,
             fromLongitude = lastKnownJourney.from_longitude,
             toLatitude = extractedLocation.latitude,
-            toLongitude = extractedLocation.longitude
+            toLongitude = extractedLocation.longitude,
+            routeDistance = distance.toDouble(),
+            routeDuration = null
         ) {
             newJourneyId = it
         }
@@ -230,7 +239,8 @@ class JourneyRepository @Inject constructor(
     private suspend fun updateJourneyForContinuedMovingUser(
         userId: String,
         extractedLocation: Location,
-        lastKnownJourney: LocationJourney
+        lastKnownJourney: LocationJourney,
+        distance: Float
     ) {
         val journey = LocationJourney(
             id = lastKnownJourney.id,
@@ -239,6 +249,8 @@ class JourneyRepository @Inject constructor(
             from_longitude = lastKnownJourney.from_longitude,
             to_latitude = extractedLocation.latitude,
             to_longitude = extractedLocation.longitude,
+            route_distance = distance.toDouble() + (lastKnownJourney.route_distance ?: 0.0),
+            route_duration = (lastKnownJourney.update_at!! - lastKnownJourney.created_at!!),
             routes = lastKnownJourney.routes + listOf(extractedLocation.toRoute()),
             created_at = lastKnownJourney.created_at
         )
@@ -255,7 +267,8 @@ class JourneyRepository @Inject constructor(
     private suspend fun saveJourneyOnJourneyStopped(
         userId: String,
         extractedLocation: Location,
-        lastKnownJourney: LocationJourney
+        lastKnownJourney: LocationJourney,
+        distance: Float
     ) {
         val movingJourney = LocationJourney(
             id = lastKnownJourney.id,
@@ -264,6 +277,8 @@ class JourneyRepository @Inject constructor(
             from_longitude = lastKnownJourney.from_longitude,
             to_latitude = extractedLocation.latitude,
             to_longitude = extractedLocation.longitude,
+            route_distance = distance.toDouble() + (lastKnownJourney.route_distance ?: 0.0),
+            route_duration = (lastKnownJourney.update_at!! - lastKnownJourney.created_at!!),
             routes = lastKnownJourney.routes + listOf(extractedLocation.toRoute()),
             created_at = lastKnownJourney.created_at,
             update_at = lastKnownJourney.update_at
@@ -295,7 +310,7 @@ class JourneyRepository @Inject constructor(
     /**
      * Calculate distance between two locations
      * */
-    fun distanceBetween(location1: Location, location2: Location): Float {
+    private fun distanceBetween(location1: Location, location2: Location): Float {
         val distance = FloatArray(1)
         Location.distanceBetween(
             location1.latitude,

@@ -31,6 +31,8 @@ class ApiJourneyService @Inject constructor(
         fromLongitude: Double,
         toLatitude: Double? = null,
         toLongitude: Double? = null,
+        routeDistance: Double? = null,
+        routeDuration: Long? = null,
         routes: List<JourneyRoute> = emptyList(),
         createdAt: Long? = null,
         updateAt: Long? = null,
@@ -45,6 +47,8 @@ class ApiJourneyService @Inject constructor(
             from_longitude = fromLongitude,
             to_latitude = toLatitude,
             to_longitude = toLongitude,
+            route_distance = routeDistance,
+            route_duration = routeDuration,
             routes = routes,
             created_at = createdAt ?: System.currentTimeMillis(),
             update_at = updateAt ?: System.currentTimeMillis()
