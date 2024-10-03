@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">YourSpace</string>
+    <string name="app_name">GroupTrack</string>
     <string name="common_btn_next">Next</string>
     <string name="common_btn_continue">Continue</string>
     <string name="common_label_or">Or</string>
