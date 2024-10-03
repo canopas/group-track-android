@@ -1,23 +1,23 @@
 <p align="center"> <a href="https://canopas.com/contact"><img src="./screenshots/cta_banner2.png" alt=""></a></p>
 
-# YourSpace - Stay connected, Anywhere!
+# GroupTrack - Stay connected, Anywhere!
 Enhancing family safety and communication with real-time location sharing and modern UIs.
 
 <img src="./screenshots/cover_image.png"  alt="cover"  width="100%"/>
 
 ## Overview
-Welcome to YourSpace, an open-source Android application designed to enhance family safety through real-time location sharing and communication features. YourSpace aims to provide peace of mind by ensuring the safety of your loved ones and facilitating seamless communication regardless of their location.
+Welcome to GroupTrack, an open-source Android application designed to enhance family safety through real-time location sharing and communication features. GroupTrack aims to provide peace of mind by ensuring the safety of your loved ones and facilitating seamless communication regardless of their location.
 
-YourSpace adopts the MVVM architecture pattern and leverages Jetpack Compose for building modern UIs declaratively. This architecture ensures a clear separation of concerns, making the codebase more maintainable and testable. Jetpack Compose simplifies UI development by allowing developers to define UI elements and their behavior in a more intuitive way, resulting in a seamless user experience.
+GroupTrack adopts the MVVM architecture pattern and leverages Jetpack Compose for building modern UIs declaratively. This architecture ensures a clear separation of concerns, making the codebase more maintainable and testable. Jetpack Compose simplifies UI development by allowing developers to define UI elements and their behavior in a more intuitive way, resulting in a seamless user experience.
 
 ## Download App
 <a href="https://play.google.com/store/apps/details?id=com.canopas.yourspace"><img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" width="200"></img></a>
 
 
 ## Features
-YourSpace is currently in active development 🚧, with plans to incorporate additional features shortly.
+GroupTrack is currently in active development 🚧, with plans to incorporate additional features shortly.
 
-YourSpace ensures your loved ones' well-being with:
+GroupTrack ensures your loved ones' well-being with:
 
 - [X] Real-time Location Sharing
 - [X] Secure Communication
@@ -34,9 +34,9 @@ YourSpace ensures your loved ones' well-being with:
     <th  width="33%" >Location History</th>
   </tr>
   <tr>
-    <td><img src="./screenshots/yourspace_ss_1.jpg"  alt="Family Safety At Your Fingertips"/></td>
-    <td> <img src="./screenshots/yourspace_ss_2.jpg"   alt="Say Goodbye to 'Where are You?' Texts "/> </td>
-    <td> <img src="./screenshots/yourspace_ss_3.jpg"  alt="Always Track Your Loved Ones"/> </td>
+    <td><img src="screenshots/grouptrack_ss_1.jpg"  alt="Family Safety At Your Fingertips"/></td>
+    <td> <img src="screenshots/grouptrack_ss_2.jpg"   alt="Say Goodbye to 'Where are You?' Texts "/> </td>
+    <td> <img src="screenshots/grouptrack_ss_3.jpg"  alt="Always Track Your Loved Ones"/> </td>
   </tr>
 </table>
 
@@ -46,8 +46,8 @@ YourSpace ensures your loved ones' well-being with:
     <th  width="33%" >Communication</th>
   </tr>
   <tr align="center">
-    <td><img src="./screenshots/yourspace_ss_4.jpg"  alt="Customize Your Places According to Your Needs" width="70%" /></td>
-    <td> <img src="./screenshots/yourspace_ss_5.jpg"   alt="Chat with Your Loved Ones Anytime, Anywhere" width="70%" /> </td>
+    <td><img src="screenshots/grouptrack_ss_4.jpg"  alt="Customize Your Places According to Your Needs" width="70%" /></td>
+    <td> <img src="screenshots/grouptrack_ss_5.jpg"   alt="Chat with Your Loved Ones Anytime, Anywhere" width="70%" /> </td>
   </tr>
 </table>
 
@@ -70,14 +70,14 @@ Use the `applicationId` value specified in the `app/build.gradle` file of the ap
 Once the project is created, you will need to add the `google-services.json` file to the app module.
 For more information, refer to the [Firebase documentation](https://firebase.google.com/docs/android/setup).
 
-YourSpace uses the following Firebase services, Make sure you enable them in your Firebase project:
+GroupTrack uses the following Firebase services, Make sure you enable them in your Firebase project:
 - Authentication (Phone, Google)
 - Firestore (To store user data)
 </details>
 
 ## Tech stack
 
-YourSpace utilizes the latest Android technologies and adheres to industry best practices. Below is the current tech stack used in the development process:
+GroupTrack utilizes the latest Android technologies and adheres to industry best practices. Below is the current tech stack used in the development process:
 
 - MVVM Architecture
 - Jetpack Compose
@@ -99,13 +99,13 @@ YourSpace utilizes the latest Android technologies and adheres to industry best 
 Currently, we are not accepting any contributions.
 
 ## Credits
-YourSpace is owned and maintained by the [Canopas team](https://canopas.com/). You can follow them on Twitter at [@canopassoftware](https://twitter.com/canopassoftware) for project updates and releases. If you are interested in building apps or designing products, please let us know. We'd love to hear from you!
+GroupTrack is owned and maintained by the [Canopas team](https://canopas.com/). You can follow them on Twitter at [@canopassoftware](https://twitter.com/canopassoftware) for project updates and releases. If you are interested in building apps or designing products, please let us know. We'd love to hear from you!
 
 <a href="https://canopas.com/contact"><img src="./screenshots/cta_btn.png" width=300></a>
 
 ## License
 
-YourSpace is licensed under the Apache License, Version 2.0.
+GroupTrack is licensed under the Apache License, Version 2.0.
 
 ```
 Copyright 2024 Canopas Software LLP
