@@ -3,6 +3,7 @@
 If you wish to delete your GroupTrack account, follow these steps:
 
 1. Open the **GroupTrack** app on your device.
+
 2. Go to **Home** and tap on **Settings**.
    <img src="./assets/home.png" alt="Go to Home and tap Settings" width="450" height="900">
 
