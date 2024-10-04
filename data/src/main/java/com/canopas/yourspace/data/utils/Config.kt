@@ -2,7 +2,7 @@ package com.canopas.yourspace.data.utils
 
 object Config {
 
-    const val PRIVACY_POLICY_URL = "https://canopas.github.io/your-space-android/"
+    const val PRIVACY_POLICY_URL = "https://canopas.github.io/group-track-android/"
 
     const val FIRESTORE_COLLECTION_USERS = "users"
     const val FIRESTORE_COLLECTION_USER_SESSIONS = "user_sessions"
