@@ -45,14 +45,21 @@ class AuthService @Inject constructor(
         return processLogin(uid, firebaseToken, account, null)
     }
 
+    suspend fun verifiedAppleLogin(
+        uid: String?,
+        firebaseToken: String?,
+        appleIdToken: String?
+    ): Boolean {
+        return processLogin(uid, firebaseToken, null, appleIdToken)
+    }
+
     private suspend fun processLogin(
         uid: String?,
         firebaseToken: String?,
         account: GoogleSignInAccount? = null,
-        phoneNumber: String? = null
+        appleIdToken: String? = null
     ): Boolean {
-        val (isNewUser, user, session) =
-            apiUserService.saveUser(uid, firebaseToken, account, phoneNumber)
+        val (isNewUser, user, session) = apiUserService.saveUser(uid, firebaseToken, account)
         notifyAuthChange()
         saveUser(user, session)
         return isNewUser

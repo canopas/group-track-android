@@ -2,8 +2,8 @@ package com.canopas.yourspace.data.service.user
 
 import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.models.user.ApiUserSession
+import com.canopas.yourspace.data.models.user.LOGIN_TYPE_APPLE
 import com.canopas.yourspace.data.models.user.LOGIN_TYPE_GOOGLE
-import com.canopas.yourspace.data.models.user.LOGIN_TYPE_PHONE
 import com.canopas.yourspace.data.service.location.ApiLocationService
 import com.canopas.yourspace.data.utils.Config
 import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_USERS
@@ -52,8 +52,7 @@ class ApiUserService @Inject constructor(
     suspend fun saveUser(
         uid: String?,
         firebaseToken: String?,
-        account: GoogleSignInAccount? = null,
-        phoneNumber: String? = null
+        account: GoogleSignInAccount? = null
     ): Triple<Boolean, ApiUser, ApiUserSession> {
         val savedUser = if (uid.isNullOrEmpty()) null else getUser(uid)
         val isExists = savedUser != null
@@ -75,8 +74,7 @@ class ApiUserService @Inject constructor(
             val user = ApiUser(
                 id = uid!!,
                 email = account?.email ?: "",
-                phone = phoneNumber ?: "",
-                auth_type = if (account != null) LOGIN_TYPE_GOOGLE else LOGIN_TYPE_PHONE,
+                auth_type = if (account != null) LOGIN_TYPE_GOOGLE else  0 ,
                 first_name = account?.givenName ?: "",
                 last_name = account?.familyName ?: "",
                 provider_firebase_id_token = firebaseToken,

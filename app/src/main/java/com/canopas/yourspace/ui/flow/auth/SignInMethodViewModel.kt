@@ -1,4 +1,4 @@
-package com.canopas.yourspace.ui.flow.auth.methods
+package com.canopas.yourspace.ui.flow.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -27,10 +27,6 @@ class SignInMethodViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(SignInMethodScreenState())
     val state: StateFlow<SignInMethodScreenState> = _state
-
-    fun signInWithPhone() = viewModelScope.launch {
-        navigator.navigateTo(AppDestinations.phoneSignIn.path)
-    }
 
     fun proceedGoogleSignIn(account: GoogleSignInAccount) =
         viewModelScope.launch(appDispatcher.IO) {

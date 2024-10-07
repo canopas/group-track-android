@@ -6,13 +6,12 @@ import com.squareup.moshi.JsonClass
 import java.util.UUID
 
 const val LOGIN_TYPE_GOOGLE = 1
-const val LOGIN_TYPE_PHONE = 2
+const val LOGIN_TYPE_APPLE = 2
 const val LOGIN_DEVICE_TYPE_ANDROID = 1
 
 @Keep
 data class ApiUser(
     val id: String = UUID.randomUUID().toString(),
-    val phone: String? = null,
     val email: String? = null,
     val auth_type: Int? = null,
     val first_name: String? = "",

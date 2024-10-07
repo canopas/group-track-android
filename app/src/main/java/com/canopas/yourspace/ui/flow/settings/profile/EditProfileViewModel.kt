@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.models.user.LOGIN_TYPE_GOOGLE
-import com.canopas.yourspace.data.models.user.LOGIN_TYPE_PHONE
 import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.storage.LocationCache
@@ -47,9 +46,7 @@ class EditProfileViewModel @Inject constructor(
                 firstName = user?.first_name,
                 lastName = user?.last_name,
                 email = user?.email,
-                phone = user?.phone,
                 profileUrl = user?.profile_image,
-                enablePhone = user?.auth_type != LOGIN_TYPE_PHONE,
                 enableEmail = user?.auth_type != LOGIN_TYPE_GOOGLE
             )
         )
@@ -67,7 +64,6 @@ class EditProfileViewModel @Inject constructor(
             last_name = _state.value.lastName?.trim(),
             profile_image = _state.value.profileUrl,
             email = _state.value.email?.trim(),
-            phone = _state.value.phone?.trim()
         )
 
         try {
@@ -84,14 +80,12 @@ class EditProfileViewModel @Inject constructor(
     private fun onChange() {
         val validFirstName = (_state.value.firstName?.trim()?.length ?: 0) >= 3
         val validEmail = (_state.value.email?.trim()?.length ?: 0) >= 3
-        val validPhone = (_state.value.phone?.trim()?.length ?: 0) >= 3
 
-        val isValid = validFirstName && (validEmail || validPhone)
+        val isValid = validFirstName && (validEmail)
 
         val changes = state.value.firstName?.trim() != user?.first_name ||
             state.value.lastName?.trim() != user?.last_name ||
             state.value.email?.trim() != user?.email ||
-            state.value.phone?.trim() != user?.phone ||
             state.value.profileUrl != user?.profile_image
 
         _state.value = _state.value.copy(allowSave = isValid && changes)
@@ -157,11 +151,6 @@ class EditProfileViewModel @Inject constructor(
         onChange()
     }
 
-    fun onPhoneChanged(phone: String) {
-        _state.value = _state.value.copy(phone = phone)
-        onChange()
-    }
-
     fun showDeleteAccountConfirmation(show: Boolean) {
         _state.value = _state.value.copy(showDeleteAccountConfirmation = show)
     }
@@ -202,7 +191,6 @@ data class EditProfileState(
     val firstName: String? = null,
     val lastName: String? = null,
     val email: String? = null,
-    val phone: String? = null,
     val profileUrl: String? = null,
     val isImageUploadInProgress: Boolean = false
 )

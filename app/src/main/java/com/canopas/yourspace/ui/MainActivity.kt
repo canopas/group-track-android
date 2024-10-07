@@ -21,11 +21,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.canopas.yourspace.R
 import com.canopas.yourspace.ui.component.AppAlertDialog
-import com.canopas.yourspace.ui.flow.auth.methods.SignInMethodViewModel
-import com.canopas.yourspace.ui.flow.auth.methods.SignInMethodsScreen
-import com.canopas.yourspace.ui.flow.auth.phone.EXTRA_RESULT_IS_NEW_USER
-import com.canopas.yourspace.ui.flow.auth.phone.SignInWithPhoneScreen
-import com.canopas.yourspace.ui.flow.auth.verification.PhoneVerificationScreen
+import com.canopas.yourspace.ui.flow.auth.SignInMethodsScreen
 import com.canopas.yourspace.ui.flow.geofence.add.addnew.AddNewPlaceScreen
 import com.canopas.yourspace.ui.flow.geofence.add.locate.LocateOnMapScreen
 import com.canopas.yourspace.ui.flow.geofence.add.locate.LocateOnMapViewModel
@@ -113,34 +109,7 @@ fun MainApp(viewModel: MainViewModel) {
             OnboardScreen()
         }
         slideComposable(AppDestinations.signIn.path) {
-            val signInModel = hiltViewModel<SignInMethodViewModel>()
-
-            val result = navController.currentBackStackEntry
-                ?.savedStateHandle?.get<Int>(KEY_RESULT)
-            result?.let {
-                val isNewUSer = navController.currentBackStackEntry
-                    ?.savedStateHandle?.get<Boolean>(EXTRA_RESULT_IS_NEW_USER) ?: true
-                navController.currentBackStackEntry
-                    ?.savedStateHandle?.apply {
-                        remove<Int>(KEY_RESULT)
-                        remove<Boolean>(EXTRA_RESULT_IS_NEW_USER)
-                    }
-
-                LaunchedEffect(key1 = result) {
-                    if (result == RESULT_OKAY) {
-                        signInModel.onSignUp(isNewUSer)
-                    }
-                }
-            }
             SignInMethodsScreen()
-        }
-
-        slideComposable(AppDestinations.phoneSignIn.path) {
-            SignInWithPhoneScreen()
-        }
-
-        slideComposable(AppDestinations.OtpVerificationNavigation.path) {
-            PhoneVerificationScreen()
         }
 
         slideComposable(AppDestinations.home.path) {
