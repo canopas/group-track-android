@@ -141,7 +141,7 @@ fun AppleSignInBtn() {
     val state by viewModel.state.collectAsState()
 
     PrimaryTextButton(
-        onClick = {/*TODO*/ },
+        onClick = { /*TODO*/ },
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
