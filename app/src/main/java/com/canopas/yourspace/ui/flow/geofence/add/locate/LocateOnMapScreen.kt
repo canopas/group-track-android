@@ -156,7 +156,7 @@ private fun LocateOnMapContent(
     ) {
         if (!state.selectedPlaceName.isNullOrEmpty()) {
             PlaceNameContent(
-                state.updatedPlaceName ?: "",
+                state.updatedPlaceName,
                 cameraPositionState,
                 userLocation,
                 onPlaceNameChanged = viewModel::onPlaceNameChanged

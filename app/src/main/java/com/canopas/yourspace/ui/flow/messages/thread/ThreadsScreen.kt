@@ -1,5 +1,6 @@
 package com.canopas.yourspace.ui.flow.messages.thread
 
+import androidx.compose.animation.core.exponentialDecay
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -189,7 +190,7 @@ fun ThreadList(
         ) {
             itemsIndexed(
                 threadInfos,
-                key = { index, item -> item.thread.id }
+                key = { _, item -> item.thread.id }
             ) { index, threadInfo ->
                 val threadMembers = members.filter { member ->
                     threadInfo.thread.member_ids.contains(member.user.id) && member.user.id != currentUser?.id
@@ -240,7 +241,9 @@ private fun SwipeToDelete(
     var showDeleteConfirmation by remember {
         mutableStateOf(false)
     }
-
+    val decayAnimationSpec = exponentialDecay<Float>(
+        frictionMultiplier = 1f
+    )
     val state = remember {
         AnchoredDraggableState(
             initialValue = DragAnchors.Center,
@@ -250,9 +253,11 @@ private fun SwipeToDelete(
             },
             positionalThreshold = { distance: Float -> distance * 0.5f },
             velocityThreshold = { with(density) { 100.dp.toPx() } },
-            animationSpec = tween()
+            snapAnimationSpec = tween(),
+            decayAnimationSpec = decayAnimationSpec
         )
     }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -289,7 +294,11 @@ private fun SwipeToDelete(
                         y = 0
                     )
                 }
-                .anchoredDraggable(state, Orientation.Horizontal, reverseDirection = true),
+                .anchoredDraggable(
+                    state = state,
+                    orientation = Orientation.Horizontal,
+                    reverseDirection = true
+                ),
             content = content
         )
     }

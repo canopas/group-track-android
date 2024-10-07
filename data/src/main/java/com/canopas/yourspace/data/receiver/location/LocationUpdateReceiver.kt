@@ -44,7 +44,7 @@ class LocationUpdateReceiver : BroadcastReceiver() {
             scope.launch {
                 try {
                     val userId = authService.currentUser?.id ?: return@launch
-                    Timber.e("XXXX Location update received: ${locationResult.locations.size}")
+                    Timber.e("Location update received: ${locationResult.locations.size}")
                     locationResult.locations.forEach { extractedLocation ->
                         locationService.saveCurrentLocation(
                             userId,
