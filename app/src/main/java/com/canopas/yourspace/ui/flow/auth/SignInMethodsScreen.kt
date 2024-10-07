@@ -147,7 +147,7 @@ fun AppleSignInBtn() {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
-        showLoader = state.showGoogleLoading,
+        showLoader = state.showAppleLoading,
         label = stringResource(id = R.string.sign_in_btn_continue_with_apple),
         containerColor = Color.Black,
         contentColor = Color.White,

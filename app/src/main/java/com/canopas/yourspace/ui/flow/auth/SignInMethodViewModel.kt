@@ -75,5 +75,6 @@ class SignInMethodViewModel @Inject constructor(
 
 data class SignInMethodScreenState(
     val showGoogleLoading: Boolean = false,
+    val showAppleLoading: Boolean = false,
     val error: Exception? = null
 )
