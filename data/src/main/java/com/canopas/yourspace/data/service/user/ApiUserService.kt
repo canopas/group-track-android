@@ -2,7 +2,6 @@ package com.canopas.yourspace.data.service.user
 
 import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.models.user.ApiUserSession
-import com.canopas.yourspace.data.models.user.LOGIN_TYPE_APPLE
 import com.canopas.yourspace.data.models.user.LOGIN_TYPE_GOOGLE
 import com.canopas.yourspace.data.service.location.ApiLocationService
 import com.canopas.yourspace.data.utils.Config
