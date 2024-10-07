@@ -63,7 +63,7 @@ class EditProfileViewModel @Inject constructor(
             first_name = _state.value.firstName?.trim(),
             last_name = _state.value.lastName?.trim(),
             profile_image = _state.value.profileUrl,
-            email = _state.value.email?.trim(),
+            email = _state.value.email?.trim()
         )
 
         try {
