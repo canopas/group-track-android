@@ -73,7 +73,7 @@ class ApiUserService @Inject constructor(
             val user = ApiUser(
                 id = uid!!,
                 email = account?.email ?: "",
-                auth_type = if (account != null) LOGIN_TYPE_GOOGLE else  0 ,
+                auth_type = if (account != null) LOGIN_TYPE_GOOGLE else 0,
                 first_name = account?.givenName ?: "",
                 last_name = account?.familyName ?: "",
                 provider_firebase_id_token = firebaseToken,

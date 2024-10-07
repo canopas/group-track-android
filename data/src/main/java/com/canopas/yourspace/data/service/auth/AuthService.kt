@@ -40,7 +40,7 @@ class AuthService @Inject constructor(
     private suspend fun processLogin(
         uid: String?,
         firebaseToken: String?,
-        account: GoogleSignInAccount? = null,
+        account: GoogleSignInAccount? = null
     ): Boolean {
         val (isNewUser, user, session) = apiUserService.saveUser(uid, firebaseToken, account)
         notifyAuthChange()
