@@ -5,6 +5,7 @@ import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.auth.FirebaseAuthService
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.ui.flow.auth.SignInMethodViewModel
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import kotlinx.coroutines.Dispatchers
@@ -44,12 +45,6 @@ class SignInMethodViewModelTest {
             testDispatcher,
             userPreferences
         )
-    }
-
-    @Test
-    fun `signInWithPhone should navigate to phoneSignIn screen`() = runTest {
-        viewModel.signInWithPhone()
-        verify(navigator).navigateTo("phone-sign-in")
     }
 
     @Test

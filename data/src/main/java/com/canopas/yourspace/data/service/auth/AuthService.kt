@@ -29,30 +29,20 @@ class AuthService @Inject constructor(
         this.authStateChangeListeners.remove(authStateChangeListener)
     }
 
-    suspend fun verifiedPhoneLogin(
-        uid: String?,
-        firebaseToken: String?,
-        phoneNumber: String
-    ): Boolean {
-        return processLogin(uid, firebaseToken, null, phoneNumber)
-    }
-
     suspend fun verifiedGoogleLogin(
         uid: String?,
         firebaseToken: String?,
         account: GoogleSignInAccount
     ): Boolean {
-        return processLogin(uid, firebaseToken, account, null)
+        return processLogin(uid, firebaseToken, account)
     }
 
     private suspend fun processLogin(
         uid: String?,
         firebaseToken: String?,
-        account: GoogleSignInAccount? = null,
-        phoneNumber: String? = null
+        account: GoogleSignInAccount? = null
     ): Boolean {
-        val (isNewUser, user, session) =
-            apiUserService.saveUser(uid, firebaseToken, account, phoneNumber)
+        val (isNewUser, user, session) = apiUserService.saveUser(uid, firebaseToken, account)
         notifyAuthChange()
         saveUser(user, session)
         return isNewUser

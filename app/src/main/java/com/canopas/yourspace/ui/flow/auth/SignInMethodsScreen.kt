@@ -1,4 +1,4 @@
-package com.canopas.yourspace.ui.flow.auth.methods
+package com.canopas.yourspace.ui.flow.auth
 
 import android.app.Activity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -22,6 +22,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -31,8 +33,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.AppLogo
-import com.canopas.yourspace.ui.component.PrimaryButton
 import com.canopas.yourspace.ui.component.PrimaryOutlinedButton
+import com.canopas.yourspace.ui.component.PrimaryTextButton
 import com.canopas.yourspace.ui.theme.AppTheme
 import com.canopas.yourspace.ui.theme.CatchMeTheme
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -74,7 +76,7 @@ private fun SignInContent(modifier: Modifier) {
         Spacer(modifier = Modifier.weight(1f))
         GoogleSignInBtn()
         Spacer(modifier = Modifier.height(24.dp))
-        PhoneLoginBtn(onClick = { viewModel.signInWithPhone() })
+        AppleSignInBtn()
         Spacer(modifier = Modifier.weight(1f))
     }
 
@@ -84,15 +86,6 @@ private fun SignInContent(modifier: Modifier) {
             customMsg = stringResource(id = R.string.sign_in_with_google_failed_error_msg)
         ) { viewModel.resetErrorState() }
     }
-}
-
-@Composable
-private fun PhoneLoginBtn(onClick: () -> Unit) {
-    PrimaryButton(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        label = stringResource(id = R.string.sign_in_btn_continue_with_phone),
-        onClick = onClick
-    )
 }
 
 @Composable
@@ -136,6 +129,32 @@ private fun GoogleSignInBtn() {
                 painter = painterResource(id = R.drawable.ic_sign_in_google_logo),
                 contentDescription = null,
                 modifier = Modifier.size(18.dp)
+            )
+        }
+    )
+}
+
+@Composable
+fun AppleSignInBtn() {
+    val context = LocalContext.current
+    val viewModel = hiltViewModel<SignInMethodViewModel>()
+    val state by viewModel.state.collectAsState()
+
+    PrimaryTextButton(
+        onClick = { /*TODO*/ },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        showLoader = state.showAppleLoading,
+        label = stringResource(id = R.string.sign_in_btn_continue_with_apple),
+        containerColor = Color.Black,
+        contentColor = Color.White,
+        icon = {
+            Image(
+                painter = painterResource(id = R.drawable.ic_sign_in_apple_logo),
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+                colorFilter = ColorFilter.tint(Color.White)
             )
         }
     )

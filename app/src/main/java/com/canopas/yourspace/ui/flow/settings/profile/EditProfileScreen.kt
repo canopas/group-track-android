@@ -171,19 +171,6 @@ private fun EditProfileScreenContent(modifier: Modifier) {
                 onValueChange = { viewModel.onEmailChanged(it.trimStart()) }
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            UserTextField(
-                label = stringResource(R.string.edit_profile_phone_label),
-                text = state.phone ?: "",
-                enabled = state.enablePhone,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Phone,
-                    imeAction = ImeAction.Done
-                ),
-                onValueChange = { viewModel.onPhoneChanged(it.trimStart()) }
-            )
-
             Spacer(modifier = Modifier.weight(1f))
 
             PrimaryTextButton(
