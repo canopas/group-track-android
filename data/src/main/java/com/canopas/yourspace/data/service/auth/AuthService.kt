@@ -8,6 +8,7 @@ import com.canopas.yourspace.data.storage.LocationCache
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,12 +38,21 @@ class AuthService @Inject constructor(
         return processLogin(uid, firebaseToken, account)
     }
 
+    suspend fun verifiedAppleLogin(
+        uid: String?,
+        firebaseToken: String?,
+        account: FirebaseUser
+    ): Boolean {
+        return processLogin(uid, firebaseToken, null, firebaseAccount = account)
+    }
+
     private suspend fun processLogin(
         uid: String?,
         firebaseToken: String?,
-        account: GoogleSignInAccount? = null
+        account: GoogleSignInAccount? = null,
+        firebaseAccount: FirebaseUser? = null
     ): Boolean {
-        val (isNewUser, user, session) = apiUserService.saveUser(uid, firebaseToken, account)
+        val (isNewUser, user, session) = apiUserService.saveUser(uid, firebaseToken, account, firebaseAccount)
         notifyAuthChange()
         saveUser(user, session)
         return isNewUser

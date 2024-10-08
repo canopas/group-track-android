@@ -9,6 +9,7 @@ import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_USERS
 import com.canopas.yourspace.data.utils.Device
 import com.canopas.yourspace.data.utils.snapshotFlow
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.functions.FirebaseFunctions
@@ -51,7 +52,8 @@ class ApiUserService @Inject constructor(
     suspend fun saveUser(
         uid: String?,
         firebaseToken: String?,
-        account: GoogleSignInAccount? = null
+        account: GoogleSignInAccount? = null,
+        firebaseUser: FirebaseUser? = null
     ): Triple<Boolean, ApiUser, ApiUserSession> {
         val savedUser = if (uid.isNullOrEmpty()) null else getUser(uid)
         val isExists = savedUser != null
@@ -74,10 +76,10 @@ class ApiUserService @Inject constructor(
                 id = uid!!,
                 email = account?.email ?: "",
                 auth_type = if (account != null) LOGIN_TYPE_GOOGLE else 0,
-                first_name = account?.givenName ?: "",
+                first_name = account?.givenName ?: firebaseUser?.displayName ?: "",
                 last_name = account?.familyName ?: "",
                 provider_firebase_id_token = firebaseToken,
-                profile_image = account?.photoUrl?.toString() ?: ""
+                profile_image = account?.photoUrl?.toString() ?: firebaseUser?.photoUrl?.toString() ?: ""
             )
             userRef.document(uid).set(user).await()
             val sessionDocRef = sessionRef(user.id).document()
