@@ -19,11 +19,11 @@ For the purposes of this Privacy Policy:
 - __Account__ means a unique account created for You to access our Service or parts of our Service.
 - __Affiliate__ means an entity that controls, is controlled by or is under common control with a party, where "control" means ownership of 50% or more of the shares, equity interest or other securities entitled to vote for election of directors or other managing authority.
 
-- __Application__ refers to YourSpace, the software program provided by the Company.
+- __Application__ refers to GroupTrack, the software program provided by the Company.
 
 
 
-- __Company__ (referred to as either "the Company", "We", "Us" or "Our" in this Agreement) refers to YourSpace.
+- __Company__ (referred to as either "the Company", "We", "Us" or "Our" in this Agreement) refers to GroupTrack.
 
 
 
