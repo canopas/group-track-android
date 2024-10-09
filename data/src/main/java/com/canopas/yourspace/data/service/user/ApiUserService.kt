@@ -2,6 +2,7 @@ package com.canopas.yourspace.data.service.user
 
 import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.models.user.ApiUserSession
+import com.canopas.yourspace.data.models.user.LOGIN_TYPE_APPLE
 import com.canopas.yourspace.data.models.user.LOGIN_TYPE_GOOGLE
 import com.canopas.yourspace.data.service.location.ApiLocationService
 import com.canopas.yourspace.data.utils.Config
@@ -9,6 +10,7 @@ import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_USERS
 import com.canopas.yourspace.data.utils.Device
 import com.canopas.yourspace.data.utils.snapshotFlow
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.functions.FirebaseFunctions
@@ -31,7 +33,8 @@ class ApiUserService @Inject constructor(
 ) {
     private val userRef = db.collection(FIRESTORE_COLLECTION_USERS)
     private fun sessionRef(userId: String) =
-        userRef.document(userId.takeIf { it.isNotBlank() } ?: "null").collection(Config.FIRESTORE_COLLECTION_USER_SESSIONS)
+        userRef.document(userId.takeIf { it.isNotBlank() } ?: "null")
+            .collection(Config.FIRESTORE_COLLECTION_USER_SESSIONS)
 
     suspend fun getUser(userId: String): ApiUser? {
         return try {
@@ -51,7 +54,8 @@ class ApiUserService @Inject constructor(
     suspend fun saveUser(
         uid: String?,
         firebaseToken: String?,
-        account: GoogleSignInAccount? = null
+        account: GoogleSignInAccount? = null,
+        firebaseUser: FirebaseUser? = null
     ): Triple<Boolean, ApiUser, ApiUserSession> {
         val savedUser = if (uid.isNullOrEmpty()) null else getUser(uid)
         val isExists = savedUser != null
@@ -72,12 +76,13 @@ class ApiUserService @Inject constructor(
         } else {
             val user = ApiUser(
                 id = uid!!,
-                email = account?.email ?: "",
-                auth_type = if (account != null) LOGIN_TYPE_GOOGLE else 0,
-                first_name = account?.givenName ?: "",
+                email = account?.email ?: firebaseUser?.email ?: "",
+                auth_type = if (account != null) LOGIN_TYPE_GOOGLE else if (firebaseUser != null) LOGIN_TYPE_APPLE else 0,
+                first_name = account?.givenName ?: firebaseUser?.displayName ?: "",
                 last_name = account?.familyName ?: "",
                 provider_firebase_id_token = firebaseToken,
-                profile_image = account?.photoUrl?.toString() ?: ""
+                profile_image = account?.photoUrl?.toString() ?: firebaseUser?.photoUrl?.toString()
+                    ?: ""
             )
             userRef.document(uid).set(user).await()
             val sessionDocRef = sessionRef(user.id).document()

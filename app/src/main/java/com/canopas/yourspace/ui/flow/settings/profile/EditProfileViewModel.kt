@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.canopas.yourspace.data.models.user.ApiUser
+import com.canopas.yourspace.data.models.user.LOGIN_TYPE_APPLE
 import com.canopas.yourspace.data.models.user.LOGIN_TYPE_GOOGLE
 import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
@@ -47,7 +48,7 @@ class EditProfileViewModel @Inject constructor(
                 lastName = user?.last_name,
                 email = user?.email,
                 profileUrl = user?.profile_image,
-                enableEmail = user?.auth_type != LOGIN_TYPE_GOOGLE
+                enableEmail = user?.auth_type != LOGIN_TYPE_GOOGLE && user?.auth_type != LOGIN_TYPE_APPLE
             )
         )
     }

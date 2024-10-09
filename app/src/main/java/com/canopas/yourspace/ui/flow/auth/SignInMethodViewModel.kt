@@ -9,10 +9,12 @@ import com.canopas.yourspace.data.utils.AppDispatcher
 import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.firebase.auth.AuthResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -33,12 +35,12 @@ class SignInMethodViewModel @Inject constructor(
             _state.emit(_state.value.copy(showGoogleLoading = true))
             try {
                 val firebaseToken = firebaseAuth.signInWithGoogleAuthCredential(account.idToken)
-                val isNewUSer = authService.verifiedGoogleLogin(
+                val isNewUser = authService.verifiedGoogleLogin(
                     firebaseAuth.currentUserUid,
                     firebaseToken,
                     account
                 )
-                onSignUp(isNewUSer)
+                onSignUp(isNewUser)
                 _state.emit(_state.value.copy(showGoogleLoading = false))
             } catch (e: Exception) {
                 Timber.e(e, "Failed to sign in with google")
@@ -51,12 +53,43 @@ class SignInMethodViewModel @Inject constructor(
             }
         }
 
+    fun proceedAppleSignIn(authResult: AuthResult) =
+        viewModelScope.launch(appDispatcher.IO) {
+            _state.emit(_state.value.copy(showAppleLoading = true))
+            try {
+                val firebaseToken = authResult.user?.getIdToken(true)?.await()
+                val isNewUser = authService.verifiedAppleLogin(
+                    firebaseAuth.currentUserUid,
+                    firebaseToken?.token ?: "",
+                    authResult.user ?: run {
+                        _state.emit(
+                            _state.value.copy(
+                                showAppleLoading = false,
+                                error = Exception("Failed to sign in with Apple\nUser is null")
+                            )
+                        )
+                        return@launch
+                    }
+                )
+                onSignUp(isNewUser)
+                _state.emit(_state.value.copy(showAppleLoading = false))
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to sign in with Apple")
+                _state.emit(
+                    _state.value.copy(
+                        showAppleLoading = false,
+                        error = e
+                    )
+                )
+            }
+        }
+
     fun resetErrorState() {
         _state.value = _state.value.copy(error = null)
     }
 
-    fun onSignUp(isNewUSer: Boolean) = viewModelScope.launch(appDispatcher.MAIN) {
-        if (isNewUSer) {
+    private fun onSignUp(isNewUser: Boolean) = viewModelScope.launch(appDispatcher.MAIN) {
+        if (isNewUser) {
             navigator.navigateTo(
                 AppDestinations.onboard.path,
                 popUpToRoute = AppDestinations.signIn.path,
