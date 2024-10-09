@@ -104,6 +104,10 @@ class SignInMethodViewModel @Inject constructor(
             )
         }
     }
+
+    fun showAppleLoadingState() {
+        _state.value = _state.value.copy(showAppleLoading = true)
+    }
 }
 
 data class SignInMethodScreenState(
