@@ -8,7 +8,7 @@
     <string name="common_btn_verify">Verify</string>
     <string name="common_btn_allow">Allow</string>
     <string name="common_btn_create_space">Create new</string>
-    <string name="common_btn_join_space">Join space</string>
+    <string name="common_btn_join_space">Join group</string>
     <string name="common_btn_ok">Okay</string>
     <string name="common_btn_got_it">Got it</string>
     <string name="common_label_congratulations">Congratulations!</string>
@@ -22,7 +22,7 @@
     <string name="common_reply">Reply</string>
     <string name="common_save">Save</string>
 
-    <string name="common_share_invite_code_message">Let\'s stay connected! Use invite code %s to join my Space.\n<a href="https://play.google.com/store/apps/details?id=com.canopas.yourspace">Download the app</a>.</string>
+    <string name="common_share_invite_code_message">Let\'s stay connected! Use invite code %s to join my Group.\n<a href="https://play.google.com/store/apps/details?id=com.canopas.yourspace">Download the app</a>.</string>
     <string name="common_session_expired_title">You\'ve been logged out</string>
     <string name="common_session_expired_message">You need to sign in again to continue using the application.</string>
     <string name="common_enable_location_service_title">Turn on location/GPS</string>
@@ -32,8 +32,8 @@
     <string name="common_background_access_permission_steps">Go to settings > select <b>"Allow all the time"</b></string>
     <string name="common_background_access_permission_rational_steps">Go to settings > GroupTrack app info > Location permission > select <b>"Allow all the time"</b></string>
     <string name="common_background_access_permission_btn">Go to Settings</string>
-    <string name="common_space_not_found">No Space Found!</string>
-    <string name="common_space_not_found_message">The space you are looking for isn\'t available or you may have been removed.</string>
+    <string name="common_space_not_found">No Group Found!</string>
+    <string name="common_space_not_found_message">The group you are looking for isn\'t available or you may have been removed.</string>
 
     <string name="title_notification_channel_messages">In-App messaging</string>
     <string name="description_notification_channel_messages">It is used to show messages</string>
@@ -72,22 +72,22 @@
     <string name="onboard_pick_name_title">What\'s your name?</string>
     <string name="onboard_pick_name_label_first_name">First name</string>
     <string name="onboard_pick_name_label_last_name">Last name</string>
-    <string name="onboard_space_info_title">Connect, Share, Explore.\nJoin Your Trusted Space for Safe Location Sharing.</string>
-    <string name="onboard_space_info_subtitle">A Space is your exclusive and private area, just for you and your family.</string>
-    <string name="onboard_space_join_title">Have a Space Invitation?</string>
-    <string name="onboard_space_join_subtitle">Get the code from the space creator and input it here to join.\n\nIf you don\'t have an invitation code, create a new space.</string>
-    <string name="onboard_space_btn_create_new">Create a new space</string>
-    <string name="onboard_create_space_name_label">Space Name</string>
+    <string name="onboard_space_info_title">Connect, Share, Explore.\nJoin Your Trusted Group for Safe Location Sharing.</string>
+    <string name="onboard_space_info_subtitle">A Group is your exclusive and private area, just for you and your family.</string>
+    <string name="onboard_space_join_title">Have a Group Invitation?</string>
+    <string name="onboard_space_join_subtitle">Get the code from the group creator and input it here to join.\n\nIf you don\'t have an invitation code, create a new group.</string>
+    <string name="onboard_space_btn_create_new">Create a new group</string>
+    <string name="onboard_create_space_name_label">Group Name</string>
     <string name="onboard_create_space_initial_name">"%s\'s Family"</string>
-    <string name="onboard_create_space_give_name_title">Give your space a name</string>
-    <string name="onboard_create_space_subtitle">Tips: You can create dedicated spaces for work, family, friends, and more.</string>
-    <string name="onboard_share_space_code_title">Unlock the Space!</string>
+    <string name="onboard_create_space_give_name_title">Give your group a name</string>
+    <string name="onboard_create_space_subtitle">Tips: You can create dedicated groups for work, family, friends, and more.</string>
+    <string name="onboard_share_space_code_title">Unlock the Group!</string>
     <string name="onboard_share_space_code_tips">Share this code in your own style. Connecting is as flexible as you are.</string>
     <string name="onboard_share_space_code_subtitle">Share this invite code with your trusted ones.</string>
     <string name="onboard_share_space_code_btn">Share code</string>
     <string name="onboard_share_code_expiry_desc">This code will be active for 2 days.</string>
     <string name="onboard_join_space_title">Get set to connect! </string>
-    <string name="onboard_join_space_joining_space_label">You\'re about to become a member of the %s Space.</string>
+    <string name="onboard_join_space_joining_space_label">You\'re about to become a member of the %s Group.</string>
     <string name="onboard_join_space_subtitle">Here\'s presenting those eagerly waiting:</string>
     <string name="onboard_space_invalid_invite_code">It appears the code is no longer valid or has expired. Please review and enter a valid code.</string>
 
@@ -115,7 +115,7 @@
     <string name="home_permission_footer_missing_location_permission_title">Location sharing is currently not possible</string>
     <string name="home_permission_footer_missing_location_permission_subtitle">Some permissions are missing - grant access</string>
 
-    <string name="home_space_selection_menu_default_text">Select a space</string>
+    <string name="home_space_selection_menu_default_text">Select a group</string>
     <string name="home_space_selection_space_item_subtitle_members">By %s • %s members</string>
     <string name="home_space_selection_space_item_subtitle_member">By %s • %s member</string>
     <string name="home_create_space_suggestions">Some suggestions…</string>
@@ -137,7 +137,7 @@
     <string name="space_invite_subtitle">Share this invite code with your trusted ones in your own style. Connecting is as flexible as you are.</string>
 
     <string name="join_space_title_enter_code">Enter the invite code</string>
-    <string name="join_space_title">Join Space</string>
+    <string name="join_space_title">Join Group</string>
     <string name="join_space_success_popup_message">You\'re now a member of the %s group for sharing your real-time location.</string>
 
     <string name="map_user_item_location_updated_now">Just now</string>
@@ -165,7 +165,7 @@
     <string name="setting_delete_account_dialogue_confirm_btn_text">Delete Account</string>
     <string name="setting_delete_account_dialogue_message_text">Deleting your account is permanent and you will lose all your data. Are you sure you want to delete your account permanently?</string>
     <string name="setting_space_notifications">Notifications</string>
-    <string name="setting_space_management">Space settings</string>
+    <string name="setting_space_management">Group settings</string>
     <string name="setting_location_sharing">Location Sharing</string>
     <string name="setting_other">Others</string>
     <string name="setting_contact_support">Contact support</string>
@@ -184,21 +184,21 @@
     <string name="edit_profile_phone_label">Phone</string>
 
     <string name="space_setting_title_your_location">Your location sharing</string>
-    <string name="space_setting_title_members_location_status">Space member status</string>
-    <string name="space_setting_hint_space_name">Space Name</string>
+    <string name="space_setting_title_members_location_status">Group member status</string>
+    <string name="space_setting_hint_space_name">Group Name</string>
     <string name="space_setting_no_members">No members in %s</string>
-    <string name="space_settings_btn_delete_space">Delete Space</string>
-    <string name="space_settings_btn_leave_space">Leave Space</string>
+    <string name="space_settings_btn_delete_space">Delete Group</string>
+    <string name="space_settings_btn_leave_space">Leave Group</string>
     <string name="space_settings_delete_confrim_btn">Delete</string>
-    <string name="space_settings_delete_confrim_message">Confirming will permanently delete this space and associated data. This action cannot be undone.</string>
+    <string name="space_settings_delete_confrim_message">Confirming will permanently delete this group and associated data. This action cannot be undone.</string>
     <string name="space_settings_leave_confrim_btn">Leave</string>
-    <string name="space_settings_leave_confrim_message">Are you sure you want to leave this space? You will no longer be able to view or share location with members of this space.</string>
+    <string name="space_settings_leave_confrim_message">Are you sure you want to leave this group? You will no longer be able to view or share location with members of this group.</string>
 
     <string name="threads_screen_subtitle_messages">Messages</string>
     <string name="threads_screen_no_members_title">Add members to send messages</string>
-    <string name="threads_screen_no_members_subtitle">At least one member needs to join your space to be able to chat.</string>
+    <string name="threads_screen_no_members_subtitle">At least one member needs to join your group to be able to chat.</string>
     <string name="thread_screen_add_new_member">Add a new member</string>
-    <string name="threads_screen_no_threads">Tap on \'+\' to send new message to anyone in your space</string>
+    <string name="threads_screen_no_threads">Tap on \'+\' to send new message to anyone in your group</string>
     <string name="threads_screen_delete_dialogue_title_text">Delete Thread?</string>
     <string name="threads_screen_delete_dialogue_message_text">Are you sure you want to delete this thread? This action cannot be undone.</string>
     <string name="threads_screen_delete_dialogue_delete_btn">Delete</string>
@@ -216,10 +216,10 @@
     <string name="support_btn_submit">Submit</string>
     <string name="support_attachment_size_limit_exceed">Attachment size should be less than 5MB</string>
     <string name="support_request_sent">Thanks! Your feedback has been recorded.</string>
-    <string name="setting_spaces">Your spaces</string>
+    <string name="setting_spaces">Your groups</string>
 
     <string name="battery_optimization_dialog_title">Turn off Battery Optimization for Location Sharing</string>
-    <string name="battery_optimization_dialog_message">For location sharing feature to work properly for your Spaces, turn off Battery Optimization in your phone settings for the GroupTrack app. This won\'t affect your other apps.</string>
+    <string name="battery_optimization_dialog_message">For location sharing feature to work properly for your Groups, turn off Battery Optimization in your phone settings for the GroupTrack app. This won\'t affect your other apps.</string>
     <string name="battery_optimization_dialog_btn_change_now">Change now</string>
 
     <string name="places_list_title">Places</string>
@@ -233,7 +233,7 @@
     <string name="choose_place_name_hint">Enter place name</string>
     <string name="common_btn_add_place">Add Place</string>
     <string name="place_added_popup_title">%s Added</string>
-    <string name="place_added_popup_description">You will be notified when members of your space arrive/leave this place</string>
+    <string name="place_added_popup_description">You will be notified when members of your group arrive/leave this place</string>
     <string name="locate_on_map_hint_getting_address">Getting Address…</string>
     <string name="edit_place_title">Edit Place</string>
     <string name="edit_place_title_place_details">Place details</string>

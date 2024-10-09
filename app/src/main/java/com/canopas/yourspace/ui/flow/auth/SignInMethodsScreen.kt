@@ -153,6 +153,7 @@ fun AppleSignInBtn() {
 
     PrimaryTextButton(
         onClick = {
+            viewModel.showAppleLoadingState()
             val provider = OAuthProvider.newBuilder("apple.com")
             provider.setScopes(arrayListOf("email", "name"))
             FirebaseAuth.getInstance().pendingAuthResult
