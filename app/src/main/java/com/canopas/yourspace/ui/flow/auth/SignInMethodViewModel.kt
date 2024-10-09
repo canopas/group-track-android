@@ -61,7 +61,15 @@ class SignInMethodViewModel @Inject constructor(
                 val isNewUser = authService.verifiedAppleLogin(
                     firebaseAuth.currentUserUid,
                     firebaseToken?.token ?: "",
-                    authResult.user ?: return@launch
+                    authResult.user ?: run {
+                        _state.emit(
+                            _state.value.copy(
+                                showAppleLoading = false,
+                                error = Exception("Failed to sign in with Apple\nUser is null")
+                            )
+                        )
+                        return@launch
+                    }
                 )
                 onSignUp(isNewUser)
                 _state.emit(_state.value.copy(showAppleLoading = false))
