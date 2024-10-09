@@ -46,7 +46,6 @@ import com.canopas.yourspace.ui.flow.messages.chat.toFormattedTitle
 import com.canopas.yourspace.ui.theme.AppTheme
 import java.util.concurrent.TimeUnit
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ColumnScope.MessageList(
     lazyState: LazyListState,
@@ -76,7 +75,7 @@ fun ColumnScope.MessageList(
         contentPadding = PaddingValues(16.dp),
         reverseLayout = true
     ) {
-        itemsIndexed(newMessagesToAppend, key = { index, item -> item.id }) { index, message ->
+        itemsIndexed(newMessagesToAppend, key = { _, item -> item.id }) { index, message ->
             val by = members.firstOrNull { it.user.id == message.sender_id }
 
             val myLatestMsg =
@@ -96,7 +95,7 @@ fun ColumnScope.MessageList(
         messagesByDate.forEach { section ->
             val messages = section.value
 
-            itemsIndexed(messages, key = { index, item -> item.id }) { index, message ->
+            itemsIndexed(messages, key = { _, item -> item.id }) { index, message ->
                 val by = members.firstOrNull { it.user.id == message.sender_id }
 
                 val seenBy =

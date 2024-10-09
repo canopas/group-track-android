@@ -1,6 +1,5 @@
 package com.canopas.yourspace.ui.flow.intro
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -31,7 +30,6 @@ import com.canopas.yourspace.ui.theme.AppTheme
 import com.canopas.yourspace.ui.theme.AppTheme.colorScheme
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun IntroScreen() {
     val viewModel = hiltViewModel<IntroViewModel>()

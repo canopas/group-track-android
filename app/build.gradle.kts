@@ -29,7 +29,7 @@ android {
 
     defaultConfig {
         applicationId = "com.canopas.yourspace"
-        minSdk = 21
+        minSdk = 23
         targetSdk = 34
         versionCode = versionMajor * 1000000 + versionMinor * 10000 + versionBuild
         versionName = "$versionMajor.$versionMinor.$versionBuild"
@@ -128,36 +128,36 @@ android {
 
 dependencies {
 
-    implementation("androidx.core:core-ktx:1.13.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-    implementation("androidx.activity:activity-compose:1.9.0")
-    implementation(platform("androidx.compose:compose-bom:2024.04.01"))
+    implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.6")
+    implementation("androidx.activity:activity-compose:1.9.2")
+    implementation(platform("androidx.compose:compose-bom:2024.09.03"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
-    implementation("androidx.navigation:navigation-compose:2.7.7")
+    implementation("androidx.navigation:navigation-compose:2.8.2")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
-    implementation("androidx.compose.foundation:foundation:1.6.6")
+    implementation("androidx.compose.foundation:foundation:1.7.3")
 
-    implementation(platform("com.google.firebase:firebase-bom:32.8.1"))
+    implementation(platform("com.google.firebase:firebase-bom:33.4.0"))
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-messaging-ktx")
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-storage")
     implementation("com.google.firebase:firebase-crashlytics")
 
-    implementation("com.google.android.gms:play-services-auth:21.1.0")
-    implementation("androidx.lifecycle:lifecycle-process:2.7.0")
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
+    implementation("androidx.lifecycle:lifecycle-process:2.8.6")
     // Test
     testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-    androidTestImplementation(platform("androidx.compose:compose-bom:2024.04.01"))
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
+    androidTestImplementation(platform("androidx.compose:compose-bom:2024.09.03"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.1")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
     testImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
     testImplementation("org.mockito:mockito-inline:4.5.1")
     testImplementation("org.mockito:mockito-core:5.7.0")
@@ -170,10 +170,10 @@ dependencies {
     // Work manager
     implementation("androidx.hilt:hilt-work:1.2.0")
     ksp("androidx.hilt:hilt-compiler:1.2.0")
-    implementation("androidx.work:work-runtime-ktx:2.9.0")
+    implementation("androidx.work:work-runtime-ktx:2.9.1")
 
     // DataStore
-    implementation("androidx.datastore:datastore-preferences:1.1.0")
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
 
     // Timber
     implementation("com.jakewharton.timber:timber:5.0.1")
@@ -182,7 +182,7 @@ dependencies {
     implementation("com.canopas.jetcountrypicker:jetcountrypicker:1.1.1")
 
     // coil
-    implementation("io.coil-kt:coil-compose:2.5.0")
+    implementation("io.coil-kt:coil-compose:2.6.0")
 
     // Accompanist permission
     implementation("com.google.accompanist:accompanist-permissions:0.32.0")
@@ -195,7 +195,7 @@ dependencies {
     implementation("com.vanniktech:android-image-cropper:4.5.0")
 
     // Place
-    implementation("com.google.android.libraries.places:places:3.4.0")
+    implementation("com.google.android.libraries.places:places:4.0.0")
 
     // Room-DB
     implementation("androidx.room:room-runtime:2.6.1")

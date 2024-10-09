@@ -29,8 +29,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -47,7 +47,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -140,7 +139,6 @@ fun SupportContent(modifier: Modifier) {
         val descriptionInteractionSource = remember { MutableInteractionSource() }
         val isTitleFocused by titleInteractionSource.collectIsFocusedAsState()
         val isDescriptionFocused by descriptionInteractionSource.collectIsFocusedAsState()
-        val focusRequester = remember { FocusRequester() }
 
         Text(
             text = stringResource(id = R.string.support_text_field_title),
@@ -172,7 +170,7 @@ fun SupportContent(modifier: Modifier) {
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        Divider(
+        HorizontalDivider(
             Modifier
                 .fillMaxWidth(),
             color = if (isTitleFocused) AppTheme.colorScheme.primary else AppTheme.colorScheme.outline

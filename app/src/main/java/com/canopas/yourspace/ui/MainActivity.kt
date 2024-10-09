@@ -81,7 +81,7 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         val viewModel = ViewModelProvider(this)[MainViewModel::class.java]
         viewModel.handleIntentData(intent)
-        intent?.extras?.clear()
+        intent.extras?.clear()
     }
 }
 

@@ -214,7 +214,7 @@ fun MapScreen() {
                         enter = slideInVertically(tween(100)) { it },
                         exit = slideOutVertically(tween(100)) { it }
                     ) {
-                        PermissionFooter() {
+                        PermissionFooter {
                             viewModel.navigateToPermissionScreen()
                         }
                     }
