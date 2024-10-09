@@ -40,6 +40,9 @@ import com.canopas.yourspace.ui.theme.CatchMeTheme
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.OAuthProvider
 import timber.log.Timber
 
 @Composable
@@ -137,11 +140,27 @@ private fun GoogleSignInBtn() {
 @Composable
 fun AppleSignInBtn() {
     val context = LocalContext.current
+    val activity = context as? Activity ?: return
     val viewModel = hiltViewModel<SignInMethodViewModel>()
     val state by viewModel.state.collectAsState()
+    val onCompleteListener = OnCompleteListener { task ->
+        if (task.isSuccessful) {
+            viewModel.proceedAppleSignIn(task.result)
+        } else {
+            Timber.e(task.exception, "Apple sign-in failed")
+        }
+    }
 
     PrimaryTextButton(
-        onClick = { /*TODO*/ },
+        onClick = {
+            val provider = OAuthProvider.newBuilder("apple.com")
+            provider.setScopes(arrayListOf("email", "name"))
+            FirebaseAuth.getInstance().pendingAuthResult
+                ?.addOnCompleteListener(onCompleteListener)
+                ?: FirebaseAuth.getInstance()
+                    .startActivityForSignInWithProvider(activity, provider.build())
+                    .addOnCompleteListener(onCompleteListener)
+        },
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
