@@ -61,7 +61,7 @@ class SignInMethodViewModel @Inject constructor(
                 val isNewUser = authService.verifiedAppleLogin(
                     firebaseAuth.currentUserUid,
                     firebaseToken?.token ?: "",
-                    authResult.user!!
+                    authResult.user ?: return@launch
                 )
                 onSignUp(isNewUser)
                 _state.emit(_state.value.copy(showAppleLoading = false))
@@ -80,8 +80,8 @@ class SignInMethodViewModel @Inject constructor(
         _state.value = _state.value.copy(error = null)
     }
 
-    private fun onSignUp(isNewUSer: Boolean) = viewModelScope.launch(appDispatcher.MAIN) {
-        if (isNewUSer) {
+    private fun onSignUp(isNewUser: Boolean) = viewModelScope.launch(appDispatcher.MAIN) {
+        if (isNewUser) {
             navigator.navigateTo(
                 AppDestinations.onboard.path,
                 popUpToRoute = AppDestinations.signIn.path,
