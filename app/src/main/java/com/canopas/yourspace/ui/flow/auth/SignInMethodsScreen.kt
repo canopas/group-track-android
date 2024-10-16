@@ -147,6 +147,7 @@ fun AppleSignInBtn() {
         if (task.isSuccessful) {
             viewModel.proceedAppleSignIn(task.result)
         } else {
+            viewModel.showAppleLoadingState(false)
             Timber.e(task.exception, "Apple sign-in failed")
         }
     }
