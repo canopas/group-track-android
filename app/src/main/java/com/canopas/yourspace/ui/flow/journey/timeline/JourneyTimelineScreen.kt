@@ -175,6 +175,7 @@ private fun JourneyList(
                 isFirstItem = index == 0,
                 isLastItem = index == allJourney.lastIndex,
                 addPlaceTap = onAddPlaceClicked,
+                journeyList = allJourney,
                 showJourneyDetails = {
                     showJourneyDetails(journey.id)
                 }

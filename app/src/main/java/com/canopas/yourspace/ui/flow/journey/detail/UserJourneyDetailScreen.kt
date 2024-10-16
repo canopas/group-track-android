@@ -243,6 +243,7 @@ private fun ColumnScope.MapView(journey: LocationJourney?) {
                 )
             }
         },
+        shouldAnimate = true,
         polyLineWidth = 8f,
         anchor = Offset(0.5f, 0.5f)
     )
