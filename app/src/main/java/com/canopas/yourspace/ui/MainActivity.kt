@@ -1,11 +1,13 @@
 package com.canopas.yourspace.ui
 
+import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.content.Intent
 import android.os.Bundle
 import android.view.animation.OvershootInterpolator
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -62,32 +64,27 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    private val viewModel by lazy {
-        ViewModelProvider(this)[MainViewModel::class.java]
-    }
+    private val viewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen().apply {
             setOnExitAnimationListener { viewProvider ->
-                ObjectAnimator.ofFloat(
+                val scaleX = ObjectAnimator.ofFloat(
                     viewProvider.view,
                     "scaleX",
-                    0.5f,
+                    1f,
                     0f
-                ).apply {
-                    interpolator = OvershootInterpolator()
-                    duration = 300
-                    doOnEnd { viewProvider.remove() }
-                    start()
-                }
-                ObjectAnimator.ofFloat(
+                )
+                val scaleY = ObjectAnimator.ofFloat(
                     viewProvider.view,
                     "scaleY",
-                    0.5f,
+                    1f,
                     0f
-                ).apply {
+                )
+                AnimatorSet().apply {
                     interpolator = OvershootInterpolator()
-                    duration = 300
+                    duration = 100
+                    playTogether(scaleX, scaleY)
                     doOnEnd { viewProvider.remove() }
                     start()
                 }

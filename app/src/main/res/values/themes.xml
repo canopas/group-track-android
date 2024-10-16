@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <style name="Theme.CatchMe" parent="android:Theme.Material.Light.NoActionBar">
+    <style name="Theme.GroupTrack" parent="android:Theme.Material.Light.NoActionBar">
     </style>
 
     <style name="Theme.SplashScreen.GroupTrack" parent="Theme.SplashScreen">
