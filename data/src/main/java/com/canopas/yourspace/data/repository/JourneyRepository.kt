@@ -8,10 +8,15 @@ import com.canopas.yourspace.data.models.location.toLocationFromSteadyJourney
 import com.canopas.yourspace.data.models.location.toLocationJourney
 import com.canopas.yourspace.data.models.location.toRoute
 import com.canopas.yourspace.data.service.location.ApiJourneyService
-import com.canopas.yourspace.data.service.location.LocationManager
 import com.canopas.yourspace.data.storage.LocationCache
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.Calendar
+import java.util.Timer
+import java.util.TimerTask
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.sqrt
@@ -22,9 +27,10 @@ const val MIN_TIME_DIFFERENCE = 5 * 60 * 1000 // 5 minutes
 @Singleton
 class JourneyRepository @Inject constructor(
     private val journeyService: ApiJourneyService,
-    private val locationCache: LocationCache,
-    private val locationManager: LocationManager
+    private val locationCache: LocationCache
 ) {
+    private var steadyLocationTimer: Timer? = null
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     suspend fun saveLocationJourney(
         extractedLocation: Location,
@@ -32,6 +38,10 @@ class JourneyRepository @Inject constructor(
     ) {
         try {
             val lastKnownJourney = getLastKnownLocation(userId, extractedLocation)
+
+            // Cancel and restart the 5-minute timer when new location arrives
+            cancelSteadyLocationTimer()
+            startSteadyLocationTimer(extractedLocation, userId, lastKnownJourney)
 
             val isDayChanged = isDayChanged(extractedLocation, lastKnownJourney)
 
@@ -50,6 +60,32 @@ class JourneyRepository @Inject constructor(
         } catch (e: Exception) {
             Timber.e(e, "Error while saving location journey")
         }
+    }
+
+    private fun startSteadyLocationTimer(extractedLocation: Location, userId: String, lastKnownJourney: LocationJourney) {
+        steadyLocationTimer = Timer(userId)
+        steadyLocationTimer?.schedule(
+            object : TimerTask() {
+                override fun run() {
+                    try {
+                        scope.launch {
+                            if (lastKnownJourney.isSteadyLocation()) return@launch
+                            saveJourneyOnJourneyStopped(userId, extractedLocation, lastKnownJourney, 0f)
+                            Timber.e("Steady location timer completed for user $userId")
+                        }
+                        cancelSteadyLocationTimer()
+                    } catch (e: Exception) {
+                        Timber.e("Error saving steady location for user $userId: $e")
+                    }
+                }
+            },
+            MIN_TIME_DIFFERENCE.toLong()
+        )
+    }
+
+    private fun cancelSteadyLocationTimer() {
+        steadyLocationTimer?.cancel()
+        steadyLocationTimer = null
     }
 
     /**
@@ -169,11 +205,6 @@ class JourneyRepository @Inject constructor(
                     lastKnownJourney,
                     distance
                 )
-                locationManager.stopDistanceRequestAndStartTimeRequest()
-            } else {
-                // Here, means last known journey is steady and user is still steady
-                // Update location request to get location updates after 10m distance
-                locationManager.stopTimeRequestAndStartDistanceRequest()
             }
         } else {
             // Handle moving user
@@ -196,10 +227,6 @@ class JourneyRepository @Inject constructor(
                     lastKnownJourney,
                     distance
                 )
-
-                // Update location request to get location updates after 10m distance
-                // as user is now steady
-                locationManager.stopTimeRequestAndStartDistanceRequest()
             }
         }
     }
