@@ -53,7 +53,9 @@ import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 import kotlin.math.roundToInt
 
 @Composable
@@ -61,11 +63,12 @@ fun LocationHistoryItem(
     location: LocationJourney,
     isFirstItem: Boolean = false,
     isLastItem: Boolean,
+    journeyList: List<LocationJourney>,
     addPlaceTap: (latitude: Double, longitude: Double) -> Unit,
     showJourneyDetails: () -> Unit
 ) {
     if (location.isSteadyLocation()) {
-        SteadyLocationItem(location, isFirstItem, isLastItem) {
+        SteadyLocationItem(location, isFirstItem, isLastItem, journeyList) {
             addPlaceTap(location.from_latitude, location.from_longitude)
         }
     } else {
@@ -141,16 +144,45 @@ fun SteadyLocationItem(
     location: LocationJourney,
     isFirstItem: Boolean,
     isLastItem: Boolean,
+    journeyList: List<LocationJourney>,
     addPlace: () -> Unit
 ) {
     val context = LocalContext.current
     var fromAddress by remember { mutableStateOf("") }
+    var steadyDuration by remember { mutableStateOf("") }
 
     LaunchedEffect(location) {
         withContext(Dispatchers.IO) {
             val latLng =
                 LatLng(location.from_latitude, location.from_longitude)
             fromAddress = latLng.getAddress(context) ?: ""
+        }
+    }
+
+    LaunchedEffect(journeyList, location) {
+        val sortedList = journeyList.sortedBy { it.created_at }
+        val currentIndex = sortedList.indexOfFirst { it.id == location.id }
+
+        val nextJourney = sortedList
+            .subList(currentIndex + 1, sortedList.size)
+            .firstOrNull { !it.isSteadyLocation() }
+
+        val createdAt = location.created_at ?: System.currentTimeMillis()
+
+        // Calculate the end of the day timestamp for this steady location
+        val endOfSteadyDay = getEndOfDayTimestamp(createdAt)
+
+        // Determine the end time for duration calculation
+        val endTime = when {
+            nextJourney != null -> minOf(nextJourney.created_at!!, endOfSteadyDay)
+            else -> minOf(System.currentTimeMillis(), endOfSteadyDay)
+        }
+
+        val durationMillis = endTime - createdAt
+        steadyDuration = if (durationMillis > 0) {
+            formatSteadyDuration(durationMillis)
+        } else {
+            "0 min"
         }
     }
 
@@ -172,7 +204,7 @@ fun SteadyLocationItem(
                     getFormattedLocationTime(location.created_at!!)
                 }
 
-            PlaceInfo(fromAddress, formattedTime)
+            PlaceInfo(fromAddress, formattedTime, "Steady for $steadyDuration")
 
             Spacer(modifier = Modifier.height(8.dp))
             Button(
@@ -204,8 +236,29 @@ fun SteadyLocationItem(
     }
 }
 
+fun getEndOfDayTimestamp(startAt: Long): Long {
+    val cal = Calendar.getInstance().apply {
+        timeInMillis = startAt
+        set(Calendar.HOUR_OF_DAY, 23)
+        set(Calendar.MINUTE, 59)
+    }
+    return cal.timeInMillis
+}
+
+fun formatSteadyDuration(durationMillis: Long): String {
+    val minutes = TimeUnit.MILLISECONDS.toMinutes(durationMillis)
+    val hours = minutes / 60
+    val remainingMinutes = minutes % 60
+
+    return when {
+        hours > 0 && remainingMinutes > 0 -> "$hours hr $remainingMinutes min"
+        hours > 0 -> "$hours hr"
+        else -> "$remainingMinutes min"
+    }
+}
+
 @Composable
-internal fun PlaceInfo(title: String, formattedTime: String) {
+internal fun PlaceInfo(title: String, formattedTime: String, steadyDuration: String? = "") {
     Text(
         text = title,
         style = AppTheme.appTypography.body2.copy(
@@ -219,7 +272,7 @@ internal fun PlaceInfo(title: String, formattedTime: String) {
     Spacer(modifier = Modifier.size(8.dp))
 
     Text(
-        text = formattedTime,
+        text = "$formattedTime $steadyDuration",
         style = AppTheme.appTypography.caption.copy(color = AppTheme.colorScheme.textDisabled)
     )
 }
@@ -345,29 +398,31 @@ internal fun getFormattedLocationTimeForFirstItem(createdAt: Long): String {
 }
 
 fun Address.formattedTitle(toAddress: Address?): String {
-    val fromCity = this.locality ?: this.subAdminArea ?: this.adminArea ?: this.featureName ?: "Unknown"
-    val toCity = toAddress?.locality ?: toAddress?.subAdminArea ?: toAddress?.adminArea ?: toAddress?.featureName ?: "Unknown"
+    val fromName = extractLocationName(this)
+    val toName = toAddress?.let { extractLocationName(it) } ?: "Unknown"
 
-    val fromArea = this.subLocality ?: this.thoroughfare ?: this.featureName ?: fromCity
-    val toArea = toAddress?.subLocality ?: toAddress?.thoroughfare ?: toAddress?.featureName ?: toCity
-
-    val fromState = this.adminArea ?: this.countryName ?: "Unknown"
-    val toState = toAddress?.adminArea ?: toAddress?.countryName ?: "Unknown"
-
-    val fromAddressLine = this.getAddressLine(0).split(",").firstOrNull {
-        it.matches(Regex("^[a-zA-Z ]+\$"))
-    }?.trim()
-
-    val toAddressLine = toAddress?.getAddressLine(0)?.split(",")?.firstOrNull {
-        it.matches(Regex("^[a-zA-Z ]+\$"))
-    }?.trim()
-
-    return when {
-        toAddress == null -> "$fromArea, $fromCity"
-        fromArea == toArea && !fromAddressLine.isNullOrEmpty() && !toAddressLine.isNullOrEmpty() -> "$fromAddressLine to $toAddressLine, $fromCity"
-        fromArea == toArea -> "$fromArea, $fromCity"
-        fromCity == toCity -> "$fromArea to $toArea, $fromCity"
-        fromState == toState -> "$fromArea, $fromCity to $toArea, $toCity"
-        else -> "$fromCity, $fromState to $toCity, $toState"
+    return if (toAddress == null) {
+        fromName
+    } else {
+        "$fromName -> $toName"
     }
+}
+
+private fun extractLocationName(address: Address): String {
+    val featureName = address.featureName?.trim()
+    val thoroughfare = address.thoroughfare?.trim()
+    val locality = address.locality?.trim()
+    val subThoroughfare = address.subThoroughfare?.trim()
+
+    val potentialNames = listOf(
+        featureName,
+        thoroughfare,
+        locality,
+        subThoroughfare
+    ).filterNot { it.isNullOrEmpty() }
+
+    val name = potentialNames.firstOrNull { it?.matches(Regex("[^0-9]+")) == true }
+        ?: potentialNames.firstOrNull() ?: "Unknown"
+
+    return name.replace(Regex("^[0-9]+\\s*"), "").trim().ifEmpty { "Unknown" }
 }

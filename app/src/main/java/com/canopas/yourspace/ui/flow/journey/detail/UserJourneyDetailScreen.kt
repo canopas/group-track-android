@@ -224,9 +224,9 @@ private fun ColumnScope.MapView(journey: LocationJourney?) {
         fromMarkerContent = {
             JourneyMarker(bgColor = AppTheme.colorScheme.primary) {
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_tab_places_filled),
+                    painter = painterResource(id = R.drawable.ic_journey_destination),
                     contentDescription = null,
-                    tint = AppTheme.colorScheme.primary,
+                    tint = AppTheme.colorScheme.successColor,
                     modifier = Modifier.size(16.dp)
                 )
             }
@@ -236,13 +236,14 @@ private fun ColumnScope.MapView(journey: LocationJourney?) {
                 AppTheme.colorScheme.successColor
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_journey_destination),
+                    painter = painterResource(id = R.drawable.ic_tab_places_filled),
                     contentDescription = null,
-                    tint = AppTheme.colorScheme.successColor,
+                    tint = AppTheme.colorScheme.primary,
                     modifier = Modifier.size(16.dp)
                 )
             }
         },
+        shouldAnimate = true,
         polyLineWidth = 8f,
         anchor = Offset(0.5f, 0.5f)
     )

@@ -1,5 +1,7 @@
 package com.canopas.yourspace.ui.flow.journey.components
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,6 +41,7 @@ fun JourneyMap(
     toMarkerContent: @Composable () -> Unit,
     polyLineWidth: Float = 5f,
     anchor: Offset = Offset(0.5f, 1.0f),
+    shouldAnimate: Boolean = false,
     onMapTap: (() -> Unit) = { }
 ) {
     val fromLatLang = LatLng(location?.from_latitude ?: 0.0, location?.from_longitude ?: 0.0)
@@ -46,6 +49,7 @@ fun JourneyMap(
     var isMapLoaded by remember {
         mutableStateOf(false)
     }
+    val animatedProgress = remember { Animatable(0f) }
 
     val isDarkMode = isSystemInDarkTheme()
     val context = LocalContext.current
@@ -59,6 +63,12 @@ fun JourneyMap(
         )
     }
 
+    // Calculate the route points
+    val routePoints = location?.toRoute() ?: listOf()
+    val animatedPoints = remember(routePoints, animatedProgress.value) {
+        routePoints.take((animatedProgress.value * routePoints.size).toInt())
+    }
+
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(fromLatLang, 15f)
     }
@@ -69,10 +79,10 @@ fun JourneyMap(
                 val boundsBuilder = LatLngBounds.builder()
                     .apply {
                         include(fromLatLang)
-                        location?.toRoute()?.forEach { latLng ->
-                            include(latLng)
-                        }
                         include(toLatLang)
+                        routePoints.forEach { latLng ->
+                            this.include(latLng)
+                        }
                     }.build()
                 val update = CameraUpdateFactory.newLatLngBounds(boundsBuilder, 50)
                 cameraPositionState.move(update)
@@ -80,6 +90,10 @@ fun JourneyMap(
                 e.printStackTrace()
             }
         }
+        animatedProgress.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(durationMillis = 4000) // Set your desired duration
+        )
     }
 
     GoogleMap(
@@ -113,7 +127,7 @@ fun JourneyMap(
             LocationMarker(toLatLang, anchor, toMarkerContent)
 
             Polyline(
-                points = location.toRoute(),
+                points = if (shouldAnimate) animatedPoints else routePoints,
                 color = AppTheme.colorScheme.primary,
                 width = polyLineWidth,
                 pattern = listOf(Gap(8F), Dash(12F))
