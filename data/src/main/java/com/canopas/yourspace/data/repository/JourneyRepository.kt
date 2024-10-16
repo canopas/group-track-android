@@ -8,6 +8,7 @@ import com.canopas.yourspace.data.models.location.toLocationFromSteadyJourney
 import com.canopas.yourspace.data.models.location.toLocationJourney
 import com.canopas.yourspace.data.models.location.toRoute
 import com.canopas.yourspace.data.service.location.ApiJourneyService
+import com.canopas.yourspace.data.service.location.LocationManager
 import com.canopas.yourspace.data.storage.LocationCache
 import timber.log.Timber
 import java.util.Calendar
@@ -21,7 +22,8 @@ const val MIN_TIME_DIFFERENCE = 5 * 60 * 1000 // 5 minutes
 @Singleton
 class JourneyRepository @Inject constructor(
     private val journeyService: ApiJourneyService,
-    private val locationCache: LocationCache
+    private val locationCache: LocationCache,
+    private val locationManager: LocationManager
 ) {
 
     suspend fun saveLocationJourney(
@@ -72,19 +74,16 @@ class JourneyRepository @Inject constructor(
         userId: String,
         lastKnownJourney: LocationJourney
     ) {
-        var newJourneyId = ""
         // Removed createdAt and updatedAt from saveCurrentJourney so that we can just create a new journey
         // Because it was creating issue while checking current user state...
         // Changes: https://github.com/canopas/your-space-android/pull/86/commits/b4ee9717148217a72c23ba139520bc308d75f887
-        journeyService.saveCurrentJourney(
+        val newJourneyId = journeyService.saveCurrentJourney(
             userId = userId,
             fromLatitude = lastKnownJourney.from_latitude,
             fromLongitude = lastKnownJourney.from_longitude,
             toLatitude = lastKnownJourney.to_latitude,
             toLongitude = lastKnownJourney.to_longitude
-        ) {
-            newJourneyId = it
-        }
+        )
         val newJourney = lastKnownJourney.copy(
             id = newJourneyId,
             created_at = System.currentTimeMillis(),
@@ -108,23 +107,23 @@ class JourneyRepository @Inject constructor(
             // Here, means no location journey available in cache
             // Fetch last location journey from remote database and save it to cache
             val lastJourney = journeyService.getLastJourneyLocation(userid)
-            lastJourney?.let {
+            lastJourney?.takeIf {
+                // Check if day is not changed - to continue the journey otherwise start new journey
+                !isDayChanged(extractedLocation, it)
+            }?.let {
                 locationCache.putLastJourney(it, userid)
                 return lastJourney
             } ?: run {
                 // Here, means no location journey available in remote database as well
-                // Possibly user is new or no location journey available
+                // Possibly user is new or no location journey available or day is changed since last journey
                 // Save extracted location as new location journey with steady state in cache
                 // as well as remote database and return it
-                var newJourneyId = ""
-                journeyService.saveCurrentJourney(
+                val newJourneyId = journeyService.saveCurrentJourney(
                     userId = userid,
                     fromLatitude = extractedLocation.latitude,
                     fromLongitude = extractedLocation.longitude,
                     createdAt = extractedLocation.time
-                ) {
-                    newJourneyId = it
-                }
+                )
                 val locationJourney = extractedLocation.toLocationJourney(userid, newJourneyId)
                 locationCache.putLastJourney(locationJourney, userid)
                 return locationJourney
@@ -170,6 +169,11 @@ class JourneyRepository @Inject constructor(
                     lastKnownJourney,
                     distance
                 )
+                locationManager.stopDistanceRequestAndStartTimeRequest()
+            } else {
+                // Here, means last known journey is steady and user is still steady
+                // Update location request to get location updates after 10m distance
+                locationManager.stopTimeRequestAndStartDistanceRequest()
             }
         } else {
             // Handle moving user
@@ -192,6 +196,10 @@ class JourneyRepository @Inject constructor(
                     lastKnownJourney,
                     distance
                 )
+
+                // Update location request to get location updates after 10m distance
+                // as user is now steady
+                locationManager.stopTimeRequestAndStartDistanceRequest()
             }
         }
     }
@@ -205,7 +213,6 @@ class JourneyRepository @Inject constructor(
         lastKnownJourney: LocationJourney,
         distance: Float
     ) {
-        var newJourneyId = ""
         val journey = LocationJourney(
             user_id = userId,
             from_latitude = lastKnownJourney.from_latitude,
@@ -219,7 +226,7 @@ class JourneyRepository @Inject constructor(
                 extractedLocation.toRoute()
             )
         )
-        journeyService.saveCurrentJourney(
+        val newJourneyId = journeyService.saveCurrentJourney(
             userId = userId,
             fromLatitude = lastKnownJourney.from_latitude,
             fromLongitude = lastKnownJourney.from_longitude,
@@ -227,9 +234,7 @@ class JourneyRepository @Inject constructor(
             toLongitude = extractedLocation.longitude,
             routeDistance = distance.toDouble(),
             routeDuration = null
-        ) {
-            newJourneyId = it
-        }
+        )
         locationCache.putLastJourney(journey.copy(id = newJourneyId), userId)
     }
 
@@ -289,15 +294,12 @@ class JourneyRepository @Inject constructor(
         )
 
         // Save journey for steady user and update cache as well:
-        var newJourneyId = ""
-        journeyService.saveCurrentJourney(
+        val newJourneyId = journeyService.saveCurrentJourney(
             userId = userId,
             fromLatitude = extractedLocation.latitude,
             fromLongitude = extractedLocation.longitude,
             createdAt = lastKnownJourney.update_at
-        ) {
-            newJourneyId = it
-        }
+        )
         val steadyJourney = LocationJourney(
             id = newJourneyId,
             user_id = userId,
@@ -353,9 +355,7 @@ class JourneyRepository @Inject constructor(
                         userId = userId,
                         fromLatitude = journey.from_latitude,
                         fromLongitude = journey.from_longitude
-                    ) {
-                        Timber.d("Local journey added to remote database with steady state")
-                    }
+                    )
                     return lastJourney
                 }
             }

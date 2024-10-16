@@ -1,5 +1,6 @@
 package com.canopas.yourspace.data.service.location
 
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -21,18 +22,20 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 private const val LOCATION_UPDATE_INTERVAL = 10000L
+private const val MINIMUM_DISTANCE = 10f
 
 @Singleton
 class LocationManager @Inject constructor(@ApplicationContext private val context: Context) {
 
-    private var request: LocationRequest
+    private lateinit var request: LocationRequest
     private var locationClient: FusedLocationProviderClient =
         LocationServices.getFusedLocationProviderClient(context)
 
     init {
-        request = createRequest()
+        createRequest()
     }
 
+    @SuppressLint("MissingPermission")
     suspend fun getLastLocation(): Location? {
         if (!context.hasCoarseLocationPermission) return null
         return locationClient.lastLocation.await()
@@ -53,14 +56,26 @@ class LocationManager @Inject constructor(@ApplicationContext private val contex
         }
     }
 
-    private fun createRequest(): LocationRequest =
-        LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, LOCATION_UPDATE_INTERVAL)
+    private fun createRequest() {
+        request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, LOCATION_UPDATE_INTERVAL)
             .apply {
                 setGranularity(Granularity.GRANULARITY_PERMISSION_LEVEL)
                 setMinUpdateIntervalMillis(LOCATION_UPDATE_INTERVAL)
                 setWaitForAccurateLocation(true)
             }.build()
+    }
 
+    private fun createRequestWithMinimumDistance() {
+        request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, LOCATION_UPDATE_INTERVAL)
+            .apply {
+                setGranularity(Granularity.GRANULARITY_PERMISSION_LEVEL)
+                setMinUpdateIntervalMillis(LOCATION_UPDATE_INTERVAL)
+                setMinUpdateDistanceMeters(MINIMUM_DISTANCE)
+                setWaitForAccurateLocation(true)
+            }.build()
+    }
+
+    @SuppressLint("MissingPermission")
     internal fun startLocationTracking() {
         if (context.hasFineLocationPermission) {
             locationClient.requestLocationUpdates(request, locationUpdatePendingIntent)
@@ -80,5 +95,30 @@ class LocationManager @Inject constructor(@ApplicationContext private val contex
 
     fun stopService() {
         context.stopService(Intent(context, BackgroundLocationService::class.java))
+    }
+
+    /**
+     * Function to stop time request and start distance request so that the location updates are
+     * triggered based on the distance between the current location and the last location to avoid
+     * unnecessary location updates.
+     * */
+    internal fun stopTimeRequestAndStartDistanceRequest() {
+        // Return if existing request is already distance request
+        if (request.minUpdateDistanceMeters == MINIMUM_DISTANCE) return
+        stopLocationTracking()
+        createRequestWithMinimumDistance()
+        startLocationTracking()
+    }
+
+    /**
+     * Function to stop distance request and start time request so that the location updates are
+     * triggered based on the time interval to get the location updates at regular intervals.
+     * */
+    internal fun stopDistanceRequestAndStartTimeRequest() {
+        // Return if existing request is already time request
+        if (request.minUpdateDistanceMeters == 0f) return
+        stopLocationTracking()
+        createRequest()
+        startLocationTracking()
     }
 }
