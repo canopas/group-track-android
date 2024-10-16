@@ -35,9 +35,8 @@ class ApiJourneyService @Inject constructor(
         routeDuration: Long? = null,
         routes: List<JourneyRoute> = emptyList(),
         createdAt: Long? = null,
-        updateAt: Long? = null,
-        newJourneyId: ((String) -> Unit)? = null
-    ) {
+        updateAt: Long? = null
+    ): String {
         val docRef = journeyRef(userId).document()
 
         val journey = LocationJourney(
@@ -54,9 +53,9 @@ class ApiJourneyService @Inject constructor(
             update_at = updateAt ?: System.currentTimeMillis()
         )
 
-        newJourneyId?.invoke(journey.id)
-
         docRef.set(journey).await()
+
+        return docRef.id
     }
 
     suspend fun updateLastLocationJourney(userId: String, journey: LocationJourney) {
