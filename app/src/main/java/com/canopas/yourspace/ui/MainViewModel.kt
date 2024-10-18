@@ -42,20 +42,21 @@ class MainViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            if (userPreferences.isIntroShown()) {
-                if (userPreferences.currentUser == null) {
-                    _state.value = state.value.copy(initialRoute = AppDestinations.signIn.path)
-                } else if (!userPreferences.isOnboardShown()) {
-                    _state.value = state.value.copy(initialRoute = AppDestinations.onboard.path)
-                }
-            } else {
-                _state.value = state.value.copy(initialRoute = AppDestinations.intro.path)
+            val initialRoute = when {
+                !userPreferences.isIntroShown() -> AppDestinations.intro.path
+                userPreferences.currentUser == null -> AppDestinations.signIn.path
+                !userPreferences.isOnboardShown() -> AppDestinations.onboard.path
+                else -> AppDestinations.home.path
             }
+
+            _state.value = state.value.copy(initialRoute = initialRoute)
 
             userPreferences.currentUserSessionState.collectLatest { userSession ->
                 listenSessionJob?.cancel()
                 listenUserSession(userSession)
             }
+
+            _state.value = state.value.copy(isInitialRouteSet = true)
         }
     }
 
@@ -146,7 +147,8 @@ class MainViewModel @Inject constructor(
 
 data class MainScreenState(
     val isSessionExpired: Boolean = false,
-    val initialRoute: String = AppDestinations.home.path,
+    val initialRoute: String? = null,
     val verifyingSpace: Boolean = false,
-    val showSpaceNotFoundPopup: Boolean = false
+    val showSpaceNotFoundPopup: Boolean = false,
+    val isInitialRouteSet: Boolean = false
 )

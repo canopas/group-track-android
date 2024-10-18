@@ -1,9 +1,13 @@
 package com.canopas.yourspace.ui
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.content.Intent
 import android.os.Bundle
+import android.view.animation.OvershootInterpolator
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -15,6 +19,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.animation.doOnEnd
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.compose.NavHost
@@ -57,8 +63,38 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    private val viewModel: MainViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen().apply {
+            setOnExitAnimationListener { viewProvider ->
+                val scaleX = ObjectAnimator.ofFloat(
+                    viewProvider.view,
+                    "scaleX",
+                    1f,
+                    0f
+                )
+                val scaleY = ObjectAnimator.ofFloat(
+                    viewProvider.view,
+                    "scaleY",
+                    1f,
+                    0f
+                )
+                AnimatorSet().apply {
+                    interpolator = OvershootInterpolator()
+                    duration = 100
+                    playTogether(scaleX, scaleY)
+                    doOnEnd { viewProvider.remove() }
+                    start()
+                }
+            }
+        }.setKeepOnScreenCondition {
+            viewModel.state.value.isInitialRouteSet
+        }
+
         super.onCreate(savedInstanceState)
+
         setContent {
             CatchMeTheme {
                 // A surface container using the 'background' color from the theme
@@ -66,7 +102,6 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val viewModel = hiltViewModel<MainViewModel>()
                     MainApp(viewModel)
 
                     LaunchedEffect(Unit) {
@@ -101,81 +136,19 @@ fun MainApp(viewModel: MainViewModel) {
 
     AppNavigator(navController = navController, viewModel.navActions)
 
-    NavHost(navController = navController, startDestination = state.initialRoute) {
-        slideComposable(AppDestinations.intro.path) {
-            IntroScreen()
-        }
-        slideComposable(AppDestinations.onboard.path) {
-            OnboardScreen()
-        }
-        slideComposable(AppDestinations.signIn.path) {
-            SignInMethodsScreen()
-        }
+    state.initialRoute?.let {
+        NavHost(navController = navController, startDestination = state.initialRoute!!) {
+            slideComposable(AppDestinations.intro.path) {
+                IntroScreen()
+            }
+            slideComposable(AppDestinations.onboard.path) {
+                OnboardScreen()
+            }
+            slideComposable(AppDestinations.signIn.path) {
+                SignInMethodsScreen()
+            }
 
-        slideComposable(AppDestinations.home.path) {
-            navController.currentBackStackEntry
-                ?.savedStateHandle?.apply {
-                    remove<Int>(KEY_RESULT)
-                    remove<Double>(EXTRA_RESULT_PLACE_LATITUDE)
-                    remove<Double>(EXTRA_RESULT_PLACE_LONGITUDE)
-                    remove<String>(EXTRA_RESULT_PLACE_NAME)
-                }
-            HomeScreen(state.verifyingSpace)
-        }
-
-        slideComposable(AppDestinations.createSpace.path) {
-            CreateSpaceHomeScreen()
-        }
-
-        slideComposable(AppDestinations.joinSpace.path) {
-            JoinSpaceScreen()
-        }
-
-        slideComposable(AppDestinations.SpaceInvitation.path) {
-            SpaceInvite()
-        }
-
-        slideComposable(AppDestinations.enablePermissions.path) {
-            EnablePermissionsScreen()
-        }
-
-        slideComposable(AppDestinations.settings.path) {
-            SettingsScreen()
-        }
-
-        slideComposable(AppDestinations.editProfile.path) {
-            EditProfileScreen()
-        }
-
-        slideComposable(AppDestinations.SpaceProfileScreen.path) {
-            SpaceProfileScreen()
-        }
-
-        slideComposable(AppDestinations.spaceThreads.path) {
-            ThreadsScreen()
-        }
-
-        slideComposable(AppDestinations.ThreadMessages.path) {
-            MessagesScreen()
-        }
-
-        slideComposable(AppDestinations.contactSupport.path) {
-            SupportScreen()
-        }
-
-        slideComposable(AppDestinations.places.path) {
-            val placesListViewModel = hiltViewModel<PlacesListViewModel>()
-
-            val result = navController.currentBackStackEntry
-                ?.savedStateHandle?.get<Int>(KEY_RESULT)
-
-            result?.let {
-                val latitude = navController.currentBackStackEntry
-                    ?.savedStateHandle?.get<Double>(EXTRA_RESULT_PLACE_LATITUDE) ?: 0.0
-                val longitude = navController.currentBackStackEntry
-                    ?.savedStateHandle?.get<Double>(EXTRA_RESULT_PLACE_LONGITUDE) ?: 0.0
-                val placeName = navController.currentBackStackEntry
-                    ?.savedStateHandle?.get<String>(EXTRA_RESULT_PLACE_NAME) ?: ""
+            slideComposable(AppDestinations.home.path) {
                 navController.currentBackStackEntry
                     ?.savedStateHandle?.apply {
                         remove<Int>(KEY_RESULT)
@@ -183,54 +156,118 @@ fun MainApp(viewModel: MainViewModel) {
                         remove<Double>(EXTRA_RESULT_PLACE_LONGITUDE)
                         remove<String>(EXTRA_RESULT_PLACE_NAME)
                     }
-
-                LaunchedEffect(key1 = result) {
-                    if (result == RESULT_OKAY) {
-                        placesListViewModel.showPlaceAddedPopup(latitude, longitude, placeName)
-                    }
-                }
+                HomeScreen(state.verifyingSpace)
             }
-            PlacesListScreen()
-        }
 
-        slideComposable(AppDestinations.LocateOnMap.path) {
-            val locateOnMapViewModel = hiltViewModel<LocateOnMapViewModel>()
+            slideComposable(AppDestinations.createSpace.path) {
+                CreateSpaceHomeScreen()
+            }
 
-            val result = navController.currentBackStackEntry
-                ?.savedStateHandle?.get<Int>(KEY_RESULT)
+            slideComposable(AppDestinations.joinSpace.path) {
+                JoinSpaceScreen()
+            }
 
-            LaunchedEffect(key1 = result) {
-                if (result == RESULT_OKAY) {
+            slideComposable(AppDestinations.SpaceInvitation.path) {
+                SpaceInvite()
+            }
+
+            slideComposable(AppDestinations.enablePermissions.path) {
+                EnablePermissionsScreen()
+            }
+
+            slideComposable(AppDestinations.settings.path) {
+                SettingsScreen()
+            }
+
+            slideComposable(AppDestinations.editProfile.path) {
+                EditProfileScreen()
+            }
+
+            slideComposable(AppDestinations.SpaceProfileScreen.path) {
+                SpaceProfileScreen()
+            }
+
+            slideComposable(AppDestinations.spaceThreads.path) {
+                ThreadsScreen()
+            }
+
+            slideComposable(AppDestinations.ThreadMessages.path) {
+                MessagesScreen()
+            }
+
+            slideComposable(AppDestinations.contactSupport.path) {
+                SupportScreen()
+            }
+
+            slideComposable(AppDestinations.places.path) {
+                val placesListViewModel = hiltViewModel<PlacesListViewModel>()
+
+                val result = navController.currentBackStackEntry
+                    ?.savedStateHandle?.get<Int>(KEY_RESULT)
+
+                result?.let {
                     val latitude = navController.currentBackStackEntry
                         ?.savedStateHandle?.get<Double>(EXTRA_RESULT_PLACE_LATITUDE) ?: 0.0
                     val longitude = navController.currentBackStackEntry
                         ?.savedStateHandle?.get<Double>(EXTRA_RESULT_PLACE_LONGITUDE) ?: 0.0
                     val placeName = navController.currentBackStackEntry
                         ?.savedStateHandle?.get<String>(EXTRA_RESULT_PLACE_NAME) ?: ""
-                    locateOnMapViewModel.navigateBack(latitude, longitude, placeName)
+                    navController.currentBackStackEntry
+                        ?.savedStateHandle?.apply {
+                            remove<Int>(KEY_RESULT)
+                            remove<Double>(EXTRA_RESULT_PLACE_LATITUDE)
+                            remove<Double>(EXTRA_RESULT_PLACE_LONGITUDE)
+                            remove<String>(EXTRA_RESULT_PLACE_NAME)
+                        }
+
+                    LaunchedEffect(key1 = result) {
+                        if (result == RESULT_OKAY) {
+                            placesListViewModel.showPlaceAddedPopup(latitude, longitude, placeName)
+                        }
+                    }
                 }
+                PlacesListScreen()
             }
-            LocateOnMapScreen()
-        }
 
-        slideComposable(AppDestinations.ChoosePlaceName.path) {
-            ChoosePlaceNameScreen()
-        }
+            slideComposable(AppDestinations.LocateOnMap.path) {
+                val locateOnMapViewModel = hiltViewModel<LocateOnMapViewModel>()
 
-        slideComposable(AppDestinations.EditPlace.path) {
-            EditPlaceScreen()
-        }
+                val result = navController.currentBackStackEntry
+                    ?.savedStateHandle?.get<Int>(KEY_RESULT)
 
-        slideComposable(AppDestinations.addNewPlace.path) {
-            AddNewPlaceScreen()
-        }
+                LaunchedEffect(key1 = result) {
+                    if (result == RESULT_OKAY) {
+                        val latitude = navController.currentBackStackEntry
+                            ?.savedStateHandle?.get<Double>(EXTRA_RESULT_PLACE_LATITUDE) ?: 0.0
+                        val longitude = navController.currentBackStackEntry
+                            ?.savedStateHandle?.get<Double>(EXTRA_RESULT_PLACE_LONGITUDE) ?: 0.0
+                        val placeName = navController.currentBackStackEntry
+                            ?.savedStateHandle?.get<String>(EXTRA_RESULT_PLACE_NAME) ?: ""
+                        locateOnMapViewModel.navigateBack(latitude, longitude, placeName)
+                    }
+                }
+                LocateOnMapScreen()
+            }
 
-        slideComposable(AppDestinations.UserJourneyDetails.path) {
-            UserJourneyDetailScreen()
-        }
+            slideComposable(AppDestinations.ChoosePlaceName.path) {
+                ChoosePlaceNameScreen()
+            }
 
-        slideComposable(AppDestinations.JourneyTimeline.path) {
-            JourneyTimelineScreen()
+            slideComposable(AppDestinations.EditPlace.path) {
+                EditPlaceScreen()
+            }
+
+            slideComposable(AppDestinations.addNewPlace.path) {
+                AddNewPlaceScreen()
+            }
+
+            slideComposable(AppDestinations.UserJourneyDetails.path) {
+                UserJourneyDetailScreen()
+            }
+
+            slideComposable(AppDestinations.JourneyTimeline.path) {
+                JourneyTimelineScreen()
+            }
         }
     }
 }
