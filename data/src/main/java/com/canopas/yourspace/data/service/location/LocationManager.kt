@@ -1,5 +1,6 @@
 package com.canopas.yourspace.data.service.location
 
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -21,6 +22,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 private const val LOCATION_UPDATE_INTERVAL = 10000L
+private const val MINIMUM_DISTANCE = 10f
 
 @Singleton
 class LocationManager @Inject constructor(@ApplicationContext private val context: Context) {
@@ -33,6 +35,7 @@ class LocationManager @Inject constructor(@ApplicationContext private val contex
         request = createRequest()
     }
 
+    @SuppressLint("MissingPermission")
     suspend fun getLastLocation(): Location? {
         if (!context.hasCoarseLocationPermission) return null
         return locationClient.lastLocation.await()
@@ -58,9 +61,11 @@ class LocationManager @Inject constructor(@ApplicationContext private val contex
             .apply {
                 setGranularity(Granularity.GRANULARITY_PERMISSION_LEVEL)
                 setMinUpdateIntervalMillis(LOCATION_UPDATE_INTERVAL)
+                setMinUpdateDistanceMeters(MINIMUM_DISTANCE)
                 setWaitForAccurateLocation(true)
             }.build()
 
+    @SuppressLint("MissingPermission")
     internal fun startLocationTracking() {
         if (context.hasFineLocationPermission) {
             locationClient.requestLocationUpdates(request, locationUpdatePendingIntent)

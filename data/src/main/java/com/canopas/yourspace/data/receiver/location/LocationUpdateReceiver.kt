@@ -43,9 +43,16 @@ class LocationUpdateReceiver : BroadcastReceiver() {
         LocationResult.extractResult(intent)?.let { locationResult ->
             scope.launch {
                 try {
+                    Timber.d("Location update received: $locationResult")
+
                     val userId = authService.currentUser?.id ?: return@launch
-                    Timber.e("Location update received: ${locationResult.locations.size}")
+
                     locationResult.locations.forEach { extractedLocation ->
+                        if (extractedLocation.hasAccuracy() && extractedLocation.accuracy >= 30.0f) {
+                            Timber.e("Skipping location update due to low accuracy: ${extractedLocation.accuracy}")
+                            return@forEach
+                        }
+
                         locationService.saveCurrentLocation(
                             userId,
                             extractedLocation.latitude,
