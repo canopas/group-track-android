@@ -1,7 +1,6 @@
 package com.canopas.yourspace.ui.flow.onboard
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
@@ -10,7 +9,6 @@ import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.ui.flow.onboard.components.CreateSpaceOnboard
 import com.canopas.yourspace.ui.flow.onboard.components.JoinOrCreateSpaceOnboard
-import com.canopas.yourspace.ui.flow.onboard.components.PickNameOnboard
 import com.canopas.yourspace.ui.flow.onboard.components.ShareSpaceCodeOnboard
 import com.canopas.yourspace.ui.flow.onboard.components.SpaceInfoOnboard
 
@@ -18,14 +16,6 @@ import com.canopas.yourspace.ui.flow.onboard.components.SpaceInfoOnboard
 fun OnboardScreen() {
     val viewModel = hiltViewModel<OnboardViewModel>()
     val state by viewModel.state.collectAsState()
-
-    AnimatedVisibility(
-        visible = state.currentStep == OnboardItems.PickName,
-        enter = EnterTransition.None,
-        exit = slideOutHorizontally(targetOffsetX = { -it })
-    ) {
-        PickNameOnboard()
-    }
 
     AnimatedVisibility(
         visible = state.currentStep == OnboardItems.SpaceIntro,
