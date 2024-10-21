@@ -18,7 +18,9 @@ import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.user.USER_STATE_LOCATION_PERMISSION_DENIED
 import com.canopas.yourspace.data.models.user.USER_STATE_NO_NETWORK_OR_PHONE_OFF
 import com.canopas.yourspace.data.models.user.USER_STATE_UNKNOWN
+import com.canopas.yourspace.data.repository.JourneyRepository
 import com.canopas.yourspace.data.service.auth.AuthService
+import com.canopas.yourspace.data.storage.LocationCache
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.utils.isLocationPermissionGranted
 import com.canopas.yourspace.domain.utils.isNetWorkConnected
@@ -82,6 +84,12 @@ class YourSpaceFcmService : FirebaseMessagingService() {
 
     @Inject
     lateinit var authService: AuthService
+
+    @Inject
+    lateinit var locationCache: LocationCache
+
+    @Inject
+    lateinit var journeyRepository: JourneyRepository
 
     private val job = SupervisorJob()
     private val scope = CoroutineScope(Dispatchers.IO + job)
@@ -152,6 +160,16 @@ class YourSpaceFcmService : FirebaseMessagingService() {
         }
 
         scope.launch { authService.updateUserSessionState(state) }
+
+        scope.launch {
+            val extractedLocation = locationCache.getLastExtractedLocation(userId = authService.currentUser?.id ?: "")
+            extractedLocation?.let {
+                journeyRepository.saveLocationJourney(
+                    extractedLocation,
+                    authService.currentUser?.id ?: ""
+                )
+            }
+        }
     }
 
     private fun sendGeoFenceNotification(

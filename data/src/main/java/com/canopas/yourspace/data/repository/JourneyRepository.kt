@@ -194,6 +194,7 @@ class JourneyRepository @Inject constructor(
         val timeDifference =
             (geometricMedian?.time ?: extractedLocation.time) - lastKnownJourney.update_at!!
 
+        Timber.d("Distance: $distance, Time difference: $timeDifference\nLast known journey: $lastKnownJourney")
         if (lastKnownJourney.isSteadyLocation()) {
             // Handle steady user
             if (distance > MIN_DISTANCE) {
