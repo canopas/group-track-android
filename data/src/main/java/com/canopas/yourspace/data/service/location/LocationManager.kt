@@ -1,5 +1,6 @@
 package com.canopas.yourspace.data.service.location
 
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -20,17 +21,22 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
-private const val LOCATION_UPDATE_INTERVAL = 10000L
+private const val LOCATION_UPDATE_INTERVAL = 60000L // 1 minute
+private const val LOCATION_UPDATE_DISTANCE = 10f // 10 meters
+private const val LOCATION_UPDATE_FASTEST_INTERVAL = 5000L // 5 seconds
 
+@SuppressLint("MissingPermission")
 @Singleton
 class LocationManager @Inject constructor(@ApplicationContext private val context: Context) {
 
-    private var request: LocationRequest
+    private var timeBasedLocationResult: LocationRequest
+    private var distanceBasedLocationResult: LocationRequest
     private var locationClient: FusedLocationProviderClient =
         LocationServices.getFusedLocationProviderClient(context)
 
     init {
-        request = createRequest()
+        timeBasedLocationResult = createTimeBasedRequest()
+        distanceBasedLocationResult = createDistanceBasedRequest()
     }
 
     suspend fun getLastLocation(): Location? {
@@ -53,7 +59,7 @@ class LocationManager @Inject constructor(@ApplicationContext private val contex
         }
     }
 
-    private fun createRequest(): LocationRequest =
+    private fun createTimeBasedRequest(): LocationRequest =
         LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, LOCATION_UPDATE_INTERVAL)
             .apply {
                 setGranularity(Granularity.GRANULARITY_PERMISSION_LEVEL)
@@ -61,9 +67,28 @@ class LocationManager @Inject constructor(@ApplicationContext private val contex
                 setWaitForAccurateLocation(true)
             }.build()
 
+    private fun createDistanceBasedRequest(): LocationRequest =
+        LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, LOCATION_UPDATE_FASTEST_INTERVAL)
+            .apply {
+                setGranularity(Granularity.GRANULARITY_PERMISSION_LEVEL)
+                setMinUpdateIntervalMillis(LOCATION_UPDATE_FASTEST_INTERVAL)
+                setWaitForAccurateLocation(true)
+                setMinUpdateDistanceMeters(LOCATION_UPDATE_DISTANCE)
+            }.build()
+
     internal fun startLocationTracking() {
         if (context.hasFineLocationPermission) {
-            locationClient.requestLocationUpdates(request, locationUpdatePendingIntent)
+            // Request location updates for time-based location requests
+            locationClient.requestLocationUpdates(
+                timeBasedLocationResult,
+                locationUpdatePendingIntent
+            )
+
+            // Request location updates for distance-based location requests
+            locationClient.requestLocationUpdates(
+                distanceBasedLocationResult,
+                locationUpdatePendingIntent
+            )
         }
     }
 
