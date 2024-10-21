@@ -138,7 +138,7 @@ exports.sendNotification = onDocumentCreated({
             }
         };
 
-        admin.messaging().sendMulticast(payload).then((response) => {
+        admin.messaging().sendEachForMulticast(payload).then((response) => {
             console.log("Successfully sent message:", response);
             return {
                 success: true
@@ -217,7 +217,7 @@ exports.sendNewPlaceNotification = onCall({ region: "asia-south1"}, async (reque
             }
         };
 
-        admin.messaging().sendMulticast(payload).then((response) => {
+        admin.messaging().sendEachForMulticast(payload).then((response) => {
             console.log("Successfully sent place notification:", response);
             return {
                 success: true
@@ -304,7 +304,7 @@ exports.sendGeoFenceNotification = onCall({ region: "asia-south1"}, async (reque
             }
         };
 
-        admin.messaging().sendMulticast(payload).then((response) => {
+        admin.messaging().sendEachForMulticast(payload).then((response) => {
             console.log("Successfully sent geofence notification:", response);
             return {
                 success: true
@@ -397,7 +397,7 @@ exports.updateUserStateNotification = onDocumentCreated({
             }
         };
 
-        admin.messaging().sendMulticast(payload).then((response) => {
+        admin.messaging().sendEachForMulticast(payload).then((response) => {
             console.log("User:", userId);
             console.log("Successfully sent state update notification:", response);
             return {
@@ -509,7 +509,7 @@ exports.sendNewPlaceAddedNotification = onDocumentCreated({
                     type: 'new_place_added'
                 }
             };
-            await admin.messaging().sendMulticast(payload);
+            await admin.messaging().sendEachForMulticast(payload);
             console.log("Successfully sent place notification:", { spaceId, placeName, createdBy });
         }
     } catch (error) {
