@@ -1,5 +1,6 @@
 package com.canopas.yourspace.data.service.location
 
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -21,7 +22,9 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 private const val LOCATION_UPDATE_INTERVAL = 10000L
+private const val STEADY_UPDATE_INTERVAL = 60000L
 
+@SuppressLint("MissingPermission")
 @Singleton
 class LocationManager @Inject constructor(@ApplicationContext private val context: Context) {
 
@@ -53,13 +56,24 @@ class LocationManager @Inject constructor(@ApplicationContext private val contex
         }
     }
 
-    private fun createRequest(): LocationRequest =
-        LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, LOCATION_UPDATE_INTERVAL)
+    private fun createRequest(isMoving: Boolean = true): LocationRequest {
+        return LocationRequest.Builder(
+            Priority.PRIORITY_HIGH_ACCURACY,
+            if (isMoving) LOCATION_UPDATE_INTERVAL else STEADY_UPDATE_INTERVAL
+        )
             .apply {
                 setGranularity(Granularity.GRANULARITY_PERMISSION_LEVEL)
-                setMinUpdateIntervalMillis(LOCATION_UPDATE_INTERVAL)
+                setMinUpdateIntervalMillis(if (isMoving) LOCATION_UPDATE_INTERVAL else STEADY_UPDATE_INTERVAL)
                 setWaitForAccurateLocation(true)
-            }.build()
+                setMinUpdateDistanceMeters(if (isMoving) 0f else 10f)
+            }
+            .build()
+    }
+
+    internal fun updateRequestBasedOnState(isMoving: Boolean) {
+        request = createRequest(isMoving)
+        startLocationTracking()
+    }
 
     internal fun startLocationTracking() {
         if (context.hasFineLocationPermission) {

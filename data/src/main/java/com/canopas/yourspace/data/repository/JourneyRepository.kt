@@ -8,6 +8,7 @@ import com.canopas.yourspace.data.models.location.toLocationFromSteadyJourney
 import com.canopas.yourspace.data.models.location.toLocationJourney
 import com.canopas.yourspace.data.models.location.toRoute
 import com.canopas.yourspace.data.service.location.ApiJourneyService
+import com.canopas.yourspace.data.service.location.LocationManager
 import com.canopas.yourspace.data.storage.LocationCache
 import timber.log.Timber
 import java.util.Calendar
@@ -21,9 +22,9 @@ const val MIN_TIME_DIFFERENCE = 5 * 60 * 1000 // 5 minutes
 @Singleton
 class JourneyRepository @Inject constructor(
     private val journeyService: ApiJourneyService,
-    private val locationCache: LocationCache
+    private val locationCache: LocationCache,
+    private val locationManager: LocationManager
 ) {
-
     suspend fun saveLocationJourney(
         extractedLocation: Location,
         userId: String
@@ -127,6 +128,7 @@ class JourneyRepository @Inject constructor(
                 }
                 val locationJourney = extractedLocation.toLocationJourney(userid, newJourneyId)
                 locationCache.putLastJourney(locationJourney, userid)
+                locationManager.updateRequestBasedOnState(isMoving = false)
                 return locationJourney
             }
         }
@@ -168,8 +170,12 @@ class JourneyRepository @Inject constructor(
                     userId,
                     extractedLocation,
                     lastKnownJourney,
-                    distance
+                    distance,
+                    timeDifference
                 )
+                locationManager.updateRequestBasedOnState(isMoving = true)
+            } else {
+                locationManager.updateRequestBasedOnState(isMoving = false)
             }
         } else {
             // Handle moving user
@@ -192,6 +198,7 @@ class JourneyRepository @Inject constructor(
                     lastKnownJourney,
                     distance
                 )
+                locationManager.updateRequestBasedOnState(isMoving = false)
             }
         }
     }
@@ -203,8 +210,10 @@ class JourneyRepository @Inject constructor(
         userId: String,
         extractedLocation: Location,
         lastKnownJourney: LocationJourney,
-        distance: Float
+        distance: Float,
+        duration: Long = 0
     ) {
+        val lastFiveLocations = locationCache.getLastFiveLocations(userId) ?: emptyList()
         var newJourneyId = ""
         val journey = LocationJourney(
             user_id = userId,
@@ -214,10 +223,7 @@ class JourneyRepository @Inject constructor(
             to_longitude = extractedLocation.longitude,
             route_distance = distance.toDouble(),
             route_duration = null,
-            routes = listOf(
-                lastKnownJourney.toLocationFromSteadyJourney().toRoute(),
-                extractedLocation.toRoute()
-            )
+            routes = lastFiveLocations.map { it.toRoute() }
         )
         journeyService.saveCurrentJourney(
             userId = userId,
@@ -226,7 +232,7 @@ class JourneyRepository @Inject constructor(
             toLatitude = extractedLocation.latitude,
             toLongitude = extractedLocation.longitude,
             routeDistance = distance.toDouble(),
-            routeDuration = null
+            routeDuration = duration
         ) {
             newJourneyId = it
         }

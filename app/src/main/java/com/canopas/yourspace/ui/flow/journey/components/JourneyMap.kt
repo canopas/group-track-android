@@ -92,7 +92,7 @@ fun JourneyMap(
         }
         animatedProgress.animateTo(
             targetValue = 1f,
-            animationSpec = tween(durationMillis = 4000) // Set your desired duration
+            animationSpec = tween(durationMillis = 300, delayMillis = 100)
         )
     }
 
