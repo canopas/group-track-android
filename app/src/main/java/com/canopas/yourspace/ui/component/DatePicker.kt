@@ -1,5 +1,9 @@
 package com.canopas.yourspace.ui.component
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -8,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.canopas.yourspace.R
 
@@ -46,8 +51,13 @@ fun ShowDatePicker(
             }
         }
     ) {
-        DatePicker(
-            state = datePickerState
-        )
+        Box(modifier = Modifier
+            .verticalScroll(rememberScrollState())
+            .fillMaxWidth()
+        ) {
+            DatePicker(
+                state = datePickerState
+            )
+        }
     }
 }

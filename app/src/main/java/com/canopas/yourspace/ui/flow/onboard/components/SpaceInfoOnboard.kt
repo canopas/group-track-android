@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -31,6 +33,7 @@ fun SpaceInfoOnboard() {
     Column(
         Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .background(AppTheme.colorScheme.surface)
             .padding(vertical = 40.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -48,7 +51,9 @@ fun SpaceInfoOnboard() {
         SubTitleTitleContent()
         Spacer(modifier = Modifier.height(30.dp))
         PrimaryButton(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
             label = stringResource(R.string.common_btn_continue),
             onClick = {
                 viewModel.navigateToJoinOrCreateSpace()
@@ -58,7 +63,9 @@ fun SpaceInfoOnboard() {
         Spacer(modifier = Modifier.height(16.dp))
 
         PrimaryOutlinedButton(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
             label = stringResource(R.string.common_btn_skip),
             onClick = { viewModel.navigateToHome() }
         )

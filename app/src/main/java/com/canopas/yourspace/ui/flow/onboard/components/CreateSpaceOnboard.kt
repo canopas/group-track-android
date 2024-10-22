@@ -15,6 +15,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -40,7 +41,7 @@ fun CreateSpaceOnboard() {
             state.lastName
         )
     }
-    var spaceName by remember { mutableStateOf(initialName) }
+    var spaceName by rememberSaveable { mutableStateOf(initialName) }
 
     BackHandler {
         viewModel.popTo(OnboardItems.JoinOrCreateSpace)
