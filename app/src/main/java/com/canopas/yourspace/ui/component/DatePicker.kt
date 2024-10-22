@@ -51,7 +51,8 @@ fun ShowDatePicker(
             }
         }
     ) {
-        Box(modifier = Modifier
+        Box(
+            modifier = Modifier
             .verticalScroll(rememberScrollState())
             .fillMaxWidth()
         ) {
