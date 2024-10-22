@@ -53,8 +53,8 @@ fun ShowDatePicker(
     ) {
         Box(
             modifier = Modifier
-            .verticalScroll(rememberScrollState())
-            .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .fillMaxWidth()
         ) {
             DatePicker(
                 state = datePickerState
