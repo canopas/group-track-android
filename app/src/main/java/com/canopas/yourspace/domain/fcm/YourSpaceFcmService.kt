@@ -158,13 +158,22 @@ class YourSpaceFcmService : FirebaseMessagingService() {
         scope.launch {
             try {
                 authService.updateUserSessionState(state)
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to update user state")
+            }
+        }
 
+        scope.launch {
+            try {
                 authService.currentUser?.id?.let { userId ->
                     val lastKnownJourney = journeyRepository.getLastKnownLocation(userId)
-                    journeyRepository.checkAndSaveLocationOnDayChanged(userId, lastKnownJourney = lastKnownJourney)
+                    journeyRepository.checkAndSaveLocationOnDayChanged(
+                        userId = userId,
+                        lastKnownJourney = lastKnownJourney
+                    )
                 }
             } catch (e: Exception) {
-                Timber.e(e, "Failed to update user state or location")
+                Timber.e(e, "Failed to update location")
             }
         }
     }
