@@ -1,11 +1,8 @@
 package com.canopas.yourspace.ui
 
-import android.animation.AnimatorSet
-import android.animation.ObjectAnimator
 import android.content.Intent
 import android.os.Bundle
 import android.view.Window
-import android.view.animation.OvershootInterpolator
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -20,8 +17,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.DialogProperties
-import androidx.core.animation.doOnEnd
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.compose.NavHost
@@ -69,31 +64,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         requestWindowFeature(Window.FEATURE_NO_TITLE)
-        installSplashScreen().apply {
-            setOnExitAnimationListener { viewProvider ->
-                val scaleX = ObjectAnimator.ofFloat(
-                    viewProvider.view,
-                    "scaleX",
-                    1f,
-                    0f
-                )
-                val scaleY = ObjectAnimator.ofFloat(
-                    viewProvider.view,
-                    "scaleY",
-                    1f,
-                    0f
-                )
-                AnimatorSet().apply {
-                    interpolator = OvershootInterpolator()
-                    duration = 100
-                    playTogether(scaleX, scaleY)
-                    doOnEnd { viewProvider.remove() }
-                    start()
-                }
-            }
-        }.setKeepOnScreenCondition {
-            viewModel.state.value.isInitialRouteSet
-        }
 
         super.onCreate(savedInstanceState)
 
