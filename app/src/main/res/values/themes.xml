@@ -4,9 +4,6 @@
     </style>
 
     <style name="Theme.SplashScreen.GroupTrack" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">#ffffff</item>
         <item name="android:windowBackground">@drawable/splash_screen</item>
-        <item name="postSplashScreenTheme">@style/Theme.SplashScreen</item>
-        <item name="android:windowLightNavigationBar" tools:ignore="NewApi">true</item>
     </style>
 </resources>

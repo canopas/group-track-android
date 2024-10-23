@@ -1,14 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
 
     <style name="Theme.GroupTrack" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:navigationBarColor">@android:color/black</item>
     </style>
 
     <style name="Theme.SplashScreen.GroupTrack" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">#000000</item>
         <item name="android:windowBackground">@drawable/splash_screen</item>
-        <item name="postSplashScreenTheme">@style/Theme.SplashScreen</item>
-        <item name="android:windowLightNavigationBar" tools:ignore="NewApi">true</item>
     </style>
 </resources>
