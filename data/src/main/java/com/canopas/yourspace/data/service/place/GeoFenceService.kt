@@ -1,5 +1,6 @@
 package com.canopas.yourspace.data.service.place
 
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -53,6 +54,7 @@ class GeoFenceService @Inject constructor(
         registerGeofence()
     }
 
+    @SuppressLint("MissingPermission")
     private fun registerGeofence() {
         if (geofenceList.isEmpty()) return
 

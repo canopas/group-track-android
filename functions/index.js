@@ -471,9 +471,18 @@ exports.sendNewPlaceAddedNotification = onDocumentCreated({
     const spaceId = event.params.spaceId;
     const placeName = snap.name;
     const createdBy = snap.created_by;
-    const spaceMemberIds = snap.space_member_ids;
 
-    if (!spaceId || !createdBy || !spaceMemberIds) {
+    const spaceSnapshot = await admin.firestore().collection('spaces').doc(spaceId).get();
+    if (!spaceSnapshot.exists) {
+        console.log(`Space ${spaceId} does not exist`);
+        return;
+    }
+
+    const spaceMembersSnapshot = await admin.firestore().collection(`spaces/${spaceId}/space_members`).get();
+    const spaceMemberIds = spaceMembersSnapshot.docs.map(doc => doc.id); // Get the user IDs
+
+    if (spaceMemberIds.length === 0) {
+        console.log(`Missing or empty spaceMemberIds: { spaceId: '${spaceId}', createdBy: '${createdBy}', spaceMembers: [] }`);
         return;
     }
 
