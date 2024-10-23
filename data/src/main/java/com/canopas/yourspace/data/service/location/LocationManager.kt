@@ -31,6 +31,7 @@ class LocationManager @Inject constructor(@ApplicationContext private val contex
     private var request: LocationRequest
     private var locationClient: FusedLocationProviderClient =
         LocationServices.getFusedLocationProviderClient(context)
+    private var currentMovingState: Boolean = true
 
     init {
         request = createRequest()
@@ -56,22 +57,24 @@ class LocationManager @Inject constructor(@ApplicationContext private val contex
         }
     }
 
-    private fun createRequest(isMoving: Boolean = true): LocationRequest {
+    private fun createRequest(): LocationRequest {
         return LocationRequest.Builder(
             Priority.PRIORITY_HIGH_ACCURACY,
-            if (isMoving) LOCATION_UPDATE_INTERVAL else STEADY_UPDATE_INTERVAL
+            if (currentMovingState) LOCATION_UPDATE_INTERVAL else STEADY_UPDATE_INTERVAL
         )
             .apply {
                 setGranularity(Granularity.GRANULARITY_PERMISSION_LEVEL)
-                setMinUpdateIntervalMillis(if (isMoving) LOCATION_UPDATE_INTERVAL else STEADY_UPDATE_INTERVAL)
+                setMinUpdateIntervalMillis(if (currentMovingState) LOCATION_UPDATE_INTERVAL else STEADY_UPDATE_INTERVAL)
                 setWaitForAccurateLocation(true)
-                setMinUpdateDistanceMeters(if (isMoving) 0f else 10f)
+                setMinUpdateDistanceMeters(if (currentMovingState) 0f else 10f)
             }
             .build()
     }
 
     internal fun updateRequestBasedOnState(isMoving: Boolean) {
-        request = createRequest(isMoving)
+        if (currentMovingState == isMoving) return
+        currentMovingState = isMoving
+        request = createRequest()
         startLocationTracking()
     }
 
