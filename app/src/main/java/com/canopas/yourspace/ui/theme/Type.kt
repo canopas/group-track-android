@@ -10,10 +10,10 @@ internal val LocalAppTypography = staticCompositionLocalOf { AppTypography() }
 
 class AppTypography {
     val logo: TextStyle = TextStyle(
-        fontFamily = KalamBoldFont,
-        fontWeight = FontWeight.W400,
-        fontSize = 28.sp,
-        letterSpacing = (-1.68).sp
+        fontFamily = InterFontFamily,
+        fontWeight = FontWeight.W600,
+        fontSize = 22.sp,
+        letterSpacing = (-0.88).sp
     )
 
     val header1: TextStyle = TextStyle(
