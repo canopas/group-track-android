@@ -18,6 +18,7 @@ import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.user.USER_STATE_LOCATION_PERMISSION_DENIED
 import com.canopas.yourspace.data.models.user.USER_STATE_NO_NETWORK_OR_PHONE_OFF
 import com.canopas.yourspace.data.models.user.USER_STATE_UNKNOWN
+import com.canopas.yourspace.data.repository.JourneyRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.utils.isLocationPermissionGranted
@@ -82,6 +83,9 @@ class YourSpaceFcmService : FirebaseMessagingService() {
 
     @Inject
     lateinit var authService: AuthService
+
+    @Inject
+    lateinit var journeyRepository: JourneyRepository
 
     private val job = SupervisorJob()
     private val scope = CoroutineScope(Dispatchers.IO + job)
@@ -151,7 +155,27 @@ class YourSpaceFcmService : FirebaseMessagingService() {
             USER_STATE_LOCATION_PERMISSION_DENIED
         }
 
-        scope.launch { authService.updateUserSessionState(state) }
+        scope.launch {
+            try {
+                authService.updateUserSessionState(state)
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to update user state")
+            }
+        }
+
+        scope.launch {
+            try {
+                authService.currentUser?.id?.let { userId ->
+                    val lastKnownJourney = journeyRepository.getLastKnownLocation(userId)
+                    journeyRepository.checkAndSaveLocationOnDayChanged(
+                        userId = userId,
+                        lastKnownJourney = lastKnownJourney
+                    )
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to update location")
+            }
+        }
     }
 
     private fun sendGeoFenceNotification(
