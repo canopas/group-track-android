@@ -20,7 +20,6 @@ import com.canopas.yourspace.data.models.user.USER_STATE_NO_NETWORK_OR_PHONE_OFF
 import com.canopas.yourspace.data.models.user.USER_STATE_UNKNOWN
 import com.canopas.yourspace.data.repository.JourneyRepository
 import com.canopas.yourspace.data.service.auth.AuthService
-import com.canopas.yourspace.data.service.location.LocationManager
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.utils.isLocationPermissionGranted
 import com.canopas.yourspace.domain.utils.isNetWorkConnected
@@ -84,9 +83,6 @@ class YourSpaceFcmService : FirebaseMessagingService() {
 
     @Inject
     lateinit var authService: AuthService
-
-    @Inject
-    lateinit var locationManager: LocationManager
 
     @Inject
     lateinit var journeyRepository: JourneyRepository
@@ -162,13 +158,10 @@ class YourSpaceFcmService : FirebaseMessagingService() {
         scope.launch {
             authService.updateUserSessionState(state)
 
-            val lastLocation = locationManager.getLastLocation()
-            lastLocation?.let {
-                journeyRepository.saveLocationJourney(
-                    lastLocation,
-                    authService.currentUser?.id ?: ""
-                )
-            }
+            // Check and save location on day changed
+            val userId = authService.currentUser?.id ?: ""
+            val lastKnownJourney = journeyRepository.getLastKnownLocation(userId)
+            journeyRepository.checkAndSaveLocationOnDayChanged(userId, lastKnownJourney = lastKnownJourney)
         }
     }
 

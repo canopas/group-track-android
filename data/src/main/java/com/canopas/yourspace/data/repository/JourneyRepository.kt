@@ -32,14 +32,8 @@ class JourneyRepository @Inject constructor(
         try {
             val lastKnownJourney = getLastKnownLocation(userId, extractedLocation)
 
-            val isDayChanged = isDayChanged(extractedLocation, lastKnownJourney)
-
-            if (isDayChanged) {
-                // Day is changed between last known journey and current location
-                // Just save again the last known journey in remote database with updated day i.e., current time
-                saveJourneyOnDayChanged(userId, lastKnownJourney)
-                return
-            }
+            // Check and save location journey on day changed
+            checkAndSaveLocationOnDayChanged(userId, extractedLocation, lastKnownJourney)
 
             // Check add add extracted location to last five locations to calculate geometric median
             checkAndSaveLastFiveLocations(extractedLocation, userId)
@@ -51,17 +45,36 @@ class JourneyRepository @Inject constructor(
         }
     }
 
+    suspend fun checkAndSaveLocationOnDayChanged(
+        userId: String,
+        extractedLocation: Location? = null,
+        lastKnownJourney: LocationJourney
+    ) {
+        try {
+            val isDayChanged = isDayChanged(extractedLocation, lastKnownJourney)
+
+            if (isDayChanged) {
+                // Day is changed between last known journey and current location
+                // Just save again the last known journey in remote database with updated day i.e., current time
+                saveJourneyOnDayChanged(userId, lastKnownJourney)
+                return
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Error while saving location journey on day changed")
+        }
+    }
+
     /**
      * Compare last known journey with extracted location and check if day is changed
      * */
     private fun isDayChanged(
-        extractedLocation: Location,
+        extractedLocation: Location? = null,
         lastKnownJourney: LocationJourney
     ): Boolean {
         val calendar = Calendar.getInstance()
         calendar.timeInMillis = lastKnownJourney.update_at!!
         val lastKnownDay = calendar.get(Calendar.DAY_OF_MONTH)
-        calendar.timeInMillis = extractedLocation.time
+        calendar.timeInMillis = extractedLocation?.time ?: System.currentTimeMillis()
         val currentDay = calendar.get(Calendar.DAY_OF_MONTH)
         return lastKnownDay != currentDay
     }
@@ -100,9 +113,9 @@ class JourneyRepository @Inject constructor(
      * If not available in remote database as well, save extracted location as new location journey
      * with steady state in cache as well as remote database
      * */
-    private suspend fun getLastKnownLocation(
+    suspend fun getLastKnownLocation(
         userid: String,
-        extractedLocation: Location
+        extractedLocation: Location? = null
     ): LocationJourney {
         // Return last location journey if available from cache
         return locationCache.getLastJourney(userid) ?: kotlin.run {
@@ -120,13 +133,13 @@ class JourneyRepository @Inject constructor(
                 var newJourneyId = ""
                 journeyService.saveCurrentJourney(
                     userId = userid,
-                    fromLatitude = extractedLocation.latitude,
-                    fromLongitude = extractedLocation.longitude,
-                    createdAt = extractedLocation.time
+                    fromLatitude = extractedLocation?.latitude ?: 0.0,
+                    fromLongitude = extractedLocation?.longitude ?: 0.0,
+                    createdAt = extractedLocation?.time
                 ) {
                     newJourneyId = it
                 }
-                val locationJourney = extractedLocation.toLocationJourney(userid, newJourneyId)
+                val locationJourney = extractedLocation?.toLocationJourney(userid, newJourneyId) ?: return LocationJourney()
                 locationCache.putLastJourney(locationJourney, userid)
                 locationManager.updateRequestBasedOnState(isMoving = false)
                 return locationJourney
