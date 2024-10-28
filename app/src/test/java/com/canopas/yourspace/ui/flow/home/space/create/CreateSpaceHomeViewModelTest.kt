@@ -3,6 +3,7 @@ package com.canopas.yourspace.ui.flow.home.space.create
 import com.canopas.yourspace.MainCoroutineRule
 import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.domain.utils.NetworkUtils
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -22,6 +23,7 @@ class CreateSpaceHomeViewModelTest {
     private val spaceRepository = mock<SpaceRepository>()
     private val testDispatcher = AppDispatcher(IO = UnconfinedTestDispatcher())
     private val appNavigator = mock<AppNavigator>()
+    private val networkUtils = mock<NetworkUtils>()
 
     private lateinit var viewModel: CreateSpaceHomeViewModel
 
@@ -30,7 +32,8 @@ class CreateSpaceHomeViewModelTest {
         viewModel = CreateSpaceHomeViewModel(
             appNavigator = appNavigator,
             spaceRepository = spaceRepository,
-            appDispatcher = testDispatcher
+            appDispatcher = testDispatcher,
+            networkUtils = networkUtils
         )
     }
 

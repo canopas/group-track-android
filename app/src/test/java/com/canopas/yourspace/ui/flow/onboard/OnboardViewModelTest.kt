@@ -9,6 +9,7 @@ import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.space.SpaceInvitationService
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.domain.utils.NetworkUtils
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -38,6 +39,7 @@ class OnboardViewModelTest {
     private val spaceRepository = mock<SpaceRepository>()
     private val navigator = mock<AppNavigator>()
     private val invitationService = mock<SpaceInvitationService>()
+    private val networkUtils = mock<NetworkUtils>()
 
     private val testDispatcher = AppDispatcher(IO = UnconfinedTestDispatcher())
     private val currentUser = ApiUser(first_name = "first", last_name = "last")
@@ -51,7 +53,8 @@ class OnboardViewModelTest {
             spaceRepository,
             userPreferences,
             navigator,
-            invitationService
+            invitationService,
+            networkUtils
         )
     }
 

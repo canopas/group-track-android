@@ -10,6 +10,7 @@ import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.location.LocationManager
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.domain.utils.NetworkUtils
 import com.canopas.yourspace.ui.flow.home.home.HomeViewModelTestData.space_info1
 import com.canopas.yourspace.ui.flow.home.home.HomeViewModelTestData.space_info2
 import com.canopas.yourspace.ui.flow.home.home.HomeViewModelTestData.user1
@@ -51,6 +52,7 @@ class HomeScreenViewModelTest {
     private val spaceRepository = mock<SpaceRepository>()
     private val userPreferences = mock<UserPreferences>()
     private val authService = mock<AuthService>()
+    private val networkUtils = mock<NetworkUtils>()
 
     private val testDispatcher = AppDispatcher(IO = UnconfinedTestDispatcher())
 
@@ -65,7 +67,8 @@ class HomeScreenViewModelTest {
             spaceRepository = spaceRepository,
             userPreferences = userPreferences,
             authService = authService,
-            appDispatcher = testDispatcher
+            appDispatcher = testDispatcher,
+            networkUtils = networkUtils
         )
     }
 

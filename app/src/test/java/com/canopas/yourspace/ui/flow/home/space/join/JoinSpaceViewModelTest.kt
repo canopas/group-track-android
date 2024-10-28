@@ -7,6 +7,7 @@ import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.space.SpaceInvitationService
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.domain.utils.NetworkUtils
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -32,6 +33,7 @@ class JoinSpaceViewModelTest {
     private val appNavigator = mock<AppNavigator>()
     private val authService = mock<AuthService>()
     private val invitationService = mock<SpaceInvitationService>()
+    private val networkUtils = mock<NetworkUtils>()
 
     private val testDispatcher = AppDispatcher(IO = UnconfinedTestDispatcher())
 
@@ -44,7 +46,8 @@ class JoinSpaceViewModelTest {
             appDispatcher = testDispatcher,
             invitationService = invitationService,
             spaceRepository = spaceRepository,
-            authService = authService
+            authService = authService,
+            networkUtils = networkUtils
         )
     }
 

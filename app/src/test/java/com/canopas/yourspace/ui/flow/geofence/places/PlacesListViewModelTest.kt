@@ -6,6 +6,7 @@ import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.place.ApiPlaceService
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.domain.utils.NetworkUtils
 import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -34,6 +35,7 @@ class PlacesListViewModelTest {
     private val spaceRepository = mock<SpaceRepository>()
     private val placeService = mock<ApiPlaceService>()
     private val authService = mock<AuthService>()
+    private val networkUtils = mock<NetworkUtils>()
 
     private lateinit var viewModel: PlacesListViewModel
 
@@ -48,7 +50,8 @@ class PlacesListViewModelTest {
             appDispatcher,
             spaceRepository,
             placeService,
-            authService
+            authService,
+            networkUtils
         )
     }
 

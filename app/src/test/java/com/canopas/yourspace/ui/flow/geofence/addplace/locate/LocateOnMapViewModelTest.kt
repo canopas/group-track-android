@@ -8,6 +8,7 @@ import com.canopas.yourspace.data.service.location.LocationManager
 import com.canopas.yourspace.data.service.place.ApiPlaceService
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.domain.utils.NetworkUtils
 import com.canopas.yourspace.ui.flow.geofence.add.locate.LocateOnMapViewModel
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -32,6 +33,7 @@ class LocateOnMapViewModelTest {
     private val placeService = mock<ApiPlaceService>()
     private val userPreferences = mock<UserPreferences>()
     private val savedStateHandle = mock<SavedStateHandle>()
+    private val networkUtils = mock<NetworkUtils>()
     private lateinit var viewModel: LocateOnMapViewModel
 
     @Before
@@ -43,7 +45,8 @@ class LocateOnMapViewModelTest {
             testDispatcher,
             placeService,
             spaceRepository,
-            userPreferences
+            userPreferences,
+            networkUtils
         )
     }
 
@@ -64,7 +67,8 @@ class LocateOnMapViewModelTest {
             testDispatcher,
             placeService,
             spaceRepository,
-            userPreferences
+            userPreferences,
+            networkUtils
         )
         assert(viewModel.state.value.defaultLocation == location)
     }

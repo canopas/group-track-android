@@ -5,6 +5,7 @@ import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.auth.FirebaseAuthService
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.domain.utils.NetworkUtils
 import com.canopas.yourspace.ui.flow.auth.SignInMethodViewModel
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
@@ -35,6 +36,7 @@ class SignInMethodViewModelTest {
     private val firebaseAuth = mock<FirebaseAuthService>()
     private val authService = mock<AuthService>()
     private val userPreferences = mock<UserPreferences>()
+    private val networkUtils = mock<NetworkUtils>()
 
     @Before
     fun setup() {
@@ -43,7 +45,8 @@ class SignInMethodViewModelTest {
             firebaseAuth,
             authService,
             testDispatcher,
-            userPreferences
+            userPreferences,
+            networkUtils
         )
     }
 

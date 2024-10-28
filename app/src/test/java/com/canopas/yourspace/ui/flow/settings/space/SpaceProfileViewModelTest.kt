@@ -9,6 +9,7 @@ import com.canopas.yourspace.data.models.user.UserInfo
 import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.domain.utils.NetworkUtils
 import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import kotlinx.coroutines.Dispatchers
@@ -44,6 +45,7 @@ class SpaceProfileViewModelTest {
     private val spaceRepository = mock<SpaceRepository>()
     private val navigator = mock<AppNavigator>()
     private val authService = mock<AuthService>()
+    private val networkUtils = mock<NetworkUtils>()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val testDispatcher = AppDispatcher(IO = UnconfinedTestDispatcher())
@@ -59,7 +61,8 @@ class SpaceProfileViewModelTest {
             spaceRepository,
             navigator,
             authService,
-            testDispatcher
+            testDispatcher,
+            networkUtils
         )
     }
 

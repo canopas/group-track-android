@@ -3,6 +3,7 @@ package com.canopas.yourspace.ui.flow.settings.support
 import com.canopas.yourspace.MainCoroutineRule
 import com.canopas.yourspace.data.service.support.ApiSupportService
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.domain.utils.NetworkUtils
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -28,6 +29,7 @@ class SupportViewModelTest {
     private val appNavigator = mock<AppNavigator>()
     private val testDispatcher = AppDispatcher(IO = UnconfinedTestDispatcher())
     private val apiSupportService = mock<ApiSupportService>()
+    private val networkUtils = mock<NetworkUtils>()
 
     private lateinit var viewModel: SupportViewModel
 
@@ -36,7 +38,8 @@ class SupportViewModelTest {
         viewModel = SupportViewModel(
             appNavigator = appNavigator,
             appDispatchers = testDispatcher,
-            apiSupportService = apiSupportService
+            apiSupportService = apiSupportService,
+            networkUtils = networkUtils
         )
     }
 
