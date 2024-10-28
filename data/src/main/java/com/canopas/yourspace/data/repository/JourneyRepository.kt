@@ -53,47 +53,41 @@ class JourneyRepository @Inject constructor(
         try {
             val isDayChanged = isDayChanged(extractedLocation, lastKnownJourney)
 
-            if (isDayChanged) {
+            if (isDayChanged && extractedLocation != null) {
                 val geometricMedian = locationCache.getLastFiveLocations(userId)?.let {
                     geometricMedian(it)
-                }
-                extractedLocation?.let {
-                    val distance =
-                        if (lastKnownJourney.isSteadyLocation()) {
-                            distanceBetween(
-                                geometricMedian ?: extractedLocation,
-                                lastKnownJourney.toLocationFromSteadyJourney()
-                            )
-                        } else {
-                            distanceBetween(
-                                geometricMedian ?: extractedLocation,
-                                lastKnownJourney.toLocationFromMovingJourney()
-                            )
-                        }
+                } ?: extractedLocation
 
-                    if (distance < MIN_DISTANCE) {
-                        // Here, means user is at same location on day changed
-                        // Save last known journey with updated day
-                        saveJourneyOnDayChanged(userId, lastKnownJourney)
-                    } else {
-                        // Here means, user has moved to new location on day changed
-                        // Save new location journey with steady state
-                        var newJourneyId = ""
-                        journeyService.saveCurrentJourney(
-                            userId = userId,
-                            fromLatitude = extractedLocation.latitude,
-                            fromLongitude = extractedLocation.longitude,
-                            createdAt = extractedLocation.time
-                        ) {
-                            newJourneyId = it
-                        }
-                        val locationJourney =
-                            extractedLocation.toLocationJourney(userId, newJourneyId)
-                        locationCache.putLastJourney(locationJourney, userId)
-                    }
-                } ?: run {
-                    saveJourneyOnDayChanged(userId, lastKnownJourney)
+                val lastKnownLocation = if (lastKnownJourney.isSteadyLocation()) {
+                    lastKnownJourney.toLocationFromSteadyJourney()
+                } else {
+                    lastKnownJourney.toLocationFromMovingJourney()
                 }
+
+                val distance = distanceBetween(geometricMedian, lastKnownLocation)
+
+                if (distance < MIN_DISTANCE) {
+                    // Here, means user is at same location on day changed
+                    // Save last known journey with updated day
+                    saveJourneyOnDayChanged(userId, lastKnownJourney)
+                } else {
+                    // Here means, user has moved to new location on day changed
+                    // Save new location journey with steady state
+                    var newJourneyId = ""
+                    journeyService.saveCurrentJourney(
+                        userId = userId,
+                        fromLatitude = extractedLocation.latitude,
+                        fromLongitude = extractedLocation.longitude,
+                        createdAt = extractedLocation.time
+                    ) {
+                        newJourneyId = it
+                    }
+                    val locationJourney =
+                        extractedLocation.toLocationJourney(userId, newJourneyId)
+                    locationCache.putLastJourney(locationJourney, userId)
+                }
+            } else if (isDayChanged) {
+                saveJourneyOnDayChanged(userId, lastKnownJourney)
             }
         } catch (e: Exception) {
             Timber.e(e, "Error while saving location journey on day changed")
