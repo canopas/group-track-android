@@ -10,12 +10,15 @@ import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.location.ApiJourneyService
 import com.canopas.yourspace.data.service.user.ApiUserService
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.domain.utils.NetworkUtils
 import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.util.Calendar
 import javax.inject.Inject
@@ -28,7 +31,8 @@ class JourneyTimelineViewModel @Inject constructor(
     private val apiUserService: ApiUserService,
     private val authService: AuthService,
     private val journeyRepository: JourneyRepository,
-    private val appDispatcher: AppDispatcher
+    private val appDispatcher: AppDispatcher,
+    private val networkUtils: NetworkUtils
 ) : ViewModel() {
 
     private var userId: String =
@@ -47,6 +51,7 @@ class JourneyTimelineViewModel @Inject constructor(
         get() = state.value.groupedLocation.values.flatten()
 
     init {
+        checkInternetConnection()
         fetchUser()
         loadLocations()
     }
@@ -233,6 +238,16 @@ class JourneyTimelineViewModel @Inject constructor(
     fun dismissDatePicker() {
         _state.value = _state.value.copy(showDatePicker = false)
     }
+
+    fun checkInternetConnection() {
+        viewModelScope.launch(appDispatcher.IO) {
+            withContext(appDispatcher.MAIN) {
+                networkUtils.isInternetAvailable.observeForever { isAvailable ->
+                    _state.update { it.copy(isInternetAvailable = isAvailable) }
+                }
+            }
+        }
+    }
 }
 
 data class JourneyTimelineState(
@@ -245,5 +260,6 @@ data class JourneyTimelineState(
     val groupedLocation: Map<Long, List<LocationJourney>> = emptyMap(),
     val hasMoreLocations: Boolean = true,
     val showDatePicker: Boolean = false,
+    val isInternetAvailable: Boolean = true,
     val error: String? = null
 )

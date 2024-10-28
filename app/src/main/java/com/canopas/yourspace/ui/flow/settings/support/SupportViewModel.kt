@@ -5,11 +5,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.canopas.yourspace.data.service.support.ApiSupportService
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.domain.utils.NetworkUtils
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
@@ -18,7 +21,8 @@ import javax.inject.Inject
 class SupportViewModel @Inject constructor(
     private val appNavigator: AppNavigator,
     private val appDispatchers: AppDispatcher,
-    private val apiSupportService: ApiSupportService
+    private val apiSupportService: ApiSupportService,
+    private val networkUtils: NetworkUtils
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SupportState())
@@ -26,6 +30,10 @@ class SupportViewModel @Inject constructor(
 
     private val attachmentsToUpload = mutableListOf<File>()
     private val uploadedAttachments = mutableMapOf<File, Uri?>()
+
+    init {
+        checkInternetConnection()
+    }
 
     fun popBackStack() {
         appNavigator.navigateBack()
@@ -128,6 +136,16 @@ class SupportViewModel @Inject constructor(
         _state.value = state.value.copy(error = null, attachmentSizeLimitExceed = false)
     }
 
+    fun checkInternetConnection() {
+        viewModelScope.launch(appDispatchers.IO) {
+            withContext(appDispatchers.MAIN) {
+                networkUtils.isInternetAvailable.observeForever { isAvailable ->
+                    _state.update { it.copy(isInternetAvailable = isAvailable) }
+                }
+            }
+        }
+    }
+
     fun dismissSuccessPopup() {
         _state.value = state.value.copy(requestSent = false)
         appNavigator.navigateBack()
@@ -143,5 +161,6 @@ data class SupportState(
     val attachments: List<File> = emptyList(),
     val attachmentSizeLimitExceed: Boolean = false,
     val attachmentsFailed: List<File> = emptyList(),
-    val error: String? = null
+    val error: String? = null,
+    val isInternetAvailable: Boolean = true
 )

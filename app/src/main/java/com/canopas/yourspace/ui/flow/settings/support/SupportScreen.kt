@@ -3,6 +3,7 @@ package com.canopas.yourspace.ui.flow.settings.support
 import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateContentSize
@@ -127,6 +128,7 @@ fun SupportContent(modifier: Modifier) {
     val state by viewModel.state.collectAsState()
     val scrollState = rememberScrollState()
     val focusManager = LocalFocusManager.current
+    val context = LocalContext.current
 
     Column(
         modifier = modifier
@@ -222,7 +224,17 @@ fun SupportContent(modifier: Modifier) {
             label = stringResource(id = R.string.support_btn_submit),
             enabled = state.title.isNotEmpty() && state.description.isNotEmpty() && !state.submitting && state.attachmentUploading.isEmpty(),
             showLoader = state.submitting,
-            onClick = { viewModel.submitSupportRequest() },
+            onClick = {
+                if (state.isInternetAvailable) {
+                    viewModel.submitSupportRequest()
+                } else {
+                    Toast.makeText(
+                        context,
+                        R.string.common_internet_error_toast,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.CenterHorizontally)

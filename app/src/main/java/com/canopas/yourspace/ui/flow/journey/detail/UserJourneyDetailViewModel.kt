@@ -10,13 +10,16 @@ import com.canopas.yourspace.data.service.location.ApiJourneyService
 import com.canopas.yourspace.data.service.location.LocationManager
 import com.canopas.yourspace.data.service.user.ApiUserService
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.domain.utils.NetworkUtils
 import com.canopas.yourspace.ui.navigation.AppDestinations.UserJourneyDetails.KEY_JOURNEY_ID
 import com.canopas.yourspace.ui.navigation.AppDestinations.UserJourneyDetails.KEY_SELECTED_USER_ID
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -27,7 +30,8 @@ class UserJourneyDetailViewModel @Inject constructor(
     private val appDispatcher: AppDispatcher,
     private val locationManager: LocationManager,
     private val apiUserService: ApiUserService,
-    private val navigator: AppNavigator
+    private val navigator: AppNavigator,
+    private val networkUtils: NetworkUtils
 ) : ViewModel() {
 
     private var journeyId: String = savedStateHandle.get<String>(KEY_JOURNEY_ID)
@@ -39,6 +43,7 @@ class UserJourneyDetailViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     init {
+        checkInternetConnection()
         viewModelScope.launch(appDispatcher.IO) {
             val user = apiUserService.getUser(userId)
             val currentLocation = locationManager.getLastLocation()
@@ -91,6 +96,16 @@ class UserJourneyDetailViewModel @Inject constructor(
     fun navigateBack() {
         navigator.navigateBack()
     }
+
+    fun checkInternetConnection() {
+        viewModelScope.launch(appDispatcher.IO) {
+            withContext(appDispatcher.MAIN) {
+                networkUtils.isInternetAvailable.observeForever { isAvailable ->
+                    _state.update { it.copy(isInternetAvailable = isAvailable) }
+                }
+            }
+        }
+    }
 }
 
 data class UserJourneyDetailState(
@@ -101,5 +116,6 @@ data class UserJourneyDetailState(
     val currentLocation: Location? = null,
     val journeyId: String? = null,
     val journey: LocationJourney? = null,
+    val isInternetAvailable: Boolean = true,
     val error: String? = null
 )

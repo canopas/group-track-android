@@ -6,6 +6,7 @@ import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.auth.FirebaseAuthService
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.domain.utils.NetworkUtils
 import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
@@ -13,8 +14,10 @@ import com.google.firebase.auth.AuthResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -24,11 +27,16 @@ class SignInMethodViewModel @Inject constructor(
     private val firebaseAuth: FirebaseAuthService,
     private val authService: AuthService,
     private val appDispatcher: AppDispatcher,
-    private val userPreferences: UserPreferences
+    private val userPreferences: UserPreferences,
+    private val networkUtils: NetworkUtils
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SignInMethodScreenState())
     val state: StateFlow<SignInMethodScreenState> = _state
+
+    init {
+        checkInternetConnection()
+    }
 
     fun proceedGoogleSignIn(account: GoogleSignInAccount) =
         viewModelScope.launch(appDispatcher.IO) {
@@ -108,10 +116,21 @@ class SignInMethodViewModel @Inject constructor(
     fun showAppleLoadingState(show: Boolean = true) {
         _state.value = _state.value.copy(showAppleLoading = show)
     }
+
+    fun checkInternetConnection() {
+        viewModelScope.launch(appDispatcher.IO) {
+            withContext(appDispatcher.MAIN) {
+                networkUtils.isInternetAvailable.observeForever { isAvailable ->
+                    _state.update { it.copy(isInternetAvailable = isAvailable) }
+                }
+            }
+        }
+    }
 }
 
 data class SignInMethodScreenState(
     val showGoogleLoading: Boolean = false,
     val showAppleLoading: Boolean = false,
+    val isInternetAvailable: Boolean = true,
     val error: Exception? = null
 )

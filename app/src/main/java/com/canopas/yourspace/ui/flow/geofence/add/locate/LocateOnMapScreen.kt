@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
 import com.canopas.yourspace.ui.component.AppProgressIndicator
+import com.canopas.yourspace.ui.component.NoInternetScreen
 import com.canopas.yourspace.ui.flow.geofence.component.PlaceNameContent
 import com.canopas.yourspace.ui.flow.home.map.DEFAULT_CAMERA_ZOOM
 import com.canopas.yourspace.ui.flow.home.map.component.MapControlBtn
@@ -104,30 +105,32 @@ fun LocateOnMapScreen() {
                     }
                 },
                 actions = {
-                    TextButton(
-                        onClick = {
-                            viewModel.onNextClick(
-                                cameraPositionState.position.target.latitude,
-                                cameraPositionState.position.target.longitude
+                    if (state.isInternetAvailable) {
+                        TextButton(
+                            onClick = {
+                                viewModel.onNextClick(
+                                    cameraPositionState.position.target.latitude,
+                                    cameraPositionState.position.target.longitude
+                                )
+                            },
+                            enabled = !state.addingPlace && !cameraPositionState.isMoving && (state.selectedPlaceName.isNullOrEmpty() || state.updatedPlaceName.isNotEmpty()),
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = AppTheme.colorScheme.primary,
+                                disabledContentColor = AppTheme.colorScheme.textDisabled
                             )
-                        },
-                        enabled = !state.addingPlace && !cameraPositionState.isMoving && (state.selectedPlaceName.isNullOrEmpty() || state.updatedPlaceName.isNotEmpty()),
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = AppTheme.colorScheme.primary,
-                            disabledContentColor = AppTheme.colorScheme.textDisabled
-                        )
-                    ) {
-                        if (state.addingPlace) {
-                            AppProgressIndicator()
-                        } else {
-                            Text(
-                                text = if (!state.selectedPlaceName.isNullOrEmpty()) {
-                                    stringResource(id = R.string.common_btn_add)
-                                } else {
-                                    stringResource(id = R.string.common_btn_next)
-                                },
-                                style = AppTheme.appTypography.button
-                            )
+                        ) {
+                            if (state.addingPlace) {
+                                AppProgressIndicator()
+                            } else {
+                                Text(
+                                    text = if (!state.selectedPlaceName.isNullOrEmpty()) {
+                                        stringResource(id = R.string.common_btn_add)
+                                    } else {
+                                        stringResource(id = R.string.common_btn_next)
+                                    },
+                                    style = AppTheme.appTypography.button
+                                )
+                            }
                         }
                     }
                 }
@@ -136,7 +139,11 @@ fun LocateOnMapScreen() {
         contentColor = AppTheme.colorScheme.textPrimary,
         containerColor = AppTheme.colorScheme.surface
     ) {
-        LocateOnMapContent(modifier = Modifier.padding(it), cameraPositionState, userLocation)
+        if (state.isInternetAvailable) {
+            LocateOnMapContent(modifier = Modifier.padding(it), cameraPositionState, userLocation)
+        } else {
+            NoInternetScreen(viewModel::checkInternetConnection)
+        }
     }
 }
 

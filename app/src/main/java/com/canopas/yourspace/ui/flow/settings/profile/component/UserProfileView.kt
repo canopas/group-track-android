@@ -3,6 +3,7 @@ package com.canopas.yourspace.ui.flow.settings.profile.component
 import android.graphics.Bitmap
 import android.net.Uri
 import android.provider.MediaStore
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.launch
@@ -59,20 +60,22 @@ fun UserProfileView(
     onProfileImageClicked: () -> Unit,
     dismissProfileChooser: () -> Unit,
     showProfileChooser: Boolean = false,
-    isImageUploading: Boolean = false
+    isImageUploading: Boolean = false,
+    isInternetAvailable: Boolean
 ) {
     val context = LocalContext.current
 
     var imageUri by remember { mutableStateOf<Uri?>(null) }
 
-    val imageCropLauncher = rememberLauncherForActivityResult(contract = CropImageContract()) { result ->
-        if (result.isSuccessful) {
-            result.uriContent?.let {
-                imageUri = it
-                onProfileChanged(imageUri)
+    val imageCropLauncher =
+        rememberLauncherForActivityResult(contract = CropImageContract()) { result ->
+            if (result.isSuccessful) {
+                result.uriContent?.let {
+                    imageUri = it
+                    onProfileChanged(imageUri)
+                }
             }
         }
-    }
 
     val imagePickerLauncher =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -153,7 +156,17 @@ fun UserProfileView(
                     .size(24.dp)
                     .motionClickEvent {
                         if (!isImageUploading) {
-                            onProfileImageClicked()
+                            if (isInternetAvailable) {
+                                onProfileImageClicked()
+                            } else {
+                                Toast
+                                    .makeText(
+                                        context,
+                                        context.getString(R.string.common_internet_error_toast),
+                                        Toast.LENGTH_SHORT
+                                    )
+                                    .show()
+                            }
                         }
                     }
             )

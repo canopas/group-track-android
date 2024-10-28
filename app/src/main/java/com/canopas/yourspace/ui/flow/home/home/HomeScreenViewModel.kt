@@ -8,6 +8,7 @@ import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.location.LocationManager
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.domain.utils.NetworkUtils
 import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,7 +16,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -27,13 +30,15 @@ class HomeScreenViewModel @Inject constructor(
     private val spaceRepository: SpaceRepository,
     private val userPreferences: UserPreferences,
     private val authService: AuthService,
-    private val appDispatcher: AppDispatcher
+    private val appDispatcher: AppDispatcher,
+    private val networkUtils: NetworkUtils
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeScreenState())
     val state: StateFlow<HomeScreenState> = _state
 
     init {
+        checkInternetConnection()
         if (userPreferences.currentUser != null) {
             updateUser()
             getAllSpaces()
@@ -204,6 +209,16 @@ class HomeScreenViewModel @Inject constructor(
         }
     }
 
+    fun checkInternetConnection() {
+        viewModelScope.launch(appDispatcher.IO) {
+            withContext(appDispatcher.MAIN) {
+                networkUtils.isInternetAvailable.observeForever { isAvailable ->
+                    _state.update { it.copy(isInternetAvailable = isAvailable) }
+                }
+            }
+        }
+    }
+
     fun dismissBatteryOptimizationDialog() {
         _state.value = _state.value.copy(showBatteryOptimizationPopup = false)
     }
@@ -219,5 +234,6 @@ data class HomeScreenState(
     val locationEnabled: Boolean = true,
     val enablingLocation: Boolean = false,
     val showBatteryOptimizationPopup: Boolean = false,
-    val error: Exception? = null
+    val error: Exception? = null,
+    val isInternetAvailable: Boolean = true
 )

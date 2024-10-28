@@ -42,6 +42,7 @@ import com.canopas.yourspace.R
 import com.canopas.yourspace.data.utils.isBackgroundLocationPermissionGranted
 import com.canopas.yourspace.data.utils.isBatteryOptimizationEnabled
 import com.canopas.yourspace.ui.component.ActionIconButton
+import com.canopas.yourspace.ui.component.NoInternetScreen
 import com.canopas.yourspace.ui.component.PermissionDialog
 import com.canopas.yourspace.ui.flow.geofence.places.PlacesListScreen
 import com.canopas.yourspace.ui.flow.home.activity.ActivityScreen
@@ -57,6 +58,7 @@ fun HomeScreen(verifyingSpace: Boolean) {
     val navController = rememberNavController()
     val viewModel = hiltViewModel<HomeScreenViewModel>()
     val context = LocalContext.current
+    val state by viewModel.state.collectAsState()
 
     LaunchedEffect(Unit) {
         if (context.isBackgroundLocationPermissionGranted) {
@@ -73,13 +75,17 @@ fun HomeScreen(verifyingSpace: Boolean) {
     Scaffold(
         containerColor = AppTheme.colorScheme.surface,
         content = {
-            Box(
-                modifier = Modifier
-                    .padding(it)
-            ) {
-                HomeScreenContent(navController)
+            if (state.isInternetAvailable) {
+                Box(
+                    modifier = Modifier
+                        .padding(it)
+                ) {
+                    HomeScreenContent(navController)
 
-                HomeTopBar(verifyingSpace)
+                    HomeTopBar(verifyingSpace)
+                }
+            } else {
+                NoInternetScreen(viewModel::checkInternetConnection)
             }
         }
         /* bottomBar = {

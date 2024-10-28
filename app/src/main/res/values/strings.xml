@@ -21,6 +21,7 @@
     <string name="common_yesterday">Yesterday</string>
     <string name="common_reply">Reply</string>
     <string name="common_save">Save</string>
+    <string name="common_btn_retry">Retry</string>
 
     <string name="common_share_invite_code_message">Let\'s stay connected! Use invite code %s to join my Group.\n<a href="https://play.google.com/store/apps/details?id=com.canopas.yourspace">Download the app</a>.</string>
     <string name="common_session_expired_title">You\'ve been logged out</string>
@@ -273,4 +274,8 @@
     <string name="journey_timeline_title_your_timeline">Your Timeline</string>
     <string name="journey_timeline_title_other_user">%s\'s Timeline</string>
     <string name="sign_in_btn_continue_with_apple">Continue with Apple</string>
+
+    <string name="on_internet_error_title">No internet!</string>
+    <string name="on_internet_error_sub_title">No Internet Connection. Please check your network settings and try again.</string>
+    <string name="common_internet_error_toast">Please check your network settings and try again.</string>
 </resources>

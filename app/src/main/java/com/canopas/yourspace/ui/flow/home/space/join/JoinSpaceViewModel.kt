@@ -7,11 +7,14 @@ import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.space.SpaceInvitationService
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.domain.utils.NetworkUtils
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -21,11 +24,16 @@ class JoinSpaceViewModel @Inject constructor(
     private val appDispatcher: AppDispatcher,
     private val invitationService: SpaceInvitationService,
     private val spaceRepository: SpaceRepository,
-    private val authService: AuthService
+    private val authService: AuthService,
+    private val networkUtils: NetworkUtils
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(JoinSpaceState())
     var state = _state.asStateFlow()
+
+    init {
+        checkInternetConnection()
+    }
 
     fun popBackStack() {
         appNavigator.navigateBack()
@@ -76,6 +84,16 @@ class JoinSpaceViewModel @Inject constructor(
         }
     }
 
+    fun checkInternetConnection() {
+        viewModelScope.launch(appDispatcher.IO) {
+            withContext(appDispatcher.MAIN) {
+                networkUtils.isInternetAvailable.observeForever { isAvailable ->
+                    _state.update { it.copy(isInternetAvailable = isAvailable) }
+                }
+            }
+        }
+    }
+
     fun resetErrorState() {
         _state.value = _state.value.copy(
             error = null,
@@ -89,5 +107,6 @@ data class JoinSpaceState(
     val verifying: Boolean = false,
     val error: Exception? = null,
     val joinedSpace: ApiSpace? = null,
-    val errorInvalidInviteCode: Boolean = false
+    val errorInvalidInviteCode: Boolean = false,
+    val isInternetAvailable: Boolean = true
 )

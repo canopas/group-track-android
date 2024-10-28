@@ -48,6 +48,7 @@ import com.canopas.yourspace.data.models.user.UserInfo
 import com.canopas.yourspace.ui.component.AppAlertDialog
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.AppProgressIndicator
+import com.canopas.yourspace.ui.component.NoInternetScreen
 import com.canopas.yourspace.ui.component.PrimaryTextButton
 import com.canopas.yourspace.ui.component.UserProfile
 import com.canopas.yourspace.ui.flow.settings.profile.UserTextField
@@ -69,9 +70,13 @@ fun SpaceProfileScreen() {
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            SpaceProfileContent()
-            if (state.isLoading) {
-                AppProgressIndicator()
+            if (state.isInternetAvailable) {
+                SpaceProfileContent()
+                if (state.isLoading) {
+                    AppProgressIndicator()
+                }
+            } else {
+                NoInternetScreen(viewModel::checkInternetConnection)
             }
         }
     }
@@ -139,21 +144,23 @@ private fun SpaceProfileToolbar() {
             }
         },
         actions = {
-            Text(
-                text = stringResource(id = R.string.edit_profile_toolbar_save_text),
-                color = if (state.allowSave) AppTheme.colorScheme.primary else AppTheme.colorScheme.textDisabled,
-                style = AppTheme.appTypography.button,
-                modifier = Modifier
-                    .padding(end = 8.dp)
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = ripple(bounded = false),
-                        enabled = state.allowSave,
-                        onClick = {
-                            viewModel.saveSpace()
-                        }
-                    )
-            )
+            if (state.isInternetAvailable) {
+                Text(
+                    text = stringResource(id = R.string.edit_profile_toolbar_save_text),
+                    color = if (state.allowSave) AppTheme.colorScheme.primary else AppTheme.colorScheme.textDisabled,
+                    style = AppTheme.appTypography.button,
+                    modifier = Modifier
+                        .padding(end = 8.dp)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = ripple(bounded = false),
+                            enabled = state.allowSave,
+                            onClick = {
+                                viewModel.saveSpace()
+                            }
+                        )
+                )
+            }
         }
     )
 }

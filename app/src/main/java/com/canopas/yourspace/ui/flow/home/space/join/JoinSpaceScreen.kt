@@ -1,5 +1,6 @@
 package com.canopas.yourspace.ui.flow.home.space.join
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,6 +23,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -66,6 +68,8 @@ fun JoinSpaceScreen() {
 private fun JoinSpaceContent(modifier: Modifier) {
     val viewModel = hiltViewModel<JoinSpaceViewModel>()
     val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
+
     Column(
         modifier
             .fillMaxSize()
@@ -97,7 +101,17 @@ private fun JoinSpaceContent(modifier: Modifier) {
         PrimaryButton(
             modifier = Modifier.fillMaxWidth(),
             label = stringResource(id = R.string.common_btn_join_space),
-            onClick = { viewModel.verifyAndJoinSpace() },
+            onClick = {
+                if (state.isInternetAvailable) {
+                    viewModel.verifyAndJoinSpace()
+                } else {
+                    Toast.makeText(
+                        context,
+                        R.string.common_internet_error_toast,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            },
             enabled = state.inviteCode.length == 6,
             showLoader = state.verifying
         )
@@ -111,7 +125,7 @@ private fun JoinSpaceContent(modifier: Modifier) {
 
     if (state.errorInvalidInviteCode) {
         AppBanner(
-            msg = stringResource(id = R.string.onboard_space_invalid_invite_code),
+            msg = stringResource(id = if (state.isInternetAvailable) R.string.onboard_space_invalid_invite_code else R.string.common_internet_error_toast),
             containerColor = AppTheme.colorScheme.alertColor
         ) {
             viewModel.resetErrorState()

@@ -11,6 +11,7 @@ import com.canopas.yourspace.data.repository.MessagesRepository
 import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.domain.utils.NetworkUtils
 import com.canopas.yourspace.ui.navigation.AppDestinations.ThreadMessages.KEY_THREAD_ID
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,7 +21,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.util.Calendar
 import javax.inject.Inject
@@ -34,7 +37,8 @@ class MessagesViewModel @Inject constructor(
     private val authService: AuthService,
     private val messagesRepository: MessagesRepository,
     private val spaceRepository: SpaceRepository,
-    private val appDispatcher: AppDispatcher
+    private val appDispatcher: AppDispatcher,
+    private val networkUtils: NetworkUtils
 ) : ViewModel() {
 
     // For new Thread
@@ -56,6 +60,7 @@ class MessagesViewModel @Inject constructor(
         get() = state.value.messagesByDate.values.flatten()
 
     init {
+        checkInternetConnection()
         if (threadId.isEmpty()) {
             fetchSpaceForNewThread()
         } else {
@@ -358,6 +363,16 @@ class MessagesViewModel @Inject constructor(
         calendar.set(Calendar.MILLISECOND, 0)
         return calendar.timeInMillis
     }
+
+    fun checkInternetConnection() {
+        viewModelScope.launch(appDispatcher.IO) {
+            withContext(appDispatcher.MAIN) {
+                networkUtils.isInternetAvailable.observeForever { isAvailable ->
+                    _state.update { it.copy(isInternetAvailable = isAvailable) }
+                }
+            }
+        }
+    }
 }
 
 data class MessagesScreenState(
@@ -374,5 +389,6 @@ data class MessagesScreenState(
     val error: String? = null,
     val newMessage: String = "",
     val newMessagesToAppend: List<ApiThreadMessage> = emptyList(),
-    val isNewThread: Boolean = false
+    val isNewThread: Boolean = false,
+    val isInternetAvailable: Boolean = true
 )

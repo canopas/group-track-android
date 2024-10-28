@@ -7,13 +7,16 @@ import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.domain.utils.NetworkUtils
 import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -22,14 +25,15 @@ class SettingsViewModel @Inject constructor(
     private val navigator: AppNavigator,
     private val authService: AuthService,
     private val appDispatcher: AppDispatcher,
-    private val spaceRepository: SpaceRepository
-
+    private val spaceRepository: SpaceRepository,
+    private val networkUtils: NetworkUtils
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SettingsScreenState())
     val state = _state.asStateFlow()
 
     init {
+        checkInternetConnection()
         getUser()
         getUserSpaces()
     }
@@ -87,6 +91,16 @@ class SettingsViewModel @Inject constructor(
     fun resetErrorState() {
         _state.value = _state.value.copy(error = null)
     }
+
+    fun checkInternetConnection() {
+        viewModelScope.launch(appDispatcher.IO) {
+            withContext(appDispatcher.MAIN) {
+                networkUtils.isInternetAvailable.observeForever { isAvailable ->
+                    _state.update { it.copy(isInternetAvailable = isAvailable) }
+                }
+            }
+        }
+    }
 }
 
 data class SettingsScreenState(
@@ -97,5 +111,6 @@ data class SettingsScreenState(
     var openDeleteAccountDialog: Boolean = false,
     var deletingAccount: Boolean = false,
     var signingOut: Boolean = false,
-    var error: String? = null
+    var error: String? = null,
+    val isInternetAvailable: Boolean = true
 )

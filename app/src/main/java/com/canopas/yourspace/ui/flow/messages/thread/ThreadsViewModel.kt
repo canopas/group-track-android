@@ -9,6 +9,7 @@ import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.messages.ApiMessagesService
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.domain.utils.NetworkUtils
 import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,7 +17,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -26,13 +29,15 @@ class ThreadsViewModel @Inject constructor(
     private val authService: AuthService,
     private val spaceRepository: SpaceRepository,
     private val navigator: AppNavigator,
-    private val appDispatcher: AppDispatcher
+    private val appDispatcher: AppDispatcher,
+    private val networkUtils: NetworkUtils
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ThreadsScreenState(currentUser = authService.currentUser))
     val state = _state.asStateFlow()
 
     init {
+        checkInternetConnection()
         getCurrentSpace()
         listenThreads()
     }
@@ -129,6 +134,16 @@ class ThreadsViewModel @Inject constructor(
             }
         }
     }
+
+    fun checkInternetConnection() {
+        viewModelScope.launch(appDispatcher.IO) {
+            withContext(appDispatcher.MAIN) {
+                networkUtils.isInternetAvailable.observeForever { isAvailable ->
+                    _state.update { it.copy(isInternetAvailable = isAvailable) }
+                }
+            }
+        }
+    }
 }
 
 data class ThreadsScreenState(
@@ -141,5 +156,6 @@ data class ThreadsScreenState(
     val hasMembers: Boolean = false,
     val threadInfo: List<ThreadInfo> = emptyList(),
     val deletingThread: ThreadInfo? = null,
-    val error: String? = null
+    val error: String? = null,
+    val isInternetAvailable: Boolean = true
 )

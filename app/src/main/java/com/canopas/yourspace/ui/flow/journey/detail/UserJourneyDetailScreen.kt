@@ -43,6 +43,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.location.LocationJourney
 import com.canopas.yourspace.domain.utils.getPlaceAddress
+import com.canopas.yourspace.ui.component.NoInternetScreen
 import com.canopas.yourspace.ui.flow.journey.components.DottedTimeline
 import com.canopas.yourspace.ui.flow.journey.components.JourneyMap
 import com.canopas.yourspace.ui.flow.journey.components.PlaceInfo
@@ -75,13 +76,17 @@ fun UserJourneyDetailScreen() {
     Scaffold(
         topBar = { JourneyTopBar(state.journey, viewModel::navigateBack) }
     ) {
-        Column(
-            modifier = Modifier
-                .padding(it)
-                .fillMaxSize()
-        ) {
-            MapView(state.journey)
-            FooterContent(state.isLoading, state.journey)
+        if (state.isInternetAvailable) {
+            Column(
+                modifier = Modifier
+                    .padding(it)
+                    .fillMaxSize()
+            ) {
+                MapView(state.journey)
+                FooterContent(state.isLoading, state.journey)
+            }
+        } else {
+            NoInternetScreen(viewModel::checkInternetConnection)
         }
     }
 }

@@ -57,6 +57,7 @@ import com.canopas.yourspace.data.models.user.UserInfo
 import com.canopas.yourspace.ui.component.AppAlertDialog
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.AppProgressIndicator
+import com.canopas.yourspace.ui.component.NoInternetScreen
 import com.canopas.yourspace.ui.component.PrimaryButton
 import com.canopas.yourspace.ui.component.UserProfile
 import com.canopas.yourspace.ui.component.gesturesDisabled
@@ -107,21 +108,23 @@ fun EditPlaceScreen() {
                     }
                 },
                 actions = {
-                    TextButton(
-                        onClick = viewModel::savePlace,
-                        enabled = state.enableSave,
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = AppTheme.colorScheme.primary,
-                            disabledContentColor = AppTheme.colorScheme.textDisabled
-                        )
-                    ) {
-                        if (state.saving) {
-                            AppProgressIndicator()
-                        } else {
-                            Text(
-                                text = stringResource(id = R.string.common_save),
-                                style = AppTheme.appTypography.button
+                    if (state.isInternetAvailable) {
+                        TextButton(
+                            onClick = viewModel::savePlace,
+                            enabled = state.enableSave,
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = AppTheme.colorScheme.primary,
+                                disabledContentColor = AppTheme.colorScheme.textDisabled
                             )
+                        ) {
+                            if (state.saving) {
+                                AppProgressIndicator()
+                            } else {
+                                Text(
+                                    text = stringResource(id = R.string.common_save),
+                                    style = AppTheme.appTypography.button
+                                )
+                            }
                         }
                     }
                 }
@@ -130,17 +133,21 @@ fun EditPlaceScreen() {
         contentColor = AppTheme.colorScheme.textPrimary,
         containerColor = AppTheme.colorScheme.surface
     ) {
-        Box(
-            modifier = Modifier
-                .padding(it)
-                .fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            if (state.isLoading) {
-                AppProgressIndicator()
-            } else {
-                EditPlaceContent()
+        if (state.isInternetAvailable) {
+            Box(
+                modifier = Modifier
+                    .padding(it)
+                    .fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                if (state.isLoading) {
+                    AppProgressIndicator()
+                } else {
+                    EditPlaceContent()
+                }
             }
+        } else {
+            NoInternetScreen(viewModel::checkInternetConnection)
         }
     }
 

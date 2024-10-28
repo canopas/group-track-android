@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
 import com.canopas.yourspace.ui.component.AppBanner
+import com.canopas.yourspace.ui.component.NoInternetScreen
 import com.canopas.yourspace.ui.component.PrimaryButton
 import com.canopas.yourspace.ui.component.SearchTextField
 import com.canopas.yourspace.ui.theme.AppTheme
@@ -72,15 +73,19 @@ fun ChoosePlaceNameScreen() {
             )
         }
     ) {
-        CreatePlace(
-            modifier = Modifier.padding(it),
-            placeName = state.placeName,
-            showLoader = state.addingPlace,
-            onPlaceNameChanged = { viewModel.onPlaceNameChange(it) },
-            onNext = {
-                viewModel.addPlace()
-            }
-        )
+        if (state.isInternetAvailable) {
+            CreatePlace(
+                modifier = Modifier.padding(it),
+                placeName = state.placeName,
+                showLoader = state.addingPlace,
+                onPlaceNameChanged = { viewModel.onPlaceNameChange(it) },
+                onNext = {
+                    viewModel.addPlace()
+                }
+            )
+        } else {
+            NoInternetScreen(viewModel::checkInternetConnection)
+        }
     }
 }
 

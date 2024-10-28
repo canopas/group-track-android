@@ -55,6 +55,7 @@ import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.utils.Config
 import com.canopas.yourspace.ui.component.AppAlertDialog
 import com.canopas.yourspace.ui.component.AppProgressIndicator
+import com.canopas.yourspace.ui.component.NoInternetScreen
 import com.canopas.yourspace.ui.component.motionClickEvent
 import com.canopas.yourspace.ui.theme.AppTheme
 
@@ -62,6 +63,7 @@ import com.canopas.yourspace.ui.theme.AppTheme
 @Composable
 fun SettingsScreen() {
     val viewModel = hiltViewModel<SettingsViewModel>()
+    val state by viewModel.state.collectAsState()
 
     Scaffold(
         topBar = {
@@ -84,7 +86,11 @@ fun SettingsScreen() {
             )
         }
     ) {
-        SettingsContent(modifier = Modifier.padding(it))
+        if (state.isInternetAvailable) {
+            SettingsContent(modifier = Modifier.padding(it))
+        } else {
+            NoInternetScreen(viewModel::checkInternetConnection)
+        }
     }
 }
 

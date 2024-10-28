@@ -1,6 +1,7 @@
 package com.canopas.yourspace.ui.flow.auth
 
 import android.app.Activity
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -113,14 +114,19 @@ private fun GoogleSignInBtn() {
 
     PrimaryOutlinedButton(
         onClick = {
-            val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(context.getString(R.string.default_web_client_id))
-                .requestEmail()
-                .build()
+            if (state.isInternetAvailable) {
+                val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                    .requestIdToken(context.getString(R.string.default_web_client_id))
+                    .requestEmail()
+                    .build()
 
-            val googleSignInClient = GoogleSignIn.getClient(context, gso)
-            googleSignInClient.signOut()
-            signInClientLauncher.launch(googleSignInClient.signInIntent)
+                val googleSignInClient = GoogleSignIn.getClient(context, gso)
+                googleSignInClient.signOut()
+                signInClientLauncher.launch(googleSignInClient.signInIntent)
+            } else {
+                Toast.makeText(context, R.string.common_internet_error_toast, Toast.LENGTH_SHORT)
+                    .show()
+            }
         },
         modifier = Modifier
             .fillMaxWidth()
@@ -154,14 +160,19 @@ fun AppleSignInBtn() {
 
     PrimaryTextButton(
         onClick = {
-            viewModel.showAppleLoadingState()
-            val provider = OAuthProvider.newBuilder("apple.com")
-            provider.setScopes(arrayListOf("email", "name"))
-            FirebaseAuth.getInstance().pendingAuthResult
-                ?.addOnCompleteListener(onCompleteListener)
-                ?: FirebaseAuth.getInstance()
-                    .startActivityForSignInWithProvider(activity, provider.build())
-                    .addOnCompleteListener(onCompleteListener)
+            if (state.isInternetAvailable) {
+                viewModel.showAppleLoadingState()
+                val provider = OAuthProvider.newBuilder("apple.com")
+                provider.setScopes(arrayListOf("email", "name"))
+                FirebaseAuth.getInstance().pendingAuthResult
+                    ?.addOnCompleteListener(onCompleteListener)
+                    ?: FirebaseAuth.getInstance()
+                        .startActivityForSignInWithProvider(activity, provider.build())
+                        .addOnCompleteListener(onCompleteListener)
+            } else {
+                Toast.makeText(context, R.string.common_internet_error_toast, Toast.LENGTH_SHORT)
+                    .show()
+            }
         },
         modifier = Modifier
             .fillMaxWidth()

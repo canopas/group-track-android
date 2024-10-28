@@ -1,5 +1,6 @@
 package com.canopas.yourspace.ui.flow.onboard.components
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -15,6 +16,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -36,18 +38,12 @@ fun JoinOrCreateSpaceOnboard() {
             .fillMaxSize()
             .background(AppTheme.colorScheme.surface)
     ) {
-        JoinSpaceComponent(
-            state.spaceInviteCode ?: "",
-            state.verifyingInviteCode,
-            onCodeChanged = { viewModel.onInviteCodeChanged(it) },
-            onJoin = { viewModel.submitInviteCode() },
-            onCreate = { viewModel.navigateToCreateSpace() }
-        )
+        JoinSpaceComponent()
     }
 
     if (state.errorInvalidInviteCode) {
         AppBanner(
-            msg = stringResource(id = R.string.onboard_space_invalid_invite_code),
+            msg = stringResource(if (state.isInternetAvailable) R.string.onboard_space_invalid_invite_code else R.string.common_internet_error_toast),
             containerColor = AppTheme.colorScheme.alertColor
         ) {
             viewModel.resetErrorState()
@@ -66,13 +62,12 @@ fun JoinOrCreateSpaceOnboard() {
 }
 
 @Composable
-private fun JoinSpaceComponent(
-    code: String,
-    verifyingInviteCode: Boolean,
-    onCodeChanged: (String) -> Unit,
-    onJoin: () -> Unit,
-    onCreate: () -> Unit
-) {
+private fun JoinSpaceComponent() {
+    val viewModel = hiltViewModel<OnboardViewModel>()
+    val state by viewModel.state.collectAsState()
+
+    val context = LocalContext.current
+
     Column(
         Modifier
             .fillMaxSize()
@@ -94,8 +89,8 @@ private fun JoinSpaceComponent(
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(40.dp))
-        OtpInputField(pinText = code, onPinTextChange = {
-            onCodeChanged(it)
+        OtpInputField(pinText = state.spaceInviteCode ?: "", onPinTextChange = {
+            viewModel.onInviteCodeChanged(it)
         })
 
         Spacer(modifier = Modifier.weight(1f))
@@ -105,9 +100,9 @@ private fun JoinSpaceComponent(
                 .fillMaxWidth()
                 .padding(top = 16.dp),
             label = stringResource(id = R.string.common_btn_join_space),
-            onClick = onJoin,
-            enabled = code.length == 6,
-            showLoader = verifyingInviteCode
+            onClick = { viewModel.submitInviteCode() },
+            enabled = state.spaceInviteCode?.length == 6,
+            showLoader = state.verifyingInviteCode
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -115,7 +110,17 @@ private fun JoinSpaceComponent(
         PrimaryButton(
             modifier = Modifier.fillMaxWidth(),
             label = stringResource(id = R.string.onboard_space_btn_create_new),
-            onClick = onCreate
+            onClick = {
+                if (state.isInternetAvailable) {
+                    viewModel.navigateToCreateSpace()
+                } else {
+                    Toast.makeText(
+                        context,
+                        R.string.common_internet_error_toast,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
         )
         Spacer(modifier = Modifier.height(24.dp))
     }
