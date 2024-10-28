@@ -48,14 +48,14 @@ fun NoInternetScreen(onRetry: () -> Unit) {
             text = stringResource(R.string.on_internet_error_sub_title),
             style = MaterialTheme.typography.bodyLarge,
             color = AppTheme.colorScheme.textPrimary,
-            textAlign = TextAlign.Center,
+            textAlign = TextAlign.Center
         )
 
         Spacer(modifier = Modifier.size(20.dp))
 
         Button(onClick = onRetry) {
             Text(
-                text = stringResource(R.string.common_btn_retry),
+                text = stringResource(R.string.common_btn_retry)
             )
         }
     }

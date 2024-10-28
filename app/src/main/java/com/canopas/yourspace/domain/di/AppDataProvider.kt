@@ -39,5 +39,4 @@ class AppDataProvider {
     fun provideNetworkUtils(@ApplicationContext context: Context): NetworkUtils {
         return NetworkUtils(context)
     }
-
 }
