@@ -66,7 +66,7 @@ class JourneyRepository @Inject constructor(
 
                 val distance = distanceBetween(geometricMedian, lastKnownLocation)
 
-                if (distance < MIN_DISTANCE) {
+                if (distance < MIN_DISTANCE && distance > 0) {
                     // Here, means user is at same location on day changed
                     // Save last known journey with updated day
                     saveJourneyOnDayChanged(userId, lastKnownJourney)
