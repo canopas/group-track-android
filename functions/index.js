@@ -320,11 +320,14 @@ exports.sendGeoFenceNotification = onCall({ region: "asia-south1"}, async (reque
 
 exports.serviceCheck = onSchedule("every 30 minutes", async (event) => {
     const staleThreshold = admin.firestore.Timestamp.now().toMillis() - (30 * 60 * 1000);
+    const inactiveThreshold = admin.firestore.Timestamp.now().toMillis() - (3 * 24 * 60 * 60 * 1000);
     console.log('staleThreshold', staleThreshold);
+    console.log('inactiveThreshold', inactiveThreshold);
 
     const db = admin.firestore();
     const usersSnapshot = await db.collection('users')
         .where('updated_at', '<', staleThreshold)
+        .where('updated_at', '>', inactiveThreshold)
         .get();
 
     const batch = db.batch();
