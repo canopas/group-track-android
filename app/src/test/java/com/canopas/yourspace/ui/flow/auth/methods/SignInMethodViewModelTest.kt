@@ -1,5 +1,7 @@
 package com.canopas.yourspace.ui.flow.auth.methods
 
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.MutableLiveData
 import com.canopas.yourspace.MainCoroutineRule
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.auth.FirebaseAuthService
@@ -18,6 +20,7 @@ import kotlinx.coroutines.withContext
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TestRule
 import org.mockito.kotlin.doSuspendableAnswer
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -26,6 +29,8 @@ import org.mockito.kotlin.whenever
 @ExperimentalCoroutinesApi
 class SignInMethodViewModelTest {
     private val testDispatcher = AppDispatcher(IO = UnconfinedTestDispatcher())
+
+    @get:Rule var rule: TestRule = InstantTaskExecutorRule()
 
     @get:Rule
     val coroutineRule = MainCoroutineRule()
@@ -40,6 +45,8 @@ class SignInMethodViewModelTest {
 
     @Before
     fun setup() {
+        whenever(networkUtils.isInternetAvailable).thenReturn(MutableLiveData(true))
+
         viewModel = SignInMethodViewModel(
             navigator,
             firebaseAuth,
