@@ -298,7 +298,11 @@ internal fun PlaceInfo(title: String, formattedTime: String, steadyDuration: Str
 }
 
 @Composable
-fun DottedTimeline(isSteadyLocation: Boolean, isLastItem: Boolean) {
+fun DottedTimeline(
+    isSteadyLocation: Boolean,
+    isLastItem: Boolean,
+    isJourneyDetail: Boolean = false
+) {
     Column(
         modifier = Modifier
             .padding(start = 16.dp)
@@ -323,24 +327,41 @@ fun DottedTimeline(isSteadyLocation: Boolean, isLastItem: Boolean) {
                 ),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                painter = if (isSteadyLocation) {
-                    painterResource(R.drawable.ic_steady_location)
-                } else {
-                    painterResource(
-                        R.drawable.ic_moving_location
+            if (!isJourneyDetail) {
+                Icon(
+                    painter = if (isSteadyLocation) {
+                        painterResource(R.drawable.ic_steady_location)
+                    } else {
+                        painterResource(
+                            R.drawable.ic_moving_location
+                        )
+                    },
+                    contentDescription = "",
+                    tint = AppTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .conditional(isSteadyLocation) {
+                            size(30.dp)
+                        }
+                        .conditional(!isSteadyLocation) {
+                            size(24.dp).padding(4.dp)
+                        }
+                )
+            } else {
+                if (isSteadyLocation) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_journey_destination),
+                        contentDescription = "",
+                        tint = AppTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
                     )
-                },
-                contentDescription = "",
-                tint = AppTheme.colorScheme.primary,
-                modifier = Modifier
-                    .conditional(isSteadyLocation) {
-                        size(30.dp)
-                    }
-                    .conditional(!isSteadyLocation) {
-                        size(24.dp).padding(4.dp)
-                    }
-            )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .background(AppTheme.colorScheme.primary, CircleShape)
+                    )
+                }
+            }
         }
 
         if (!isLastItem) {
