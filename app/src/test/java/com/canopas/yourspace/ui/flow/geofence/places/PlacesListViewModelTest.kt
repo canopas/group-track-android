@@ -1,5 +1,7 @@
 package com.canopas.yourspace.ui.flow.geofence.places
 
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.MutableLiveData
 import com.canopas.yourspace.MainCoroutineRule
 import com.canopas.yourspace.data.models.place.ApiPlace
 import com.canopas.yourspace.data.repository.SpaceRepository
@@ -18,6 +20,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TestRule
 import org.mockito.kotlin.clearInvocations
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
@@ -26,6 +29,9 @@ import org.mockito.kotlin.whenever
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PlacesListViewModelTest {
+
+    @get:Rule
+    var rule: TestRule = InstantTaskExecutorRule()
 
     @get:Rule
     val mainCoroutineRule = MainCoroutineRule()
@@ -45,6 +51,8 @@ class PlacesListViewModelTest {
     }
 
     private fun init() {
+        whenever(networkUtils.isInternetAvailable).thenReturn(MutableLiveData(true))
+
         viewModel = PlacesListViewModel(
             appNavigator,
             appDispatcher,

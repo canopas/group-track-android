@@ -1,6 +1,8 @@
 package com.canopas.yourspace.ui.flow.geofence.addplace.locate
 
 import android.location.Location
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import com.canopas.yourspace.MainCoroutineRule
 import com.canopas.yourspace.data.repository.SpaceRepository
@@ -17,12 +19,16 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TestRule
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class LocateOnMapViewModelTest {
+
+    @get:Rule
+    var rule: TestRule = InstantTaskExecutorRule()
 
     @get:Rule
     var mainCoroutineRule = MainCoroutineRule()
@@ -38,6 +44,8 @@ class LocateOnMapViewModelTest {
 
     @Before
     fun setUp() {
+        whenever(networkUtils.isInternetAvailable).thenReturn(MutableLiveData(true))
+
         viewModel = LocateOnMapViewModel(
             savedStateHandle,
             appNavigator,

@@ -1,5 +1,7 @@
 package com.canopas.yourspace.ui.flow.onboard
 
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.MutableLiveData
 import com.canopas.yourspace.MainCoroutineRule
 import com.canopas.yourspace.data.models.space.ApiSpace
 import com.canopas.yourspace.data.models.space.ApiSpaceInvitation
@@ -20,6 +22,7 @@ import kotlinx.coroutines.withContext
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TestRule
 import org.mockito.kotlin.doSuspendableAnswer
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
@@ -29,6 +32,9 @@ import org.mockito.kotlin.whenever
 
 @ExperimentalCoroutinesApi
 class OnboardViewModelTest {
+    @get:Rule
+    var rule: TestRule = InstantTaskExecutorRule()
+
     @get:Rule
     val coroutineRule = MainCoroutineRule()
 
@@ -47,6 +53,8 @@ class OnboardViewModelTest {
     @Before
     fun setup() {
         whenever(userService.currentUser).thenReturn(currentUser)
+        whenever(networkUtils.isInternetAvailable).thenReturn(MutableLiveData(true))
+
         viewModel = OnboardViewModel(
             userService,
             testDispatcher,

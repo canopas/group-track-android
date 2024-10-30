@@ -1,5 +1,7 @@
 package com.canopas.yourspace.ui.flow.home.space.create
 
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.MutableLiveData
 import com.canopas.yourspace.MainCoroutineRule
 import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.utils.AppDispatcher
@@ -11,12 +13,16 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TestRule
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
 @ExperimentalCoroutinesApi
 class CreateSpaceHomeViewModelTest {
+    @get:Rule
+    var rule: TestRule = InstantTaskExecutorRule()
+
     @get:Rule
     val coroutineRule = MainCoroutineRule()
 
@@ -29,6 +35,8 @@ class CreateSpaceHomeViewModelTest {
 
     @Before
     fun setUp() {
+        whenever(networkUtils.isInternetAvailable).thenReturn(MutableLiveData(true))
+
         viewModel = CreateSpaceHomeViewModel(
             appNavigator = appNavigator,
             spaceRepository = spaceRepository,

@@ -1,5 +1,7 @@
 package com.canopas.yourspace.ui.flow.settings.space
 
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import com.canopas.yourspace.MainCoroutineRule
 import com.canopas.yourspace.data.models.space.ApiSpace
@@ -20,6 +22,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TestRule
 import org.mockito.kotlin.doSuspendableAnswer
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
@@ -40,6 +43,8 @@ class SpaceProfileViewModelTest {
     @OptIn(ExperimentalCoroutinesApi::class)
     @get:Rule
     val mainCoroutineRule = MainCoroutineRule()
+    @get:Rule
+    var rule: TestRule = InstantTaskExecutorRule()
 
     private val savedStateHandle = mock<SavedStateHandle>()
     private val spaceRepository = mock<SpaceRepository>()
@@ -56,6 +61,8 @@ class SpaceProfileViewModelTest {
         whenever(savedStateHandle.get<String>(AppDestinations.SpaceProfileScreen.KEY_SPACE_ID)).thenReturn(
             "space1"
         )
+        whenever(networkUtils.isInternetAvailable).thenReturn(MutableLiveData(true))
+
         viewModel = SpaceProfileViewModel(
             savedStateHandle,
             spaceRepository,

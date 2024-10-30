@@ -1,5 +1,7 @@
 package com.canopas.yourspace.ui.flow.settings.support
 
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.MutableLiveData
 import com.canopas.yourspace.MainCoroutineRule
 import com.canopas.yourspace.data.service.support.ApiSupportService
 import com.canopas.yourspace.data.utils.AppDispatcher
@@ -14,6 +16,7 @@ import kotlinx.coroutines.withContext
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TestRule
 import org.mockito.kotlin.doSuspendableAnswer
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -22,6 +25,9 @@ import java.io.File
 
 @ExperimentalCoroutinesApi
 class SupportViewModelTest {
+
+    @get:Rule
+    var rule: TestRule = InstantTaskExecutorRule()
 
     @get:Rule
     val coroutineRule = MainCoroutineRule()
@@ -35,6 +41,8 @@ class SupportViewModelTest {
 
     @Before
     fun setUp() {
+        whenever(networkUtils.isInternetAvailable).thenReturn(MutableLiveData(true))
+
         viewModel = SupportViewModel(
             appNavigator = appNavigator,
             appDispatchers = testDispatcher,
