@@ -43,6 +43,7 @@ class SpaceProfileViewModelTest {
     @OptIn(ExperimentalCoroutinesApi::class)
     @get:Rule
     val mainCoroutineRule = MainCoroutineRule()
+
     @get:Rule
     var rule: TestRule = InstantTaskExecutorRule()
 
