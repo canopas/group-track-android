@@ -1,5 +1,6 @@
 package com.canopas.yourspace.ui.flow.journey.components
 
+import android.annotation.SuppressLint
 import android.location.Address
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -18,8 +19,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -33,13 +32,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.location.LocationJourney
@@ -271,14 +274,35 @@ internal fun PlaceInfo(title: String, formattedTime: String, steadyDuration: Str
     )
     Spacer(modifier = Modifier.size(8.dp))
 
-    Text(
-        text = "$formattedTime $steadyDuration",
-        style = AppTheme.appTypography.caption.copy(color = AppTheme.colorScheme.textDisabled)
-    )
+    if (steadyDuration.isNullOrEmpty()) {
+        Text(
+            text = formattedTime,
+            style = AppTheme.appTypography.caption.copy(color = AppTheme.colorScheme.textDisabled)
+        )
+    } else {
+        Text(
+            text = buildAnnotatedString {
+                withStyle(
+                    style = SpanStyle(
+                        color = AppTheme.colorScheme.textDisabled
+                    )
+                ) {
+                    append(formattedTime)
+                }
+                append(stringResource(R.string.journey_timeline_screen_horizontal_divider_text))
+                append(steadyDuration)
+            },
+            style = AppTheme.appTypography.caption
+        )
+    }
 }
 
 @Composable
-fun DottedTimeline(isSteadyLocation: Boolean, isLastItem: Boolean) {
+fun DottedTimeline(
+    isSteadyLocation: Boolean,
+    isLastItem: Boolean,
+    isJourneyDetail: Boolean = false
+) {
     Column(
         modifier = Modifier
             .padding(start = 16.dp)
@@ -303,19 +327,40 @@ fun DottedTimeline(isSteadyLocation: Boolean, isLastItem: Boolean) {
                 ),
             contentAlignment = Alignment.Center
         ) {
-            if (isSteadyLocation) {
+            if (!isJourneyDetail) {
                 Icon(
-                    Icons.Default.LocationOn,
+                    painter = if (isSteadyLocation) {
+                        painterResource(R.drawable.ic_steady_location)
+                    } else {
+                        painterResource(
+                            R.drawable.ic_moving_location
+                        )
+                    },
                     contentDescription = "",
                     tint = AppTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier
+                        .conditional(isSteadyLocation) {
+                            size(30.dp)
+                        }
+                        .conditional(!isSteadyLocation) {
+                            size(24.dp).padding(4.dp)
+                        }
                 )
             } else {
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .background(AppTheme.colorScheme.primary, CircleShape)
-                )
+                if (isSteadyLocation) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_journey_destination),
+                        contentDescription = "",
+                        tint = AppTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .background(AppTheme.colorScheme.primary, CircleShape)
+                    )
+                }
             }
         }
 
@@ -328,6 +373,20 @@ fun DottedTimeline(isSteadyLocation: Boolean, isLastItem: Boolean) {
         }
     }
 }
+
+@SuppressLint("UnnecessaryComposedModifier")
+fun Modifier.conditional(
+    condition: Boolean,
+    orElse: (@Composable Modifier.() -> Modifier)? = null,
+    modifier: @Composable Modifier.() -> Modifier
+): Modifier =
+    composed {
+        if (condition) {
+            modifier.invoke(this)
+        } else {
+            orElse?.invoke(this) ?: this
+        }
+    }
 
 @Composable
 fun EmptyHistory() {

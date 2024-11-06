@@ -272,5 +272,6 @@
 
     <string name="journey_timeline_title_your_timeline">Your Timeline</string>
     <string name="journey_timeline_title_other_user">%s\'s Timeline</string>
+    <string name="journey_timeline_screen_horizontal_divider_text">&#160;|&#160;</string>
     <string name="sign_in_btn_continue_with_apple">Continue with Apple</string>
 </resources>
