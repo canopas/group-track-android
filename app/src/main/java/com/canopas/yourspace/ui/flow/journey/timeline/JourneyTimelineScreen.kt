@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.location.LocationJourney
-import com.canopas.yourspace.domain.utils.formattedMessageDateHeader
+import com.canopas.yourspace.domain.utils.formattedJourneyDatePicker
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.AppProgressIndicator
 import com.canopas.yourspace.ui.component.ShowDatePicker
@@ -90,7 +90,7 @@ fun TimelineTopBar() {
         actions = {
             TextButton(onClick = viewModel::showDatePicker) {
                 Text(
-                    text = state.selectedTimeFrom?.formattedMessageDateHeader(LocalContext.current)
+                    text = state.selectedTimeFrom?.formattedJourneyDatePicker(LocalContext.current)
                         ?: "",
                     style = AppTheme.appTypography.body1,
                     color = AppTheme.colorScheme.textPrimary
