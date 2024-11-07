@@ -42,7 +42,6 @@ fun Long.formattedMessageTimeString(context: Context): String {
     }
 }
 
-
 fun Long.formattedMessageDateHeader(context: Context): String {
     val calendar = Calendar.getInstance()
     calendar.timeInMillis = this
@@ -124,4 +123,3 @@ fun timeAgo(timestamp: Long?): String {
         else -> "$years years ago"
     }
 }
-
