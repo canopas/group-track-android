@@ -42,7 +42,7 @@ fun Long.formattedMessageTimeString(context: Context): String {
     }
 }
 
-fun Long.formattedMessageDateHeader(context: Context): String {
+fun Long.formattedMessageDateHeader(context: Context, pattern: String): String {
     val calendar = Calendar.getInstance()
     calendar.timeInMillis = this
 
@@ -53,28 +53,7 @@ fun Long.formattedMessageDateHeader(context: Context): String {
         set(Calendar.MILLISECOND, 0)
     }
 
-    val sdf = SimpleDateFormat("dd MMMM", Locale.getDefault())
-    return when {
-        calendar.get(Calendar.YEAR) == today.get(Calendar.YEAR) && calendar.get(Calendar.DAY_OF_YEAR) == today.get(
-            Calendar.DAY_OF_YEAR
-        ) -> context.getString(R.string.common_today)
-
-        else -> sdf.format(calendar.time)
-    }
-}
-
-fun Long.formattedJourneyDatePicker(context: Context): String {
-    val calendar = Calendar.getInstance()
-    calendar.timeInMillis = this
-
-    val today = Calendar.getInstance().apply {
-        set(Calendar.HOUR_OF_DAY, 0)
-        set(Calendar.MINUTE, 0)
-        set(Calendar.SECOND, 0)
-        set(Calendar.MILLISECOND, 0)
-    }
-
-    val sdf = SimpleDateFormat("dd MMM", Locale.getDefault())
+    val sdf = SimpleDateFormat(pattern, Locale.getDefault())
     return when {
         calendar.get(Calendar.YEAR) == today.get(Calendar.YEAR) && calendar.get(Calendar.DAY_OF_YEAR) == today.get(
             Calendar.DAY_OF_YEAR
