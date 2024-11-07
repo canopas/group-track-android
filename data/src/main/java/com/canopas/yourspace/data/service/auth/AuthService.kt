@@ -124,7 +124,8 @@ class AuthService @Inject constructor(
 
     suspend fun updateBatteryStatus(batteryPercentage: Float) {
         val user = currentUser ?: return
-        if (user.battery_pct == batteryPercentage) return
+        val previousPercentage = user.battery_pct?.toInt() ?: 0
+        if (previousPercentage == batteryPercentage.toInt()) return
         currentUser = user.copy(battery_pct = batteryPercentage)
         apiUserService.updateBatteryPct(user.id, batteryPercentage)
     }
