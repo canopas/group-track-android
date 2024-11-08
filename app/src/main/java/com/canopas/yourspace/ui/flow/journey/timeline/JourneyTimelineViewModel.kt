@@ -53,19 +53,9 @@ class JourneyTimelineViewModel @Inject constructor(
     }
 
     private fun setSelectedTimeRange() {
-        val calendar = Calendar.getInstance()
-        calendar.timeInMillis = System.currentTimeMillis()
-        calendar.set(Calendar.HOUR_OF_DAY, 0)
-        calendar.set(Calendar.MINUTE, 0)
-        val timestampFrom = calendar.timeInMillis
-
-        calendar.set(Calendar.HOUR_OF_DAY, 23)
-        calendar.set(Calendar.MINUTE, 59)
-        val timestampTo = calendar.timeInMillis
-
         _state.value = _state.value.copy(
-            selectedTimeFrom = timestampFrom,
-            selectedTimeTo = timestampTo
+            selectedTimeFrom = getTodayStartTimestamp(),
+            selectedTimeTo = getTodayEndTimestamp()
         )
     }
 
