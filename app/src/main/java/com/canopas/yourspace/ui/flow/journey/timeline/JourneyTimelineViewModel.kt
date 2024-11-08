@@ -48,7 +48,25 @@ class JourneyTimelineViewModel @Inject constructor(
 
     init {
         fetchUser()
+        setSelectedTimeRange()
         loadLocations()
+    }
+
+    private fun setSelectedTimeRange() {
+        val calendar = Calendar.getInstance()
+        calendar.timeInMillis = System.currentTimeMillis()
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        val timestampFrom = calendar.timeInMillis
+
+        calendar.set(Calendar.HOUR_OF_DAY, 23)
+        calendar.set(Calendar.MINUTE, 59)
+        val timestampTo = calendar.timeInMillis
+
+        _state.value = _state.value.copy(
+            selectedTimeFrom = timestampFrom,
+            selectedTimeTo = timestampTo
+        )
     }
 
     private fun fetchUser() = viewModelScope.launch(appDispatcher.IO) {
@@ -89,7 +107,7 @@ class JourneyTimelineViewModel @Inject constructor(
             }
 
             val filteredLocations = locations.filter {
-                it.created_at!! in from!!..to!!
+                it.created_at!! in from..to || it.update_at!! in from..to
             }
 
             val locationJourneys = (allJourneys + filteredLocations).groupByDate()
@@ -238,8 +256,8 @@ class JourneyTimelineViewModel @Inject constructor(
 data class JourneyTimelineState(
     val isCurrentUserTimeline: Boolean = false,
     val selectedUser: ApiUser? = null,
-    val selectedTimeFrom: Long? = null,
-    val selectedTimeTo: Long? = null,
+    val selectedTimeFrom: Long = System.currentTimeMillis(),
+    val selectedTimeTo: Long = System.currentTimeMillis(),
     val isLoading: Boolean = false,
     val appending: Boolean = false,
     val groupedLocation: Map<Long, List<LocationJourney>> = emptyMap(),

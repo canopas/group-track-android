@@ -52,12 +52,19 @@ class JourneyRepository @Inject constructor(
     ) {
         try {
             val isDayChanged = isDayChanged(extractedLocation, lastKnownJourney)
+            val isOnlyOneDayChanged = isOnlyOneDayChanged(extractedLocation, lastKnownJourney)
 
-            if (isDayChanged) {
+            if (isDayChanged && isOnlyOneDayChanged) {
                 // Day is changed between last known journey and current location
-                // Just save again the last known journey in remote database with updated day i.e., current time
-                saveJourneyOnDayChanged(userId, lastKnownJourney)
+                // Just update the update_at time for last known journey in remote database with updated day i.e., current time
+                updateJourneyOnDayChanged(userId, lastKnownJourney)
                 return
+            } else if (isDayChanged) {
+                // Day is changed between last known journey and current location
+                // Also multiple days are changed, so create new journey for current day
+                if (extractedLocation != null) {
+                    saveJourneyOnDayChanged(userId, extractedLocation)
+                }
             }
         } catch (e: Exception) {
             Timber.e(e, "Error while saving location journey on day changed")
@@ -79,28 +86,55 @@ class JourneyRepository @Inject constructor(
         return lastKnownDay != currentDay
     }
 
+    private fun isOnlyOneDayChanged(
+        extractedLocation: Location? = null,
+        lastKnownJourney: LocationJourney
+    ): Boolean {
+        val calendar = Calendar.getInstance()
+        calendar.timeInMillis = lastKnownJourney.update_at!!
+        val lastKnownDay = calendar.get(Calendar.DAY_OF_MONTH)
+        calendar.timeInMillis = extractedLocation?.time ?: System.currentTimeMillis()
+        val currentDay = calendar.get(Calendar.DAY_OF_MONTH)
+        val daysPassed = currentDay - lastKnownDay
+        return daysPassed == 1
+    }
+
     /**
-     * Save last known journey with updated day
+     * Save new location journey when day is changed
+     * As multiple days are changed, we need to create new journey for current day
      * */
     private suspend fun saveJourneyOnDayChanged(
         userId: String,
-        lastKnownJourney: LocationJourney
+        extractedLocation: Location
     ) {
         var newJourneyId = ""
-        // Removed createdAt and updatedAt from saveCurrentJourney so that we can just create a new journey
-        // Because it was creating issue while checking current user state...
-        // Changes: https://github.com/canopas/your-space-android/pull/86/commits/b4ee9717148217a72c23ba139520bc308d75f887
         journeyService.saveCurrentJourney(
             userId = userId,
-            fromLatitude = lastKnownJourney.from_latitude,
-            fromLongitude = lastKnownJourney.from_longitude,
-            toLatitude = lastKnownJourney.to_latitude,
-            toLongitude = lastKnownJourney.to_longitude
+            fromLatitude = extractedLocation.latitude,
+            fromLongitude = extractedLocation.longitude
         ) {
             newJourneyId = it
         }
+        val newJourney = extractedLocation.toLocationJourney(userId, newJourneyId).copy(
+            id = newJourneyId
+        )
+        locationCache.putLastJourney(newJourney, userId)
+    }
+
+    /**
+     * Update last known journey when day is changed
+     * */
+    private suspend fun updateJourneyOnDayChanged(
+        userId: String,
+        lastKnownJourney: LocationJourney
+    ) {
+        journeyService.updateLastLocationJourney(
+            userId = userId,
+            journey = lastKnownJourney.copy(
+                update_at = System.currentTimeMillis()
+            )
+        )
         val newJourney = lastKnownJourney.copy(
-            id = newJourneyId,
             created_at = System.currentTimeMillis(),
             update_at = System.currentTimeMillis()
         )
