@@ -117,10 +117,7 @@ fun ColumnScope.MessageList(
             if (members.isNotEmpty()) {
                 item {
                     Text(
-                        text = section.key.formattedMessageDateHeader(
-                            LocalContext.current,
-                            "dd MMMM"
-                        ),
+                        text = section.key.formattedMessageDateHeader(LocalContext.current),
                         style = AppTheme.appTypography.body1.copy(color = AppTheme.colorScheme.textSecondary),
                         modifier = Modifier
                             .fillMaxWidth()

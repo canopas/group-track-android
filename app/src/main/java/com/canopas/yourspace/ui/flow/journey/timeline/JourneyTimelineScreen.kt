@@ -90,10 +90,7 @@ fun TimelineTopBar() {
         actions = {
             TextButton(onClick = viewModel::showDatePicker) {
                 Text(
-                    text = state.selectedTimeFrom?.formattedMessageDateHeader(
-                        LocalContext.current,
-                        "dd MMM"
-                    )
+                    text = state.selectedTimeFrom?.formattedMessageDateHeader(LocalContext.current)
                         ?: "",
                     style = AppTheme.appTypography.body1,
                     color = AppTheme.colorScheme.textPrimary

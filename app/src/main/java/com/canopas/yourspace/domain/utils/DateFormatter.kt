@@ -42,7 +42,7 @@ fun Long.formattedMessageTimeString(context: Context): String {
     }
 }
 
-fun Long.formattedMessageDateHeader(context: Context, pattern: String): String {
+fun Long.formattedMessageDateHeader(context: Context): String {
     val calendar = Calendar.getInstance()
     calendar.timeInMillis = this
 
@@ -53,7 +53,7 @@ fun Long.formattedMessageDateHeader(context: Context, pattern: String): String {
         set(Calendar.MILLISECOND, 0)
     }
 
-    val sdf = SimpleDateFormat(pattern, Locale.getDefault())
+    val sdf = SimpleDateFormat("dd MMMM", Locale.getDefault())
     return when {
         calendar.get(Calendar.YEAR) == today.get(Calendar.YEAR) && calendar.get(Calendar.DAY_OF_YEAR) == today.get(
             Calendar.DAY_OF_YEAR
