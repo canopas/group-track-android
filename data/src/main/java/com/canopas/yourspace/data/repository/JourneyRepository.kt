@@ -11,6 +11,9 @@ import com.canopas.yourspace.data.service.location.ApiJourneyService
 import com.canopas.yourspace.data.service.location.LocationManager
 import com.canopas.yourspace.data.storage.LocationCache
 import timber.log.Timber
+import java.time.Instant
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 import java.util.Calendar
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -90,13 +93,15 @@ class JourneyRepository @Inject constructor(
         extractedLocation: Location? = null,
         lastKnownJourney: LocationJourney
     ): Boolean {
-        val calendar = Calendar.getInstance()
-        calendar.timeInMillis = lastKnownJourney.update_at!!
-        val lastKnownDay = calendar.get(Calendar.DAY_OF_MONTH)
-        calendar.timeInMillis = extractedLocation?.time ?: System.currentTimeMillis()
-        val currentDay = calendar.get(Calendar.DAY_OF_MONTH)
-        val daysPassed = currentDay - lastKnownDay
-        return daysPassed == 1
+        val lastKnownDate = Instant.ofEpochMilli(lastKnownJourney.update_at!!)
+            .atZone(ZoneId.systemDefault())
+            .toLocalDate()
+        val currentDate =
+            Instant.ofEpochMilli(extractedLocation?.time ?: System.currentTimeMillis())
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate()
+        val daysPassed = ChronoUnit.DAYS.between(lastKnownDate, currentDate)
+        return daysPassed == 1L
     }
 
     /**

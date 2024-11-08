@@ -98,7 +98,7 @@ class JourneyTimelineViewModel @Inject constructor(
         try {
             val from = _state.value.selectedTimeFrom
             val to = _state.value.selectedTimeTo
-            val lastJourneyTime = allJourneys.minOfOrNull { it.created_at!! }
+            val lastJourneyTime = allJourneys.minOfOrNull { it.update_at!! }
 
             val locations = if (loadMore) {
                 journeyService.getMoreJourneyHistory(userId, lastJourneyTime)
@@ -107,7 +107,8 @@ class JourneyTimelineViewModel @Inject constructor(
             }
 
             val filteredLocations = locations.filter {
-                it.created_at!! in from..to || it.update_at!! in from..to
+                (it.created_at?.let { created -> created in from..to } ?: false) ||
+                    (it.update_at?.let { updated -> updated in from..to } ?: false)
             }
 
             val locationJourneys = (allJourneys + filteredLocations).groupByDate()

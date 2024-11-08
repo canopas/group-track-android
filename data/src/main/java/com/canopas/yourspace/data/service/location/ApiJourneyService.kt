@@ -1,6 +1,5 @@
 package com.canopas.yourspace.data.service.location
 
-import android.util.Log
 import com.canopas.yourspace.data.models.location.JourneyRoute
 import com.canopas.yourspace.data.models.location.LocationJourney
 import com.canopas.yourspace.data.utils.Config
@@ -112,7 +111,6 @@ class ApiJourneyService @Inject constructor(
             .limit(20)
             .get().await().documents.mapNotNull { it.toObject<LocationJourney>() }
 
-        Log.e("XXXXXX", "Previous Day Journey: $previousDayJourney")
         return previousDayJourney + currentDayJourney
     }
 
