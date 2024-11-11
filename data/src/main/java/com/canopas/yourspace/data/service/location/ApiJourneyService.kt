@@ -95,28 +95,23 @@ class ApiJourneyService @Inject constructor(
 
     suspend fun getJourneyHistory(
         userId: String,
-        from: Long? = null,
-        to: Long? = null
+        from: Long,
+        to: Long
     ): List<LocationJourney> {
-        if (from == null) {
-            return journeyRef(userId).whereEqualTo("user_id", userId)
-                .orderBy("created_at", Query.Direction.DESCENDING)
-                .limit(20)
-                .get().await().documents.mapNotNull { it.toObject<LocationJourney>() }
-        } else if (to == null) {
-            return journeyRef(userId).whereEqualTo("user_id", userId)
-                .whereGreaterThanOrEqualTo("created_at", from)
-                .orderBy("created_at", Query.Direction.DESCENDING)
-                .limit(20)
-                .get().await().documents.mapNotNull { it.toObject<LocationJourney>() }
-        } else {
-            return journeyRef(userId).whereEqualTo("user_id", userId)
-                .whereGreaterThanOrEqualTo("created_at", from)
-                .whereLessThanOrEqualTo("created_at", to)
-                .orderBy("created_at", Query.Direction.DESCENDING)
-                .limit(20)
-                .get().await().documents.mapNotNull { it.toObject<LocationJourney>() }
-        }
+        val previousDayJourney = journeyRef(userId).whereEqualTo("user_id", userId)
+            .whereLessThan("created_at", from)
+            .whereGreaterThanOrEqualTo("update_at", from)
+            .limit(1)
+            .get().await().documents.mapNotNull { it.toObject<LocationJourney>() }
+
+        val currentDayJourney = journeyRef(userId).whereEqualTo("user_id", userId)
+            .whereGreaterThanOrEqualTo("created_at", from)
+            .whereLessThanOrEqualTo("created_at", to)
+            .orderBy("created_at", Query.Direction.DESCENDING)
+            .limit(20)
+            .get().await().documents.mapNotNull { it.toObject<LocationJourney>() }
+
+        return previousDayJourney + currentDayJourney
     }
 
     suspend fun getLocationJourneyFromId(userId: String, journeyId: String): LocationJourney? {
