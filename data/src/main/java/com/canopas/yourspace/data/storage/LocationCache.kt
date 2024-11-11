@@ -10,6 +10,7 @@ import javax.inject.Singleton
 class LocationCache @Inject constructor() {
     private val lastJourneyCache = LruCache<String, LocationJourney>(25)
     private val lastFiveLocationsCache = LruCache<String, List<Location>>(25)
+    private val lastJourneyUpdatedTime = LruCache<String, Long>(1)
 
     fun putLastJourney(journey: LocationJourney, userId: String) {
         lastJourneyCache.put(userId, journey)
@@ -25,6 +26,14 @@ class LocationCache @Inject constructor() {
 
     fun getLastFiveLocations(userId: String): List<Location>? {
         return lastFiveLocationsCache.get(userId) ?: null
+    }
+
+    fun putLastJourneyUpdatedTime(time: Long, userId: String) {
+        lastJourneyUpdatedTime.put(userId, time)
+    }
+
+    fun getLastJourneyUpdatedTime(userId: String): Long {
+        return lastJourneyUpdatedTime.get(userId) ?: System.currentTimeMillis()
     }
 
     fun clear() {
