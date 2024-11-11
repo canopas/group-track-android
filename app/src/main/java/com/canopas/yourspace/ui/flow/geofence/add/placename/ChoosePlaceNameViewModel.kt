@@ -16,6 +16,7 @@ import com.canopas.yourspace.ui.navigation.AppNavigator
 import com.canopas.yourspace.ui.navigation.KEY_RESULT
 import com.canopas.yourspace.ui.navigation.RESULT_OKAY
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -36,6 +37,7 @@ class ChoosePlaceNameViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(ChoosePlaceNameScreenState())
     val state = _state.asStateFlow()
+    private var connectivityJob: Job? = null
 
     private val selectedLatitude =
         savedStateHandle.get<String>(ChoosePlaceName.KEY_SELECTED_LAT)!!.toDouble()
@@ -94,14 +96,22 @@ class ChoosePlaceNameViewModel @Inject constructor(
 
     fun checkInternetConnection() {
         viewModelScope.launch(appDispatcher.IO) {
-            connectivityObserver.observe().collectLatest { status ->
-                _state.emit(
-                    _state.value.copy(
-                        connectivityStatus = status
+            connectivityJob?.cancel()
+            connectivityJob = viewModelScope.launch(appDispatcher.IO) {
+                connectivityObserver.observe().collectLatest { status ->
+                    _state.emit(
+                        _state.value.copy(
+                            connectivityStatus = status
+                        )
                     )
-                )
+                }
             }
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        connectivityJob?.cancel()
     }
 }
 

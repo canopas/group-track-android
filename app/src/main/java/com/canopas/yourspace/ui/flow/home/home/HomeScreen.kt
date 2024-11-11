@@ -86,7 +86,7 @@ fun HomeScreen(verifyingSpace: Boolean) {
                     HomeTopBar(verifyingSpace)
                 }
             } else {
-                NoInternetScreen(viewModel::checkInternetConnection)
+                NoInternetScreen(viewModel::observeConnectivity)
             }
         }
         /* bottomBar = {

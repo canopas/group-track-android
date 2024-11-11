@@ -29,7 +29,8 @@ class SpaceProfileViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val spaceID =
-        savedStateHandle.get<String>(AppDestinations.SpaceProfileScreen.KEY_SPACE_ID) ?: throw IllegalArgumentException("Space ID is required")
+        savedStateHandle.get<String>(AppDestinations.SpaceProfileScreen.KEY_SPACE_ID)
+            ?: throw IllegalArgumentException("Space ID is required")
 
     private val _state = MutableStateFlow(SpaceProfileState())
     val state = _state.asStateFlow()
@@ -92,6 +93,10 @@ class SpaceProfileViewModel @Inject constructor(
 
     fun saveSpace() = viewModelScope.launch(appDispatcher.IO) {
         if (state.value.saving) return@launch
+        if (state.value.connectivityStatus != ConnectivityObserver.Status.Available) {
+            _state.emit(_state.value.copy(error = Exception()))
+            return@launch
+        }
         val space = _state.value.spaceInfo?.space ?: return@launch
 
         val locationEnabled =

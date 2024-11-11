@@ -135,8 +135,16 @@ class SupportViewModel @Inject constructor(
         _state.value = state.value.copy(error = null, attachmentSizeLimitExceed = false)
     }
 
+    fun handleSupportRequestSubmission(onNoInternet: () -> Unit) {
+        if (state.value.connectivityStatus == ConnectivityObserver.Status.Available) {
+            submitSupportRequest()
+        } else {
+            onNoInternet()
+        }
+    }
+
     fun checkInternetConnection() {
-        viewModelScope.launch(appDispatchers.IO) {
+        viewModelScope.launch {
             connectivityObserver.observe().collectLatest { status ->
                 _state.emit(
                     _state.value.copy(

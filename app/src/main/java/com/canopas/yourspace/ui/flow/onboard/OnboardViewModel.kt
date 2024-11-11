@@ -126,6 +126,9 @@ class OnboardViewModel @Inject constructor(
     }
 
     fun submitInviteCode() = viewModelScope.launch(appDispatcher.IO) {
+        if (_state.value.connectivityStatus != ConnectivityObserver.Status.Available) {
+            return@launch
+        }
         val code = _state.value.spaceInviteCode ?: return@launch
         _state.emit(_state.value.copy(verifyingInviteCode = true))
 

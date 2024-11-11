@@ -91,18 +91,10 @@ private fun JoinSpaceComponent() {
         )
         Spacer(modifier = Modifier.height(40.dp))
         OtpInputField(pinText = state.spaceInviteCode ?: "", onPinTextChange = {
-            when (state.connectivityStatus) {
-                ConnectivityObserver.Status.Available -> {
-                    viewModel.onInviteCodeChanged(it)
-                }
+            viewModel.onInviteCodeChanged(it)
 
-                else -> {
-                    Toast.makeText(
-                        context,
-                        R.string.common_internet_error_toast,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
+            if (state.connectivityStatus != ConnectivityObserver.Status.Available) {
+                Toast.makeText(context, R.string.common_internet_error_toast, Toast.LENGTH_SHORT).show()
             }
         })
 

@@ -145,23 +145,21 @@ private fun SpaceProfileToolbar() {
             }
         },
         actions = {
-            if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
-                Text(
-                    text = stringResource(id = R.string.edit_profile_toolbar_save_text),
-                    color = if (state.allowSave) AppTheme.colorScheme.primary else AppTheme.colorScheme.textDisabled,
-                    style = AppTheme.appTypography.button,
-                    modifier = Modifier
-                        .padding(end = 8.dp)
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = ripple(bounded = false),
-                            enabled = state.allowSave,
-                            onClick = {
-                                viewModel.saveSpace()
-                            }
-                        )
-                )
-            }
+            Text(
+                text = stringResource(id = R.string.edit_profile_toolbar_save_text),
+                color = if (state.allowSave) AppTheme.colorScheme.primary else AppTheme.colorScheme.textDisabled,
+                style = AppTheme.appTypography.button,
+                modifier = Modifier
+                    .padding(end = 8.dp)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = ripple(bounded = false),
+                        enabled = state.allowSave,
+                        onClick = {
+                            viewModel.saveSpace()
+                        }
+                    )
+            )
         }
     )
 }
@@ -189,7 +187,9 @@ private fun SpaceProfileContent() {
             )
 
             HorizontalDivider(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 24.dp),
                 color = AppTheme.colorScheme.outline
             )
 
@@ -207,7 +207,9 @@ private fun SpaceProfileContent() {
             }
 
             HorizontalDivider(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 24.dp),
                 color = AppTheme.colorScheme.outline
             )
 

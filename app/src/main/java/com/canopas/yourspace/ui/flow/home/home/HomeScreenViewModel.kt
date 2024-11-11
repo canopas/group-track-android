@@ -36,7 +36,7 @@ class HomeScreenViewModel @Inject constructor(
     val state: StateFlow<HomeScreenState> = _state
 
     init {
-        checkInternetConnection()
+        observeConnectivity()
         if (userPreferences.currentUser != null) {
             updateUser()
             getAllSpaces()
@@ -207,7 +207,7 @@ class HomeScreenViewModel @Inject constructor(
         }
     }
 
-    fun checkInternetConnection() {
+    fun observeConnectivity() {
         viewModelScope.launch(appDispatcher.IO) {
             connectivityObserver.observe().collectLatest { status ->
                 _state.emit(

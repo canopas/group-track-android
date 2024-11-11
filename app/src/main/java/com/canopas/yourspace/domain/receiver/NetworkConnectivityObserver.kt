@@ -18,7 +18,8 @@ class NetworkConnectivityObserver @Inject constructor(
 ) : ConnectivityObserver {
 
     private val connectivityManager =
-        context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+            ?: throw IllegalStateException("ConnectivityManager not available")
 
     override fun observe(): Flow<ConnectivityObserver.Status> {
         return callbackFlow {
