@@ -62,7 +62,7 @@ fun UserProfileView(
     dismissProfileChooser: () -> Unit,
     showProfileChooser: Boolean = false,
     isImageUploading: Boolean = false,
-    connectivityStatus: ConnectivityObserver.Status,
+    connectivityStatus: ConnectivityObserver.Status
 ) {
     val context = LocalContext.current
 

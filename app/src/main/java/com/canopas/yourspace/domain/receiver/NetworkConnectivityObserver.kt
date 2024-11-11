@@ -15,7 +15,7 @@ import javax.inject.Singleton
 @Singleton
 class NetworkConnectivityObserver @Inject constructor(
     context: Context
-): ConnectivityObserver {
+) : ConnectivityObserver {
 
     private val connectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -51,5 +51,3 @@ class NetworkConnectivityObserver @Inject constructor(
         }.distinctUntilChanged()
     }
 }
-
-

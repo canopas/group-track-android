@@ -226,7 +226,7 @@ fun SupportContent(modifier: Modifier) {
             enabled = state.title.isNotEmpty() && state.description.isNotEmpty() && !state.submitting && state.attachmentUploading.isEmpty(),
             showLoader = state.submitting,
             onClick = {
-                if (state.connectivityStatus == ConnectivityObserver.Status.Available)  {
+                if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
                     viewModel.submitSupportRequest()
                 } else {
                     Toast.makeText(
