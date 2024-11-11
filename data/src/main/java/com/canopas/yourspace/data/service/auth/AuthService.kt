@@ -52,7 +52,12 @@ class AuthService @Inject constructor(
         account: GoogleSignInAccount? = null,
         firebaseAccount: FirebaseUser? = null
     ): Boolean {
-        val (isNewUser, user, session) = apiUserService.saveUser(uid, firebaseToken, account, firebaseAccount)
+        val (isNewUser, user, session) = apiUserService.saveUser(
+            uid,
+            firebaseToken,
+            account,
+            firebaseAccount
+        )
         notifyAuthChange()
         saveUser(user, session)
         return isNewUser
@@ -118,8 +123,11 @@ class AuthService @Inject constructor(
     suspend fun getUserFlow() = apiUserService.getUserFlow(currentUser?.id ?: "")
 
     suspend fun updateBatteryStatus(batteryPercentage: Float) {
-        val currentUser = currentUser ?: return
-        apiUserService.updateBatteryPct(currentUser.id, batteryPercentage)
+        val user = currentUser ?: return
+        val previousPercentage = user.battery_pct?.toInt() ?: 0
+        if (previousPercentage == batteryPercentage.toInt()) return
+        currentUser = user.copy(battery_pct = batteryPercentage)
+        apiUserService.updateBatteryPct(user.id, batteryPercentage)
     }
 
     suspend fun updateUserSessionState(state: Int) {
