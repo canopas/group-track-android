@@ -65,6 +65,7 @@ import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.messages.ThreadInfo
 import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.models.user.UserInfo
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.domain.utils.formattedMessageTimeString
 import com.canopas.yourspace.ui.component.AppAlertDialog
 import com.canopas.yourspace.ui.component.AppBanner
@@ -115,7 +116,7 @@ fun ThreadsScreen() {
         contentColor = AppTheme.colorScheme.textPrimary,
         containerColor = AppTheme.colorScheme.surface,
         floatingActionButton = {
-            if (state.hasMembers && state.isInternetAvailable) {
+            if (state.hasMembers && state.connectivityStatus == ConnectivityObserver.Status.Available) {
                 FloatingActionButton(
                     shape = RoundedCornerShape(30.dp),
                     onClick = { viewModel.createNewThread() },
@@ -128,7 +129,7 @@ fun ThreadsScreen() {
             }
         }
     ) {
-        if (state.isInternetAvailable) {
+        if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
             ThreadsContent(modifier = Modifier.padding(it))
         } else {
             NoInternetScreen(viewModel::checkInternetConnection)

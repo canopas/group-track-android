@@ -32,6 +32,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.AppLogo
 import com.canopas.yourspace.ui.component.PrimaryOutlinedButton
@@ -114,18 +115,25 @@ private fun GoogleSignInBtn() {
 
     PrimaryOutlinedButton(
         onClick = {
-            if (state.isInternetAvailable) {
-                val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                    .requestIdToken(context.getString(R.string.default_web_client_id))
-                    .requestEmail()
-                    .build()
+            when (state.connectivityStatus) {
+                ConnectivityObserver.Status.Available -> {
+                    val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                        .requestIdToken(context.getString(R.string.default_web_client_id))
+                        .requestEmail()
+                        .build()
 
-                val googleSignInClient = GoogleSignIn.getClient(context, gso)
-                googleSignInClient.signOut()
-                signInClientLauncher.launch(googleSignInClient.signInIntent)
-            } else {
-                Toast.makeText(context, R.string.common_internet_error_toast, Toast.LENGTH_SHORT)
-                    .show()
+                    val googleSignInClient = GoogleSignIn.getClient(context, gso)
+                    googleSignInClient.signOut()
+                    signInClientLauncher.launch(googleSignInClient.signInIntent)
+                }
+
+                else -> {
+                    Toast.makeText(
+                        context,
+                        R.string.common_internet_error_toast,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
         },
         modifier = Modifier
@@ -160,18 +168,24 @@ fun AppleSignInBtn() {
 
     PrimaryTextButton(
         onClick = {
-            if (state.isInternetAvailable) {
-                viewModel.showAppleLoadingState()
-                val provider = OAuthProvider.newBuilder("apple.com")
-                provider.setScopes(arrayListOf("email", "name"))
-                FirebaseAuth.getInstance().pendingAuthResult
-                    ?.addOnCompleteListener(onCompleteListener)
-                    ?: FirebaseAuth.getInstance()
-                        .startActivityForSignInWithProvider(activity, provider.build())
-                        .addOnCompleteListener(onCompleteListener)
-            } else {
-                Toast.makeText(context, R.string.common_internet_error_toast, Toast.LENGTH_SHORT)
-                    .show()
+            when (state.connectivityStatus) {
+                ConnectivityObserver.Status.Available -> {
+                    val provider = OAuthProvider.newBuilder("apple.com")
+                    provider.setScopes(arrayListOf("email", "name"))
+                    FirebaseAuth.getInstance().pendingAuthResult
+                        ?.addOnCompleteListener(onCompleteListener)
+                        ?: FirebaseAuth.getInstance()
+                            .startActivityForSignInWithProvider(activity, provider.build())
+                            .addOnCompleteListener(onCompleteListener)
+                }
+
+                else -> {
+                    Toast.makeText(
+                        context,
+                        R.string.common_internet_error_toast,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
         },
         modifier = Modifier

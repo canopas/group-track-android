@@ -21,6 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.OtpInputField
 import com.canopas.yourspace.ui.component.PrimaryButton
@@ -43,7 +44,7 @@ fun JoinOrCreateSpaceOnboard() {
 
     if (state.errorInvalidInviteCode) {
         AppBanner(
-            msg = stringResource(if (state.isInternetAvailable) R.string.onboard_space_invalid_invite_code else R.string.common_internet_error_toast),
+            msg = stringResource(R.string.onboard_space_invalid_invite_code),
             containerColor = AppTheme.colorScheme.alertColor
         ) {
             viewModel.resetErrorState()
@@ -90,7 +91,19 @@ private fun JoinSpaceComponent() {
         )
         Spacer(modifier = Modifier.height(40.dp))
         OtpInputField(pinText = state.spaceInviteCode ?: "", onPinTextChange = {
-            viewModel.onInviteCodeChanged(it)
+            when (state.connectivityStatus) {
+                ConnectivityObserver.Status.Available -> {
+                    viewModel.onInviteCodeChanged(it)
+                }
+
+                else -> {
+                    Toast.makeText(
+                        context,
+                        R.string.common_internet_error_toast,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
         })
 
         Spacer(modifier = Modifier.weight(1f))
@@ -100,7 +113,21 @@ private fun JoinSpaceComponent() {
                 .fillMaxWidth()
                 .padding(top = 16.dp),
             label = stringResource(id = R.string.common_btn_join_space),
-            onClick = { viewModel.submitInviteCode() },
+            onClick = {
+                when (state.connectivityStatus) {
+                    ConnectivityObserver.Status.Available -> {
+                        viewModel.submitInviteCode()
+                    }
+
+                    else -> {
+                        Toast.makeText(
+                            context,
+                            R.string.common_internet_error_toast,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            },
             enabled = state.spaceInviteCode?.length == 6,
             showLoader = state.verifyingInviteCode
         )
@@ -111,14 +138,18 @@ private fun JoinSpaceComponent() {
             modifier = Modifier.fillMaxWidth(),
             label = stringResource(id = R.string.onboard_space_btn_create_new),
             onClick = {
-                if (state.isInternetAvailable) {
-                    viewModel.navigateToCreateSpace()
-                } else {
-                    Toast.makeText(
-                        context,
-                        R.string.common_internet_error_toast,
-                        Toast.LENGTH_SHORT
-                    ).show()
+                when (state.connectivityStatus) {
+                    ConnectivityObserver.Status.Available -> {
+                        viewModel.navigateToCreateSpace()
+                    }
+
+                    else -> {
+                        Toast.makeText(
+                            context,
+                            R.string.common_internet_error_toast,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 }
             }
         )

@@ -53,6 +53,7 @@ import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.space.ApiSpace
 import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.utils.Config
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.component.AppAlertDialog
 import com.canopas.yourspace.ui.component.AppProgressIndicator
 import com.canopas.yourspace.ui.component.NoInternetScreen
@@ -86,7 +87,7 @@ fun SettingsScreen() {
             )
         }
     ) {
-        if (state.isInternetAvailable) {
+        if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
             SettingsContent(modifier = Modifier.padding(it))
         } else {
             NoInternetScreen(viewModel::checkInternetConnection)

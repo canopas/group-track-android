@@ -11,7 +11,7 @@ import com.canopas.yourspace.data.repository.MessagesRepository
 import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.utils.AppDispatcher
-import com.canopas.yourspace.domain.utils.NetworkUtils
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.navigation.AppDestinations.ThreadMessages.KEY_THREAD_ID
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,9 +21,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.util.Calendar
 import javax.inject.Inject
@@ -38,7 +36,7 @@ class MessagesViewModel @Inject constructor(
     private val messagesRepository: MessagesRepository,
     private val spaceRepository: SpaceRepository,
     private val appDispatcher: AppDispatcher,
-    private val networkUtils: NetworkUtils
+    private val connectivityObserver: ConnectivityObserver
 ) : ViewModel() {
 
     // For new Thread
@@ -366,10 +364,12 @@ class MessagesViewModel @Inject constructor(
 
     fun checkInternetConnection() {
         viewModelScope.launch(appDispatcher.IO) {
-            withContext(appDispatcher.MAIN) {
-                networkUtils.isInternetAvailable.observeForever { isAvailable ->
-                    _state.update { it.copy(isInternetAvailable = isAvailable) }
-                }
+            connectivityObserver.observe().collectLatest { status ->
+                _state.emit(
+                    _state.value.copy(
+                        connectivityStatus = status
+                    )
+                )
             }
         }
     }
@@ -390,5 +390,5 @@ data class MessagesScreenState(
     val newMessage: String = "",
     val newMessagesToAppend: List<ApiThreadMessage> = emptyList(),
     val isNewThread: Boolean = false,
-    val isInternetAvailable: Boolean = true
+    val connectivityStatus: ConnectivityObserver.Status = ConnectivityObserver.Status.Available
 )

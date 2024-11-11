@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.space.ApiSpace
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.OtpInputField
 import com.canopas.yourspace.ui.component.PrimaryButton
@@ -86,7 +87,15 @@ private fun JoinSpaceContent(modifier: Modifier) {
 
         Spacer(modifier = Modifier.height(40.dp))
         OtpInputField(pinText = state.inviteCode, onPinTextChange = {
-            viewModel.onCodeChanged(it)
+            if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
+                viewModel.onCodeChanged(it)
+            } else {
+                Toast.makeText(
+                    context,
+                    R.string.common_internet_error_toast,
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
         })
         Spacer(modifier = Modifier.height(40.dp))
         Text(
@@ -102,7 +111,7 @@ private fun JoinSpaceContent(modifier: Modifier) {
             modifier = Modifier.fillMaxWidth(),
             label = stringResource(id = R.string.common_btn_join_space),
             onClick = {
-                if (state.isInternetAvailable) {
+                if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
                     viewModel.verifyAndJoinSpace()
                 } else {
                     Toast.makeText(
@@ -125,7 +134,7 @@ private fun JoinSpaceContent(modifier: Modifier) {
 
     if (state.errorInvalidInviteCode) {
         AppBanner(
-            msg = stringResource(id = if (state.isInternetAvailable) R.string.onboard_space_invalid_invite_code else R.string.common_internet_error_toast),
+            msg = stringResource(id = R.string.onboard_space_invalid_invite_code),
             containerColor = AppTheme.colorScheme.alertColor
         ) {
             viewModel.resetErrorState()

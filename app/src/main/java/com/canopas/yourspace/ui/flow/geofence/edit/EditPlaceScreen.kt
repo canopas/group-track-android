@@ -54,6 +54,7 @@ import com.canopas.yourspace.data.models.place.ApiPlace
 import com.canopas.yourspace.data.models.place.ApiPlaceMemberSetting
 import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.models.user.UserInfo
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.component.AppAlertDialog
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.AppProgressIndicator
@@ -108,7 +109,7 @@ fun EditPlaceScreen() {
                     }
                 },
                 actions = {
-                    if (state.isInternetAvailable) {
+                    if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
                         TextButton(
                             onClick = viewModel::savePlace,
                             enabled = state.enableSave,
@@ -133,7 +134,7 @@ fun EditPlaceScreen() {
         contentColor = AppTheme.colorScheme.textPrimary,
         containerColor = AppTheme.colorScheme.surface
     ) {
-        if (state.isInternetAvailable) {
+        if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
             Box(
                 modifier = Modifier
                     .padding(it)

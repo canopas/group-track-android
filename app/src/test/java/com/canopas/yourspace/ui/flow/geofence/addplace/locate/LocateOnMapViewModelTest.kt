@@ -2,7 +2,6 @@ package com.canopas.yourspace.ui.flow.geofence.addplace.locate
 
 import android.location.Location
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import com.canopas.yourspace.MainCoroutineRule
 import com.canopas.yourspace.data.repository.SpaceRepository
@@ -10,10 +9,11 @@ import com.canopas.yourspace.data.service.location.LocationManager
 import com.canopas.yourspace.data.service.place.ApiPlaceService
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.utils.AppDispatcher
-import com.canopas.yourspace.domain.utils.NetworkUtils
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.flow.geofence.add.locate.LocateOnMapViewModel
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -39,12 +39,12 @@ class LocateOnMapViewModelTest {
     private val placeService = mock<ApiPlaceService>()
     private val userPreferences = mock<UserPreferences>()
     private val savedStateHandle = mock<SavedStateHandle>()
-    private val networkUtils = mock<NetworkUtils>()
+    private val connectivityObserver = mock<ConnectivityObserver>()
     private lateinit var viewModel: LocateOnMapViewModel
 
     @Before
     fun setUp() {
-        whenever(networkUtils.isInternetAvailable).thenReturn(MutableLiveData(true))
+        whenever(connectivityObserver.observe()).thenReturn(flowOf(ConnectivityObserver.Status.Available))
 
         viewModel = LocateOnMapViewModel(
             savedStateHandle,
@@ -54,7 +54,7 @@ class LocateOnMapViewModelTest {
             placeService,
             spaceRepository,
             userPreferences,
-            networkUtils
+            connectivityObserver
         )
     }
 
@@ -76,7 +76,7 @@ class LocateOnMapViewModelTest {
             placeService,
             spaceRepository,
             userPreferences,
-            networkUtils
+            connectivityObserver
         )
         assert(viewModel.state.value.defaultLocation == location)
     }

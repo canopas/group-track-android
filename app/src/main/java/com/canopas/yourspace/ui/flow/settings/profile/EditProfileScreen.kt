@@ -42,6 +42,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.component.AppAlertDialog
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.AppProgressIndicator
@@ -102,7 +103,7 @@ private fun EditProfileToolbar() {
                         indication = ripple(bounded = false),
                         enabled = state.allowSave,
                         onClick = {
-                            if (state.isInternetAvailable) {
+                            if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
                                 viewModel.saveUser()
                             } else {
                                 Toast
@@ -150,7 +151,7 @@ private fun EditProfileScreenContent(modifier: Modifier) {
                 },
                 state.showProfileChooser,
                 state.isImageUploadInProgress,
-                state.isInternetAvailable
+                state.connectivityStatus
             )
 
             Spacer(modifier = Modifier.height(35.dp))
@@ -197,7 +198,7 @@ private fun EditProfileScreenContent(modifier: Modifier) {
                 },
                 label = stringResource(id = R.string.settings_btn_delete_account),
                 onClick = {
-                    if (state.isInternetAvailable) {
+                    if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
                         viewModel.showDeleteAccountConfirmation(true)
                     } else {
                         Toast.makeText(

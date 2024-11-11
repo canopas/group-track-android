@@ -29,7 +29,7 @@ android {
 
     defaultConfig {
         applicationId = "com.canopas.yourspace"
-        minSdk = 23
+        minSdk = 24
         targetSdk = 34
         versionCode = versionMajor * 1000000 + versionMinor * 10000 + versionBuild
         versionName = "$versionMajor.$versionMinor.$versionBuild"

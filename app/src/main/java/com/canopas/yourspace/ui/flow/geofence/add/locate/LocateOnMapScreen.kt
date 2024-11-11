@@ -35,6 +35,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.component.AppProgressIndicator
 import com.canopas.yourspace.ui.component.NoInternetScreen
 import com.canopas.yourspace.ui.flow.geofence.component.PlaceNameContent
@@ -105,7 +106,7 @@ fun LocateOnMapScreen() {
                     }
                 },
                 actions = {
-                    if (state.isInternetAvailable) {
+                    if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
                         TextButton(
                             onClick = {
                                 viewModel.onNextClick(
@@ -139,7 +140,7 @@ fun LocateOnMapScreen() {
         contentColor = AppTheme.colorScheme.textPrimary,
         containerColor = AppTheme.colorScheme.surface
     ) {
-        if (state.isInternetAvailable) {
+        if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
             LocateOnMapContent(modifier = Modifier.padding(it), cameraPositionState, userLocation)
         } else {
             NoInternetScreen(viewModel::checkInternetConnection)

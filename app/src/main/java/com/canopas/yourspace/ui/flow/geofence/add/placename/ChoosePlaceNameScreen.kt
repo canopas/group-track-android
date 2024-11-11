@@ -34,6 +34,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.NoInternetScreen
 import com.canopas.yourspace.ui.component.PrimaryButton
@@ -73,7 +74,7 @@ fun ChoosePlaceNameScreen() {
             )
         }
     ) {
-        if (state.isInternetAvailable) {
+        if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
             CreatePlace(
                 modifier = Modifier.padding(it),
                 placeName = state.placeName,

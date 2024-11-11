@@ -5,14 +5,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.canopas.yourspace.data.service.support.ApiSupportService
 import com.canopas.yourspace.data.utils.AppDispatcher
-import com.canopas.yourspace.domain.utils.NetworkUtils
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
@@ -22,7 +21,7 @@ class SupportViewModel @Inject constructor(
     private val appNavigator: AppNavigator,
     private val appDispatchers: AppDispatcher,
     private val apiSupportService: ApiSupportService,
-    private val networkUtils: NetworkUtils
+    private val connectivityObserver: ConnectivityObserver
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SupportState())
@@ -138,10 +137,12 @@ class SupportViewModel @Inject constructor(
 
     fun checkInternetConnection() {
         viewModelScope.launch(appDispatchers.IO) {
-            withContext(appDispatchers.MAIN) {
-                networkUtils.isInternetAvailable.observeForever { isAvailable ->
-                    _state.update { it.copy(isInternetAvailable = isAvailable) }
-                }
+            connectivityObserver.observe().collectLatest { status ->
+                _state.emit(
+                    _state.value.copy(
+                        connectivityStatus = status
+                    )
+                )
             }
         }
     }
@@ -162,5 +163,5 @@ data class SupportState(
     val attachmentSizeLimitExceed: Boolean = false,
     val attachmentsFailed: List<File> = emptyList(),
     val error: String? = null,
-    val isInternetAvailable: Boolean = true
+    val connectivityStatus: ConnectivityObserver.Status = ConnectivityObserver.Status.Available
 )

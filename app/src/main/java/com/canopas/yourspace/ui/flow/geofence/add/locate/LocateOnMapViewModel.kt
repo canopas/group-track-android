@@ -9,7 +9,7 @@ import com.canopas.yourspace.data.service.location.LocationManager
 import com.canopas.yourspace.data.service.place.ApiPlaceService
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.utils.AppDispatcher
-import com.canopas.yourspace.domain.utils.NetworkUtils
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.flow.geofence.places.EXTRA_RESULT_PLACE_LATITUDE
 import com.canopas.yourspace.ui.flow.geofence.places.EXTRA_RESULT_PLACE_LONGITUDE
 import com.canopas.yourspace.ui.flow.geofence.places.EXTRA_RESULT_PLACE_NAME
@@ -20,9 +20,8 @@ import com.canopas.yourspace.ui.navigation.RESULT_OKAY
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -35,7 +34,7 @@ class LocateOnMapViewModel @Inject constructor(
     private val apiPlaceService: ApiPlaceService,
     private val spaceRepository: SpaceRepository,
     private val userPreferences: UserPreferences,
-    private val networkUtils: NetworkUtils
+    private val connectivityObserver: ConnectivityObserver
 ) : ViewModel() {
 
     private val placeName =
@@ -123,10 +122,12 @@ class LocateOnMapViewModel @Inject constructor(
 
     fun checkInternetConnection() {
         viewModelScope.launch(appDispatcher.IO) {
-            withContext(appDispatcher.MAIN) {
-                networkUtils.isInternetAvailable.observeForever { isAvailable ->
-                    _state.update { it.copy(isInternetAvailable = isAvailable) }
-                }
+            connectivityObserver.observe().collectLatest { status ->
+                _state.emit(
+                    _state.value.copy(
+                        connectivityStatus = status
+                    )
+                )
             }
         }
     }
@@ -139,5 +140,5 @@ data class LocateOnMapState(
     val addingPlace: Boolean = false,
     val isMapLoaded: Boolean = false,
     val error: Exception? = null,
-    val isInternetAvailable: Boolean = true
+    val connectivityStatus: ConnectivityObserver.Status = ConnectivityObserver.Status.Available
 )

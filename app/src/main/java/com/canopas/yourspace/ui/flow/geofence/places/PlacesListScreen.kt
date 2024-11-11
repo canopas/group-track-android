@@ -43,6 +43,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.place.ApiPlace
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.component.AppAlertDialog
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.AppProgressIndicator
@@ -82,7 +83,7 @@ fun PlacesListScreen() {
         contentColor = AppTheme.colorScheme.textPrimary,
         containerColor = AppTheme.colorScheme.surface,
         floatingActionButton = {
-            if (!state.placesLoading && state.isInternetAvailable) {
+            if (!state.placesLoading && state.connectivityStatus == ConnectivityObserver.Status.Available) {
                 FloatingActionButton(
                     onClick = { viewModel.navigateToAddPlace() },
                     containerColor = AppTheme.colorScheme.primary,
@@ -95,7 +96,7 @@ fun PlacesListScreen() {
             }
         }
     ) {
-        if (state.isInternetAvailable) {
+        if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
             PlacesListContent(modifier = Modifier.padding(it))
         } else {
             NoInternetScreen(viewModel::checkInternetConnection)

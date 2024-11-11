@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.location.LocationJourney
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.domain.utils.getPlaceAddress
 import com.canopas.yourspace.ui.component.NoInternetScreen
 import com.canopas.yourspace.ui.flow.journey.components.DottedTimeline
@@ -76,7 +77,7 @@ fun UserJourneyDetailScreen() {
     Scaffold(
         topBar = { JourneyTopBar(state.journey, viewModel::navigateBack) }
     ) {
-        if (state.isInternetAvailable) {
+        if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
             Column(
                 modifier = Modifier
                     .padding(it)

@@ -1,7 +1,6 @@
 package com.canopas.yourspace.ui.flow.onboard
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.lifecycle.MutableLiveData
 import com.canopas.yourspace.MainCoroutineRule
 import com.canopas.yourspace.data.models.space.ApiSpace
 import com.canopas.yourspace.data.models.space.ApiSpaceInvitation
@@ -11,11 +10,12 @@ import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.space.SpaceInvitationService
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.utils.AppDispatcher
-import com.canopas.yourspace.domain.utils.NetworkUtils
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
@@ -45,7 +45,7 @@ class OnboardViewModelTest {
     private val spaceRepository = mock<SpaceRepository>()
     private val navigator = mock<AppNavigator>()
     private val invitationService = mock<SpaceInvitationService>()
-    private val networkUtils = mock<NetworkUtils>()
+    private val connectivityObserver = mock<ConnectivityObserver>()
 
     private val testDispatcher = AppDispatcher(IO = UnconfinedTestDispatcher())
     private val currentUser = ApiUser(first_name = "first", last_name = "last")
@@ -53,7 +53,7 @@ class OnboardViewModelTest {
     @Before
     fun setup() {
         whenever(userService.currentUser).thenReturn(currentUser)
-        whenever(networkUtils.isInternetAvailable).thenReturn(MutableLiveData(true))
+        whenever(connectivityObserver.observe()).thenReturn(flowOf(ConnectivityObserver.Status.Available))
 
         viewModel = OnboardViewModel(
             userService,
@@ -62,7 +62,7 @@ class OnboardViewModelTest {
             userPreferences,
             navigator,
             invitationService,
-            networkUtils
+            connectivityObserver
         )
     }
 

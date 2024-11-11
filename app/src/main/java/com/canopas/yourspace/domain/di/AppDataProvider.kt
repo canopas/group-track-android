@@ -4,7 +4,8 @@ import android.app.NotificationManager
 import android.content.Context
 import com.canopas.yourspace.BuildConfig
 import com.canopas.yourspace.data.utils.AppDispatcher
-import com.canopas.yourspace.domain.utils.NetworkUtils
+import com.canopas.yourspace.domain.receiver.NetworkConnectivityObserver
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -36,7 +37,7 @@ class AppDataProvider {
 
     @Provides
     @Singleton
-    fun provideNetworkUtils(@ApplicationContext context: Context): NetworkUtils {
-        return NetworkUtils(context)
+    fun provideNetworkUtils(@ApplicationContext context: Context): ConnectivityObserver {
+        return NetworkConnectivityObserver(context)
     }
 }

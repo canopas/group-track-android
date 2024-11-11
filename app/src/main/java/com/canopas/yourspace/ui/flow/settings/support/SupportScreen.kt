@@ -61,6 +61,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.canopas.yourspace.R
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.component.AppAlertDialog
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.PrimaryButton
@@ -225,7 +226,7 @@ fun SupportContent(modifier: Modifier) {
             enabled = state.title.isNotEmpty() && state.description.isNotEmpty() && !state.submitting && state.attachmentUploading.isEmpty(),
             showLoader = state.submitting,
             onClick = {
-                if (state.isInternetAvailable) {
+                if (state.connectivityStatus == ConnectivityObserver.Status.Available)  {
                     viewModel.submitSupportRequest()
                 } else {
                     Toast.makeText(

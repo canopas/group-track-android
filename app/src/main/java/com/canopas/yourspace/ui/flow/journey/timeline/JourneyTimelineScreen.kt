@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.location.LocationJourney
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.domain.utils.formattedMessageDateHeader
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.AppProgressIndicator
@@ -89,7 +90,7 @@ fun TimelineTopBar() {
             }
         },
         actions = {
-            if (state.isInternetAvailable) {
+            if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
                 TextButton(onClick = viewModel::showDatePicker) {
                     Text(
                         text = state.selectedTimeFrom?.formattedMessageDateHeader(LocalContext.current)
@@ -126,7 +127,7 @@ private fun TimelineContent(modifier: Modifier) {
         )
     }
 
-    if (state.isInternetAvailable) {
+    if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
         Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             if (state.isLoading) {
                 AppProgressIndicator()

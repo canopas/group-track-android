@@ -41,6 +41,7 @@ import androidx.navigation.compose.rememberNavController
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.utils.isBackgroundLocationPermissionGranted
 import com.canopas.yourspace.data.utils.isBatteryOptimizationEnabled
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.component.ActionIconButton
 import com.canopas.yourspace.ui.component.NoInternetScreen
 import com.canopas.yourspace.ui.component.PermissionDialog
@@ -75,7 +76,7 @@ fun HomeScreen(verifyingSpace: Boolean) {
     Scaffold(
         containerColor = AppTheme.colorScheme.surface,
         content = {
-            if (state.isInternetAvailable) {
+            if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
                 Box(
                     modifier = Modifier
                         .padding(it)

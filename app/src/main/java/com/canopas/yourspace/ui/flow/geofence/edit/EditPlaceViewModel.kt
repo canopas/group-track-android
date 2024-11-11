@@ -11,16 +11,15 @@ import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.place.ApiPlaceService
 import com.canopas.yourspace.data.utils.AppDispatcher
-import com.canopas.yourspace.domain.utils.NetworkUtils
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -32,7 +31,7 @@ class EditPlaceViewModel @Inject constructor(
     private val apiPlaceService: ApiPlaceService,
     private val spaceRepository: SpaceRepository,
     private val authService: AuthService,
-    private val networkUtils: NetworkUtils
+    private val connectivityObserver: ConnectivityObserver
 ) : ViewModel() {
 
     private val placeId = savedStateHandle.get<String>(AppDestinations.EditPlace.KEY_PLACE_ID) ?: ""
@@ -198,10 +197,12 @@ class EditPlaceViewModel @Inject constructor(
 
     fun checkInternetConnection() {
         viewModelScope.launch(appDispatcher.IO) {
-            withContext(appDispatcher.MAIN) {
-                networkUtils.isInternetAvailable.observeForever { isAvailable ->
-                    _state.update { it.copy(isInternetAvailable = isAvailable) }
-                }
+            connectivityObserver.observe().collectLatest { status ->
+                _state.emit(
+                    _state.value.copy(
+                        connectivityStatus = status
+                    )
+                )
             }
         }
     }
@@ -226,7 +227,7 @@ data class EditPlaceState(
     val setting: ApiPlaceMemberSetting? = null,
     val updatedSetting: ApiPlaceMemberSetting? = null,
     val spaceMembers: List<UserInfo> = emptyList(),
-    val isInternetAvailable: Boolean = true,
+    val connectivityStatus: ConnectivityObserver.Status = ConnectivityObserver.Status.Available,
     val saving: Boolean = false,
     val deleting: Boolean = false,
     val showDeletePlaceConfirmation: Boolean = false,

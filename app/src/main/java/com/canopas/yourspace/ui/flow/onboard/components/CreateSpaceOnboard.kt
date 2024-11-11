@@ -22,6 +22,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.CreateSpace
 import com.canopas.yourspace.ui.flow.onboard.OnboardItems
@@ -72,7 +73,7 @@ fun CreateSpaceOnboard() {
             showLoader = state.creatingSpace,
             onSpaceNameChanged = { spaceName = it }
         ) {
-            if (state.isInternetAvailable) {
+            if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
                 viewModel.createSpace(spaceName)
             } else {
                 Toast.makeText(context, R.string.common_internet_error_toast, Toast.LENGTH_SHORT).show()

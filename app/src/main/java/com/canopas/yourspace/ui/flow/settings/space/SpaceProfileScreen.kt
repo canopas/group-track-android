@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.user.UserInfo
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.component.AppAlertDialog
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.AppProgressIndicator
@@ -70,7 +71,7 @@ fun SpaceProfileScreen() {
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            if (state.isInternetAvailable) {
+            if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
                 SpaceProfileContent()
                 if (state.isLoading) {
                     AppProgressIndicator()
@@ -144,7 +145,7 @@ private fun SpaceProfileToolbar() {
             }
         },
         actions = {
-            if (state.isInternetAvailable) {
+            if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
                 Text(
                     text = stringResource(id = R.string.edit_profile_toolbar_save_text),
                     color = if (state.allowSave) AppTheme.colorScheme.primary else AppTheme.colorScheme.textDisabled,

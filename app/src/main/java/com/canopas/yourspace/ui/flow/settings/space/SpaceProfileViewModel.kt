@@ -7,15 +7,14 @@ import com.canopas.yourspace.data.models.space.SpaceInfo
 import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.utils.AppDispatcher
-import com.canopas.yourspace.domain.utils.NetworkUtils
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -26,7 +25,7 @@ class SpaceProfileViewModel @Inject constructor(
     private val navigator: AppNavigator,
     private val authService: AuthService,
     private val appDispatcher: AppDispatcher,
-    private val networkUtils: NetworkUtils
+    private val connectivityObserver: ConnectivityObserver
 ) : ViewModel() {
 
     private val spaceID =
@@ -182,10 +181,12 @@ class SpaceProfileViewModel @Inject constructor(
 
     fun checkInternetConnection() {
         viewModelScope.launch(appDispatcher.IO) {
-            withContext(appDispatcher.MAIN) {
-                networkUtils.isInternetAvailable.observeForever { isAvailable ->
-                    _state.update { it.copy(isInternetAvailable = isAvailable) }
-                }
+            connectivityObserver.observe().collectLatest { status ->
+                _state.emit(
+                    _state.value.copy(
+                        connectivityStatus = status
+                    )
+                )
             }
         }
     }
@@ -205,5 +206,5 @@ data class SpaceProfileState(
     val showLeaveSpaceConfirmation: Boolean = false,
     val allowSave: Boolean = false,
     val error: Exception? = null,
-    val isInternetAvailable: Boolean = true
+    val connectivityStatus: ConnectivityObserver.Status = ConnectivityObserver.Status.Available
 )

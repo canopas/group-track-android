@@ -1,14 +1,13 @@
 package com.canopas.yourspace.ui.flow.geofence.places
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.lifecycle.MutableLiveData
 import com.canopas.yourspace.MainCoroutineRule
 import com.canopas.yourspace.data.models.place.ApiPlace
 import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.place.ApiPlaceService
 import com.canopas.yourspace.data.utils.AppDispatcher
-import com.canopas.yourspace.domain.utils.NetworkUtils
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -41,7 +40,7 @@ class PlacesListViewModelTest {
     private val spaceRepository = mock<SpaceRepository>()
     private val placeService = mock<ApiPlaceService>()
     private val authService = mock<AuthService>()
-    private val networkUtils = mock<NetworkUtils>()
+    private val connectivityObserver = mock<ConnectivityObserver>()
 
     private lateinit var viewModel: PlacesListViewModel
 
@@ -51,7 +50,7 @@ class PlacesListViewModelTest {
     }
 
     private fun init() {
-        whenever(networkUtils.isInternetAvailable).thenReturn(MutableLiveData(true))
+        whenever(connectivityObserver.observe()).thenReturn(flowOf(ConnectivityObserver.Status.Available))
 
         viewModel = PlacesListViewModel(
             appNavigator,
@@ -59,7 +58,7 @@ class PlacesListViewModelTest {
             spaceRepository,
             placeService,
             authService,
-            networkUtils
+            connectivityObserver
         )
     }
 

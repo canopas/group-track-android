@@ -46,6 +46,7 @@ import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.user.ApiUser
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.component.AppProgressIndicator
 import com.canopas.yourspace.ui.component.motionClickEvent
 import com.canopas.yourspace.ui.flow.settings.ProfileImageView
@@ -61,7 +62,7 @@ fun UserProfileView(
     dismissProfileChooser: () -> Unit,
     showProfileChooser: Boolean = false,
     isImageUploading: Boolean = false,
-    isInternetAvailable: Boolean
+    connectivityStatus: ConnectivityObserver.Status,
 ) {
     val context = LocalContext.current
 
@@ -156,7 +157,7 @@ fun UserProfileView(
                     .size(24.dp)
                     .motionClickEvent {
                         if (!isImageUploading) {
-                            if (isInternetAvailable) {
+                            if (connectivityStatus == ConnectivityObserver.Status.Available) {
                                 onProfileImageClicked()
                             } else {
                                 Toast

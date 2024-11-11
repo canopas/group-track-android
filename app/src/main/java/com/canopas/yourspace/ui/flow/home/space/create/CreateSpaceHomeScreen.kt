@@ -16,6 +16,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.CreateSpace
 import com.canopas.yourspace.ui.theme.AppTheme
@@ -55,7 +56,7 @@ fun CreateSpaceHomeScreen() {
             showLoader = state.creatingSpace,
             onSpaceNameChanged = { viewModel.onSpaceNameChange(it) },
             onNext = {
-                if (state.isInternetAvailable) {
+                if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
                     viewModel.createSpace()
                 } else {
                     Toast.makeText(

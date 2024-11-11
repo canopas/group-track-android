@@ -1,19 +1,19 @@
 package com.canopas.yourspace.ui.flow.auth.methods
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.lifecycle.MutableLiveData
 import com.canopas.yourspace.MainCoroutineRule
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.auth.FirebaseAuthService
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.utils.AppDispatcher
-import com.canopas.yourspace.domain.utils.NetworkUtils
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.flow.auth.SignInMethodViewModel
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
@@ -41,11 +41,11 @@ class SignInMethodViewModelTest {
     private val firebaseAuth = mock<FirebaseAuthService>()
     private val authService = mock<AuthService>()
     private val userPreferences = mock<UserPreferences>()
-    private val networkUtils = mock<NetworkUtils>()
+    private val connectivityObserver = mock<ConnectivityObserver>()
 
     @Before
     fun setup() {
-        whenever(networkUtils.isInternetAvailable).thenReturn(MutableLiveData(true))
+        whenever(connectivityObserver.observe()).thenReturn(flowOf(ConnectivityObserver.Status.Available))
 
         viewModel = SignInMethodViewModel(
             navigator,
@@ -53,7 +53,7 @@ class SignInMethodViewModelTest {
             authService,
             testDispatcher,
             userPreferences,
-            networkUtils
+            connectivityObserver
         )
     }
 
