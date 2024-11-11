@@ -22,6 +22,7 @@ import kotlin.math.sqrt
 const val MIN_DISTANCE = 150.0 // 150 meters
 const val MIN_TIME_DIFFERENCE = 5 * 60 * 1000 // 5 minutes
 const val MIN_DISTANCE_FOR_MOVING = 10.0 // 10 meters
+const val MIN_UPDATE_INTERVAL_MS = 60 * 1000 // 1 minute
 
 @Singleton
 class JourneyRepository @Inject constructor(
@@ -316,7 +317,7 @@ class JourneyRepository @Inject constructor(
         )
         val lastJourneyUpdatedTime = locationCache.getLastJourneyUpdatedTime(userId)
         val timeDifference = journey.update_at!! - lastJourneyUpdatedTime
-        if (timeDifference >= 60 * 1000) {
+        if (timeDifference >= MIN_UPDATE_INTERVAL_MS) {
             // Update last location journey in remote database
             // as one minute is passed since last update
             journeyService.updateLastLocationJourney(
