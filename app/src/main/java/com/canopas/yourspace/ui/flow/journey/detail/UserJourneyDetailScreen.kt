@@ -152,7 +152,7 @@ private fun JourneyInfo(journey: LocationJourney) {
             modifier = Modifier
                 .height(90.dp)
         ) {
-            DottedTimeline(isSteadyLocation = true, isLastItem = false)
+            DottedTimeline(isSteadyLocation = false, isLastItem = false, isJourneyDetail = true)
             Column(
                 modifier = Modifier
                     .padding(start = 16.dp)
@@ -167,7 +167,7 @@ private fun JourneyInfo(journey: LocationJourney) {
             modifier = Modifier
                 .height(90.dp)
         ) {
-            DottedTimeline(isSteadyLocation = false, isLastItem = true)
+            DottedTimeline(isSteadyLocation = true, isLastItem = true, isJourneyDetail = true)
             Column(
                 modifier = Modifier
                     .padding(start = 16.dp)
@@ -229,7 +229,7 @@ private fun ColumnScope.MapView(journey: LocationJourney?) {
         fromMarkerContent = {
             JourneyMarker(bgColor = AppTheme.colorScheme.primary) {
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_journey_destination),
+                    painter = painterResource(id = R.drawable.ic_tab_places_filled),
                     contentDescription = null,
                     tint = AppTheme.colorScheme.successColor,
                     modifier = Modifier.size(16.dp)
@@ -241,7 +241,7 @@ private fun ColumnScope.MapView(journey: LocationJourney?) {
                 AppTheme.colorScheme.successColor
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_tab_places_filled),
+                    painter = painterResource(id = R.drawable.ic_journey_destination),
                     contentDescription = null,
                     tint = AppTheme.colorScheme.primary,
                     modifier = Modifier.size(16.dp)
