@@ -21,7 +21,7 @@ import kotlin.math.sqrt
 
 const val MIN_DISTANCE = 150.0 // 150 meters
 const val MIN_TIME_DIFFERENCE = 5 * 60 * 1000 // 5 minutes
-const val MIN_DISTANCE_FOR_MOVING = 10.0 // 50 meters
+const val MIN_DISTANCE_FOR_MOVING = 10.0 // 10 meters
 
 @Singleton
 class JourneyRepository @Inject constructor(
