@@ -177,7 +177,8 @@ class JourneyRepository @Inject constructor(
                 ) {
                     newJourneyId = it
                 }
-                val locationJourney = extractedLocation?.toLocationJourney(userid, newJourneyId) ?: return LocationJourney()
+                val locationJourney = extractedLocation?.toLocationJourney(userid, newJourneyId)
+                    ?: return LocationJourney()
                 locationCache.putLastJourney(locationJourney, userid)
                 locationManager.updateRequestBasedOnState(isMoving = false)
                 return locationJourney
@@ -264,7 +265,7 @@ class JourneyRepository @Inject constructor(
         distance: Float,
         duration: Long = 0
     ) {
-        //Update the last steady journey's `updated_at` with this new moving journey's `created_at`
+        // Update the last steady journey's `updated_at` with this new moving journey's `created_at`
         val updatedSteadyJourney = lastKnownJourney.copy(
             update_at = System.currentTimeMillis()
         )
