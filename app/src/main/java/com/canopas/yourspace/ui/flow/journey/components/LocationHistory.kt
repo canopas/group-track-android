@@ -177,10 +177,10 @@ fun SteadyLocationItem(
 
         // Determine the end time for duration calculation
         val endTime = when {
-            nextJourney != null -> if (isFirstItem) {
+            nextJourney != null -> if (nextJourney.created_at!! > endOfSteadyDay) {
                 minOf(System.currentTimeMillis(), endOfSteadyDay)
             } else {
-                nextJourney.created_at!!
+                location.update_at!!
             }
             else -> minOf(System.currentTimeMillis(), endOfSteadyDay)
         }
