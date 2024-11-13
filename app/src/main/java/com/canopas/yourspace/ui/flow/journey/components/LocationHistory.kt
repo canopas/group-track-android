@@ -172,18 +172,16 @@ fun SteadyLocationItem(
 
         val createdAt = location.created_at ?: System.currentTimeMillis()
 
-        // Calculate the end of the day timestamp for this steady location
-        val endOfSteadyDay = getEndOfDayTimestamp(createdAt)
-
-        // Determine the end time for duration calculation
         val endTime = when {
-            nextJourney != null -> if (isFirstItem) {
-                minOf(System.currentTimeMillis(), endOfSteadyDay)
-            } else {
+            nextJourney != null -> {
                 location.update_at!!
             }
             else -> {
-                minOf(System.currentTimeMillis(), location.update_at!!)
+                if (isSameDay(location.created_at!!, location.update_at!!)) {
+                    System.currentTimeMillis()
+                } else {
+                    minOf(System.currentTimeMillis(), location.update_at!!)
+                }
             }
         }
 
@@ -245,13 +243,11 @@ fun SteadyLocationItem(
     }
 }
 
-fun getEndOfDayTimestamp(startAt: Long): Long {
-    val cal = Calendar.getInstance().apply {
-        timeInMillis = startAt
-        set(Calendar.HOUR_OF_DAY, 23)
-        set(Calendar.MINUTE, 59)
-    }
-    return cal.timeInMillis
+fun isSameDay(timestamp1: Long, timestamp2: Long): Boolean {
+    val cal1 = Calendar.getInstance().apply { timeInMillis = timestamp1 }
+    val cal2 = Calendar.getInstance().apply { timeInMillis = timestamp2 }
+    return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
+            cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR)
 }
 
 fun formatSteadyDuration(durationMillis: Long): String {
