@@ -176,6 +176,7 @@ fun SteadyLocationItem(
             nextJourney != null -> {
                 location.update_at!!
             }
+
             else -> {
                 if (isSameDay(location.created_at!!, location.update_at!!)) {
                     System.currentTimeMillis()
@@ -246,8 +247,9 @@ fun SteadyLocationItem(
 fun isSameDay(timestamp1: Long, timestamp2: Long): Boolean {
     val cal1 = Calendar.getInstance().apply { timeInMillis = timestamp1 }
     val cal2 = Calendar.getInstance().apply { timeInMillis = timestamp2 }
-    return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
-            cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR)
+    return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) && cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(
+        Calendar.DAY_OF_YEAR
+    )
 }
 
 fun formatSteadyDuration(durationMillis: Long): String {
