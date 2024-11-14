@@ -10,12 +10,14 @@ import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.storage.LocationCache
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import com.google.firebase.storage.FirebaseStorage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -26,7 +28,8 @@ class EditProfileViewModel @Inject constructor(
     private val appDispatcher: AppDispatcher,
     private val spaceRepository: SpaceRepository,
     private val authService: AuthService,
-    private val locationCache: LocationCache
+    private val locationCache: LocationCache,
+    private val connectivityObserver: ConnectivityObserver
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(EditProfileState())
@@ -35,6 +38,7 @@ class EditProfileViewModel @Inject constructor(
     private var user: ApiUser? = null
 
     init {
+        checkInternetConnection()
         getUser()
     }
 
@@ -177,6 +181,18 @@ class EditProfileViewModel @Inject constructor(
             _state.emit(_state.value.copy(deletingAccount = false, error = e))
         }
     }
+
+    fun checkInternetConnection() {
+        viewModelScope.launch(appDispatcher.IO) {
+            connectivityObserver.observe().collectLatest { status ->
+                _state.emit(
+                    _state.value.copy(
+                        connectivityStatus = status
+                    )
+                )
+            }
+        }
+    }
 }
 
 data class EditProfileState(
@@ -193,5 +209,6 @@ data class EditProfileState(
     val lastName: String? = null,
     val email: String? = null,
     val profileUrl: String? = null,
-    val isImageUploadInProgress: Boolean = false
+    val isImageUploadInProgress: Boolean = false,
+    val connectivityStatus: ConnectivityObserver.Status = ConnectivityObserver.Status.Available
 )

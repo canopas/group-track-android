@@ -33,9 +33,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.location.LocationJourney
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.domain.utils.formattedMessageDateHeader
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.AppProgressIndicator
+import com.canopas.yourspace.ui.component.NoInternetScreen
 import com.canopas.yourspace.ui.component.ShowDatePicker
 import com.canopas.yourspace.ui.component.reachedBottom
 import com.canopas.yourspace.ui.flow.journey.components.EmptyHistory
@@ -88,19 +90,21 @@ fun TimelineTopBar() {
             }
         },
         actions = {
-            TextButton(onClick = viewModel::showDatePicker) {
-                Text(
-                    text = state.selectedTimeFrom?.formattedMessageDateHeader(LocalContext.current)
-                        ?: "",
-                    style = AppTheme.appTypography.body1,
-                    color = AppTheme.colorScheme.textPrimary
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_action_filter),
-                    contentDescription = "",
-                    tint = AppTheme.colorScheme.textPrimary
-                )
+            if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
+                TextButton(onClick = viewModel::showDatePicker) {
+                    Text(
+                        text = state.selectedTimeFrom?.formattedMessageDateHeader(LocalContext.current)
+                            ?: "",
+                        style = AppTheme.appTypography.body1,
+                        color = AppTheme.colorScheme.textPrimary
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_action_filter),
+                        contentDescription = "",
+                        tint = AppTheme.colorScheme.textPrimary
+                    )
+                }
             }
         }
     )
@@ -123,20 +127,24 @@ private fun TimelineContent(modifier: Modifier) {
         )
     }
 
-    Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        if (state.isLoading) {
-            AppProgressIndicator()
-        } else if (state.groupedLocation.isEmpty()) {
-            EmptyHistory()
-        } else {
-            JourneyList(
-                appending = state.appending,
-                journeys = state.groupedLocation,
-                onScrollToBottom = viewModel::loadMoreLocations,
-                onAddPlaceClicked = viewModel::addPlace,
-                showJourneyDetails = viewModel::showJourneyDetails
-            )
+    if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
+        Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            if (state.isLoading) {
+                AppProgressIndicator()
+            } else if (state.groupedLocation.isEmpty()) {
+                EmptyHistory()
+            } else {
+                JourneyList(
+                    appending = state.appending,
+                    journeys = state.groupedLocation,
+                    onScrollToBottom = viewModel::loadMoreLocations,
+                    onAddPlaceClicked = viewModel::addPlace,
+                    showJourneyDetails = viewModel::showJourneyDetails
+                )
+            }
         }
+    } else {
+        NoInternetScreen(viewModel::checkInternetConnection)
     }
 }
 

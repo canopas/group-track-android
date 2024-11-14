@@ -1,5 +1,6 @@
 package com.canopas.yourspace.ui.flow.settings.space
 
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.SavedStateHandle
 import com.canopas.yourspace.MainCoroutineRule
 import com.canopas.yourspace.data.models.space.ApiSpace
@@ -9,16 +10,19 @@ import com.canopas.yourspace.data.models.user.UserInfo
 import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TestRule
 import org.mockito.kotlin.doSuspendableAnswer
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
@@ -40,10 +44,14 @@ class SpaceProfileViewModelTest {
     @get:Rule
     val mainCoroutineRule = MainCoroutineRule()
 
+    @get:Rule
+    var rule: TestRule = InstantTaskExecutorRule()
+
     private val savedStateHandle = mock<SavedStateHandle>()
     private val spaceRepository = mock<SpaceRepository>()
     private val navigator = mock<AppNavigator>()
     private val authService = mock<AuthService>()
+    private val connectivityObserver = mock<ConnectivityObserver>()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val testDispatcher = AppDispatcher(IO = UnconfinedTestDispatcher())
@@ -54,12 +62,15 @@ class SpaceProfileViewModelTest {
         whenever(savedStateHandle.get<String>(AppDestinations.SpaceProfileScreen.KEY_SPACE_ID)).thenReturn(
             "space1"
         )
+        whenever(connectivityObserver.observe()).thenReturn(flowOf(ConnectivityObserver.Status.Available))
+
         viewModel = SpaceProfileViewModel(
             savedStateHandle,
             spaceRepository,
             navigator,
             authService,
-            testDispatcher
+            testDispatcher,
+            connectivityObserver
         )
     }
 

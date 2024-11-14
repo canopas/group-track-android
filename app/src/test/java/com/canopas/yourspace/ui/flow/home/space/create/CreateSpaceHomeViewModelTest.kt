@@ -1,15 +1,19 @@
 package com.canopas.yourspace.ui.flow.home.space.create
 
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.canopas.yourspace.MainCoroutineRule
 import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TestRule
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -17,20 +21,26 @@ import org.mockito.kotlin.whenever
 @ExperimentalCoroutinesApi
 class CreateSpaceHomeViewModelTest {
     @get:Rule
+    var rule: TestRule = InstantTaskExecutorRule()
+
+    @get:Rule
     val coroutineRule = MainCoroutineRule()
 
     private val spaceRepository = mock<SpaceRepository>()
     private val testDispatcher = AppDispatcher(IO = UnconfinedTestDispatcher())
     private val appNavigator = mock<AppNavigator>()
+    private val connectivityObserver = mock<ConnectivityObserver>()
 
     private lateinit var viewModel: CreateSpaceHomeViewModel
 
     @Before
     fun setUp() {
+        whenever(connectivityObserver.observe()).thenReturn(flowOf(ConnectivityObserver.Status.Available))
         viewModel = CreateSpaceHomeViewModel(
             appNavigator = appNavigator,
             spaceRepository = spaceRepository,
-            appDispatcher = testDispatcher
+            appDispatcher = testDispatcher,
+            connectivityObserver = connectivityObserver
         )
     }
 

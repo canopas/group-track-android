@@ -45,9 +45,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.user.UserInfo
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.component.AppAlertDialog
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.AppProgressIndicator
+import com.canopas.yourspace.ui.component.NoInternetScreen
 import com.canopas.yourspace.ui.component.PrimaryTextButton
 import com.canopas.yourspace.ui.component.UserProfile
 import com.canopas.yourspace.ui.flow.settings.profile.UserTextField
@@ -69,9 +71,13 @@ fun SpaceProfileScreen() {
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            SpaceProfileContent()
-            if (state.isLoading) {
-                AppProgressIndicator()
+            if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
+                SpaceProfileContent()
+                if (state.isLoading) {
+                    AppProgressIndicator()
+                }
+            } else {
+                NoInternetScreen(viewModel::checkInternetConnection)
             }
         }
     }
@@ -181,7 +187,9 @@ private fun SpaceProfileContent() {
             )
 
             HorizontalDivider(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 24.dp),
                 color = AppTheme.colorScheme.outline
             )
 
@@ -199,7 +207,9 @@ private fun SpaceProfileContent() {
             }
 
             HorizontalDivider(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 24.dp),
                 color = AppTheme.colorScheme.outline
             )
 

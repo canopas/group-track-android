@@ -1,5 +1,6 @@
 package com.canopas.yourspace.ui.flow.settings.profile
 
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
@@ -32,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -40,6 +42,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.component.AppAlertDialog
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.AppProgressIndicator
@@ -71,6 +74,7 @@ fun EditProfileScreen() {
 private fun EditProfileToolbar() {
     val viewModel = hiltViewModel<EditProfileViewModel>()
     val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(containerColor = AppTheme.colorScheme.surface),
         title = {
@@ -99,7 +103,17 @@ private fun EditProfileToolbar() {
                         indication = ripple(bounded = false),
                         enabled = state.allowSave,
                         onClick = {
-                            viewModel.saveUser()
+                            if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
+                                viewModel.saveUser()
+                            } else {
+                                Toast
+                                    .makeText(
+                                        context,
+                                        R.string.common_internet_error_toast,
+                                        Toast.LENGTH_SHORT
+                                    )
+                                    .show()
+                            }
                         }
                     )
             )
@@ -112,6 +126,7 @@ private fun EditProfileScreenContent(modifier: Modifier) {
     val viewModel = hiltViewModel<EditProfileViewModel>()
     val state by viewModel.state.collectAsState()
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
 
     Box(
         modifier = modifier.fillMaxSize(),
@@ -135,7 +150,8 @@ private fun EditProfileScreenContent(modifier: Modifier) {
                     viewModel.showProfileChooser(false)
                 },
                 state.showProfileChooser,
-                state.isImageUploadInProgress
+                state.isImageUploadInProgress,
+                state.connectivityStatus
             )
 
             Spacer(modifier = Modifier.height(35.dp))
@@ -182,7 +198,15 @@ private fun EditProfileScreenContent(modifier: Modifier) {
                 },
                 label = stringResource(id = R.string.settings_btn_delete_account),
                 onClick = {
-                    viewModel.showDeleteAccountConfirmation(true)
+                    if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
+                        viewModel.showDeleteAccountConfirmation(true)
+                    } else {
+                        Toast.makeText(
+                            context,
+                            R.string.common_internet_error_toast,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 },
                 containerColor = AppTheme.colorScheme.containerLow,
                 contentColor = AppTheme.colorScheme.alertColor,

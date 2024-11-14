@@ -36,8 +36,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.AppProgressIndicator
+import com.canopas.yourspace.ui.component.NoInternetScreen
 import com.canopas.yourspace.ui.component.SearchTextField
 import com.canopas.yourspace.ui.theme.AppTheme
 import com.google.android.libraries.places.api.model.Place
@@ -75,9 +77,13 @@ fun AddNewPlaceScreen() {
             )
         }
     ) {
-        AddNewPlace(
-            modifier = Modifier.padding(it)
-        )
+        if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
+            AddNewPlace(
+                modifier = Modifier.padding(it)
+            )
+        } else {
+            NoInternetScreen(viewModel::checkInternetConnection)
+        }
     }
 }
 

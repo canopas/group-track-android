@@ -45,8 +45,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.user.UserInfo
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.AppProgressIndicator
+import com.canopas.yourspace.ui.component.NoInternetScreen
 import com.canopas.yourspace.ui.flow.messages.chat.components.MemberList
 import com.canopas.yourspace.ui.flow.messages.chat.components.MessageList
 import com.canopas.yourspace.ui.theme.AppTheme
@@ -79,7 +81,11 @@ fun MessagesScreen() {
         contentColor = AppTheme.colorScheme.textPrimary,
         containerColor = AppTheme.colorScheme.surface
     ) {
-        MessagesContent(modifier = Modifier.padding(it))
+        if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
+            MessagesContent(modifier = Modifier.padding(it))
+        } else {
+            NoInternetScreen(viewModel::checkInternetConnection)
+        }
     }
 
     if (state.error != null) {

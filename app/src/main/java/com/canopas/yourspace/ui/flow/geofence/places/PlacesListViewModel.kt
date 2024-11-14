@@ -8,6 +8,7 @@ import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.place.ApiPlaceService
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,7 +26,8 @@ class PlacesListViewModel @Inject constructor(
     private val appDispatcher: AppDispatcher,
     private val spaceRepository: SpaceRepository,
     private val placeService: ApiPlaceService,
-    private val authService: AuthService
+    private val authService: AuthService,
+    private val connectivityObserver: ConnectivityObserver
 ) : ViewModel() {
 
     private val _state =
@@ -33,6 +35,7 @@ class PlacesListViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     init {
+        checkInternetConnection()
         loadPlaces()
     }
 
@@ -114,6 +117,18 @@ class PlacesListViewModel @Inject constructor(
         }
     }
 
+    fun checkInternetConnection() {
+        viewModelScope.launch(appDispatcher.IO) {
+            connectivityObserver.observe().collectLatest { status ->
+                _state.emit(
+                    _state.value.copy(
+                        connectivityStatus = status
+                    )
+                )
+            }
+        }
+    }
+
     fun resetErrorState() {
         _state.value = _state.value.copy(error = null)
     }
@@ -127,7 +142,7 @@ data class PlacesListScreenState(
 
     val placeToDelete: ApiPlace? = null,
     val deletingPlaces: List<ApiPlace> = emptyList(),
-
+    val connectivityStatus: ConnectivityObserver.Status = ConnectivityObserver.Status.Available,
     val currentUser: ApiUser? = null,
     val placesLoading: Boolean = false,
     val places: List<ApiPlace> = emptyList(),

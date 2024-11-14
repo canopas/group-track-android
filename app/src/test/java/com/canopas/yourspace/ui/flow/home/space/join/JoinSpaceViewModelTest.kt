@@ -1,5 +1,6 @@
 package com.canopas.yourspace.ui.flow.home.space.join
 
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.canopas.yourspace.MainCoroutineRule
 import com.canopas.yourspace.data.models.space.ApiSpace
 import com.canopas.yourspace.data.models.space.ApiSpaceInvitation
@@ -7,16 +8,19 @@ import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.space.SpaceInvitationService
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TestRule
 import org.mockito.kotlin.doSuspendableAnswer
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -26,12 +30,16 @@ import org.mockito.kotlin.whenever
 class JoinSpaceViewModelTest {
 
     @get:Rule
+    var rule: TestRule = InstantTaskExecutorRule()
+
+    @get:Rule
     val coroutineRule = MainCoroutineRule()
 
     private val spaceRepository = mock<SpaceRepository>()
     private val appNavigator = mock<AppNavigator>()
     private val authService = mock<AuthService>()
     private val invitationService = mock<SpaceInvitationService>()
+    private val connectivityObserver = mock<ConnectivityObserver>()
 
     private val testDispatcher = AppDispatcher(IO = UnconfinedTestDispatcher())
 
@@ -39,12 +47,15 @@ class JoinSpaceViewModelTest {
 
     @Before
     fun setUp() {
+        whenever(connectivityObserver.observe()).thenReturn(flowOf(ConnectivityObserver.Status.Available))
+
         viewModel = JoinSpaceViewModel(
             appNavigator = appNavigator,
             appDispatcher = testDispatcher,
             invitationService = invitationService,
             spaceRepository = spaceRepository,
-            authService = authService
+            authService = authService,
+            connectivityObserver = connectivityObserver
         )
     }
 

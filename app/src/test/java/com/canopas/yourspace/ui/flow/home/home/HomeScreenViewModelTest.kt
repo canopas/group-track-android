@@ -1,5 +1,6 @@
 package com.canopas.yourspace.ui.flow.home.home
 
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.canopas.yourspace.MainCoroutineRule
 import com.canopas.yourspace.data.models.space.ApiSpace
 import com.canopas.yourspace.data.models.space.SpaceInfo
@@ -10,6 +11,7 @@ import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.location.LocationManager
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.flow.home.home.HomeViewModelTestData.space_info1
 import com.canopas.yourspace.ui.flow.home.home.HomeViewModelTestData.space_info2
 import com.canopas.yourspace.ui.flow.home.home.HomeViewModelTestData.user1
@@ -23,6 +25,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TestRule
 import org.mockito.kotlin.doSuspendableAnswer
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -43,6 +46,10 @@ object HomeViewModelTestData {
 
 @ExperimentalCoroutinesApi
 class HomeScreenViewModelTest {
+
+    @get:Rule
+    var rule: TestRule = InstantTaskExecutorRule()
+
     @get:Rule
     val coroutineRule = MainCoroutineRule()
 
@@ -51,6 +58,7 @@ class HomeScreenViewModelTest {
     private val spaceRepository = mock<SpaceRepository>()
     private val userPreferences = mock<UserPreferences>()
     private val authService = mock<AuthService>()
+    private val connectivityObserver = mock<ConnectivityObserver>()
 
     private val testDispatcher = AppDispatcher(IO = UnconfinedTestDispatcher())
 
@@ -59,13 +67,15 @@ class HomeScreenViewModelTest {
     private fun setUp() {
         whenever(userPreferences.currentUser).thenReturn(user1)
         whenever(userPreferences.currentSpaceState).thenReturn(flowOf("space1"))
+        whenever(connectivityObserver.observe()).thenReturn(flowOf(ConnectivityObserver.Status.Available))
         viewModel = HomeScreenViewModel(
             navigator = navigator,
             locationManager = locationManager,
             spaceRepository = spaceRepository,
             userPreferences = userPreferences,
             authService = authService,
-            appDispatcher = testDispatcher
+            appDispatcher = testDispatcher,
+            connectivityObserver = connectivityObserver
         )
     }
 

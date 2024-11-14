@@ -2,6 +2,7 @@ package com.canopas.yourspace.ui.flow.onboard.components
 
 import android.content.Context
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -26,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.component.PrimaryButton
 import com.canopas.yourspace.ui.component.PrimaryTextButton
 import com.canopas.yourspace.ui.flow.onboard.OnboardViewModel
@@ -35,7 +37,6 @@ import com.canopas.yourspace.ui.theme.AppTheme
 fun ShareSpaceCodeOnboard() {
     val viewModel = hiltViewModel<OnboardViewModel>()
     val state by viewModel.state.collectAsState()
-
     val context = LocalContext.current
     Column(
         Modifier
@@ -76,7 +77,21 @@ fun ShareSpaceCodeOnboard() {
         Spacer(modifier = Modifier.weight(1f))
         PrimaryButton(
             label = stringResource(R.string.onboard_share_space_code_btn),
-            onClick = { shareInvitationCode(context, state.spaceInviteCode ?: "") },
+            onClick = {
+                when (state.connectivityStatus) {
+                    ConnectivityObserver.Status.Available -> {
+                        shareInvitationCode(context, state.spaceInviteCode ?: "")
+                    }
+
+                    else -> {
+                        Toast.makeText(
+                            context,
+                            R.string.common_internet_error_toast,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(10.dp))

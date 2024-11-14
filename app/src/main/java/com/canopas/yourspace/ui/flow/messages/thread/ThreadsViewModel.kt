@@ -9,6 +9,7 @@ import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.messages.ApiMessagesService
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,13 +27,15 @@ class ThreadsViewModel @Inject constructor(
     private val authService: AuthService,
     private val spaceRepository: SpaceRepository,
     private val navigator: AppNavigator,
-    private val appDispatcher: AppDispatcher
+    private val appDispatcher: AppDispatcher,
+    private val connectivityObserver: ConnectivityObserver
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ThreadsScreenState(currentUser = authService.currentUser))
     val state = _state.asStateFlow()
 
     init {
+        checkInternetConnection()
         getCurrentSpace()
         listenThreads()
     }
@@ -129,6 +132,18 @@ class ThreadsViewModel @Inject constructor(
             }
         }
     }
+
+    fun checkInternetConnection() {
+        viewModelScope.launch(appDispatcher.IO) {
+            connectivityObserver.observe().collectLatest { status ->
+                _state.emit(
+                    _state.value.copy(
+                        connectivityStatus = status
+                    )
+                )
+            }
+        }
+    }
 }
 
 data class ThreadsScreenState(
@@ -141,5 +156,6 @@ data class ThreadsScreenState(
     val hasMembers: Boolean = false,
     val threadInfo: List<ThreadInfo> = emptyList(),
     val deletingThread: ThreadInfo? = null,
-    val error: String? = null
+    val error: String? = null,
+    val connectivityStatus: ConnectivityObserver.Status = ConnectivityObserver.Status.Available
 )
