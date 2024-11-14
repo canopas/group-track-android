@@ -1,5 +1,6 @@
 package com.canopas.yourspace.ui.flow.onboard.components
 
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -17,9 +18,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.CreateSpace
 import com.canopas.yourspace.ui.flow.onboard.OnboardItems
@@ -31,6 +34,7 @@ import com.canopas.yourspace.ui.theme.AppTheme
 fun CreateSpaceOnboard() {
     val viewModel = hiltViewModel<OnboardViewModel>()
     val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
 
     val initialName = if (state.lastName.isEmpty()) {
         ""
@@ -69,7 +73,11 @@ fun CreateSpaceOnboard() {
             showLoader = state.creatingSpace,
             onSpaceNameChanged = { spaceName = it }
         ) {
-            viewModel.createSpace(spaceName)
+            if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
+                viewModel.createSpace(spaceName)
+            } else {
+                Toast.makeText(context, R.string.common_internet_error_toast, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

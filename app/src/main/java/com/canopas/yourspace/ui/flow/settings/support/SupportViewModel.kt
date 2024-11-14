@@ -5,10 +5,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.canopas.yourspace.data.service.support.ApiSupportService
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
@@ -18,7 +20,8 @@ import javax.inject.Inject
 class SupportViewModel @Inject constructor(
     private val appNavigator: AppNavigator,
     private val appDispatchers: AppDispatcher,
-    private val apiSupportService: ApiSupportService
+    private val apiSupportService: ApiSupportService,
+    private val connectivityObserver: ConnectivityObserver
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SupportState())
@@ -26,6 +29,10 @@ class SupportViewModel @Inject constructor(
 
     private val attachmentsToUpload = mutableListOf<File>()
     private val uploadedAttachments = mutableMapOf<File, Uri?>()
+
+    init {
+        checkInternetConnection()
+    }
 
     fun popBackStack() {
         appNavigator.navigateBack()
@@ -128,6 +135,26 @@ class SupportViewModel @Inject constructor(
         _state.value = state.value.copy(error = null, attachmentSizeLimitExceed = false)
     }
 
+    fun handleSupportRequestSubmission(onNoInternet: () -> Unit) {
+        if (state.value.connectivityStatus == ConnectivityObserver.Status.Available) {
+            submitSupportRequest()
+        } else {
+            onNoInternet()
+        }
+    }
+
+    fun checkInternetConnection() {
+        viewModelScope.launch {
+            connectivityObserver.observe().collectLatest { status ->
+                _state.emit(
+                    _state.value.copy(
+                        connectivityStatus = status
+                    )
+                )
+            }
+        }
+    }
+
     fun dismissSuccessPopup() {
         _state.value = state.value.copy(requestSent = false)
         appNavigator.navigateBack()
@@ -143,5 +170,6 @@ data class SupportState(
     val attachments: List<File> = emptyList(),
     val attachmentSizeLimitExceed: Boolean = false,
     val attachmentsFailed: List<File> = emptyList(),
-    val error: String? = null
+    val error: String? = null,
+    val connectivityStatus: ConnectivityObserver.Status = ConnectivityObserver.Status.Available
 )

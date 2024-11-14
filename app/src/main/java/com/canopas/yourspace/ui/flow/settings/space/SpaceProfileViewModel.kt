@@ -7,11 +7,13 @@ import com.canopas.yourspace.data.models.space.SpaceInfo
 import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -22,16 +24,19 @@ class SpaceProfileViewModel @Inject constructor(
     private val spaceRepository: SpaceRepository,
     private val navigator: AppNavigator,
     private val authService: AuthService,
-    private val appDispatcher: AppDispatcher
+    private val appDispatcher: AppDispatcher,
+    private val connectivityObserver: ConnectivityObserver
 ) : ViewModel() {
 
     private val spaceID =
-        savedStateHandle.get<String>(AppDestinations.SpaceProfileScreen.KEY_SPACE_ID) ?: throw IllegalArgumentException("Space ID is required")
+        savedStateHandle.get<String>(AppDestinations.SpaceProfileScreen.KEY_SPACE_ID)
+            ?: throw IllegalArgumentException("Space ID is required")
 
     private val _state = MutableStateFlow(SpaceProfileState())
     val state = _state.asStateFlow()
 
     init {
+        checkInternetConnection()
         fetchSpaceDetail()
     }
 
@@ -88,6 +93,10 @@ class SpaceProfileViewModel @Inject constructor(
 
     fun saveSpace() = viewModelScope.launch(appDispatcher.IO) {
         if (state.value.saving) return@launch
+        if (state.value.connectivityStatus != ConnectivityObserver.Status.Available) {
+            _state.emit(_state.value.copy(error = Exception()))
+            return@launch
+        }
         val space = _state.value.spaceInfo?.space ?: return@launch
 
         val locationEnabled =
@@ -174,6 +183,18 @@ class SpaceProfileViewModel @Inject constructor(
             )
         }
     }
+
+    fun checkInternetConnection() {
+        viewModelScope.launch(appDispatcher.IO) {
+            connectivityObserver.observe().collectLatest { status ->
+                _state.emit(
+                    _state.value.copy(
+                        connectivityStatus = status
+                    )
+                )
+            }
+        }
+    }
 }
 
 data class SpaceProfileState(
@@ -189,5 +210,6 @@ data class SpaceProfileState(
     val showDeleteSpaceConfirmation: Boolean = false,
     val showLeaveSpaceConfirmation: Boolean = false,
     val allowSave: Boolean = false,
-    val error: Exception? = null
+    val error: Exception? = null,
+    val connectivityStatus: ConnectivityObserver.Status = ConnectivityObserver.Status.Available
 )

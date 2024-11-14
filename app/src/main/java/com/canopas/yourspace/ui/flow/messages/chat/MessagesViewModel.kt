@@ -11,6 +11,7 @@ import com.canopas.yourspace.data.repository.MessagesRepository
 import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.navigation.AppDestinations.ThreadMessages.KEY_THREAD_ID
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -34,7 +35,8 @@ class MessagesViewModel @Inject constructor(
     private val authService: AuthService,
     private val messagesRepository: MessagesRepository,
     private val spaceRepository: SpaceRepository,
-    private val appDispatcher: AppDispatcher
+    private val appDispatcher: AppDispatcher,
+    private val connectivityObserver: ConnectivityObserver
 ) : ViewModel() {
 
     // For new Thread
@@ -56,6 +58,7 @@ class MessagesViewModel @Inject constructor(
         get() = state.value.messagesByDate.values.flatten()
 
     init {
+        checkInternetConnection()
         if (threadId.isEmpty()) {
             fetchSpaceForNewThread()
         } else {
@@ -358,6 +361,18 @@ class MessagesViewModel @Inject constructor(
         calendar.set(Calendar.MILLISECOND, 0)
         return calendar.timeInMillis
     }
+
+    fun checkInternetConnection() {
+        viewModelScope.launch(appDispatcher.IO) {
+            connectivityObserver.observe().collectLatest { status ->
+                _state.emit(
+                    _state.value.copy(
+                        connectivityStatus = status
+                    )
+                )
+            }
+        }
+    }
 }
 
 data class MessagesScreenState(
@@ -374,5 +389,6 @@ data class MessagesScreenState(
     val error: String? = null,
     val newMessage: String = "",
     val newMessagesToAppend: List<ApiThreadMessage> = emptyList(),
-    val isNewThread: Boolean = false
+    val isNewThread: Boolean = false,
+    val connectivityStatus: ConnectivityObserver.Status = ConnectivityObserver.Status.Available
 )

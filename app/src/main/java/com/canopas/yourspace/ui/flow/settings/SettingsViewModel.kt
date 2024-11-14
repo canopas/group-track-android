@@ -7,6 +7,7 @@ import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,14 +23,15 @@ class SettingsViewModel @Inject constructor(
     private val navigator: AppNavigator,
     private val authService: AuthService,
     private val appDispatcher: AppDispatcher,
-    private val spaceRepository: SpaceRepository
-
+    private val spaceRepository: SpaceRepository,
+    private val connectivityObserver: ConnectivityObserver
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SettingsScreenState())
     val state = _state.asStateFlow()
 
     init {
+        checkInternetConnection()
         getUser()
         getUserSpaces()
     }
@@ -87,6 +89,18 @@ class SettingsViewModel @Inject constructor(
     fun resetErrorState() {
         _state.value = _state.value.copy(error = null)
     }
+
+    fun checkInternetConnection() {
+        viewModelScope.launch(appDispatcher.IO) {
+            connectivityObserver.observe().collectLatest { status ->
+                _state.emit(
+                    _state.value.copy(
+                        connectivityStatus = status
+                    )
+                )
+            }
+        }
+    }
 }
 
 data class SettingsScreenState(
@@ -97,5 +111,6 @@ data class SettingsScreenState(
     var openDeleteAccountDialog: Boolean = false,
     var deletingAccount: Boolean = false,
     var signingOut: Boolean = false,
-    var error: String? = null
+    var error: String? = null,
+    val connectivityStatus: ConnectivityObserver.Status = ConnectivityObserver.Status.Available
 )

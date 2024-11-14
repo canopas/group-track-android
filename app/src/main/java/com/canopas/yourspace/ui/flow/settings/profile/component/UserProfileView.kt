@@ -3,6 +3,7 @@ package com.canopas.yourspace.ui.flow.settings.profile.component
 import android.graphics.Bitmap
 import android.net.Uri
 import android.provider.MediaStore
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.launch
@@ -45,6 +46,7 @@ import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.user.ApiUser
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.component.AppProgressIndicator
 import com.canopas.yourspace.ui.component.motionClickEvent
 import com.canopas.yourspace.ui.flow.settings.ProfileImageView
@@ -59,20 +61,22 @@ fun UserProfileView(
     onProfileImageClicked: () -> Unit,
     dismissProfileChooser: () -> Unit,
     showProfileChooser: Boolean = false,
-    isImageUploading: Boolean = false
+    isImageUploading: Boolean = false,
+    connectivityStatus: ConnectivityObserver.Status
 ) {
     val context = LocalContext.current
 
     var imageUri by remember { mutableStateOf<Uri?>(null) }
 
-    val imageCropLauncher = rememberLauncherForActivityResult(contract = CropImageContract()) { result ->
-        if (result.isSuccessful) {
-            result.uriContent?.let {
-                imageUri = it
-                onProfileChanged(imageUri)
+    val imageCropLauncher =
+        rememberLauncherForActivityResult(contract = CropImageContract()) { result ->
+            if (result.isSuccessful) {
+                result.uriContent?.let {
+                    imageUri = it
+                    onProfileChanged(imageUri)
+                }
             }
         }
-    }
 
     val imagePickerLauncher =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -153,7 +157,17 @@ fun UserProfileView(
                     .size(24.dp)
                     .motionClickEvent {
                         if (!isImageUploading) {
-                            onProfileImageClicked()
+                            if (connectivityStatus == ConnectivityObserver.Status.Available) {
+                                onProfileImageClicked()
+                            } else {
+                                Toast
+                                    .makeText(
+                                        context,
+                                        context.getString(R.string.common_internet_error_toast),
+                                        Toast.LENGTH_SHORT
+                                    )
+                                    .show()
+                            }
                         }
                     }
             )

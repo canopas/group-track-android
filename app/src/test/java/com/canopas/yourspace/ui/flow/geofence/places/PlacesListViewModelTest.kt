@@ -1,11 +1,13 @@
 package com.canopas.yourspace.ui.flow.geofence.places
 
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.canopas.yourspace.MainCoroutineRule
 import com.canopas.yourspace.data.models.place.ApiPlace
 import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.place.ApiPlaceService
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -17,6 +19,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TestRule
 import org.mockito.kotlin.clearInvocations
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
@@ -27,6 +30,9 @@ import org.mockito.kotlin.whenever
 class PlacesListViewModelTest {
 
     @get:Rule
+    var rule: TestRule = InstantTaskExecutorRule()
+
+    @get:Rule
     val mainCoroutineRule = MainCoroutineRule()
 
     private val appNavigator = mock<AppNavigator>()
@@ -34,6 +40,7 @@ class PlacesListViewModelTest {
     private val spaceRepository = mock<SpaceRepository>()
     private val placeService = mock<ApiPlaceService>()
     private val authService = mock<AuthService>()
+    private val connectivityObserver = mock<ConnectivityObserver>()
 
     private lateinit var viewModel: PlacesListViewModel
 
@@ -43,12 +50,15 @@ class PlacesListViewModelTest {
     }
 
     private fun init() {
+        whenever(connectivityObserver.observe()).thenReturn(flowOf(ConnectivityObserver.Status.Available))
+
         viewModel = PlacesListViewModel(
             appNavigator,
             appDispatcher,
             spaceRepository,
             placeService,
-            authService
+            authService,
+            connectivityObserver
         )
     }
 

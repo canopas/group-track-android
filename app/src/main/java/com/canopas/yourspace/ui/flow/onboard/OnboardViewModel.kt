@@ -8,11 +8,13 @@ import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.space.SpaceInvitationService
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -24,7 +26,8 @@ class OnboardViewModel @Inject constructor(
     private val spaceRepository: SpaceRepository,
     private val userPreferences: UserPreferences,
     private val navigator: AppNavigator,
-    private val invitationService: SpaceInvitationService
+    private val invitationService: SpaceInvitationService,
+    private val connectivityObserver: ConnectivityObserver
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(OnboardScreenState())
@@ -33,6 +36,7 @@ class OnboardViewModel @Inject constructor(
     private val currentUser get() = authService.currentUser
 
     init {
+        checkInternetConnection()
         val user = authService.currentUser
         _state.value = _state.value.copy(
             firstName = user?.first_name ?: "",
@@ -122,6 +126,9 @@ class OnboardViewModel @Inject constructor(
     }
 
     fun submitInviteCode() = viewModelScope.launch(appDispatcher.IO) {
+        if (_state.value.connectivityStatus != ConnectivityObserver.Status.Available) {
+            return@launch
+        }
         val code = _state.value.spaceInviteCode ?: return@launch
         _state.emit(_state.value.copy(verifyingInviteCode = true))
 
@@ -194,6 +201,18 @@ class OnboardViewModel @Inject constructor(
             currentStep = page
         )
     }
+
+    fun checkInternetConnection() {
+        viewModelScope.launch(appDispatcher.IO) {
+            connectivityObserver.observe().collectLatest { status ->
+                _state.emit(
+                    _state.value.copy(
+                        connectivityStatus = status
+                    )
+                )
+            }
+        }
+    }
 }
 
 data class OnboardScreenState(
@@ -210,7 +229,8 @@ data class OnboardScreenState(
     val verifyingInviteCode: Boolean = false,
     val errorInvalidInviteCode: Boolean = false,
     val alreadySpaceMember: Boolean = false,
-    val error: Exception? = null
+    val error: Exception? = null,
+    val connectivityStatus: ConnectivityObserver.Status = ConnectivityObserver.Status.Available
 )
 
 sealed class OnboardItems {

@@ -10,11 +10,13 @@ import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.location.ApiJourneyService
 import com.canopas.yourspace.data.service.user.ApiUserService
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.Calendar
@@ -28,7 +30,8 @@ class JourneyTimelineViewModel @Inject constructor(
     private val apiUserService: ApiUserService,
     private val authService: AuthService,
     private val journeyRepository: JourneyRepository,
-    private val appDispatcher: AppDispatcher
+    private val appDispatcher: AppDispatcher,
+    private val connectivityObserver: ConnectivityObserver
 ) : ViewModel() {
 
     private var userId: String =
@@ -47,6 +50,7 @@ class JourneyTimelineViewModel @Inject constructor(
         get() = state.value.groupedLocation.values.flatten()
 
     init {
+        checkInternetConnection()
         fetchUser()
         setSelectedTimeRange()
         loadLocations()
@@ -242,6 +246,18 @@ class JourneyTimelineViewModel @Inject constructor(
     fun dismissDatePicker() {
         _state.value = _state.value.copy(showDatePicker = false)
     }
+
+    fun checkInternetConnection() {
+        viewModelScope.launch(appDispatcher.IO) {
+            connectivityObserver.observe().collectLatest { status ->
+                _state.emit(
+                    _state.value.copy(
+                        connectivityStatus = status
+                    )
+                )
+            }
+        }
+    }
 }
 
 data class JourneyTimelineState(
@@ -254,5 +270,6 @@ data class JourneyTimelineState(
     val groupedLocation: Map<Long, List<LocationJourney>> = emptyMap(),
     val hasMoreLocations: Boolean = true,
     val showDatePicker: Boolean = false,
+    val connectivityStatus: ConnectivityObserver.Status = ConnectivityObserver.Status.Available,
     val error: String? = null
 )

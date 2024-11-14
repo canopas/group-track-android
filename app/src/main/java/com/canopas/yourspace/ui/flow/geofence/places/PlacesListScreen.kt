@@ -43,9 +43,11 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.place.ApiPlace
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.component.AppAlertDialog
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.AppProgressIndicator
+import com.canopas.yourspace.ui.component.NoInternetScreen
 import com.canopas.yourspace.ui.flow.geofence.add.components.PlaceAddedPopup
 import com.canopas.yourspace.ui.theme.AppTheme
 
@@ -81,7 +83,7 @@ fun PlacesListScreen() {
         contentColor = AppTheme.colorScheme.textPrimary,
         containerColor = AppTheme.colorScheme.surface,
         floatingActionButton = {
-            if (!state.placesLoading) {
+            if (!state.placesLoading && state.connectivityStatus == ConnectivityObserver.Status.Available) {
                 FloatingActionButton(
                     onClick = { viewModel.navigateToAddPlace() },
                     containerColor = AppTheme.colorScheme.primary,
@@ -94,7 +96,11 @@ fun PlacesListScreen() {
             }
         }
     ) {
-        PlacesListContent(modifier = Modifier.padding(it))
+        if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
+            PlacesListContent(modifier = Modifier.padding(it))
+        } else {
+            NoInternetScreen(viewModel::checkInternetConnection)
+        }
     }
 
     if (state.placeAdded) {

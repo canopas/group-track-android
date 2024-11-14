@@ -1,5 +1,6 @@
 package com.canopas.yourspace.ui.flow.home.space.join
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,6 +23,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -29,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.space.ApiSpace
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.OtpInputField
 import com.canopas.yourspace.ui.component.PrimaryButton
@@ -66,6 +69,8 @@ fun JoinSpaceScreen() {
 private fun JoinSpaceContent(modifier: Modifier) {
     val viewModel = hiltViewModel<JoinSpaceViewModel>()
     val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
+
     Column(
         modifier
             .fillMaxSize()
@@ -82,7 +87,15 @@ private fun JoinSpaceContent(modifier: Modifier) {
 
         Spacer(modifier = Modifier.height(40.dp))
         OtpInputField(pinText = state.inviteCode, onPinTextChange = {
-            viewModel.onCodeChanged(it)
+            if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
+                viewModel.onCodeChanged(it)
+            } else {
+                Toast.makeText(
+                    context,
+                    R.string.common_internet_error_toast,
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
         })
         Spacer(modifier = Modifier.height(40.dp))
         Text(
@@ -97,7 +110,17 @@ private fun JoinSpaceContent(modifier: Modifier) {
         PrimaryButton(
             modifier = Modifier.fillMaxWidth(),
             label = stringResource(id = R.string.common_btn_join_space),
-            onClick = { viewModel.verifyAndJoinSpace() },
+            onClick = {
+                if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
+                    viewModel.verifyAndJoinSpace()
+                } else {
+                    Toast.makeText(
+                        context,
+                        R.string.common_internet_error_toast,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            },
             enabled = state.inviteCode.length == 6,
             showLoader = state.verifying
         )

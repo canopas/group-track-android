@@ -1,18 +1,22 @@
 package com.canopas.yourspace.ui.flow.settings.support
 
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.canopas.yourspace.MainCoroutineRule
 import com.canopas.yourspace.data.service.support.ApiSupportService
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TestRule
 import org.mockito.kotlin.doSuspendableAnswer
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -23,20 +27,26 @@ import java.io.File
 class SupportViewModelTest {
 
     @get:Rule
+    var rule: TestRule = InstantTaskExecutorRule()
+
+    @get:Rule
     val coroutineRule = MainCoroutineRule()
 
     private val appNavigator = mock<AppNavigator>()
     private val testDispatcher = AppDispatcher(IO = UnconfinedTestDispatcher())
     private val apiSupportService = mock<ApiSupportService>()
-
+    private val connectivityObserver = mock<ConnectivityObserver>()
     private lateinit var viewModel: SupportViewModel
 
     @Before
     fun setUp() {
+        whenever(connectivityObserver.observe()).thenReturn(flowOf(ConnectivityObserver.Status.Available))
+
         viewModel = SupportViewModel(
             appNavigator = appNavigator,
             appDispatchers = testDispatcher,
-            apiSupportService = apiSupportService
+            apiSupportService = apiSupportService,
+            connectivityObserver = connectivityObserver
         )
     }
 
