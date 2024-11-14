@@ -158,7 +158,8 @@ class JourneyTimelineViewModel @Inject constructor(
 
     fun loadMoreLocations() {
         state.value.let {
-            if (it.hasMoreLocations && !it.appending) {
+            if (it.hasMoreLocations && !it.appending && it.isLoadingMore) {
+                _state.value = _state.value.copy(isLoadingMore = false)
                 loadLocations(true)
             }
         }
@@ -254,5 +255,6 @@ data class JourneyTimelineState(
     val groupedLocation: Map<Long, List<LocationJourney>> = emptyMap(),
     val hasMoreLocations: Boolean = true,
     val showDatePicker: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val isLoadingMore: Boolean = false
 )
