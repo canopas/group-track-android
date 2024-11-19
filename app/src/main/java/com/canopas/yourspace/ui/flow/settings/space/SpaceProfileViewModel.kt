@@ -196,7 +196,7 @@ class SpaceProfileViewModel @Inject constructor(
         }
     }
 
-    fun showRemoveMemberConfirmationWithId(show: Boolean,memberId: String) {
+    fun showRemoveMemberConfirmationWithId(show: Boolean, memberId: String) {
         _state.value = state.value.copy(showRemoveMemberConfirmation = show, memberToRemove = memberId)
     }
 
@@ -237,6 +237,6 @@ data class SpaceProfileState(
     val allowSave: Boolean = false,
     val error: Exception? = null,
     val connectivityStatus: ConnectivityObserver.Status = ConnectivityObserver.Status.Available,
-    val showRemoveMemberConfirmation:Boolean = false,
+    val showRemoveMemberConfirmation: Boolean = false,
     val memberToRemove: String? = null
 )

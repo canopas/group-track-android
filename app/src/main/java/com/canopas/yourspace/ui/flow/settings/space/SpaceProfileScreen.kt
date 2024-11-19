@@ -129,7 +129,7 @@ fun SpaceProfileScreen() {
             dismissBtnText = stringResource(id = R.string.common_btn_cancel),
             isConfirmDestructive = true,
             onDismissClick = {
-                viewModel.showRemoveMemberConfirmationWithId(false,"")
+                viewModel.showRemoveMemberConfirmationWithId(false, "")
             },
             onConfirmClick = {
                 viewModel.removeMember(state.memberToRemove!!)
@@ -224,7 +224,7 @@ private fun SpaceProfileContent() {
                         viewModel.onLocationEnabledChanged(it)
                     },
                     onMemberRemove = {
-                        viewModel.showRemoveMemberConfirmationWithId(true,"")
+                        viewModel.showRemoveMemberConfirmationWithId(true, "")
                     }
                 )
             }
@@ -253,7 +253,7 @@ private fun SpaceProfileContent() {
                         onCheckedChange = {
                         },
                         onMemberRemove = {
-                            viewModel.showRemoveMemberConfirmationWithId(true,it.user.id)
+                            viewModel.showRemoveMemberConfirmationWithId(true, it.user.id)
                         }
                     )
                 }
@@ -347,7 +347,7 @@ private fun UserItem(
     isAdmin: Boolean,
     currentUser: String,
     onCheckedChange: (Boolean) -> Unit,
-    onMemberRemove:() -> Unit
+    onMemberRemove: () -> Unit
 ) {
     Row(
         modifier = Modifier
