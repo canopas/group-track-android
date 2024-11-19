@@ -57,7 +57,6 @@ class SpaceInviteCodeViewModel @Inject constructor(
                 }
         }
 
-
     fun regenerateInviteCode() {
         viewModelScope.launch(appDispatcher.IO) {
             if (isUserAdmin) {
