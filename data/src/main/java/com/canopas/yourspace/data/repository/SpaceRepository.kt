@@ -225,7 +225,7 @@ class SpaceRepository @Inject constructor(
         } ?: return
 
         user.copy(space_ids = updatedSpaceIds).let {
-            authService.updateUser(it)
+            userService.updateUser(it)
         }
     }
 }
