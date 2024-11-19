@@ -219,7 +219,7 @@ class SpaceRepository @Inject constructor(
 
     suspend fun removeUserFromSpace(spaceId: String, userId: String) {
         spaceService.removeUserFromSpace(spaceId, userId)
-       val user = userService.getUser(userId)
+        val user = userService.getUser(userId)
         val updatedSpaceIds = user?.space_ids?.toMutableList()?.apply {
             remove(spaceId)
         } ?: return
