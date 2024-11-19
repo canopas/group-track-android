@@ -35,7 +35,6 @@ class SpaceInviteCodeViewModelTest {
 
     @Before
     fun setUp() {
-
         whenever(savedStateHandle.get<String>(KEY_INVITE_CODE)).thenReturn("123456")
         whenever(savedStateHandle.get<String>(AppDestinations.SpaceInvitation.KEY_SPACE_NAME)).thenReturn("space_name")
 
