@@ -39,18 +39,22 @@ class JoinSpaceViewModel @Inject constructor(
     }
 
     fun onCodeChanged(code: String) {
+        Timber.d("JoinSpaceViewModel - onCodeChanged: Invite code changed to: $code")
         _state.value = _state.value.copy(inviteCode = code)
         if (code.length == 6) {
+            Timber.d("JoinSpaceViewModel - onCodeChanged: Invite code is 6 characters long, starting verification process.")
             verifyAndJoinSpace()
         }
     }
 
     fun verifyAndJoinSpace() = viewModelScope.launch(appDispatcher.IO) {
         val code = _state.value.inviteCode
+        Timber.d("JoinSpaceViewModel - verifyAndJoinSpace: Verifying invite code: $code")
         _state.emit(_state.value.copy(verifying = true))
         try {
             val invitation = invitationService.getInvitation(code)
             if (invitation == null) {
+                Timber.e("JoinSpaceViewModel - verifyAndJoinSpace: No invitation found for code: $code")
                 _state.emit(
                     _state.value.copy(
                         verifying = false,
@@ -61,19 +65,25 @@ class JoinSpaceViewModel @Inject constructor(
             }
 
             val spaceId = invitation.space_id
+            Timber.d("JoinSpaceViewModel - verifyAndJoinSpace: Invitation found for space: $spaceId")
+
             val joinedSpaces = authService.currentUser?.space_ids ?: emptyList()
+            Timber.d("JoinSpaceViewModel - verifyAndJoinSpace: Current user space ids: $joinedSpaces")
 
             if (spaceId in joinedSpaces) {
+                Timber.d("JoinSpaceViewModel - verifyAndJoinSpace: User is already a member of this space. Navigating back.")
                 popBackStack()
                 return@launch
             }
 
+            Timber.d("JoinSpaceViewModel - verifyAndJoinSpace: Joining space with ID: $spaceId")
             spaceRepository.joinSpace(spaceId)
             val space = spaceRepository.getSpace(spaceId)
+            Timber.d("JoinSpaceViewModel - verifyAndJoinSpace: Successfully joined space: $space")
 
             _state.emit(_state.value.copy(verifying = false, joinedSpace = space))
         } catch (e: Exception) {
-            Timber.e(e, "Unable to verify invite code")
+            Timber.e(e, "JoinSpaceViewModel - verifyAndJoinSpace: Unable to verify invite code")
             _state.emit(
                 _state.value.copy(
                     verifying = false,

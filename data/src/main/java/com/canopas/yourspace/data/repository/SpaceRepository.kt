@@ -44,6 +44,14 @@ class SpaceRepository @Inject constructor(
         return generatedCode
     }
 
+    suspend fun regenerateInviteCode(spaceId: String): String {
+        val inviteCode = invitationService.getSpaceInviteCode(spaceId)
+        inviteCode?.let {
+            invitationService.regenerateInvitationCode(spaceId)
+        }
+        return inviteCode?.code ?: ""
+    }
+
     suspend fun joinSpace(spaceId: String) {
         spaceService.joinSpace(spaceId)
         currentSpaceId = spaceId
@@ -207,5 +215,17 @@ class SpaceRepository @Inject constructor(
 
     suspend fun updateSpace(newSpace: ApiSpace) {
         spaceService.updateSpace(newSpace)
+    }
+
+    suspend fun removeUserFromSpace(spaceId: String, userId: String) {
+        spaceService.removeUserFromSpace(spaceId, userId)
+       val user = userService.getUser(userId)
+        val updatedSpaceIds = user?.space_ids?.toMutableList()?.apply {
+            remove(spaceId)
+        } ?: return
+
+        user.copy(space_ids = updatedSpaceIds).let {
+            authService.updateUser(it)
+        }
     }
 }

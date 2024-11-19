@@ -2,6 +2,7 @@ package com.canopas.yourspace.ui.flow.home.space.create
 
 import android.content.Context
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -12,6 +13,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -20,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -30,6 +34,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.canopas.yourspace.R
 import com.canopas.yourspace.ui.component.PrimaryButton
 import com.canopas.yourspace.ui.theme.AppTheme
@@ -38,6 +43,8 @@ import com.canopas.yourspace.ui.theme.AppTheme
 @Composable
 fun SpaceInvite() {
     val viewModel = hiltViewModel<SpaceInviteCodeViewModel>()
+    val context = LocalContext.current
+    val spaceInviteCode by viewModel.spaceInviteCode.collectAsStateWithLifecycle()
 
     Scaffold(topBar = {
         TopAppBar(
@@ -55,15 +62,35 @@ fun SpaceInvite() {
                         contentDescription = ""
                     )
                 }
+            },
+            actions = {
+                IconButton(
+                    onClick = {
+                        if (viewModel.isUserAdmin) {
+                            viewModel.regenerateInviteCode()
+                        } else {
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.toast_contact_admin_for_space_code_regen),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = ""
+                    )
+                }
             }
         )
     }) {
-        SpaceInviteContent(modifier = Modifier.padding(it))
+        SpaceInviteContent(spaceInviteCode = spaceInviteCode, modifier = Modifier.padding(it))
     }
 }
 
 @Composable
-private fun SpaceInviteContent(modifier: Modifier) {
+private fun SpaceInviteContent(spaceInviteCode: String, modifier: Modifier) {
     val viewModel = hiltViewModel<SpaceInviteCodeViewModel>()
     val context = LocalContext.current
     Column(
@@ -91,7 +118,7 @@ private fun SpaceInviteContent(modifier: Modifier) {
 
         Spacer(modifier = Modifier.height(40.dp))
 
-        InvitationCodeComponent(viewModel.spaceInviteCode)
+        InvitationCodeComponent(spaceInviteCode)
 
         Spacer(modifier = Modifier.weight(1f))
 
@@ -100,7 +127,7 @@ private fun SpaceInviteContent(modifier: Modifier) {
                 .fillMaxWidth()
                 .padding(top = 16.dp),
             label = stringResource(R.string.onboard_share_space_code_btn),
-            onClick = { shareInvitationCode(context, viewModel.spaceInviteCode) }
+            onClick = { shareInvitationCode(context, spaceInviteCode) }
         )
     }
 }
