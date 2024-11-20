@@ -14,7 +14,6 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestRule
@@ -24,7 +23,6 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.io.File
 
-@Ignore
 @ExperimentalCoroutinesApi
 class SupportViewModelTest {
 
