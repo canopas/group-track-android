@@ -23,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,7 +35,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.canopas.yourspace.R
 import com.canopas.yourspace.ui.component.PrimaryButton
 import com.canopas.yourspace.ui.theme.AppTheme
@@ -44,7 +44,7 @@ import com.canopas.yourspace.ui.theme.AppTheme
 fun SpaceInvite() {
     val viewModel = hiltViewModel<SpaceInviteCodeViewModel>()
     val context = LocalContext.current
-    val spaceInviteCode by viewModel.spaceInviteCode.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsState()
 
     Scaffold(topBar = {
         TopAppBar(
@@ -66,7 +66,7 @@ fun SpaceInvite() {
             actions = {
                 IconButton(
                     onClick = {
-                        if (viewModel.isUserAdmin) {
+                        if (state.isUserAdmin) {
                             viewModel.regenerateInviteCode()
                         } else {
                             Toast.makeText(
@@ -85,7 +85,7 @@ fun SpaceInvite() {
             }
         )
     }) {
-        SpaceInviteContent(spaceInviteCode = spaceInviteCode, modifier = Modifier.padding(it))
+        SpaceInviteContent(spaceInviteCode = state.inviteCode, modifier = Modifier.padding(it))
     }
 }
 

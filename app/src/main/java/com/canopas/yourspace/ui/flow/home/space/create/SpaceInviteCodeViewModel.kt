@@ -13,6 +13,7 @@ import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -26,13 +27,21 @@ class SpaceInviteCodeViewModel @Inject constructor(
     private val authService: AuthService
 ) : ViewModel() {
 
-    private val _spaceInviteCode = MutableStateFlow(savedStateHandle.get<String>(KEY_INVITE_CODE) ?: "")
-    val spaceInviteCode: StateFlow<String> get() = _spaceInviteCode
-
+    val spaceInviteCode = savedStateHandle.get<String>(KEY_INVITE_CODE) ?: ""
     val spaceName = savedStateHandle.get<String>(KEY_SPACE_NAME) ?: ""
-    var isUserAdmin: Boolean = false
+
+    private val _state = MutableStateFlow(InviteCodeState())
+    val state: StateFlow<InviteCodeState> = _state.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            _state.emit(
+                state.value.copy(
+                    inviteCode = spaceInviteCode,
+                    spaceName = spaceName
+                )
+            )
+        }
         checkIfUserIsAdmin()
         observeInviteCode()
     }
@@ -45,23 +54,33 @@ class SpaceInviteCodeViewModel @Inject constructor(
         viewModelScope.launch(appDispatcher.IO) {
             val currentUserId = authService.currentUser?.id ?: ""
             val adminId = spaceRepository.getCurrentSpace()?.admin_id
-            isUserAdmin = currentUserId == adminId
+
+            _state.emit(
+                state.value.copy(
+                    isUserAdmin = currentUserId == adminId
+                )
+            )
         }
     }
 
-    private fun observeInviteCode() =
+    private fun observeInviteCode() {
         viewModelScope.launch(appDispatcher.IO) {
             spaceInvitationService.getInviteCodeFlow(spaceRepository.currentSpaceId)
                 .collect { updatedCode ->
-                    _spaceInviteCode.value = updatedCode
+                    _state.emit(state.value.copy(inviteCode = updatedCode))
                 }
         }
+    }
 
-    fun regenerateInviteCode() {
-        viewModelScope.launch(appDispatcher.IO) {
-            if (isUserAdmin) {
-                spaceRepository.regenerateInviteCode(spaceRepository.currentSpaceId)
-            }
+    fun regenerateInviteCode() = viewModelScope.launch(appDispatcher.IO) {
+        if (state.value.isUserAdmin) {
+            spaceRepository.regenerateInviteCode(spaceRepository.currentSpaceId)
         }
     }
 }
+
+data class InviteCodeState(
+    var inviteCode: String = "",
+    val spaceName: String = "",
+    var isUserAdmin: Boolean = false
+)

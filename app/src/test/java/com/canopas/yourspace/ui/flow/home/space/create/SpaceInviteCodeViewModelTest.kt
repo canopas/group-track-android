@@ -6,8 +6,8 @@ import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.space.SpaceInvitationService
 import com.canopas.yourspace.data.utils.AppDispatcher
-import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppDestinations.SpaceInvitation.KEY_INVITE_CODE
+import com.canopas.yourspace.ui.navigation.AppDestinations.SpaceInvitation.KEY_SPACE_NAME
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -34,9 +34,9 @@ class SpaceInviteCodeViewModelTest {
     private lateinit var viewModel: SpaceInviteCodeViewModel
 
     @Before
-    fun setUp() {
-        whenever(savedStateHandle.get<String>(KEY_INVITE_CODE)).thenReturn("123456")
-        whenever(savedStateHandle.get<String>(AppDestinations.SpaceInvitation.KEY_SPACE_NAME)).thenReturn("space_name")
+    fun setViewModel() {
+        whenever(savedStateHandle.get<String>(KEY_INVITE_CODE)).thenReturn("inviteCode")
+        whenever(savedStateHandle.get<String>(KEY_SPACE_NAME)).thenReturn("space1")
 
         viewModel = SpaceInviteCodeViewModel(
             appNavigator = appNavigator,
@@ -50,17 +50,18 @@ class SpaceInviteCodeViewModelTest {
 
     @Test
     fun `popBackStack should call navigateBack on appNavigator`() {
+        setViewModel()
         viewModel.popBackStack()
         verify(appNavigator).navigateBack()
     }
 
     @Test
     fun `spaceInviteCode should return value from savedStateHandle`() {
-        assert(viewModel.spaceInviteCode.value == "123456")
+        assert(viewModel.state.value.inviteCode == "inviteCode")
     }
 
     @Test
     fun `spaceName should return value from savedStateHandle`() {
-        assert(viewModel.spaceName == "space_name")
+        assert(viewModel.state.value.spaceName == "space1")
     }
 }

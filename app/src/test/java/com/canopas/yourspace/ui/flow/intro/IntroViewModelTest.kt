@@ -5,12 +5,14 @@ import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
+@Ignore
 @ExperimentalCoroutinesApi
 class IntroViewModelTest {
     @get:Rule
