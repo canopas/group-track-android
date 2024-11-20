@@ -10,11 +10,12 @@ import com.canopas.yourspace.ui.navigation.AppDestinations.SpaceInvitation.KEY_I
 import com.canopas.yourspace.ui.navigation.AppDestinations.SpaceInvitation.KEY_SPACE_NAME
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -53,19 +54,19 @@ class SpaceInviteCodeViewModelTest {
         verify(appNavigator).navigateBack()
     }
 
-    @Ignore("This test is failing due to savedStateHandle.get<String>(KEY_INVITE_CODE) returning null")
     @Test
     fun `spaceInviteCode should return value from savedStateHandle`() {
-        setViewModel()
+        whenever(spaceInvitationService.getInviteCodeFlow(any())).thenReturn(flowOf("123456"))
         whenever(savedStateHandle.get<String>(KEY_INVITE_CODE)).thenReturn("123456")
+        setViewModel()
         assert(viewModel.spaceInviteCode == "123456")
     }
 
-    @Ignore("This test is failing due to savedStateHandle.get<String>(KEY_SPACE_NAME) returning null")
     @Test
     fun `spaceName should return value from savedStateHandle`() {
-        setViewModel()
+        whenever(spaceInvitationService.getInviteCodeFlow(any())).thenReturn(flowOf("space_name"))
         whenever(savedStateHandle.get<String>(KEY_SPACE_NAME)).thenReturn("space_name")
+        setViewModel()
         assert(viewModel.spaceName == "space_name")
     }
 }

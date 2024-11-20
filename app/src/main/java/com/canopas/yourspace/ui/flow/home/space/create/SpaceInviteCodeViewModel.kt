@@ -33,25 +33,15 @@ class SpaceInviteCodeViewModel @Inject constructor(
     private val _state = MutableStateFlow(InviteCodeState())
     val state: StateFlow<InviteCodeState> = _state.asStateFlow()
 
-    init {
-        viewModelScope.launch {
+    fun onStart() {
+        viewModelScope.launch(appDispatcher.IO) {
             _state.emit(
                 state.value.copy(
                     inviteCode = spaceInviteCode,
                     spaceName = spaceName
                 )
             )
-        }
-        checkIfUserIsAdmin()
-        observeInviteCode()
-    }
 
-    fun popBackStack() {
-        appNavigator.navigateBack()
-    }
-
-    private fun checkIfUserIsAdmin() {
-        viewModelScope.launch(appDispatcher.IO) {
             val currentUserId = authService.currentUser?.id ?: ""
             val adminId = spaceRepository.getCurrentSpace()?.admin_id
 
@@ -60,7 +50,12 @@ class SpaceInviteCodeViewModel @Inject constructor(
                     isUserAdmin = currentUserId == adminId
                 )
             )
+            observeInviteCode()
         }
+    }
+
+    fun popBackStack() {
+        appNavigator.navigateBack()
     }
 
     private fun observeInviteCode() {
