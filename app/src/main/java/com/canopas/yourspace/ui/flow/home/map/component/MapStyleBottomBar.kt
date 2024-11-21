@@ -20,9 +20,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -38,8 +35,6 @@ import com.canopas.yourspace.ui.theme.AppTheme
 fun MapStyleBottomSheet(onClose: () -> Unit, onStyleSelected: (String) -> Unit) {
     val viewModel = hiltViewModel<MapViewModel>()
     val state by viewModel.state.collectAsState()
-
-    var selectedStyle by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -87,7 +82,6 @@ fun MapStyleBottomSheet(onClose: () -> Unit, onStyleSelected: (String) -> Unit) 
                         .weight(1f)
                         .padding(16.dp)
                         .clickable {
-                            selectedStyle = style
                             onStyleSelected(style)
                         }
                         .then(
