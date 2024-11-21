@@ -2,6 +2,7 @@ package com.canopas.yourspace.ui.flow.home.map.component
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,12 +29,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
+import com.canopas.yourspace.ui.flow.home.map.MapViewModel
 import com.canopas.yourspace.ui.theme.AppTheme
 
 @Composable
 fun MapStyleBottomSheet(onClose: () -> Unit, onStyleSelected: (String) -> Unit) {
-    var isDisable by remember { mutableStateOf(false) }
+    val viewModel = hiltViewModel<MapViewModel>()
+    val state by viewModel.state.collectAsState()
+
+    var selectedStyle by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -80,9 +87,16 @@ fun MapStyleBottomSheet(onClose: () -> Unit, onStyleSelected: (String) -> Unit) 
                         .weight(1f)
                         .padding(16.dp)
                         .clickable {
-                            isDisable = !isDisable
+                            selectedStyle = style
                             onStyleSelected(style)
-                        },
+                        }
+                        .then(
+                            if (state.selectedMapStyle == style) {
+                                Modifier.border(1.dp, AppTheme.colorScheme.primary, RoundedCornerShape(8.dp))
+                            } else {
+                                Modifier
+                            }
+                        ),
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Image(

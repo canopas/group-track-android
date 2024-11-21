@@ -197,8 +197,13 @@ class MapViewModel @Inject constructor(
 
     fun updateMapStyle(style: String) {
         viewModelScope.launch(appDispatcher.IO) {
-            userPreferences.currentMapStyle = style
-            _state.emit(_state.value.copy(selectedMapStyle = style))
+            try {
+                userPreferences.currentMapStyle = style
+                _state.emit(_state.value.copy(selectedMapStyle = style))
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to update map style")
+                _state.emit(_state.value.copy(error = e))
+            }
         }
     }
 }
