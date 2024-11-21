@@ -132,7 +132,9 @@ fun SpaceProfileScreen() {
                 viewModel.showRemoveMemberConfirmationWithId(false, "")
             },
             onConfirmClick = {
-                viewModel.removeMember(state.memberToRemove!!)
+                state.memberToRemove?.let { memberId ->
+                    viewModel.removeMember(memberId)
+                }
             }
         )
     }
