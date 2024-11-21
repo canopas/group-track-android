@@ -35,22 +35,26 @@ class SpaceInviteCodeViewModel @Inject constructor(
 
     fun onStart() {
         viewModelScope.launch(appDispatcher.IO) {
-            _state.emit(
-                state.value.copy(
-                    inviteCode = spaceInviteCode,
-                    spaceName = spaceName
+            try {
+                _state.emit(
+                    state.value.copy(
+                        inviteCode = spaceInviteCode,
+                        spaceName = spaceName
+                    )
                 )
-            )
 
-            val currentUserId = authService.currentUser?.id ?: ""
-            val adminId = spaceRepository.getCurrentSpace()?.admin_id
+                val currentUserId = authService.currentUser?.id ?: ""
+                val adminId = spaceRepository.getCurrentSpace()?.admin_id
 
-            _state.emit(
-                state.value.copy(
-                    isUserAdmin = currentUserId == adminId
+                _state.emit(
+                    state.value.copy(
+                        isUserAdmin = currentUserId == adminId
+                    )
                 )
-            )
-            observeInviteCode()
+                observeInviteCode()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
@@ -60,10 +64,14 @@ class SpaceInviteCodeViewModel @Inject constructor(
 
     private fun observeInviteCode() {
         viewModelScope.launch(appDispatcher.IO) {
-            spaceInvitationService.getInviteCodeFlow(spaceRepository.currentSpaceId)
-                .collect { updatedCode ->
-                    _state.emit(state.value.copy(inviteCode = updatedCode))
-                }
+            try {
+                spaceInvitationService.getInviteCodeFlow(spaceRepository.currentSpaceId)
+                    .collect { updatedCode ->
+                        _state.emit(state.value.copy(inviteCode = updatedCode))
+                    }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 

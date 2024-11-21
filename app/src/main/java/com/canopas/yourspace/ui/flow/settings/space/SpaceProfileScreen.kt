@@ -376,7 +376,8 @@ private fun UserItem(
             ),
             onCheckedChange = {
                 onCheckedChange(it)
-            }
+            },
+            modifier = Modifier.padding(end = 8.dp)
         )
 
         if (isAdmin && userInfo.user.id != currentUser) {
@@ -385,7 +386,7 @@ private fun UserItem(
                 contentDescription = null,
                 tint = Color.Unspecified,
                 modifier = Modifier
-                    .padding(4.dp)
+                    .padding(8.dp)
                     .clickable {
                         onMemberRemove()
                     }
