@@ -279,4 +279,9 @@
     <string name="on_internet_error_title">No internet!</string>
     <string name="on_internet_error_sub_title">No Internet Connection. Please check your network settings and try again.</string>
     <string name="common_internet_error_toast">Please check your network settings and try again.</string>
+
+    <string name="map_bottom_bar_title">Choose Map Style</string>
+    <string name="map_style_app_theme">App Theme</string>
+    <string name="map_style_terrain">Terrain</string>
+    <string name="map_style_satellite">Satellite</string>
 </resources>

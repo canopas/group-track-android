@@ -43,6 +43,8 @@ class UserPreferences @Inject constructor(
 
         val IS_FCM_REGISTERED = booleanPreferencesKey("is_fcm_registered")
         val LAST_BATTERY_DIALOG_DATE = stringPreferencesKey("last_battery_dialog_date")
+
+        val KEY_USER_MAP_STYLE = stringPreferencesKey("user_map_style")
     }
 
     suspend fun isIntroShown(): Boolean {
@@ -145,6 +147,22 @@ class UserPreferences @Inject constructor(
         set(registered) = runBlocking {
             preferencesDataStore.edit { preferences ->
                 preferences[PreferencesKey.IS_FCM_REGISTERED] = registered
+            }
+        }
+
+    var currentMapStyle: String?
+        get() = runBlocking {
+            preferencesDataStore.data.first()[PreferencesKey.KEY_USER_MAP_STYLE]
+        }
+        set(newStyle) = runBlocking {
+            if (newStyle == null) {
+                preferencesDataStore.edit {
+                    it.remove(PreferencesKey.KEY_USER_MAP_STYLE)
+                }
+            } else {
+                preferencesDataStore.edit { preferences ->
+                    preferences[PreferencesKey.KEY_USER_MAP_STYLE] = newStyle
+                }
             }
         }
 }

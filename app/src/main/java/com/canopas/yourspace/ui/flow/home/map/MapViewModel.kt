@@ -48,7 +48,12 @@ class MapViewModel @Inject constructor(
         viewModelScope.launch {
             _state.value = _state.value.copy(currentUser = userPreferences.currentUser)
             withContext(appDispatcher.IO) {
-                _state.emit(_state.value.copy(defaultCameraPosition = locationManager.getLastLocation()))
+                _state.emit(
+                    _state.value.copy(
+                        defaultCameraPosition = locationManager.getLastLocation(),
+                        selectedMapStyle = userPreferences.currentMapStyle ?: "Normal"
+                    )
+                )
             }
             userPreferences.currentSpaceState.collectLatest { spaceId ->
                 locationJob?.cancel()
@@ -189,6 +194,13 @@ class MapViewModel @Inject constructor(
             _state.emit(_state.value.copy(isMapLoaded = true))
         }
     }
+
+    fun updateMapStyle(style: String) {
+        viewModelScope.launch(appDispatcher.IO) {
+            userPreferences.currentMapStyle = style
+            _state.emit(_state.value.copy(selectedMapStyle = style))
+        }
+    }
 }
 
 data class MapScreenState(
@@ -201,5 +213,6 @@ data class MapScreenState(
     val loadingInviteCode: Boolean = false,
     val enabledAddPlaces: Boolean = true,
     val isMapLoaded: Boolean = false,
+    var selectedMapStyle: String = "App Theme",
     val error: Exception? = null
 )
