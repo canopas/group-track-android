@@ -1,5 +1,8 @@
 package com.canopas.yourspace.ui.flow.home.map.component
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -50,9 +53,16 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
 @Composable
-fun SelectedUserDetail(userInfo: UserInfo?, onDismiss: () -> Unit, onTapTimeline: () -> Unit) {
+fun SelectedUserDetail(
+    userInfo: UserInfo?,
+    onDismiss: () -> Unit,
+    onTapTimeline: () -> Unit,
+    currentUser: ApiUser?
+) {
     if (userInfo?.user == null) return
     val user = userInfo.user
+
+    val isCurrentUser = user.id == (currentUser?.id ?: "")
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -70,7 +80,7 @@ fun SelectedUserDetail(userInfo: UserInfo?, onDismiss: () -> Unit, onTapTimeline
         ) {
             MemberProfileView(user.profile_image, user.firstChar, userInfo.user)
 
-            MemberInfoView(user = user, userInfo.location) { onTapTimeline() }
+            MemberInfoView(user = user, userInfo.location, isCurrentUser) { onTapTimeline() }
         }
 
         Row(
@@ -134,7 +144,12 @@ private fun MemberProfileView(profileUrl: String?, name: String, user: ApiUser?)
 }
 
 @Composable
-private fun MemberInfoView(user: ApiUser, location: ApiLocation?, onTapTimeline: () -> Unit) {
+private fun MemberInfoView(
+    user: ApiUser,
+    location: ApiLocation?,
+    isCurrentUser: Boolean,
+    onTapTimeline: () -> Unit
+) {
     val context = LocalContext.current
     var address by remember { mutableStateOf("") }
     val time = timeAgo(location?.created_at ?: 0)
@@ -186,6 +201,24 @@ private fun MemberInfoView(user: ApiUser, location: ApiLocation?, onTapTimeline:
                 icon = R.drawable.ic_timeline,
                 onClick = onTapTimeline
             )
+            ActionIconButton(
+                modifier = Modifier,
+                iconSize = 24.dp,
+                icon = if (isCurrentUser) R.drawable.ic_share else R.drawable.ic_navigation,
+                onClick = {
+                    if (isCurrentUser) {
+                        shareLocation(
+                            context,
+                            LatLng(location?.latitude ?: 0.0, location?.longitude ?: 0.0)
+                        )
+                    } else {
+                        openNavigation(
+                            context,
+                            LatLng(location?.latitude ?: 0.0, location?.longitude ?: 0.0)
+                        )
+                    }
+                }
+            )
         }
         Text(
             text = address,
@@ -211,4 +244,25 @@ private fun MemberInfoView(user: ApiUser, location: ApiLocation?, onTapTimeline:
             }
         }
     }
+}
+
+fun shareLocation(context: Context, location: LatLng) {
+    val mapsLink = "https://www.google.com/maps/dir/?api=1&destination=${location.latitude},${location.longitude}"
+    val intent = Intent(Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(
+            Intent.EXTRA_TEXT,
+            "Check out my location: $mapsLink"
+        )
+    }
+    context.startActivity(Intent.createChooser(intent, "Share Location"))
+}
+
+fun openNavigation(context: Context, destination: LatLng) {
+    val gmmIntentUri =
+        Uri.parse("https://maps.google.com/maps?daddr=${destination.latitude},${destination.longitude}")
+    val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri).apply {
+        setPackage("com.google.android.apps.maps")
+    }
+    context.startActivity(mapIntent)
 }

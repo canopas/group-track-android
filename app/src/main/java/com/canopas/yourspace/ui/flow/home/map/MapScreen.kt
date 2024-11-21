@@ -175,7 +175,8 @@ fun MapScreen() {
                         SelectedUserDetail(
                             userInfo = selectedUser,
                             onDismiss = { viewModel.dismissMemberDetail() },
-                            onTapTimeline = { viewModel.showJourneyTimeline() }
+                            onTapTimeline = { viewModel.showJourneyTimeline() },
+                            state.currentUser
                         )
                     }
                 }
