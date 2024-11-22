@@ -51,7 +51,7 @@ class SpaceInviteCodeViewModel @Inject constructor(
                         isUserAdmin = currentUserId == adminId
                     )
                 )
-                observeInviteCode()
+                fetchInviteCode()
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -62,13 +62,14 @@ class SpaceInviteCodeViewModel @Inject constructor(
         appNavigator.navigateBack()
     }
 
-    private fun observeInviteCode() {
+    private fun fetchInviteCode() {
         viewModelScope.launch(appDispatcher.IO) {
             try {
-                spaceInvitationService.getInviteCodeFlow(spaceRepository.currentSpaceId)
-                    .collect { updatedCode ->
-                        _state.emit(state.value.copy(inviteCode = updatedCode))
-                    }
+                val inviteCodeData =
+                    spaceInvitationService.getSpaceInviteCode(spaceRepository.currentSpaceId)
+                inviteCodeData?.let {
+                    _state.emit(state.value.copy(inviteCode = it.code))
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -79,6 +80,7 @@ class SpaceInviteCodeViewModel @Inject constructor(
         if (state.value.isUserAdmin) {
             spaceRepository.regenerateInviteCode(spaceRepository.currentSpaceId)
         }
+        fetchInviteCode()
     }
 }
 

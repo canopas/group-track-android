@@ -2,7 +2,6 @@ package com.canopas.yourspace.ui.flow.home.space.create
 
 import android.content.Context
 import android.content.Intent
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -44,7 +43,6 @@ import com.canopas.yourspace.ui.theme.AppTheme
 @Composable
 fun SpaceInvite() {
     val viewModel = hiltViewModel<SpaceInviteCodeViewModel>()
-    val context = LocalContext.current
     val state by viewModel.state.collectAsState()
 
     LaunchedEffect(Unit) {
@@ -69,23 +67,13 @@ fun SpaceInvite() {
                 }
             },
             actions = {
-                IconButton(
-                    onClick = {
-                        if (state.isUserAdmin) {
-                            viewModel.regenerateInviteCode()
-                        } else {
-                            Toast.makeText(
-                                context,
-                                context.getString(R.string.toast_contact_admin_for_space_code_regen),
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
+                if (state.isUserAdmin) {
+                    IconButton(onClick = { viewModel.regenerateInviteCode() }) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = ""
+                        )
                     }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Refresh,
-                        contentDescription = ""
-                    )
                 }
             }
         )

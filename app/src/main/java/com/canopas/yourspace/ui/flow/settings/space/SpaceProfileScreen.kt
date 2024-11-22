@@ -389,7 +389,10 @@ private fun UserItem(
                 tint = Color.Unspecified,
                 modifier = Modifier
                     .padding(8.dp)
-                    .clickable {
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = ripple(bounded = false)
+                    ) {
                         onMemberRemove()
                     }
             )

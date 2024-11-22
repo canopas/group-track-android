@@ -3,9 +3,6 @@ package com.canopas.yourspace.data.service.space
 import com.canopas.yourspace.data.models.space.ApiSpaceInvitation
 import com.canopas.yourspace.data.utils.Config
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -16,26 +13,6 @@ class SpaceInvitationService @Inject constructor(
 ) {
     private val spaceInvitationRef =
         db.collection(Config.FIRESTORE_COLLECTION_SPACE_INVITATION)
-
-    fun getInviteCodeFlow(spaceId: String): Flow<String> = callbackFlow {
-        val listener = spaceInvitationRef
-            .whereEqualTo("space_id", spaceId)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    close(error)
-                    return@addSnapshotListener
-                }
-                snapshot?.documents?.firstOrNull()?.let {
-                    val invitation = it.toObject(ApiSpaceInvitation::class.java)
-                    if (invitation != null && !invitation.isExpired) {
-                        trySend(invitation.code).isSuccess
-                    }
-                }
-            }
-
-        // Cancel the listener when the flow is cancelled
-        awaitClose { listener.remove() }
-    }
 
     suspend fun createInvitation(spaceId: String): String {
         val invitationCode = generateInvitationCode()
