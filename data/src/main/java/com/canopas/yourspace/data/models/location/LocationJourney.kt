@@ -19,7 +19,7 @@ data class LocationJourney(
     val route_duration: Long? = null,
     val routes: List<JourneyRoute> = emptyList(),
     val created_at: Long? = System.currentTimeMillis(),
-    var update_at: Long? = System.currentTimeMillis()
+    val update_at: Long? = System.currentTimeMillis()
 )
 
 @Keep

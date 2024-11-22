@@ -135,14 +135,17 @@ class JourneyRepository @Inject constructor(
         userId: String,
         lastKnownJourney: LocationJourney
     ) {
-        val updatedJourney = lastKnownJourney.copy(
-            update_at = System.currentTimeMillis()
-        )
         journeyService.updateLastLocationJourney(
             userId = userId,
-            journey = updatedJourney
+            journey = lastKnownJourney.copy(
+                update_at = System.currentTimeMillis()
+            )
         )
-        locationCache.putLastJourney(updatedJourney, userId)
+        val newJourney = lastKnownJourney.copy(
+            created_at = System.currentTimeMillis(),
+            update_at = System.currentTimeMillis()
+        )
+        locationCache.putLastJourney(newJourney, userId)
     }
 
     /**
@@ -177,8 +180,7 @@ class JourneyRepository @Inject constructor(
                 ) {
                     newJourneyId = it
                 }
-                val locationJourney = extractedLocation?.toLocationJourney(userid, newJourneyId)
-                    ?: return LocationJourney()
+                val locationJourney = extractedLocation?.toLocationJourney(userid, newJourneyId) ?: return LocationJourney()
                 locationCache.putLastJourney(locationJourney, userid)
                 locationManager.updateRequestBasedOnState(isMoving = false)
                 return locationJourney
@@ -265,15 +267,6 @@ class JourneyRepository @Inject constructor(
         distance: Float,
         duration: Long = 0
     ) {
-        // Update the last steady journey's `updated_at` with this new moving journey's `created_at`
-        val updatedSteadyJourney = lastKnownJourney.copy(
-            update_at = System.currentTimeMillis()
-        )
-        journeyService.updateLastLocationJourney(
-            userId = userId,
-            journey = updatedSteadyJourney
-        )
-
         val lastFiveLocations = locationCache.getLastFiveLocations(userId) ?: emptyList()
         var newJourneyId = ""
         val journey = LocationJourney(
