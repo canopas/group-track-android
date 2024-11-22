@@ -204,7 +204,7 @@ private fun MemberInfoView(
             )
             ActionIconButton(
                 modifier = Modifier,
-                iconSize = 24.dp,
+                iconSize = 20.dp,
                 icon = if (isCurrentUser) R.drawable.ic_share else R.drawable.ic_navigation,
                 onClick = {
                     if (location == null) return@ActionIconButton
