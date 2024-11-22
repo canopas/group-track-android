@@ -279,4 +279,7 @@
     <string name="on_internet_error_title">No internet!</string>
     <string name="on_internet_error_sub_title">No Internet Connection. Please check your network settings and try again.</string>
     <string name="common_internet_error_toast">Please check your network settings and try again.</string>
+    <string name="toast_failed_open_navigation">Failed to open navigation</string>
+    <string name="toast_invalid_coordinates">Invalid coordinates</string>
+    <string name="toast_failed_share_location">Failed to share location</string>
 </resources>

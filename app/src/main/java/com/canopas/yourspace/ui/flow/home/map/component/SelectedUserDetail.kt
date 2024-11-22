@@ -3,6 +3,7 @@ package com.canopas.yourspace.ui.flow.home.map.component
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -265,6 +266,11 @@ fun shareLocation(context: Context, location: LatLng): Boolean {
         true
     } catch (e: Exception) {
         e.printStackTrace()
+        Toast.makeText(
+            context,
+            context.getString(R.string.toast_failed_share_location),
+            Toast.LENGTH_SHORT
+        ).show()
         false
     }
 }
@@ -273,6 +279,11 @@ fun openNavigation(context: Context, destination: LatLng): Boolean {
     if (destination.latitude < -90 || destination.latitude > 90 ||
         destination.longitude < -180 || destination.longitude > 180
     ) {
+        Toast.makeText(
+            context,
+            context.getString(R.string.toast_invalid_coordinates),
+            Toast.LENGTH_SHORT
+        ).show()
         return false
     }
 
@@ -293,6 +304,11 @@ fun openNavigation(context: Context, destination: LatLng): Boolean {
         }
     } catch (e: Exception) {
         e.printStackTrace()
+        Toast.makeText(
+            context,
+            context.getString(R.string.toast_failed_open_navigation),
+            Toast.LENGTH_SHORT
+        ).show()
         false
     }
 }
