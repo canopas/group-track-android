@@ -21,7 +21,7 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
-private const val LOCATION_UPDATE_INTERVAL = 10000L // 10 seconds
+private const val LOCATION_UPDATE_INTERVAL = 5000L // 5 seconds
 private const val STEADY_UPDATE_INTERVAL = 60000L // 1 minute
 
 @SuppressLint("MissingPermission")

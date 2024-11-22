@@ -297,8 +297,10 @@ class JourneyRepository @Inject constructor(
         ) {
             newJourneyId = it
         }
-        locationCache.putLastJourneyUpdatedTime(System.currentTimeMillis(), userId)
-        locationCache.putLastJourney(journey.copy(id = newJourneyId), userId)
+        journey.copy(id = newJourneyId).let {
+            locationCache.putLastJourney(it, userId)
+            locationCache.putLastMovingJourney(it, userId)
+        }
     }
 
     /**
@@ -322,8 +324,8 @@ class JourneyRepository @Inject constructor(
             routes = lastKnownJourney.routes + listOf(extractedLocation.toRoute()),
             created_at = lastKnownJourney.created_at
         )
-        val lastJourneyUpdatedTime = locationCache.getLastJourneyUpdatedTime(userId)
-        val timeDifference = journey.update_at!! - lastJourneyUpdatedTime
+        val lastMovingJourney = locationCache.getLastMovingJourney(userId)
+        val timeDifference = journey.update_at!! - lastMovingJourney?.update_at!!
         if (timeDifference >= MIN_UPDATE_INTERVAL_MS) {
             // Update last location journey in remote database
             // as one minute is passed since last update
@@ -331,7 +333,7 @@ class JourneyRepository @Inject constructor(
                 userId = userId,
                 journey = journey
             )
-            locationCache.putLastJourneyUpdatedTime(System.currentTimeMillis(), userId)
+            locationCache.putLastMovingJourney(journey, userId)
         }
         locationCache.putLastJourney(journey, userId)
     }
