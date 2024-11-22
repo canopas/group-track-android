@@ -51,7 +51,7 @@ class MapViewModel @Inject constructor(
                 _state.emit(
                     _state.value.copy(
                         defaultCameraPosition = locationManager.getLastLocation(),
-                        selectedMapStyle = userPreferences.currentMapStyle ?: "Normal"
+                        selectedMapStyle = userPreferences.currentMapStyle ?: ""
                     )
                 )
             }
