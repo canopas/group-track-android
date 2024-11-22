@@ -57,7 +57,6 @@ class SupportViewModel @Inject constructor(
                 return
             }
         }
-
         attachments.addAll(files)
         attachmentsToUpload.addAll(files)
         _state.value =
