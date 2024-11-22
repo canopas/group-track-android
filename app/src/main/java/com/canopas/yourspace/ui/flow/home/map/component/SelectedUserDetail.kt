@@ -206,15 +206,16 @@ private fun MemberInfoView(
                 iconSize = 24.dp,
                 icon = if (isCurrentUser) R.drawable.ic_share else R.drawable.ic_navigation,
                 onClick = {
+                    if (location == null) return@ActionIconButton
                     if (isCurrentUser) {
                         shareLocation(
                             context,
-                            LatLng(location?.latitude ?: 0.0, location?.longitude ?: 0.0)
+                            LatLng(location.latitude, location.longitude)
                         )
                     } else {
                         openNavigation(
                             context,
-                            LatLng(location?.latitude ?: 0.0, location?.longitude ?: 0.0)
+                            LatLng(location.latitude, location.longitude)
                         )
                     }
                 }
@@ -246,23 +247,52 @@ private fun MemberInfoView(
     }
 }
 
-fun shareLocation(context: Context, location: LatLng) {
-    val mapsLink = "https://www.google.com/maps/dir/?api=1&destination=${location.latitude},${location.longitude}"
+fun shareLocation(context: Context, location: LatLng): Boolean {
+    if (location.latitude < -90 || location.latitude > 90 ||
+        location.longitude < -180 || location.longitude > 180
+    ) {
+        return false
+    }
+
+    val mapsLink =
+        "https://www.google.com/maps/dir/?api=1&destination=${location.latitude},${location.longitude}"
     val intent = Intent(Intent.ACTION_SEND).apply {
         type = "text/plain"
-        putExtra(
-            Intent.EXTRA_TEXT,
-            "Check out my location: $mapsLink"
-        )
+        putExtra(Intent.EXTRA_TEXT, "Check out my location: $mapsLink")
     }
-    context.startActivity(Intent.createChooser(intent, "Share Location"))
+    return try {
+        context.startActivity(Intent.createChooser(intent, "Share Location"))
+        true
+    } catch (e: Exception) {
+        e.printStackTrace()
+        false
+    }
 }
 
-fun openNavigation(context: Context, destination: LatLng) {
+fun openNavigation(context: Context, destination: LatLng): Boolean {
+    if (destination.latitude < -90 || destination.latitude > 90 ||
+        destination.longitude < -180 || destination.longitude > 180
+    ) {
+        return false
+    }
+
     val gmmIntentUri =
         Uri.parse("https://maps.google.com/maps?daddr=${destination.latitude},${destination.longitude}")
     val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri).apply {
         setPackage("com.google.android.apps.maps")
     }
-    context.startActivity(mapIntent)
+    return try {
+        if (mapIntent.resolveActivity(context.packageManager) != null) {
+            context.startActivity(mapIntent)
+            true
+        } else {
+            // If Google Maps is not installed, open in browser
+            val browserIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+            context.startActivity(browserIntent)
+            true
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+        false
+    }
 }
