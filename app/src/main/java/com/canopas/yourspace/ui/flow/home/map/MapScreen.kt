@@ -88,7 +88,6 @@ fun MapScreen() {
     val viewModel = hiltViewModel<MapViewModel>()
     val state by viewModel.state.collectAsState()
     val scope = rememberCoroutineScope()
-    var isStyleSheetVisible by remember { mutableStateOf(false) }
 
     val userLocation = remember(state.defaultCameraPosition) {
         val location = state.defaultCameraPosition
@@ -141,7 +140,7 @@ fun MapScreen() {
         ) {
             Column(modifier = Modifier.align(Alignment.End)) {
                 MapControlBtn(icon = R.drawable.ic_map_type) {
-                    isStyleSheetVisible = true
+                    viewModel.toggleStyleSheetVisibility(true)
                 }
 
                 MapControlBtn(
@@ -228,13 +227,11 @@ fun MapScreen() {
                 }
             }
         }
-        if (isStyleSheetVisible) {
+        if (state.isStyleSheetVisible) {
             Column(modifier = Modifier.align(Alignment.BottomEnd)) {
                 MapStyleBottomSheet(
-                    onClose = { isStyleSheetVisible = false },
                     onStyleSelected = { style ->
                         viewModel.updateMapStyle(style)
-                        isStyleSheetVisible = false
                     }
                 )
             }
@@ -331,11 +328,15 @@ private fun MapView(
 ) {
     val viewModel = hiltViewModel<MapViewModel>()
     val state by viewModel.state.collectAsState()
+    val terrainStyle = stringResource(R.string.map_style_terrain)
+    val satelliteStyle = stringResource(R.string.map_style_satellite)
 
-    val mapStyleOptions = when (state.selectedMapStyle) {
-        stringResource(R.string.map_style_terrain) -> MapType.TERRAIN
-        stringResource(R.string.map_style_satellite) -> MapType.SATELLITE
-        else -> MapType.NORMAL
+    val mapStyleOptions = remember(state.selectedMapStyle) {
+        when (state.selectedMapStyle) {
+            terrainStyle -> MapType.TERRAIN
+            satelliteStyle -> MapType.SATELLITE
+            else -> MapType.NORMAL
+        }
     }
 
     val isDarkMode = isSystemInDarkTheme()

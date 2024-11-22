@@ -32,7 +32,7 @@ import com.canopas.yourspace.ui.flow.home.map.MapViewModel
 import com.canopas.yourspace.ui.theme.AppTheme
 
 @Composable
-fun MapStyleBottomSheet(onClose: () -> Unit, onStyleSelected: (String) -> Unit) {
+fun MapStyleBottomSheet(onStyleSelected: (String) -> Unit) {
     val viewModel = hiltViewModel<MapViewModel>()
     val state by viewModel.state.collectAsState()
 
@@ -53,7 +53,7 @@ fun MapStyleBottomSheet(onClose: () -> Unit, onStyleSelected: (String) -> Unit) 
                     .padding(8.dp)
                     .weight(1f)
             )
-            IconButton(onClick = onClose) {
+            IconButton(onClick = { viewModel.toggleStyleSheetVisibility(false) }) {
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "Close"
@@ -82,6 +82,7 @@ fun MapStyleBottomSheet(onClose: () -> Unit, onStyleSelected: (String) -> Unit) 
                         .weight(1f)
                         .padding(16.dp)
                         .clickable {
+                            viewModel.toggleStyleSheetVisibility(false)
                             onStyleSelected(style)
                         }
                         .then(

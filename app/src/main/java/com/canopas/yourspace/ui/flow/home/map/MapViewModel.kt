@@ -181,6 +181,10 @@ class MapViewModel @Inject constructor(
         navigator.navigateTo(AppDestinations.places.path)
     }
 
+    fun toggleStyleSheetVisibility(isVisible: Boolean) {
+        _state.value = _state.value.copy(isStyleSheetVisible = isVisible)
+    }
+
     fun showJourneyTimeline() {
         navigator.navigateTo(
             AppDestinations.JourneyTimeline.args(
@@ -218,6 +222,7 @@ data class MapScreenState(
     val loadingInviteCode: Boolean = false,
     val enabledAddPlaces: Boolean = true,
     val isMapLoaded: Boolean = false,
-    var selectedMapStyle: String = "App Theme",
+    var isStyleSheetVisible: Boolean = false,
+    var selectedMapStyle: String = "",
     val error: Exception? = null
 )
