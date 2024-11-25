@@ -289,4 +289,8 @@
     <string name="remove_member_confirmation_message">Are you sure you want to remove this member from the group?</string>
     <string name="remove_member_confirm_btn">Remove</string>
     <string name="toast_contact_admin_for_space_code_regen">Please contact your group admin to change code.</string>
+
+    <string name="toast_failed_open_navigation">Failed to open navigation</string>
+    <string name="toast_invalid_coordinates">Invalid coordinates</string>
+    <string name="toast_failed_share_location">Failed to share location</string>
 </resources>

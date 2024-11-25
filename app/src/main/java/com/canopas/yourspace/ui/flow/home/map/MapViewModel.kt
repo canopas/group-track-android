@@ -210,6 +210,10 @@ class MapViewModel @Inject constructor(
             }
         }
     }
+
+    fun resetErrorMessageState() {
+        _state.value = _state.value.copy(errorMessage = null)
+    }
 }
 
 data class MapScreenState(
@@ -224,5 +228,6 @@ data class MapScreenState(
     val isMapLoaded: Boolean = false,
     var isStyleSheetVisible: Boolean = false,
     var selectedMapStyle: String = "",
-    val error: Exception? = null
+    val error: Exception? = null,
+    var errorMessage: String? = null
 )

@@ -55,6 +55,7 @@ import com.canopas.yourspace.data.utils.hasNotificationPermission
 import com.canopas.yourspace.data.utils.isLocationPermissionGranted
 import com.canopas.yourspace.domain.utils.isLocationServiceEnabled
 import com.canopas.yourspace.domain.utils.openLocationSettings
+import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.ShowEnableLocationDialog
 import com.canopas.yourspace.ui.flow.home.map.component.AddMemberBtn
 import com.canopas.yourspace.ui.flow.home.map.component.MapCircles
@@ -88,6 +89,10 @@ fun MapScreen() {
     val viewModel = hiltViewModel<MapViewModel>()
     val state by viewModel.state.collectAsState()
     val scope = rememberCoroutineScope()
+
+    if (state.errorMessage != null) {
+        AppBanner(msg = state.errorMessage!!, onDismiss = { viewModel.resetErrorMessageState() })
+    }
 
     val userLocation = remember(state.defaultCameraPosition) {
         val location = state.defaultCameraPosition

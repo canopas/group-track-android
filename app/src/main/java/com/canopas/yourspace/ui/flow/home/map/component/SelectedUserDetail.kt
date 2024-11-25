@@ -3,7 +3,6 @@ package com.canopas.yourspace.ui.flow.home.map.component
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -23,6 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,6 +36,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
@@ -47,6 +48,8 @@ import com.canopas.yourspace.domain.utils.getAddress
 import com.canopas.yourspace.domain.utils.timeAgo
 import com.canopas.yourspace.ui.component.ActionIconButton
 import com.canopas.yourspace.ui.component.UserBatteryStatus
+import com.canopas.yourspace.ui.flow.home.map.MapScreenState
+import com.canopas.yourspace.ui.flow.home.map.MapViewModel
 import com.canopas.yourspace.ui.theme.AppTheme
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.Dispatchers
@@ -152,6 +155,9 @@ private fun MemberInfoView(
     onTapTimeline: () -> Unit
 ) {
     val context = LocalContext.current
+    val viewModel = hiltViewModel<MapViewModel>()
+    val state by viewModel.state.collectAsState()
+
     var address by remember { mutableStateOf("") }
     val time = timeAgo(location?.created_at ?: 0)
     val userStateText = if (user.noNetwork) {
@@ -211,12 +217,14 @@ private fun MemberInfoView(
                     if (isCurrentUser) {
                         shareLocation(
                             context,
-                            LatLng(location.latitude, location.longitude)
+                            LatLng(location.latitude, location.longitude),
+                            state
                         )
                     } else {
                         openNavigation(
                             context,
-                            LatLng(location.latitude, location.longitude)
+                            LatLng(location.latitude, location.longitude),
+                            state
                         )
                     }
                 }
@@ -248,10 +256,11 @@ private fun MemberInfoView(
     }
 }
 
-fun shareLocation(context: Context, location: LatLng): Boolean {
+fun shareLocation(context: Context, location: LatLng, state: MapScreenState): Boolean {
     if (location.latitude < -90 || location.latitude > 90 ||
         location.longitude < -180 || location.longitude > 180
     ) {
+        state.errorMessage = context.getString(R.string.toast_invalid_coordinates)
         return false
     }
 
@@ -266,24 +275,16 @@ fun shareLocation(context: Context, location: LatLng): Boolean {
         true
     } catch (e: Exception) {
         e.printStackTrace()
-        Toast.makeText(
-            context,
-            context.getString(R.string.toast_failed_share_location),
-            Toast.LENGTH_SHORT
-        ).show()
+        state.errorMessage = context.getString(R.string.toast_failed_share_location)
         false
     }
 }
 
-fun openNavigation(context: Context, destination: LatLng): Boolean {
+fun openNavigation(context: Context, destination: LatLng, state: MapScreenState): Boolean {
     if (destination.latitude < -90 || destination.latitude > 90 ||
         destination.longitude < -180 || destination.longitude > 180
     ) {
-        Toast.makeText(
-            context,
-            context.getString(R.string.toast_invalid_coordinates),
-            Toast.LENGTH_SHORT
-        ).show()
+        state.errorMessage = context.getString(R.string.toast_invalid_coordinates)
         return false
     }
 
@@ -304,11 +305,7 @@ fun openNavigation(context: Context, destination: LatLng): Boolean {
         }
     } catch (e: Exception) {
         e.printStackTrace()
-        Toast.makeText(
-            context,
-            context.getString(R.string.toast_failed_open_navigation),
-            Toast.LENGTH_SHORT
-        ).show()
+        state.errorMessage = context.getString(R.string.toast_failed_open_navigation)
         false
     }
 }
