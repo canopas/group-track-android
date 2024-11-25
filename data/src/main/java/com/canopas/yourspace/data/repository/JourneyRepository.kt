@@ -21,8 +21,6 @@ import kotlin.math.sqrt
 
 const val MIN_DISTANCE = 150.0 // 150 meters
 const val MIN_TIME_DIFFERENCE = 5 * 60 * 1000 // 5 minutes
-const val MIN_DISTANCE_FOR_MOVING = 10.0 // 10 meters
-const val MIN_UPDATE_INTERVAL_MS = 60 * 1000 // 1 minute
 
 @Singleton
 class JourneyRepository @Inject constructor(
@@ -233,17 +231,7 @@ class JourneyRepository @Inject constructor(
             }
         } else {
             // Handle moving user
-            if (distance < MIN_DISTANCE && timeDifference > MIN_TIME_DIFFERENCE) {
-                // Here, means last known journey is moving and user has stopped moving
-                // Save journey for steady user and update last known journey:
-                saveJourneyOnJourneyStopped(
-                    userId,
-                    extractedLocation,
-                    lastKnownJourney,
-                    distance
-                )
-                locationManager.updateRequestBasedOnState(isMoving = false)
-            } else if (distance > MIN_DISTANCE_FOR_MOVING) {
+            if (distance > MIN_DISTANCE) {
                 // Here, means last known journey is moving and user is still moving
                 // Save journey for moving user and update last known journey.
                 // Note: Need to use lastKnownJourney.id as journey id because we are updating the journey
@@ -253,6 +241,16 @@ class JourneyRepository @Inject constructor(
                     lastKnownJourney,
                     distance
                 )
+            } else if (distance < MIN_DISTANCE && timeDifference > MIN_TIME_DIFFERENCE) {
+                // Here, means last known journey is moving and user has stopped moving
+                // Save journey for steady user and update last known journey:
+                saveJourneyOnJourneyStopped(
+                    userId,
+                    extractedLocation,
+                    lastKnownJourney,
+                    distance
+                )
+                locationManager.updateRequestBasedOnState(isMoving = false)
             }
         }
     }
@@ -290,7 +288,6 @@ class JourneyRepository @Inject constructor(
         ) {
             newJourneyId = it
         }
-        locationCache.putLastJourneyUpdatedTime(System.currentTimeMillis(), userId)
         locationCache.putLastJourney(journey.copy(id = newJourneyId), userId)
     }
 
@@ -315,17 +312,10 @@ class JourneyRepository @Inject constructor(
             routes = lastKnownJourney.routes + listOf(extractedLocation.toRoute()),
             created_at = lastKnownJourney.created_at
         )
-        val lastJourneyUpdatedTime = locationCache.getLastJourneyUpdatedTime(userId)
-        val timeDifference = journey.update_at!! - lastJourneyUpdatedTime
-        if (timeDifference >= MIN_UPDATE_INTERVAL_MS) {
-            // Update last location journey in remote database
-            // as one minute is passed since last update
-            journeyService.updateLastLocationJourney(
-                userId = userId,
-                journey = journey
-            )
-            locationCache.putLastJourneyUpdatedTime(System.currentTimeMillis(), userId)
-        }
+        journeyService.updateLastLocationJourney(
+            userId = userId,
+            journey = journey
+        )
         locationCache.putLastJourney(journey, userId)
     }
 
