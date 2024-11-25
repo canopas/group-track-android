@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -73,7 +72,6 @@ class JoinSpaceViewModel @Inject constructor(
 
             _state.emit(_state.value.copy(verifying = false, joinedSpace = space))
         } catch (e: Exception) {
-            Timber.e(e, "Unable to verify invite code")
             _state.emit(
                 _state.value.copy(
                     verifying = false,

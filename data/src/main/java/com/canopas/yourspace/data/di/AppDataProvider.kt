@@ -1,6 +1,7 @@
 package com.canopas.yourspace.data.di
 
 import android.content.Context
+import com.canopas.yourspace.data.models.user.ApiUserSession
 import com.canopas.yourspace.data.utils.Config
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.LocationServices
@@ -46,4 +47,8 @@ class AppDataProvider {
     @Singleton
     fun providePlaceClient(@ApplicationContext context: Context): PlacesClient =
         Places.createClient(context)
+
+    @Provides
+    @Singleton
+    fun providedApiUserSession(): ApiUserSession = ApiUserSession()
 }

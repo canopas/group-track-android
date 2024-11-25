@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -20,6 +22,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -38,6 +43,11 @@ import com.canopas.yourspace.ui.theme.AppTheme
 @Composable
 fun SpaceInvite() {
     val viewModel = hiltViewModel<SpaceInviteCodeViewModel>()
+    val state by viewModel.state.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.onStart()
+    }
 
     Scaffold(topBar = {
         TopAppBar(
@@ -55,15 +65,25 @@ fun SpaceInvite() {
                         contentDescription = ""
                     )
                 }
+            },
+            actions = {
+                if (state.isUserAdmin) {
+                    IconButton(onClick = { viewModel.regenerateInviteCode() }) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = ""
+                        )
+                    }
+                }
             }
         )
     }) {
-        SpaceInviteContent(modifier = Modifier.padding(it))
+        SpaceInviteContent(spaceInviteCode = state.inviteCode, modifier = Modifier.padding(it))
     }
 }
 
 @Composable
-private fun SpaceInviteContent(modifier: Modifier) {
+private fun SpaceInviteContent(spaceInviteCode: String, modifier: Modifier) {
     val viewModel = hiltViewModel<SpaceInviteCodeViewModel>()
     val context = LocalContext.current
     Column(
@@ -91,7 +111,7 @@ private fun SpaceInviteContent(modifier: Modifier) {
 
         Spacer(modifier = Modifier.height(40.dp))
 
-        InvitationCodeComponent(viewModel.spaceInviteCode)
+        InvitationCodeComponent(spaceInviteCode)
 
         Spacer(modifier = Modifier.weight(1f))
 
@@ -100,7 +120,7 @@ private fun SpaceInviteContent(modifier: Modifier) {
                 .fillMaxWidth()
                 .padding(top = 16.dp),
             label = stringResource(R.string.onboard_share_space_code_btn),
-            onClick = { shareInvitationCode(context, viewModel.spaceInviteCode) }
+            onClick = { shareInvitationCode(context, spaceInviteCode) }
         )
     }
 }
