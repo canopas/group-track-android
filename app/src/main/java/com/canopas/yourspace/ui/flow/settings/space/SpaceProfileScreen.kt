@@ -3,6 +3,7 @@ package com.canopas.yourspace.ui.flow.settings.space
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -37,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -115,6 +117,24 @@ fun SpaceProfileScreen() {
             },
             onConfirmClick = {
                 viewModel.leaveSpace()
+            }
+        )
+    }
+
+    if (state.showRemoveMemberConfirmation) {
+        AppAlertDialog(
+            title = stringResource(id = R.string.remove_member_title),
+            subTitle = stringResource(id = R.string.remove_member_confirmation_message),
+            confirmBtnText = stringResource(id = R.string.remove_member_confirm_btn),
+            dismissBtnText = stringResource(id = R.string.common_btn_cancel),
+            isConfirmDestructive = true,
+            onDismissClick = {
+                viewModel.showRemoveMemberConfirmationWithId(false, "")
+            },
+            onConfirmClick = {
+                state.memberToRemove?.let { memberId ->
+                    viewModel.removeMember(memberId)
+                }
             }
         )
     }
@@ -200,8 +220,13 @@ private fun SpaceProfileContent() {
                     userInfo = it,
                     isChecked = state.locationEnabled,
                     enable = true,
+                    isAdmin = state.isAdmin,
+                    currentUser = state.currentUserId!!,
                     onCheckedChange = {
                         viewModel.onLocationEnabledChanged(it)
+                    },
+                    onMemberRemove = {
+                        viewModel.showRemoveMemberConfirmationWithId(true, "")
                     }
                 )
             }
@@ -225,7 +250,12 @@ private fun SpaceProfileContent() {
                         userInfo = it,
                         isChecked = it.isLocationEnable,
                         enable = false,
+                        isAdmin = state.isAdmin,
+                        currentUser = state.currentUserId!!,
                         onCheckedChange = {
+                        },
+                        onMemberRemove = {
+                            viewModel.showRemoveMemberConfirmationWithId(true, it.user.id)
                         }
                     )
                 }
@@ -316,13 +346,17 @@ private fun UserItem(
     userInfo: UserInfo,
     isChecked: Boolean,
     enable: Boolean,
-    onCheckedChange: (Boolean) -> Unit
+    isAdmin: Boolean,
+    currentUser: String,
+    onCheckedChange: (Boolean) -> Unit,
+    onMemberRemove: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
     ) {
         UserProfile(modifier = Modifier.size(40.dp), user = userInfo.user)
         Spacer(modifier = Modifier.width(8.dp))
@@ -344,8 +378,25 @@ private fun UserItem(
             ),
             onCheckedChange = {
                 onCheckedChange(it)
-            }
+            },
+            modifier = Modifier.padding(end = 8.dp)
         )
+
+        if (isAdmin && userInfo.user.id != currentUser) {
+            Icon(
+                painter = painterResource(R.drawable.ic_remove),
+                contentDescription = null,
+                tint = Color.Unspecified,
+                modifier = Modifier
+                    .padding(8.dp)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = ripple(bounded = false)
+                    ) {
+                        onMemberRemove()
+                    }
+            )
+        }
     }
 }
 

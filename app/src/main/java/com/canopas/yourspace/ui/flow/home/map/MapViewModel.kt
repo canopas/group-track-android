@@ -48,7 +48,12 @@ class MapViewModel @Inject constructor(
         viewModelScope.launch {
             _state.value = _state.value.copy(currentUser = userPreferences.currentUser)
             withContext(appDispatcher.IO) {
-                _state.emit(_state.value.copy(defaultCameraPosition = locationManager.getLastLocation()))
+                _state.emit(
+                    _state.value.copy(
+                        defaultCameraPosition = locationManager.getLastLocation(),
+                        selectedMapStyle = userPreferences.currentMapStyle ?: ""
+                    )
+                )
             }
             userPreferences.currentSpaceState.collectLatest { spaceId ->
                 locationJob?.cancel()
@@ -176,6 +181,10 @@ class MapViewModel @Inject constructor(
         navigator.navigateTo(AppDestinations.places.path)
     }
 
+    fun toggleStyleSheetVisibility(isVisible: Boolean) {
+        _state.value = _state.value.copy(isStyleSheetVisible = isVisible)
+    }
+
     fun showJourneyTimeline() {
         navigator.navigateTo(
             AppDestinations.JourneyTimeline.args(
@@ -187,6 +196,18 @@ class MapViewModel @Inject constructor(
     fun onMapLoaded() {
         viewModelScope.launch(appDispatcher.IO) {
             _state.emit(_state.value.copy(isMapLoaded = true))
+        }
+    }
+
+    fun updateMapStyle(style: String) {
+        viewModelScope.launch(appDispatcher.IO) {
+            try {
+                userPreferences.currentMapStyle = style
+                _state.emit(_state.value.copy(selectedMapStyle = style))
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to update map style")
+                _state.emit(_state.value.copy(error = e))
+            }
         }
     }
 }
@@ -201,5 +222,7 @@ data class MapScreenState(
     val loadingInviteCode: Boolean = false,
     val enabledAddPlaces: Boolean = true,
     val isMapLoaded: Boolean = false,
+    var isStyleSheetVisible: Boolean = false,
+    var selectedMapStyle: String = "",
     val error: Exception? = null
 )

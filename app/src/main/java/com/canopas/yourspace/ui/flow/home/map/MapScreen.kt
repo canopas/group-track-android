@@ -60,6 +60,7 @@ import com.canopas.yourspace.ui.flow.home.map.component.AddMemberBtn
 import com.canopas.yourspace.ui.flow.home.map.component.MapCircles
 import com.canopas.yourspace.ui.flow.home.map.component.MapControlBtn
 import com.canopas.yourspace.ui.flow.home.map.component.MapMarker
+import com.canopas.yourspace.ui.flow.home.map.component.MapStyleBottomSheet
 import com.canopas.yourspace.ui.flow.home.map.component.MapUserItem
 import com.canopas.yourspace.ui.flow.home.map.component.SelectedUserDetail
 import com.canopas.yourspace.ui.theme.AppTheme
@@ -73,6 +74,7 @@ import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
+import com.google.maps.android.compose.MapType
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.launch
@@ -137,6 +139,10 @@ fun MapScreen() {
                 .align(Alignment.BottomEnd)
         ) {
             Column(modifier = Modifier.align(Alignment.End)) {
+                MapControlBtn(icon = R.drawable.ic_map_type) {
+                    viewModel.toggleStyleSheetVisibility(true)
+                }
+
                 MapControlBtn(
                     icon = R.drawable.ic_relocate,
                     show = relocate
@@ -220,6 +226,15 @@ fun MapScreen() {
                         }
                     }
                 }
+            }
+        }
+        if (state.isStyleSheetVisible) {
+            Column(modifier = Modifier.align(Alignment.BottomEnd)) {
+                MapStyleBottomSheet(
+                    onStyleSelected = { style ->
+                        viewModel.updateMapStyle(style)
+                    }
+                )
             }
         }
     }
@@ -314,17 +329,27 @@ private fun MapView(
 ) {
     val viewModel = hiltViewModel<MapViewModel>()
     val state by viewModel.state.collectAsState()
+    val terrainStyle = stringResource(R.string.map_style_terrain)
+    val satelliteStyle = stringResource(R.string.map_style_satellite)
+
+    val mapStyleOptions = remember(state.selectedMapStyle) {
+        when (state.selectedMapStyle) {
+            terrainStyle -> MapType.TERRAIN
+            satelliteStyle -> MapType.SATELLITE
+            else -> MapType.NORMAL
+        }
+    }
+
     val isDarkMode = isSystemInDarkTheme()
     val context = LocalContext.current
-    val mapProperties = remember(isDarkMode) {
-        MapProperties(
-            mapStyleOptions = if (isDarkMode) {
-                MapStyleOptions.loadRawResourceStyle(context, R.raw.map_theme_night)
-            } else {
-                null
-            }
-        )
-    }
+    val mapProperties = MapProperties(
+        mapStyleOptions = if (isDarkMode) {
+            MapStyleOptions.loadRawResourceStyle(context, R.raw.map_theme_night)
+        } else {
+            null
+        },
+        mapType = mapStyleOptions
+    )
 
     GoogleMap(
         cameraPositionState = cameraPositionState,
