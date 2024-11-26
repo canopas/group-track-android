@@ -21,6 +21,7 @@ import kotlin.math.sqrt
 
 const val MIN_DISTANCE = 150.0 // 150 meters
 const val MIN_TIME_DIFFERENCE = 5 * 60 * 1000 // 5 minutes
+const val MIN_DISTANCE_FOR_MOVING = 10.0 // 10 meters
 
 @Singleton
 class JourneyRepository @Inject constructor(
@@ -231,17 +232,7 @@ class JourneyRepository @Inject constructor(
             }
         } else {
             // Handle moving user
-            if (distance > MIN_DISTANCE) {
-                // Here, means last known journey is moving and user is still moving
-                // Save journey for moving user and update last known journey.
-                // Note: Need to use lastKnownJourney.id as journey id because we are updating the journey
-                updateJourneyForContinuedMovingUser(
-                    userId,
-                    extractedLocation,
-                    lastKnownJourney,
-                    distance
-                )
-            } else if (distance < MIN_DISTANCE && timeDifference > MIN_TIME_DIFFERENCE) {
+            if (distance < MIN_DISTANCE && timeDifference > MIN_TIME_DIFFERENCE) {
                 // Here, means last known journey is moving and user has stopped moving
                 // Save journey for steady user and update last known journey:
                 saveJourneyOnJourneyStopped(
@@ -251,6 +242,16 @@ class JourneyRepository @Inject constructor(
                     distance
                 )
                 locationManager.updateRequestBasedOnState(isMoving = false)
+            } else if (distance > MIN_DISTANCE_FOR_MOVING) {
+                // Here, means last known journey is moving and user is still moving
+                // Save journey for moving user and update last known journey.
+                // Note: Need to use lastKnownJourney.id as journey id because we are updating the journey
+                updateJourneyForContinuedMovingUser(
+                    userId,
+                    extractedLocation,
+                    lastKnownJourney,
+                    distance
+                )
             }
         }
     }
