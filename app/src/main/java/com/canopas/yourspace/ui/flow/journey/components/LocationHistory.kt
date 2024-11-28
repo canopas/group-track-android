@@ -182,6 +182,7 @@ fun SteadyLocationItem(
             } else {
                 nextJourney.created_at!!
             }
+
             else -> minOf(System.currentTimeMillis(), endOfSteadyDay)
         }
 
@@ -462,7 +463,7 @@ internal fun getFormattedLocationTimeForFirstItem(createdAt: Long): String {
 
 fun Address.formattedTitle(toAddress: Address?): String {
     val fromName = extractLocationName(this)
-    val toName = toAddress?.let { extractLocationName(it) } ?: "Unknown"
+    val toName = toAddress?.let { extractLocationName(it) } ?: "Unknown Road"
 
     return if (toAddress == null) {
         fromName
@@ -474,18 +475,21 @@ fun Address.formattedTitle(toAddress: Address?): String {
 private fun extractLocationName(address: Address): String {
     val featureName = address.featureName?.trim()
     val thoroughfare = address.thoroughfare?.trim()
-    val locality = address.locality?.trim()
-    val subThoroughfare = address.subThoroughfare?.trim()
 
     val potentialNames = listOf(
         featureName,
-        thoroughfare,
-        locality,
-        subThoroughfare
+        thoroughfare
     ).filterNot { it.isNullOrEmpty() }
 
-    val name = potentialNames.firstOrNull { it?.matches(Regex("[^0-9]+")) == true }
-        ?: potentialNames.firstOrNull() ?: "Unknown"
+    val cleanedNames = potentialNames.map { it?.replace(Regex("^[A-Za-z0-9]+\\+.*"), "")?.trim() }
+    val name = cleanedNames.firstOrNull { it?.isNotEmpty() == true } ?: "Unknown Road"
 
-    return name.replace(Regex("^[0-9]+\\s*"), "").trim().ifEmpty { "Unknown" }
+    val resultName = if (name.matches(Regex("^[0-9].*"))) {
+        val streetName = cleanedNames.getOrNull(1) ?: ""
+        "$name $streetName".trim()
+    } else {
+        name
+    }
+
+    return resultName
 }
