@@ -22,7 +22,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 private const val LOCATION_UPDATE_INTERVAL = 10000L // 10 seconds
-private const val STEADY_UPDATE_INTERVAL = 60000L // 1 minute
+private const val STEADY_UPDATE_INTERVAL = 30000L // 30 seconds
 
 @SuppressLint("MissingPermission")
 @Singleton
