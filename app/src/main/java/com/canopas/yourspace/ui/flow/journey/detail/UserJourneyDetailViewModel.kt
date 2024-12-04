@@ -122,5 +122,5 @@ data class UserJourneyDetailState(
     val journey: LocationJourney? = null,
     val connectivityStatus: ConnectivityObserver.Status = ConnectivityObserver.Status.Available,
     val error: String? = null,
-    var selectedMapStyle: String = ""
+    val selectedMapStyle: String = ""
 )
