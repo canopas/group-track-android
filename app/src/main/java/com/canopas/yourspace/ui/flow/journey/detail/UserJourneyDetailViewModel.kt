@@ -58,7 +58,7 @@ class UserJourneyDetailViewModel @Inject constructor(
     private fun fetchJourney() = viewModelScope.launch(appDispatcher.IO) {
         try {
             _state.value = _state.value.copy(isLoading = true)
-            val journey = journeyService.getLocationJourneyFromId(userId, journeyId)
+            val journey = journeyService.getLocationJourneyFromId(journeyId)
             if (journey == null) {
                 _state.value = _state.value.copy(
                     isLoading = false,

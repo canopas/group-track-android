@@ -23,7 +23,7 @@ class ApiSpaceService @Inject constructor(
     private val placeService: ApiPlaceService
 ) {
     private val spaceRef = db.collection(FIRESTORE_COLLECTION_SPACES)
-    private fun spaceMemberRef(spaceId: String) =
+    internal fun spaceMemberRef(spaceId: String) =
         spaceRef.document(spaceId.takeIf { it.isNotBlank() } ?: "null").collection(FIRESTORE_COLLECTION_SPACE_MEMBERS)
 
     suspend fun createSpace(spaceName: String): String {
