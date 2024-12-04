@@ -12,6 +12,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import com.canopas.yourspace.R
 import com.canopas.yourspace.data.models.location.LocationJourney
 import com.canopas.yourspace.data.models.location.toRoute
@@ -26,6 +27,7 @@ import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
+import com.google.maps.android.compose.MapType
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.MarkerComposable
 import com.google.maps.android.compose.Polyline
@@ -42,7 +44,8 @@ fun JourneyMap(
     polyLineWidth: Float = 5f,
     anchor: Offset = Offset(0.5f, 1.0f),
     shouldAnimate: Boolean = false,
-    onMapTap: (() -> Unit) = { }
+    onMapTap: () -> Unit = { },
+    selectedMapStyle: String
 ) {
     val fromLatLang = LatLng(location?.from_latitude ?: 0.0, location?.from_longitude ?: 0.0)
     val toLatLang = LatLng(location?.to_latitude ?: 0.0, location?.to_longitude ?: 0.0)
@@ -51,17 +54,26 @@ fun JourneyMap(
     }
     val animatedProgress = remember { Animatable(0f) }
 
+    val terrainStyle = stringResource(R.string.map_style_terrain)
+    val satelliteStyle = stringResource(R.string.map_style_satellite)
+
+    val mapStyleOptions = remember(selectedMapStyle) {
+        when (selectedMapStyle) {
+            terrainStyle -> MapType.TERRAIN
+            satelliteStyle -> MapType.SATELLITE
+            else -> MapType.NORMAL
+        }
+    }
     val isDarkMode = isSystemInDarkTheme()
     val context = LocalContext.current
-    val mapProperties = remember(isDarkMode) {
-        MapProperties(
-            mapStyleOptions = if (isDarkMode) {
-                MapStyleOptions.loadRawResourceStyle(context, R.raw.map_theme_night)
-            } else {
-                null
-            }
-        )
-    }
+    val mapProperties = MapProperties(
+        mapStyleOptions = if (isDarkMode) {
+            MapStyleOptions.loadRawResourceStyle(context, R.raw.map_theme_night)
+        } else {
+            null
+        },
+        mapType = mapStyleOptions
+    )
 
     // Calculate the route points
     val routePoints = location?.toRoute() ?: listOf()

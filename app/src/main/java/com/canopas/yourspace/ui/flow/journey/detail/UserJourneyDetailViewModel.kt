@@ -9,6 +9,7 @@ import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.service.location.ApiJourneyService
 import com.canopas.yourspace.data.service.location.LocationManager
 import com.canopas.yourspace.data.service.user.ApiUserService
+import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.utils.AppDispatcher
 import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.navigation.AppDestinations.UserJourneyDetails.KEY_JOURNEY_ID
@@ -30,7 +31,8 @@ class UserJourneyDetailViewModel @Inject constructor(
     private val locationManager: LocationManager,
     private val apiUserService: ApiUserService,
     private val navigator: AppNavigator,
-    private val connectivityObserver: ConnectivityObserver
+    private val connectivityObserver: ConnectivityObserver,
+    private val userPreferences: UserPreferences
 ) : ViewModel() {
 
     private var journeyId: String = savedStateHandle.get<String>(KEY_JOURNEY_ID)
@@ -49,7 +51,8 @@ class UserJourneyDetailViewModel @Inject constructor(
             _state.value = _state.value.copy(
                 journeyId = journeyId,
                 user = user,
-                currentLocation = currentLocation
+                currentLocation = currentLocation,
+                selectedMapStyle = userPreferences.currentMapStyle ?: ""
             )
         }
         fetchJourney()
@@ -118,5 +121,6 @@ data class UserJourneyDetailState(
     val journeyId: String? = null,
     val journey: LocationJourney? = null,
     val connectivityStatus: ConnectivityObserver.Status = ConnectivityObserver.Status.Available,
-    val error: String? = null
+    val error: String? = null,
+    var selectedMapStyle: String = ""
 )
