@@ -32,7 +32,7 @@ service cloud.firestore {
         match /users/{docId} {
             allow create : if isAuthorized() && request.auth.uid == docId &&
                     request.resource.data.keys().hasAll(["id", "auth_type", "location_enabled", "provider_firebase_id_token", "created_at"]) &&
-                    request.resource.data.keys().hasAny(["email", "phone"]) &&
+                    request.resource.data.email is string &&
                     request.resource.data.id is string &&
                     request.resource.data.auth_type is int &&
                     (request.resource.data.auth_type == 1 || request.resource.data.auth_type == 2) &&
@@ -40,7 +40,6 @@ service cloud.firestore {
                     request.resource.data.provider_firebase_id_token is string &&
                     request.resource.data.created_at is int &&
                     request.resource.data.get('first_name', '') is string &&
-                    request.resource.data.get('phone', '') is string &&
                     request.resource.data.get('email', '') is string &&
                     request.resource.data.get('last_name', '') is string &&
                     request.resource.data.get('fcm_token', '') is string &&
@@ -151,7 +150,7 @@ service cloud.firestore {
                             request.resource.data.created_at is timestamp;
                 }
 
-           function isPlaceAdmin(spaceId, placeId) {
+           function isPlaceAdmin(spaceId, place) {
                       let created_by = get(/databases/$(database)/documents/spaces/$(spaceId)/space_places/$(place)).data.created_by;
                       return request.auth.uid == created_by;
            }
@@ -193,6 +192,37 @@ service cloud.firestore {
                     (request.resource.data.role == 1 || request.resource.data.role == 2) &&
                     request.resource.data.location_enabled is bool &&
                     request.resource.data.created_at is int;
+
+           function readSpaceMemberLocation(spaceId) {
+               return exists(/databases/$(database)/documents/spaces/$(spaceId)/space_members/$(request.auth.uid));
+           }
+
+            match /user_locations/{docId} {
+                allow read: if isAuthorized() && (request.auth.uid == resource.data.user_id || readSpaceMemberLocation());
+                allow update: if isAuthorized() && request.auth.uid == resource.data.user_id;
+                allow delete: if isAuthorized() && request.auth.uid == resource.data.user_id;
+                allow create: if isAuthorized() && request.auth.uid == request.resource.data.user_id &&
+                        request.resource.data.keys().hasAll(["id", "user_id", "latitude", "longitude", "sender_key", "created_at"]) &&
+                        request.resource.data.id is string &&
+                        request.resource.data.user_id is string &&
+                        request.resource.data.latitude is string &&
+                        request.resource.data.longitude is string &&
+                        request.resource.data.sender_key is string &&
+                        request.resource.data.created_at is int;
+            }
+
+            match /user_journeys/{docId} {
+                allow read: if isAuthorized() && (request.auth.uid == resource.data.user_id || readSpaceMemberLocation());
+                allow update: if true;
+                allow delete: if isAuthorized() && request.auth.uid == resource.data.user_id;
+                allow create: if isAuthorized() && request.auth.uid == request.resource.data.user_id &&
+                        request.resource.data.keys().hasAll(["id", "user_id", "from_latitude", "from_longitude", "created_at"]) &&
+                        request.resource.data.id is string &&
+                        request.resource.data.user_id is string &&
+                        request.resource.data.from_latitude is string &&
+                        request.resource.data.from_longitude is string &&
+                        request.resource.data.created_at is int;
+            }
         }
 
         match /space_invitations/{docId} {

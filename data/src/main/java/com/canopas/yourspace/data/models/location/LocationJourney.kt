@@ -23,7 +23,31 @@ data class LocationJourney(
 )
 
 @Keep
+@JsonClass(generateAdapter = true)
+data class EncryptedLocationJourney(
+    val id: String = UUID.randomUUID().toString(),
+    val user_id: String = "",
+    val encrypted_from_latitude: String = "", // Base64 encoded
+    val encrypted_from_longitude: String = "",
+    val encrypted_to_latitude: String? = "",
+    val encrypted_to_longitude: String? = "",
+    val route_distance: Double? = null,
+    val route_duration: Long? = null,
+    val encrypted_routes: List<EncryptedJourneyRoute> = emptyList(),
+    val created_at: Long? = System.currentTimeMillis(),
+    val updated_at: Long? = System.currentTimeMillis()
+)
+
+
+@Keep
 data class JourneyRoute(val latitude: Double = 0.0, val longitude: Double = 0.0)
+
+@Keep
+@JsonClass(generateAdapter = true)
+data class EncryptedJourneyRoute(
+    val encrypted_latitude: String = "",
+    val encrypted_longitude: String = ""
+)
 
 fun Location.toRoute(): JourneyRoute {
     return JourneyRoute(latitude, longitude)

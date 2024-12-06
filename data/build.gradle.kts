@@ -4,6 +4,7 @@ plugins {
     id("com.google.dagger.hilt.android")
     id("org.jlleitschuh.gradle.ktlint")
     id("com.google.devtools.ksp")
+    id("com.google.protobuf")
 }
 
 android {
@@ -36,6 +37,9 @@ android {
     }
     ktlint {
         debug = true
+    }
+    configurations.all {
+        resolutionStrategy.force("com.google.protobuf:protobuf-javalite:3.10.0")
     }
 }
 
@@ -83,4 +87,29 @@ dependencies {
 
     // Place
     implementation("com.google.android.libraries.places:places:4.0.0")
+
+    // Signal Protocol
+    implementation("org.whispersystems:signal-protocol-android:2.8.1") {
+        exclude(group = "com.google.protobuf", module = "protolite-java")
+    }
+    implementation("com.google.protobuf:protobuf-javalite:3.10.0") // Align with Signal Protocol version
+
+    // AndroidX Security for EncryptedSharedPreferences
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.10.0"
+    }
+    generateProtoTasks {
+        all().forEach { task ->
+            task.builtins {
+                create("java") {
+                    option("lite")
+                }
+            }
+        }
+    }
 }

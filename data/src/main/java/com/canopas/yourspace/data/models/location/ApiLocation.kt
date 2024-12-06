@@ -14,6 +14,16 @@ data class ApiLocation(
     val created_at: Long? = System.currentTimeMillis()
 )
 
+@Keep
+@JsonClass(generateAdapter = true)
+data class EncryptedApiLocation(
+    val id: String = UUID.randomUUID().toString(),
+    val user_id: String = "",
+    val encrypted_latitude: String = "", // Base64 encoded encrypted latitude
+    val encrypted_longitude: String = "", // Base64 encoded encrypted longitude
+    val created_at: Long? = System.currentTimeMillis()
+)
+
 fun ApiLocation.toLocation() = android.location.Location("").apply {
     latitude = this@toLocation.latitude
     longitude = this@toLocation.longitude
