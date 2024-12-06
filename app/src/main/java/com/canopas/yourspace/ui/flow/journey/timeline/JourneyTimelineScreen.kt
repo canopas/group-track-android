@@ -139,7 +139,8 @@ private fun TimelineContent(modifier: Modifier) {
                     journeys = state.groupedLocation,
                     onScrollToBottom = viewModel::loadMoreLocations,
                     onAddPlaceClicked = viewModel::addPlace,
-                    showJourneyDetails = viewModel::showJourneyDetails
+                    showJourneyDetails = viewModel::showJourneyDetails,
+                    selectedMapStyle = state.selectedMapStyle
                 )
             }
         }
@@ -154,7 +155,8 @@ private fun JourneyList(
     journeys: Map<Long, List<LocationJourney>>,
     onScrollToBottom: () -> Unit,
     onAddPlaceClicked: (Double, Double) -> Unit,
-    showJourneyDetails: (String) -> Unit
+    showJourneyDetails: (String) -> Unit,
+    selectedMapStyle: String
 ) {
     val lazyState = rememberLazyListState()
     val reachedBottom by remember {
@@ -186,7 +188,8 @@ private fun JourneyList(
                 journeyList = allJourney,
                 showJourneyDetails = {
                     showJourneyDetails(journey.id)
-                }
+                },
+                selectedMapStyle = selectedMapStyle
             )
         }
 
