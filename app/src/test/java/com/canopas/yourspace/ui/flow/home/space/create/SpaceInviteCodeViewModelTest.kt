@@ -6,10 +6,12 @@ import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.space.SpaceInvitationService
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.navigation.AppDestinations.SpaceInvitation.KEY_INVITE_CODE
 import com.canopas.yourspace.ui.navigation.AppDestinations.SpaceInvitation.KEY_SPACE_NAME
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.junit.Before
 import org.junit.Rule
@@ -30,18 +32,22 @@ class SpaceInviteCodeViewModelTest {
     private val spaceRepository = mock<SpaceRepository>()
     private val spaceInvitationService = mock<SpaceInvitationService>()
     private val authService = mock<AuthService>()
+    private val connectivityObserver = mock<ConnectivityObserver>()
 
     private lateinit var viewModel: SpaceInviteCodeViewModel
 
     @Before
     fun setViewModel() {
+        whenever(connectivityObserver.observe()).thenReturn(flowOf(ConnectivityObserver.Status.Available))
+
         viewModel = SpaceInviteCodeViewModel(
             appNavigator = appNavigator,
             savedStateHandle = savedStateHandle,
             appDispatcher = testDispatcher,
             spaceRepository = spaceRepository,
             spaceInvitationService = spaceInvitationService,
-            authService = authService
+            authService = authService,
+            connectivityObserver = connectivityObserver
         )
     }
 

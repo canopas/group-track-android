@@ -7,6 +7,7 @@ import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.space.SpaceInvitationService
 import com.canopas.yourspace.data.utils.AppDispatcher
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.navigation.AppDestinations.SpaceInvitation.KEY_INVITE_CODE
 import com.canopas.yourspace.ui.navigation.AppDestinations.SpaceInvitation.KEY_SPACE_NAME
 import com.canopas.yourspace.ui.navigation.AppNavigator
@@ -14,6 +15,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -24,7 +26,8 @@ class SpaceInviteCodeViewModel @Inject constructor(
     private val appDispatcher: AppDispatcher,
     private val spaceRepository: SpaceRepository,
     private val spaceInvitationService: SpaceInvitationService,
-    private val authService: AuthService
+    private val authService: AuthService,
+    private val connectivityObserver: ConnectivityObserver
 ) : ViewModel() {
 
     val spaceInviteCode = savedStateHandle.get<String>(KEY_INVITE_CODE) ?: ""
@@ -32,6 +35,10 @@ class SpaceInviteCodeViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(InviteCodeState())
     val state: StateFlow<InviteCodeState> = _state.asStateFlow()
+
+    init {
+        checkInternetConnection()
+    }
 
     fun onStart() {
         viewModelScope.launch(appDispatcher.IO) {
@@ -82,10 +89,36 @@ class SpaceInviteCodeViewModel @Inject constructor(
         }
         fetchInviteCode()
     }
+
+    fun checkInternetConnection() {
+        viewModelScope.launch(appDispatcher.IO) {
+            connectivityObserver.observe().collectLatest { status ->
+                _state.emit(
+                    _state.value.copy(
+                        connectivityStatus = status
+                    )
+                )
+            }
+        }
+    }
+
+    fun resetErrorState() {
+        _state.value = _state.value.copy(error = null)
+    }
+
+    fun setErrorState(exception: Exception) {
+        viewModelScope.launch {
+            _state.emit(
+                _state.value.copy(error = exception)
+            )
+        }
+    }
 }
 
 data class InviteCodeState(
     var inviteCode: String = "",
     val spaceName: String = "",
-    var isUserAdmin: Boolean = false
+    var isUserAdmin: Boolean = false,
+    var error: Exception? = null,
+    val connectivityStatus: ConnectivityObserver.Status = ConnectivityObserver.Status.Available
 )
