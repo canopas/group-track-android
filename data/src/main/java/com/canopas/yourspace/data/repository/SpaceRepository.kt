@@ -197,9 +197,14 @@ class SpaceRepository @Inject constructor(
         invitationService.deleteInvitations(spaceId)
         spaceService.deleteSpace(spaceId)
         val userId = authService.currentUser?.id ?: ""
-        currentSpaceId =
-            getUserSpaces(userId).firstOrNull()?.sortedBy { it.created_at }?.firstOrNull()?.id
-                ?: ""
+        val user = userService.getUser(userId)
+        val updatedSpaceIds = user?.space_ids?.toMutableList()?.apply {
+            remove(spaceId)
+        } ?: return
+
+        user.copy(space_ids = updatedSpaceIds).let {
+            userService.updateUser(it)
+        }
     }
 
     suspend fun leaveSpace(spaceId: String) {
