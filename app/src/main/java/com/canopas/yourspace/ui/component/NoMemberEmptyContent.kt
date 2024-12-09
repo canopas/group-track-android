@@ -23,6 +23,8 @@ import com.canopas.yourspace.ui.theme.AppTheme
 @Composable
 fun NoMemberEmptyContent(
     loadingInviteCode: Boolean,
+    title: Int,
+    subtitle: Int,
     addMember: () -> Unit
 ) {
     Column(
@@ -40,12 +42,12 @@ fun NoMemberEmptyContent(
         )
         Spacer(modifier = Modifier.height(24.dp))
         Text(
-            text = stringResource(id = R.string.threads_screen_no_members_title),
+            text = stringResource(id = title),
             style = AppTheme.appTypography.header4
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = stringResource(id = R.string.threads_screen_no_members_subtitle),
+            text = stringResource(id = subtitle),
             style = AppTheme.appTypography.subTitle1,
             color = AppTheme.colorScheme.textDisabled,
             textAlign = TextAlign.Center

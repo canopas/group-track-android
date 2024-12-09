@@ -160,7 +160,11 @@ private fun ThreadsContent(modifier: Modifier) {
                 deleteThread = { viewModel.deleteThread(it) }
             )
         } else {
-            NoMemberEmptyContent(state.loadingInviteCode) {
+            NoMemberEmptyContent(
+                loadingInviteCode = state.loadingInviteCode,
+                title = R.string.threads_screen_no_members_title,
+                subtitle = R.string.threads_screen_no_members_subtitle
+            ) {
                 viewModel.addMember()
             }
         }

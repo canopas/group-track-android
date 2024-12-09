@@ -105,7 +105,11 @@ fun PlacesListScreen() {
             } else if (state.hasMembers) {
                 PlacesListContent(modifier = Modifier.padding(it))
             } else {
-                NoMemberEmptyContent(state.loadingInviteCode) {
+                NoMemberEmptyContent(
+                    loadingInviteCode = state.loadingInviteCode,
+                    title = R.string.place_list_screen_no_members_title,
+                    subtitle = R.string.place_list_screen_no_members_subtitle
+                ) {
                     viewModel.addMember()
                 }
             }
