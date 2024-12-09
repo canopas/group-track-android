@@ -293,4 +293,7 @@
     <string name="toast_failed_open_navigation">Failed to open navigation</string>
     <string name="toast_invalid_coordinates">Invalid coordinates</string>
     <string name="toast_failed_share_location">Failed to share location</string>
+
+    <string name="place_list_screen_no_members_title">Add members to add places</string>
+    <string name="place_list_screen_no_members_subtitle">At least one member needs to join your group to be able to add places.</string>
 </resources>

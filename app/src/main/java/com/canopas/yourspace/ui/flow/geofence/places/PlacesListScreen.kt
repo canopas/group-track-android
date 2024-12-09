@@ -2,7 +2,9 @@ package com.canopas.yourspace.ui.flow.geofence.places
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -48,6 +50,7 @@ import com.canopas.yourspace.ui.component.AppAlertDialog
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.AppProgressIndicator
 import com.canopas.yourspace.ui.component.NoInternetScreen
+import com.canopas.yourspace.ui.component.NoMemberEmptyContent
 import com.canopas.yourspace.ui.flow.geofence.add.components.PlaceAddedPopup
 import com.canopas.yourspace.ui.theme.AppTheme
 
@@ -83,7 +86,7 @@ fun PlacesListScreen() {
         contentColor = AppTheme.colorScheme.textPrimary,
         containerColor = AppTheme.colorScheme.surface,
         floatingActionButton = {
-            if (!state.placesLoading && state.connectivityStatus == ConnectivityObserver.Status.Available) {
+            if (!state.placesLoading && state.connectivityStatus == ConnectivityObserver.Status.Available && state.hasMembers) {
                 FloatingActionButton(
                     onClick = { viewModel.navigateToAddPlace() },
                     containerColor = AppTheme.colorScheme.primary,
@@ -97,7 +100,19 @@ fun PlacesListScreen() {
         }
     ) {
         if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
-            PlacesListContent(modifier = Modifier.padding(it))
+            if (state.loadingSpace || state.placesLoading) {
+                LoadingContent(modifier = Modifier.padding(it))
+            } else if (state.hasMembers) {
+                PlacesListContent(modifier = Modifier.padding(it))
+            } else {
+                NoMemberEmptyContent(
+                    loadingInviteCode = state.loadingInviteCode,
+                    title = R.string.place_list_screen_no_members_title,
+                    subtitle = R.string.place_list_screen_no_members_subtitle
+                ) {
+                    viewModel.addMember()
+                }
+            }
         } else {
             NoInternetScreen(viewModel::checkInternetConnection)
         }
@@ -133,6 +148,17 @@ fun PlacesListScreen() {
         AppBanner(msg = state.error!!) {
             viewModel.resetErrorState()
         }
+    }
+}
+
+@Composable
+fun LoadingContent(modifier: Modifier) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = modifier.fillMaxSize()
+    ) {
+        AppProgressIndicator()
     }
 }
 
