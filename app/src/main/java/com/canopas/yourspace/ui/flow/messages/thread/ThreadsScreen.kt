@@ -71,7 +71,7 @@ import com.canopas.yourspace.ui.component.AppAlertDialog
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.AppProgressIndicator
 import com.canopas.yourspace.ui.component.NoInternetScreen
-import com.canopas.yourspace.ui.component.PrimaryButton
+import com.canopas.yourspace.ui.component.NoMemberEmptyContent
 import com.canopas.yourspace.ui.component.UserProfile
 import com.canopas.yourspace.ui.component.motionClickEvent
 import com.canopas.yourspace.ui.flow.messages.chat.toFormattedTitle
@@ -439,47 +439,5 @@ fun ThreadProfile(members: List<ApiUser>) {
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun NoMemberEmptyContent(
-    loadingInviteCode: Boolean,
-    addMember: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(
-            painter = painterResource(id = R.drawable.ic_thread_no_member),
-            contentDescription = null,
-            modifier = Modifier.size(64.dp),
-            tint = AppTheme.colorScheme.textPrimary
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-        Text(
-            text = stringResource(id = R.string.threads_screen_no_members_title),
-            style = AppTheme.appTypography.header4
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = stringResource(id = R.string.threads_screen_no_members_subtitle),
-            style = AppTheme.appTypography.subTitle1,
-            color = AppTheme.colorScheme.textDisabled,
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        PrimaryButton(
-            modifier = Modifier.fillMaxWidth(),
-            label = stringResource(id = R.string.thread_screen_add_new_member),
-            onClick = addMember,
-            showLoader = loadingInviteCode
-        )
     }
 }
