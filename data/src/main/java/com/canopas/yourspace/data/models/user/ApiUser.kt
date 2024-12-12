@@ -3,6 +3,9 @@ package com.canopas.yourspace.data.models.user
 import androidx.annotation.Keep
 import com.google.firebase.firestore.Exclude
 import com.squareup.moshi.JsonClass
+import org.signal.libsignal.protocol.IdentityKeyPair
+import org.signal.libsignal.protocol.state.PreKeyRecord
+import org.signal.libsignal.protocol.state.SignedPreKeyRecord
 import java.util.UUID
 
 const val LOGIN_TYPE_GOOGLE = 1
@@ -24,7 +27,12 @@ data class ApiUser(
     val state: Int = USER_STATE_UNKNOWN,
     val battery_pct: Float? = 0f,
     val created_at: Long? = System.currentTimeMillis(),
-    val updated_at: Long? = System.currentTimeMillis()
+    val updated_at: Long? = System.currentTimeMillis(),
+    val public_key: String? = null, // Identity public key (Base64-encoded)
+    val private_key: String? = null, // Identity private key (Base64-encoded and encrypted)
+    val pre_keys: List<String>? = null, // List of serialized PreKeys (Base64-encoded)
+    val signed_pre_key: String? = null, // Serialized Signed PreKey (Base64-encoded)
+    val registration_id: Int = 0 // Signal Protocol registration ID
 ) {
     @get:Exclude
     val fullName: String get() = "$first_name $last_name"
@@ -38,6 +46,15 @@ data class ApiUser(
     @get:Exclude
     val locationPermissionDenied: Boolean get() = state == USER_STATE_LOCATION_PERMISSION_DENIED
 }
+
+@Keep
+@JsonClass(generateAdapter = false)
+data class SignalKeys(
+    val identityKeyPair: IdentityKeyPair,
+    val signedPreKey: SignedPreKeyRecord,
+    val preKeys: List<PreKeyRecord>,
+    val registrationId: Int
+)
 
 @Keep
 @JsonClass(generateAdapter = true)

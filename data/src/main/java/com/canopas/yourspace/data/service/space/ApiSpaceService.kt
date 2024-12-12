@@ -4,6 +4,8 @@ import com.canopas.yourspace.data.models.space.ApiSpace
 import com.canopas.yourspace.data.models.space.ApiSpaceMember
 import com.canopas.yourspace.data.models.space.SPACE_MEMBER_ROLE_ADMIN
 import com.canopas.yourspace.data.models.space.SPACE_MEMBER_ROLE_MEMBER
+import com.canopas.yourspace.data.models.user.ApiUser
+import com.canopas.yourspace.data.security.helper.SignalKeyHelper
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.place.ApiPlaceService
 import com.canopas.yourspace.data.service.user.ApiUserService
@@ -11,6 +13,8 @@ import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_SPACES
 import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_SPACE_MEMBERS
 import com.canopas.yourspace.data.utils.snapshotFlow
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -20,10 +24,11 @@ class ApiSpaceService @Inject constructor(
     private val db: FirebaseFirestore,
     private val authService: AuthService,
     private val apiUserService: ApiUserService,
-    private val placeService: ApiPlaceService
+    private val placeService: ApiPlaceService,
+    private val signalKeyHelper: SignalKeyHelper
 ) {
     private val spaceRef = db.collection(FIRESTORE_COLLECTION_SPACES)
-    internal fun spaceMemberRef(spaceId: String) =
+    private fun spaceMemberRef(spaceId: String) =
         spaceRef.document(spaceId.takeIf { it.isNotBlank() } ?: "null").collection(FIRESTORE_COLLECTION_SPACE_MEMBERS)
 
     suspend fun createSpace(spaceName: String): String {
@@ -49,7 +54,43 @@ class ApiSpaceService @Inject constructor(
                 it.set(member).await()
             }
 
+        val user = authService.currentUser ?: return
+        val userDeviceId = authService.currentUserSession?.device_id ?: return
+        val (senderKey, _) = signalKeyHelper.createDistributionKey(
+            user = user,
+            deviceId = userDeviceId,
+            spaceId = spaceId
+        )
+        val spaceMembers = getMemberBySpaceId(spaceId).firstOrNull()?.map {
+            apiUserService.getUser(it.user_id) ?: return@map null
+        }
+        distributeSenderKeyToGroup(
+            spaceId = spaceId,
+            senderKey = senderKey,
+            senderPrivateKey = user.private_key!!,
+            members = spaceMembers ?: emptyList()
+        )
         apiUserService.addSpaceId(userId, spaceId)
+    }
+
+    private suspend fun distributeSenderKeyToGroup(
+        spaceId: String,
+        senderKey: String,
+        senderPrivateKey: String,
+        members: List<ApiUser?>
+    ) {
+        // Encrypt the Sender Key for each recipient
+        val encryptedKeys = signalKeyHelper.encryptSenderKeyForGroup(senderKey, senderPrivateKey, members)
+        val encryptedSenderKeysMap = encryptedKeys.mapValues { entry ->
+            mapOf(
+                "encryptedSenderKey" to entry.value.first,
+                "encryptedAESKey" to entry.value.second
+            )
+        }
+
+        spaceRef.document(spaceId)
+            .update("encryptedSenderKeys", encryptedSenderKeysMap)
+            .await()
     }
 
     suspend fun enableLocation(spaceId: String, userId: String, enable: Boolean) {
@@ -95,6 +136,22 @@ class ApiSpaceService @Inject constructor(
             .whereEqualTo("user_id", userId).get().await().documents.forEach {
                 it.reference.delete().await()
             }
+        val user = authService.currentUser ?: return
+        val userDeviceId = authService.currentUserSession?.device_id ?: return
+        val (senderKey, _) = signalKeyHelper.createDistributionKey(
+            user = user,
+            deviceId = userDeviceId,
+            spaceId = spaceId
+        )
+        val spaceMembers = getMemberBySpaceId(spaceId).firstOrNull()?.map {
+            apiUserService.getUser(it.user_id) ?: return@map null
+        }
+        distributeSenderKeyToGroup(
+            spaceId = spaceId,
+            senderKey = senderKey,
+            senderPrivateKey = user.private_key!!,
+            members = spaceMembers ?: emptyList()
+        )
     }
 
     suspend fun updateSpace(space: ApiSpace) {

@@ -10,6 +10,7 @@ data class ApiSpace(
     val id: String = UUID.randomUUID().toString(),
     val admin_id: String = "",
     val name: String = "",
+    val encryptedSenderKeys: Map<String, Map<String, String>> = emptyMap(), // User-specific encrypted keys
     val created_at: Long? = System.currentTimeMillis()
 )
 
