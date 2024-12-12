@@ -228,4 +228,8 @@ class SpaceRepository @Inject constructor(
             userService.updateUser(it)
         }
     }
+
+    suspend fun changeSpaceAdmin(spaceId: String, newAdminId: String) {
+        spaceService.changeAdmin(spaceId, newAdminId)
+    }
 }

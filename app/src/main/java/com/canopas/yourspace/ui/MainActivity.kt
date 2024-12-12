@@ -1,6 +1,7 @@
 package com.canopas.yourspace.ui
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.Window
 import androidx.activity.ComponentActivity
@@ -22,6 +23,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.canopas.yourspace.R
+import com.canopas.yourspace.data.models.space.SpaceInfo
 import com.canopas.yourspace.ui.component.AppAlertDialog
 import com.canopas.yourspace.ui.flow.auth.SignInMethodsScreen
 import com.canopas.yourspace.ui.flow.geofence.add.addnew.AddNewPlaceScreen
@@ -48,13 +50,16 @@ import com.canopas.yourspace.ui.flow.permission.EnablePermissionsScreen
 import com.canopas.yourspace.ui.flow.settings.SettingsScreen
 import com.canopas.yourspace.ui.flow.settings.profile.EditProfileScreen
 import com.canopas.yourspace.ui.flow.settings.space.SpaceProfileScreen
+import com.canopas.yourspace.ui.flow.settings.space.edit.ChangeAdminScreen
 import com.canopas.yourspace.ui.flow.settings.support.SupportScreen
 import com.canopas.yourspace.ui.navigation.AppDestinations
+import com.canopas.yourspace.ui.navigation.AppDestinations.ChangeAdminScreen.KEY_SPACE_NAME
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import com.canopas.yourspace.ui.navigation.KEY_RESULT
 import com.canopas.yourspace.ui.navigation.RESULT_OKAY
 import com.canopas.yourspace.ui.navigation.slideComposable
 import com.canopas.yourspace.ui.theme.CatchMeTheme
+import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -157,6 +162,15 @@ fun MainApp(viewModel: MainViewModel) {
 
             slideComposable(AppDestinations.SpaceProfileScreen.path) {
                 SpaceProfileScreen()
+            }
+
+            slideComposable(AppDestinations.ChangeAdminScreen.path) {
+                val spaceInfo = it.arguments?.getString(KEY_SPACE_NAME)?.let { encodedInfo ->
+                    Uri.decode(encodedInfo)
+                } ?: ""
+
+                val space = Gson().fromJson(spaceInfo, SpaceInfo::class.java)
+                ChangeAdminScreen(space = space)
             }
 
             slideComposable(AppDestinations.spaceThreads.path) {

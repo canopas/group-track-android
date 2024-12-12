@@ -29,10 +29,11 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class SpaceProfileViewModelTest {
 
     private val space = ApiSpace(id = "space1", admin_id = "user1", name = "space_name")
-    val user1 = ApiUser(id = "user1", first_name = "first_name", last_name = "last_name")
+    private val user1 = ApiUser(id = "user1", first_name = "first_name", last_name = "last_name")
     private val user2 = ApiUser(id = "user2", first_name = "first_name", last_name = "last_name")
     private val userInfo1 = UserInfo(user1, isLocationEnable = true)
     private val userInfo2 = UserInfo(user2)
@@ -40,7 +41,6 @@ class SpaceProfileViewModelTest {
 
     val space_info1 = SpaceInfo(space = space, members = members)
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     @get:Rule
     val mainCoroutineRule = MainCoroutineRule()
 
@@ -53,7 +53,6 @@ class SpaceProfileViewModelTest {
     private val authService = mock<AuthService>()
     private val connectivityObserver = mock<ConnectivityObserver>()
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     private val testDispatcher = AppDispatcher(IO = UnconfinedTestDispatcher())
 
     private lateinit var viewModel: SpaceProfileViewModel
