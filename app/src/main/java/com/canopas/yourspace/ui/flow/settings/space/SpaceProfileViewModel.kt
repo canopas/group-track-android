@@ -39,10 +39,9 @@ class SpaceProfileViewModel @Inject constructor(
 
     init {
         checkInternetConnection()
-        fetchSpaceDetail()
     }
 
-    private fun fetchSpaceDetail() = viewModelScope.launch(appDispatcher.IO) {
+    fun fetchSpaceDetail() = viewModelScope.launch(appDispatcher.IO) {
         _state.emit(_state.value.copy(isLoading = true))
         try {
             val spaceInfo = spaceRepository.getSpaceInfo(spaceID)

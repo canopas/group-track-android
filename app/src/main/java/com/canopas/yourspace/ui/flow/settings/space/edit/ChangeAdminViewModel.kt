@@ -41,6 +41,7 @@ class ChangeAdminViewModel @Inject constructor(
                 _state.value.copy(
                     isLoading = false,
                     spaceInfo = spaceInfo,
+                    spaceID = spaceID,
                     currentUserId = authService.currentUser?.id,
                     isAdmin = spaceInfo?.space?.admin_id == authService.currentUser?.id,
                     spaceName = spaceInfo?.space?.name,

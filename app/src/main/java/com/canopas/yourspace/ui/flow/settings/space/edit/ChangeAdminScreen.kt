@@ -56,7 +56,6 @@ fun ChangeAdminScreen(space: SpaceInfo) {
     LaunchedEffect(Unit) {
         if (space.space.id.isNotEmpty()) {
             viewModel.fetchSpaceDetail(space.space.id)
-            state.spaceID = space.space.id
             selectedUserId = space.space.admin_id
         }
     }

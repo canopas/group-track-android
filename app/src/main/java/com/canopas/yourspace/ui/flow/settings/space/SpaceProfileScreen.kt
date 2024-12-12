@@ -35,6 +35,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -59,11 +60,19 @@ import com.canopas.yourspace.ui.component.PrimaryTextButton
 import com.canopas.yourspace.ui.component.UserProfile
 import com.canopas.yourspace.ui.flow.settings.profile.UserTextField
 import com.canopas.yourspace.ui.theme.AppTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Composable
 fun SpaceProfileScreen() {
     val viewModel = hiltViewModel<SpaceProfileViewModel>()
     val state by viewModel.state.collectAsState()
+
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.IO) {
+            viewModel.fetchSpaceDetail()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -210,7 +219,7 @@ private fun SpaceProfileToolbar() {
                     onDismissRequest = { viewModel.onAdminMenuExpanded(false) }
                 ) {
                     DropdownMenuItem(
-                        text = { Text("Change Admin") },
+                        text = { Text(stringResource(id = R.string.space_setting_change_admin_title)) },
                         onClick = {
                             viewModel.onAdminMenuExpanded(false)
                             viewModel.navigateToChangeAdminScreen(state.spaceInfo)
@@ -260,6 +269,7 @@ private fun SpaceProfileContent() {
                     enable = true,
                     isAdmin = state.isAdmin,
                     currentUser = state.currentUserId!!,
+                    isAdminUser = state.spaceInfo?.space?.admin_id == it.user.id,
                     onCheckedChange = {
                         viewModel.onLocationEnabledChanged(it)
                     },
@@ -290,6 +300,7 @@ private fun SpaceProfileContent() {
                         enable = false,
                         isAdmin = state.isAdmin,
                         currentUser = state.currentUserId!!,
+                        isAdminUser = state.spaceInfo?.space?.admin_id == it.user.id,
                         onCheckedChange = {
                         },
                         onMemberRemove = {
@@ -390,12 +401,10 @@ private fun UserItem(
     enable: Boolean,
     isAdmin: Boolean,
     currentUser: String,
+    isAdminUser: Boolean = false,
     onCheckedChange: (Boolean) -> Unit,
     onMemberRemove: () -> Unit
 ) {
-    val viewModel = hiltViewModel<SpaceProfileViewModel>()
-    val state by viewModel.state.collectAsState()
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -418,7 +427,7 @@ private fun UserItem(
                 textAlign = TextAlign.Start
             )
 
-            if (state.spaceInfo?.space?.admin_id == userInfo.user.id) {
+            if (isAdminUser) {
                 Text(
                     text = stringResource(R.string.space_profile_screen_admin_text),
                     style = AppTheme.appTypography.subTitle3,
