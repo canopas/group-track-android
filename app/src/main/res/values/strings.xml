@@ -296,6 +296,6 @@
     <string name="toast_failed_share_location">Failed to share location</string>
     <string name="space_profile_screen_admin_text">(Admin)</string>
     <string name="space_setting_change_admin_title">Change Admin</string>
-    <string name="space_setting_change_admin_description">There are members in this group. Please change the admin before leaving.</string>
+    <string name="space_setting_change_admin_description">To leave the group, you must assign another member as admin. This action is irreversible unless the new admin changes it.</string>
     <string name="change_admin_button">Change Admin</string>
 </resources>
