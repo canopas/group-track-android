@@ -173,6 +173,9 @@
     <string name="setting_privacy">Privacy Policy</string>
     <string name="setting_about_us">About Us</string>
     <string name="setting_app_version">App version: %s</string>
+    <string name="setting_share_app">Share app</string>
+    <string name="setting_rate_app">Rate us</string>
+    <string name="app_share_message">Check out GroupTrack - the best app to stay connected with your loved ones! Download now: %1$s</string>
 
     <string name="edit_profile_title">Edit profile</string>
     <string name="edit_profile_toolbar_save_text">Save</string>
