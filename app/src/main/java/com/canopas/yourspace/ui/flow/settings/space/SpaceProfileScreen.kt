@@ -20,6 +20,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -32,6 +35,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -56,11 +60,19 @@ import com.canopas.yourspace.ui.component.PrimaryTextButton
 import com.canopas.yourspace.ui.component.UserProfile
 import com.canopas.yourspace.ui.flow.settings.profile.UserTextField
 import com.canopas.yourspace.ui.theme.AppTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Composable
 fun SpaceProfileScreen() {
     val viewModel = hiltViewModel<SpaceProfileViewModel>()
     val state by viewModel.state.collectAsState()
+
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.IO) {
+            viewModel.fetchSpaceDetail()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -102,6 +114,18 @@ fun SpaceProfileScreen() {
             onConfirmClick = {
                 viewModel.deleteSpace()
             }
+        )
+    }
+
+    if (state.showChangeAdminDialog) {
+        AppAlertDialog(
+            title = stringResource(R.string.space_setting_change_admin_title),
+            subTitle = stringResource(R.string.space_setting_change_admin_description),
+            confirmBtnText = stringResource(R.string.change_admin_button),
+            dismissBtnText = stringResource(id = R.string.common_btn_cancel),
+            isConfirmDestructive = true,
+            onConfirmClick = { viewModel.onChangeAdminClicked() },
+            onDismissClick = { viewModel.showChangeAdminDialog(false) }
         )
     }
 
@@ -180,6 +204,29 @@ private fun SpaceProfileToolbar() {
                         }
                     )
             )
+            if (state.isAdmin && state.spaceMemberCount > 1) {
+                IconButton(
+                    onClick = { viewModel.onAdminMenuExpanded(true) }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = ""
+                    )
+                }
+
+                DropdownMenu(
+                    expanded = state.isMenuExpanded,
+                    onDismissRequest = { viewModel.onAdminMenuExpanded(false) }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(id = R.string.space_setting_change_admin_title)) },
+                        onClick = {
+                            viewModel.onAdminMenuExpanded(false)
+                            viewModel.navigateToChangeAdminScreen(state.spaceInfo)
+                        }
+                    )
+                }
+            }
         }
     )
 }
@@ -222,6 +269,7 @@ private fun SpaceProfileContent() {
                     enable = true,
                     isAdmin = state.isAdmin,
                     currentUser = state.currentUserId!!,
+                    isAdminUser = state.spaceInfo?.space?.admin_id == it.user.id,
                     onCheckedChange = {
                         viewModel.onLocationEnabledChanged(it)
                     },
@@ -252,6 +300,7 @@ private fun SpaceProfileContent() {
                         enable = false,
                         isAdmin = state.isAdmin,
                         currentUser = state.currentUserId!!,
+                        isAdminUser = state.spaceInfo?.space?.admin_id == it.user.id,
                         onCheckedChange = {
                         },
                         onMemberRemove = {
@@ -276,7 +325,7 @@ private fun SpaceProfileContent() {
                 )
             }
         }
-        if (state.spaceInfo != null && state.currentUserId == state.spaceInfo?.space?.admin_id) {
+        if (state.spaceInfo != null && state.spaceMemberCount == 1) {
             FooterButton(
                 title = stringResource(id = R.string.space_settings_btn_delete_space),
                 onClick = {
@@ -287,11 +336,15 @@ private fun SpaceProfileContent() {
             )
         }
 
-        if (state.spaceInfo != null && state.currentUserId != state.spaceInfo?.space?.admin_id) {
+        if (state.spaceInfo != null && state.spaceMemberCount > 1) {
             FooterButton(
                 title = stringResource(id = R.string.space_settings_btn_leave_space),
                 onClick = {
-                    viewModel.showLeaveSpaceConfirmation(true)
+                    if (state.isAdmin) {
+                        viewModel.showChangeAdminDialog(true)
+                    } else {
+                        viewModel.showLeaveSpaceConfirmation(true)
+                    }
                 },
                 showLoader = state.leavingSpace,
                 icon = Icons.AutoMirrored.Filled.ExitToApp
@@ -348,6 +401,7 @@ private fun UserItem(
     enable: Boolean,
     isAdmin: Boolean,
     currentUser: String,
+    isAdminUser: Boolean = false,
     onCheckedChange: (Boolean) -> Unit,
     onMemberRemove: () -> Unit
 ) {
@@ -360,13 +414,28 @@ private fun UserItem(
     ) {
         UserProfile(modifier = Modifier.size(40.dp), user = userInfo.user)
         Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = userInfo.user.fullName,
-            style = AppTheme.appTypography.subTitle2,
-            color = AppTheme.colorScheme.textPrimary,
-            textAlign = TextAlign.Start,
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start,
             modifier = Modifier.weight(1f)
-        )
+        ) {
+            Text(
+                text = userInfo.user.fullName,
+                style = AppTheme.appTypography.subTitle2,
+                color = AppTheme.colorScheme.textPrimary,
+                textAlign = TextAlign.Start
+            )
+
+            if (isAdminUser) {
+                Text(
+                    text = stringResource(R.string.space_profile_screen_admin_text),
+                    style = AppTheme.appTypography.subTitle3,
+                    color = AppTheme.colorScheme.textDisabled,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
+        }
 
         Switch(
             checked = isChecked,
