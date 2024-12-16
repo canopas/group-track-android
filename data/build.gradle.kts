@@ -27,12 +27,12 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
         isCoreLibraryDesugaringEnabled = true
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
     ktlint {
         debug = true
@@ -83,4 +83,8 @@ dependencies {
 
     // Place
     implementation("com.google.android.libraries.places:places:4.0.0")
+
+    // Signal Protocol
+    implementation("org.signal:libsignal-client:0.64.1")
+    implementation("org.signal:libsignal-android:0.64.1")
 }
