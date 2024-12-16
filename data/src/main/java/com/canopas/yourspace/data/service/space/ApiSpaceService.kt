@@ -12,6 +12,7 @@ import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_SPACE_MEMBER
 import com.canopas.yourspace.data.utils.snapshotFlow
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -99,5 +100,15 @@ class ApiSpaceService @Inject constructor(
 
     suspend fun updateSpace(space: ApiSpace) {
         spaceRef.document(space.id).set(space).await()
+    }
+
+    suspend fun changeAdmin(spaceId: String, newAdminId: String) {
+        try {
+            val spaceRef = spaceRef.document(spaceId)
+            spaceRef.update("admin_id", newAdminId).await()
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to change admin")
+            throw e
+        }
     }
 }

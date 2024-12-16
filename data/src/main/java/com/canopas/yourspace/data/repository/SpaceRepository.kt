@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import timber.log.Timber
 import javax.inject.Inject
 
 class SpaceRepository @Inject constructor(
@@ -200,6 +201,15 @@ class SpaceRepository @Inject constructor(
         currentSpaceId =
             getUserSpaces(userId).firstOrNull()?.sortedBy { it.created_at }?.firstOrNull()?.id
                 ?: ""
+
+        val user = userService.getUser(userId)
+        val updatedSpaceIds = user?.space_ids?.toMutableList()?.apply {
+            remove(spaceId)
+        } ?: return
+
+        user.copy(space_ids = updatedSpaceIds).let {
+            userService.updateUser(it)
+        }
     }
 
     suspend fun leaveSpace(spaceId: String) {
@@ -226,6 +236,15 @@ class SpaceRepository @Inject constructor(
 
         user.copy(space_ids = updatedSpaceIds).let {
             userService.updateUser(it)
+        }
+    }
+
+    suspend fun changeSpaceAdmin(spaceId: String, newAdminId: String) {
+        try {
+            spaceService.changeAdmin(spaceId, newAdminId)
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to change space admin")
+            throw e
         }
     }
 }

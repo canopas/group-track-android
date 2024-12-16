@@ -1,6 +1,7 @@
 package com.canopas.yourspace.ui.flow.settings
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.Image
@@ -187,6 +188,18 @@ private fun OtherSettingsContent(viewModel: SettingsViewModel) {
     )
 
     SettingsItem(
+        label = stringResource(id = R.string.setting_share_app),
+        icon = R.drawable.ic_setting_share_icon,
+        onClick = { shareApp(context) }
+    )
+
+    SettingsItem(
+        label = stringResource(id = R.string.setting_rate_app),
+        icon = R.drawable.ic_setting_rate_icon,
+        onClick = { rateApp(context) }
+    )
+
+    SettingsItem(
         label = stringResource(id = R.string.setting_btn_sign_out),
         icon = R.drawable.ic_setting_sign_out_icon,
         onClick = {
@@ -200,6 +213,29 @@ private fun openUrl(context: Activity, url: String) {
         data = Uri.parse(url)
     }
     context.startActivity(intent)
+}
+
+fun shareApp(context: Context) {
+    val appUrl = "https://play.google.com/store/apps/details?id=${context.packageName}"
+    val shareMessage = context.getString(R.string.app_share_message, appUrl)
+
+    val shareIntent = Intent().apply {
+        action = Intent.ACTION_SEND
+        putExtra(Intent.EXTRA_TEXT, shareMessage)
+        type = "text/plain"
+    }
+    context.startActivity(
+        Intent.createChooser(
+            shareIntent,
+            context.getString(R.string.setting_share_app)
+        )
+    )
+}
+
+fun rateApp(context: Context) {
+    val appUrl = "https://play.google.com/store/apps/details?id=${context.packageName}"
+    val rateIntent = Intent(Intent.ACTION_VIEW, Uri.parse(appUrl))
+    context.startActivity(rateIntent)
 }
 
 @Composable

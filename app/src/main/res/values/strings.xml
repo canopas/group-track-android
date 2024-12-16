@@ -22,6 +22,7 @@
     <string name="common_reply">Reply</string>
     <string name="common_save">Save</string>
     <string name="common_btn_retry">Retry</string>
+    <string name="common_btn_back">Back</string>
 
     <string name="common_share_invite_code_message">Let\'s stay connected! Use invite code %s to join my Group.\n<a href="https://play.google.com/store/apps/details?id=com.canopas.yourspace">Download the app</a>.</string>
     <string name="common_session_expired_title">You\'ve been logged out</string>
@@ -173,6 +174,9 @@
     <string name="setting_privacy">Privacy Policy</string>
     <string name="setting_about_us">About Us</string>
     <string name="setting_app_version">App version: %s</string>
+    <string name="setting_share_app">Share app</string>
+    <string name="setting_rate_app">Rate us</string>
+    <string name="app_share_message">Check out GroupTrack - the best app to stay connected with your loved ones! Download now: %1$s</string>
 
     <string name="edit_profile_title">Edit profile</string>
     <string name="edit_profile_toolbar_save_text">Save</string>
@@ -293,7 +297,8 @@
     <string name="toast_failed_open_navigation">Failed to open navigation</string>
     <string name="toast_invalid_coordinates">Invalid coordinates</string>
     <string name="toast_failed_share_location">Failed to share location</string>
-
-    <string name="place_list_screen_no_members_title">Add members to add places</string>
-    <string name="place_list_screen_no_members_subtitle">At least one member needs to join your group to be able to add places.</string>
+    <string name="space_profile_screen_admin_text">(Admin)</string>
+    <string name="space_setting_change_admin_title">Change Admin</string>
+    <string name="space_setting_change_admin_description">To leave the group, you must assign another member as admin. This action is irreversible unless the new admin changes it.</string>
+    <string name="change_admin_button">Change Admin</string>
 </resources>

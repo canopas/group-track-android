@@ -1,5 +1,6 @@
 package com.canopas.yourspace.ui.flow.settings.space
 
+import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,6 +11,7 @@ import com.canopas.yourspace.data.utils.AppDispatcher
 import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.navigation.AppDestinations
 import com.canopas.yourspace.ui.navigation.AppNavigator
+import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,10 +39,9 @@ class SpaceProfileViewModel @Inject constructor(
 
     init {
         checkInternetConnection()
-        fetchSpaceDetail()
     }
 
-    private fun fetchSpaceDetail() = viewModelScope.launch(appDispatcher.IO) {
+    fun fetchSpaceDetail() = viewModelScope.launch(appDispatcher.IO) {
         _state.emit(_state.value.copy(isLoading = true))
         try {
             val spaceInfo = spaceRepository.getSpaceInfo(spaceID)
@@ -54,7 +55,8 @@ class SpaceProfileViewModel @Inject constructor(
                     currentUserId = authService.currentUser?.id,
                     isAdmin = spaceInfo?.space?.admin_id == authService.currentUser?.id,
                     spaceName = spaceInfo?.space?.name,
-                    locationEnabled = locationEnabled
+                    locationEnabled = locationEnabled,
+                    spaceMemberCount = spaceInfo?.members?.size ?: 1
                 )
             )
         } catch (e: Exception) {
@@ -184,16 +186,25 @@ class SpaceProfileViewModel @Inject constructor(
         }
     }
 
-    fun checkInternetConnection() {
-        viewModelScope.launch(appDispatcher.IO) {
-            connectivityObserver.observe().collectLatest { status ->
-                _state.emit(
-                    _state.value.copy(
-                        connectivityStatus = status
-                    )
-                )
-            }
+    fun onChangeAdminClicked() {
+        val spaceInfo = _state.value.spaceInfo
+        if (spaceInfo != null) {
+            navigateToChangeAdminScreen(spaceInfo)
+            _state.value = _state.value.copy(showChangeAdminDialog = false)
         }
+    }
+
+    fun onAdminMenuExpanded(value: Boolean) {
+        _state.value = _state.value.copy(isMenuExpanded = value)
+    }
+
+    fun showChangeAdminDialog(show: Boolean) {
+        _state.value = _state.value.copy(showChangeAdminDialog = show)
+    }
+
+    fun navigateToChangeAdminScreen(spaceInfo: SpaceInfo?) {
+        val spaceDetail = Uri.encode(Gson().toJson(spaceInfo))
+        navigator.navigateTo(AppDestinations.ChangeAdminScreen.getSpaceDetail(spaceDetail).path)
     }
 
     fun showRemoveMemberConfirmationWithId(show: Boolean, memberId: String) {
@@ -220,6 +231,18 @@ class SpaceProfileViewModel @Inject constructor(
             )
         }
     }
+
+    fun checkInternetConnection() {
+        viewModelScope.launch(appDispatcher.IO) {
+            connectivityObserver.observe().collectLatest { status ->
+                _state.emit(
+                    _state.value.copy(
+                        connectivityStatus = status
+                    )
+                )
+            }
+        }
+    }
 }
 
 data class SpaceProfileState(
@@ -238,5 +261,8 @@ data class SpaceProfileState(
     val error: Exception? = null,
     val connectivityStatus: ConnectivityObserver.Status = ConnectivityObserver.Status.Available,
     val showRemoveMemberConfirmation: Boolean = false,
-    val memberToRemove: String? = null
+    val memberToRemove: String? = null,
+    val spaceMemberCount: Int = 1,
+    val showChangeAdminDialog: Boolean = false,
+    var isMenuExpanded: Boolean = false
 )
