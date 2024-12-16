@@ -48,7 +48,8 @@ fun ChoosePlaceNameScreen() {
     val state by viewModel.state.collectAsState()
 
     if (state.error != null) {
-        AppBanner(msg = state.error!!) {
+        val errorMessage = state.error?.message ?: state.error.toString()
+        AppBanner(msg = errorMessage) {
             viewModel.resetErrorState()
         }
     }

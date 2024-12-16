@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
 import com.canopas.yourspace.domain.utils.ConnectivityObserver
+import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.AppProgressIndicator
 import com.canopas.yourspace.ui.component.NoInternetScreen
 import com.canopas.yourspace.ui.flow.geofence.component.PlaceNameContent
@@ -144,6 +145,12 @@ fun LocateOnMapScreen() {
             LocateOnMapContent(modifier = Modifier.padding(it), cameraPositionState, userLocation)
         } else {
             NoInternetScreen(viewModel::checkInternetConnection)
+        }
+
+        if (state.error != null) {
+            AppBanner(msg = state.error!!.message!!) {
+                viewModel.resetErrorState()
+            }
         }
     }
 }

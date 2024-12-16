@@ -301,4 +301,7 @@
     <string name="space_setting_change_admin_title">Change Admin</string>
     <string name="space_setting_change_admin_description">To leave the group, you must assign another member as admin. This action is irreversible unless the new admin changes it.</string>
     <string name="change_admin_button">Change Admin</string>
+
+    <string name="place_list_screen_no_members_title">Add members to add places</string>
+    <string name="place_list_screen_no_members_subtitle">At least one member needs to join your group to be able to add places.</string>
 </resources>
