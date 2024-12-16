@@ -4,8 +4,6 @@ import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.models.user.ApiUserSession
 import com.canopas.yourspace.data.models.user.LOGIN_TYPE_APPLE
 import com.canopas.yourspace.data.models.user.LOGIN_TYPE_GOOGLE
-import com.canopas.yourspace.data.security.helper.Helper
-import com.canopas.yourspace.data.security.helper.SignalKeyHelper
 import com.canopas.yourspace.data.service.location.ApiLocationService
 import com.canopas.yourspace.data.utils.Config
 import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_USERS
@@ -31,7 +29,6 @@ class ApiUserService @Inject constructor(
     db: FirebaseFirestore,
     private val device: Device,
     private val locationService: ApiLocationService,
-    private val signalKeyHelper: SignalKeyHelper,
     private val functions: FirebaseFunctions
 ) {
     private val userRef = db.collection(FIRESTORE_COLLECTION_USERS)
@@ -77,12 +74,6 @@ class ApiUserService @Inject constructor(
             sessionDocRef.set(session).await()
             return Triple(false, savedUser, session)
         } else {
-            val signalKeys = signalKeyHelper.generateSignalKeys()
-            val publicKey = Helper.encodeToBase64(signalKeys.identityKeyPair.publicKey.serialize())
-            val privateKey = Helper.encodeToBase64(signalKeys.identityKeyPair.privateKey.serialize())
-            val preKeys = signalKeys.preKeys.map { Helper.encodeToBase64(it.serialize()) }
-            val signedPreKey = Helper.encodeToBase64(signalKeys.signedPreKey.serialize())
-
             val user = ApiUser(
                 id = uid!!,
                 email = account?.email ?: firebaseUser?.email ?: "",
@@ -91,12 +82,7 @@ class ApiUserService @Inject constructor(
                 last_name = account?.familyName ?: "",
                 provider_firebase_id_token = firebaseToken,
                 profile_image = account?.photoUrl?.toString() ?: firebaseUser?.photoUrl?.toString()
-                    ?: "",
-                public_key = publicKey,
-                private_key = privateKey,
-                pre_keys = preKeys,
-                signed_pre_key = signedPreKey,
-                registration_id = signalKeys.registrationId
+                    ?: ""
             )
             userRef.document(uid).set(user).await()
             val sessionDocRef = sessionRef(user.id).document()

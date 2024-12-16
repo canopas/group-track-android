@@ -9,4 +9,5 @@ plugins {
     id("com.google.firebase.crashlytics") version "3.0.2" apply false
     id("org.jetbrains.kotlin.jvm") version "1.9.23"
     id("com.google.devtools.ksp") version "1.9.23-1.0.20"
+    id("com.google.protobuf") version "0.9.4" apply false
 }

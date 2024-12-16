@@ -1,280 +1,293 @@
 rules_version = '2';
 
 service cloud.firestore {
-  match /databases/{database}/documents {
+    match /databases/{database}/documents {
 
-    function isAuthorized() {
-      return request.auth != null;
+        function isAuthorized() {
+            return request.auth != null;
+        }
+
+        function readUserLocation() {
+            let requestedUserSpaceIds = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.space_ids;
+            let resourceUserSpaceIds = get(/databases/$(database)/documents/users/$(resource.data.user_id)).data.space_ids;
+            return requestedUserSpaceIds.hasAny(resourceUserSpaceIds);
+        }
+
+        match /support_requests/{docId} {
+              allow create : if isAuthorized() && request.auth.uid == request.resource.data.user_id &&
+                             request.resource.data.keys().hasAll(["user_id", "title", "description", "device_name","app_version","device_os", "created_at"]) &&
+                             request.resource.data.user_id is string &&
+                             request.resource.data.title is string &&
+                             request.resource.data.description is string &&
+                             request.resource.data.device_name is string &&
+                             request.resource.data.app_version is string &&
+                             request.resource.data.device_os is string &&
+                             request.resource.data.created_at is timestamp &&
+                             request.resource.data.get('attachments', []) is list;
+                allow update: if false;
+                allow delete: if false;
+                allow read: if isAuthorized() && request.auth.uid == resource.data.user_id;
+        }
+
+        match /users/{docId} {
+            allow create : if isAuthorized() && request.auth.uid == docId &&
+                    request.resource.data.keys().hasAll(["id", "auth_type", "location_enabled", "provider_firebase_id_token", "created_at"]) &&
+                    request.resource.data.email is string &&
+                    request.resource.data.id is string &&
+                    request.resource.data.auth_type is int &&
+                    (request.resource.data.auth_type == 1 || request.resource.data.auth_type == 2) &&
+                    request.resource.data.location_enabled is bool &&
+                    request.resource.data.provider_firebase_id_token is string &&
+                    request.resource.data.created_at is int &&
+                    request.resource.data.get('first_name', '') is string &&
+                    request.resource.data.get('email', '') is string &&
+                    request.resource.data.get('last_name', '') is string &&
+                    request.resource.data.get('fcm_token', '') is string &&
+                    request.resource.data.get('profile_image', '') is string &&
+                    request.resource.data.get('space_ids', []) is list;
+
+            allow update: if isAuthorized() && request.auth.uid == resource.data.id &&
+                    request.resource.data.diff(resource.data).affectedKeys().hasAny(['first_name', 'last_name', 'profile_image', 'location_enabled', 'space_ids', 'phone', 'email','fcm_token', 'updated_at', 'battery_pct', 'state']) &&
+                    request.resource.data.first_name is string &&
+                    request.resource.data.get('last_name', '') is string &&
+                    request.resource.data.get('fcm_token', '') is string &&
+                    request.resource.data.location_enabled is bool &&
+                    request.resource.data.get('space_ids', []) is list;
+
+            allow delete: if isAuthorized() && request.auth.uid == resource.data.id;
+            allow read: if isAuthorized();
+
+            match /user_locations/{docId} {
+                allow read: if isAuthorized() && (request.auth.uid == resource.data.user_id || readUserLocation());
+                allow update: if isAuthorized() && request.auth.uid == resource.data.user_id;
+                allow delete: if isAuthorized() && request.auth.uid == resource.data.user_id;
+                allow create: if isAuthorized() && request.auth.uid == request.resource.data.user_id &&
+                        request.resource.data.keys().hasAll(["id", "user_id", "latitude", "longitude", "created_at"]) &&
+                        request.resource.data.id is string &&
+                        request.resource.data.user_id is string &&
+                        request.resource.data.latitude is number &&
+                        request.resource.data.longitude is number &&
+                        request.resource.data.created_at is int;
+            }
+
+            match /user_journeys/{docId} {
+                allow read: if isAuthorized() && (request.auth.uid == resource.data.user_id || readUserLocation());
+                allow update: if true;
+                allow delete: if isAuthorized() && request.auth.uid == resource.data.user_id;
+                allow create: if isAuthorized() && request.auth.uid == request.resource.data.user_id &&
+                        request.resource.data.keys().hasAll(["id", "user_id", "from_latitude", "from_longitude", "created_at"]) &&
+                        request.resource.data.id is string &&
+                        request.resource.data.user_id is string &&
+                        request.resource.data.from_latitude is number &&
+                        request.resource.data.from_longitude is number &&
+                        request.resource.data.created_at is int;
+            }
+
+
+            match /user_sessions/{docId} {
+                allow read: if isAuthorized();
+                allow create : if isAuthorized() && request.auth.uid == request.resource.data.user_id &&
+                        request.resource.data.keys().hasAll(["id", "user_id", "device_id", "device_name", "platform", "session_active", "app_version", "created_at"]) &&
+                        request.resource.data.id is string &&
+                        request.resource.data.user_id is string &&
+                        request.resource.data.device_id is string &&
+                        request.resource.data.device_name is string &&
+                        request.resource.data.platform is int &&
+                        request.resource.data.platform == 1 &&
+                        request.resource.data.session_active is bool &&
+                        request.resource.data.app_version is int &&
+                        request.resource.data.created_at is int;
+                allow delete: if isAuthorized() && request.auth.uid == resource.data.user_id;
+                allow update: if isAuthorized() && request.auth.uid == resource.data.user_id;
+            }
+        }
+
+        match /users/{docId}/user_sessions/{document=**} {
+            allow read: if isAuthorized() && request.auth.uid == docId;
+        }
+
+        function isSpaceAdmin(spaceId) {
+            let adminId = get(/databases/$(database)/documents/spaces/$(spaceId)).data.admin_id;
+            return request.auth.uid == adminId;
+        }
+
+        function isSpaceMember(spaceId) {
+            let isMember = exists(/databases/$(database)/documents/spaces/$(spaceId)/space_members/$(request.auth.uid));
+            return isMember;
+        }
+
+        match /spaces/{docId} {
+            allow read: if true;
+            allow delete: if isAuthorized() && request.auth.uid == resource.data.admin_id;
+            allow update: if isAuthorized() && request.auth.uid == resource.data.admin_id;
+            allow create: if isAuthorized() &&
+                    request.resource.data.keys().hasAll(["id", "admin_id", "name", "created_at"]) &&
+                    request.resource.data.id is string &&
+                    request.resource.data.admin_id is string &&
+                    request.resource.data.name is string &&
+                    request.resource.data.created_at is int;
+
+
+        }
+        match /{path=**}/space_places/{place} {
+            allow read: if isAuthorized() && isSpaceMember(resource.data.space_id);
+            allow write: if false;
+        }
+
+        match /spaces/{spaceId}/space_places/{place} {
+            allow read: if isAuthorized() &&  isSpaceMember(spaceId);
+            allow delete: if isAuthorized() && (isSpaceAdmin(resource.data.space_id) || request.auth.uid == resource.data.created_by);
+            allow update: if isAuthorized() && request.auth.uid == resource.data.created_by;
+            allow create: if isAuthorized() && (isSpaceAdmin(request.resource.data.space_id) || request.auth.uid == request.resource.data.created_by) &&
+                            request.resource.data.keys().hasAll(["id", "space_id", "created_by", "latitude", "longitude", "radius", "name", "created_at"]) &&
+                            request.resource.data.id is string &&
+                            request.resource.data.space_id is string &&
+                            request.resource.data.created_by is string &&
+                            request.resource.data.latitude is number &&
+                            request.resource.data.longitude is number &&
+                            request.resource.data.radius is number &&
+                            request.resource.data.name is string &&
+                            request.resource.data.created_at is timestamp;
+                }
+
+           function isPlaceAdmin(spaceId, place) {
+                      let created_by = get(/databases/$(database)/documents/spaces/$(spaceId)/space_places/$(place)).data.created_by;
+                      return request.auth.uid == created_by;
+           }
+
+          match /spaces/{spaceId}/space_places/{place}/place_settings_by_members/{member} {
+            allow read: if isAuthorized() && isSpaceMember(spaceId);
+            allow update: if isAuthorized() && isSpaceMember(spaceId) &&
+                            request.resource.data.diff(resource.data).affectedKeys().hasOnly(["alert_enable", "leave_alert_for", "arrival_alert_for"]) &&
+                            request.resource.data.arrival_alert_for is list &&
+                            request.resource.data.leave_alert_for is list &&
+                            request.resource.data.alert_enable is bool;
+            allow delete: if isAuthorized() && (request.auth.uid == resource.data.user_id || isPlaceAdmin(place));
+            allow create: if isAuthorized() && isSpaceMember(spaceId) &&
+                    request.resource.data.keys().hasAll(["user_id", "place_id", "alert_enable", "leave_alert_for", "arrival_alert_for"]) &&
+                    request.resource.data.user_id is string &&
+                    request.resource.data.place_id is string &&
+                    request.resource.data.get('arrival_alert_for', []) is list &&
+                    request.resource.data.get('leave_alert_for', []) is list &&
+                    request.resource.data.alert_enable is bool;
+        }
+
+        match /{path=**}/space_members/{member} {
+            allow read: if isAuthorized() && (request.auth.uid == resource.data.user_id || isSpaceMember(resource.data.space_id));
+            allow write: if false;
+        }
+
+        match /spaces/{spaceId}/space_members/{member} {
+            allow read: if isAuthorized() && (request.auth.uid == resource.data.user_id || isSpaceMember(spaceId));
+            allow delete: if isAuthorized() && (isSpaceAdmin(resource.data.space_id) || request.auth.uid == resource.data.user_id);
+            allow update: if isAuthorized() && request.auth.uid == resource.data.user_id &&
+                    request.resource.data.diff(resource.data).affectedKeys().hasOnly(["location_enabled"]) &&
+                    request.resource.data.location_enabled is bool;
+            allow create: if isAuthorized() && (isSpaceAdmin(request.resource.data.space_id) || request.auth.uid == request.resource.data.user_id) &&
+                    request.resource.data.keys().hasAll(["id", "space_id", "user_id", "role", "location_enabled", "created_at"]) &&
+                    request.resource.data.id is string &&
+                    request.resource.data.space_id is string &&
+                    request.resource.data.user_id is string &&
+                    request.resource.data.role is int &&
+                    (request.resource.data.role == 1 || request.resource.data.role == 2) &&
+                    request.resource.data.location_enabled is bool &&
+                    request.resource.data.created_at is int;
+
+           function readSpaceMemberLocation(spaceId) {
+               return exists(/databases/$(database)/documents/spaces/$(spaceId)/space_members/$(request.auth.uid));
+           }
+
+            match /user_locations/{docId} {
+                allow read: if isAuthorized() && (request.auth.uid == resource.data.user_id || readSpaceMemberLocation());
+                allow update: if isAuthorized() && request.auth.uid == resource.data.user_id;
+                allow delete: if isAuthorized() && request.auth.uid == resource.data.user_id;
+                allow create: if isAuthorized() && request.auth.uid == request.resource.data.user_id &&
+                        request.resource.data.keys().hasAll(["id", "user_id", "latitude", "longitude", "sender_key", "created_at"]) &&
+                        request.resource.data.id is string &&
+                        request.resource.data.user_id is string &&
+                        request.resource.data.latitude is string &&
+                        request.resource.data.longitude is string &&
+                        request.resource.data.sender_key is string &&
+                        request.resource.data.created_at is int;
+            }
+
+            match /user_journeys/{docId} {
+                allow read: if isAuthorized() && (request.auth.uid == resource.data.user_id || readSpaceMemberLocation());
+                allow update: if true;
+                allow delete: if isAuthorized() && request.auth.uid == resource.data.user_id;
+                allow create: if isAuthorized() && request.auth.uid == request.resource.data.user_id &&
+                        request.resource.data.keys().hasAll(["id", "user_id", "from_latitude", "from_longitude", "created_at"]) &&
+                        request.resource.data.id is string &&
+                        request.resource.data.user_id is string &&
+                        request.resource.data.from_latitude is string &&
+                        request.resource.data.from_longitude is string &&
+                        request.resource.data.created_at is int;
+            }
+        }
+
+        match /space_invitations/{docId} {
+            allow read: if isAuthorized();
+            allow delete: if isAuthorized() && isSpaceAdmin(resource.data.space_id);
+            allow update: if isAuthorized() && isSpaceMember(resource.data.space_id) &&
+                    request.resource.data.diff(resource.data).affectedKeys().hasOnly(["code", "created_at"]) &&
+                    request.resource.data.code is string &&
+                    request.resource.data.code.size() == 6 &&
+                    request.resource.data.created_at is int;
+
+            allow create: if isAuthorized() && isSpaceAdmin(request.resource.data.space_id) &&
+                    request.resource.data.keys().hasAll(["id", "code", "space_id", "created_at"]) &&
+                    request.resource.data.id is string &&
+                    request.resource.data.space_id is string &&
+                    request.resource.data.code is string &&
+                    request.resource.data.code.size() == 6 &&
+                    request.resource.data.created_at is int;
+        }
+
+
+        match /space_threads/{docId} {
+            allow read: if isAuthorized() && (isSpaceAdmin(resource.data.space_id) || isSpaceMember(resource.data.space_id));
+            allow delete: if isAuthorized() && isThreadAdmin(docId);
+            allow update: if isAuthorized() && isThreadMember(docId) &&
+                    request.resource.data.diff(resource.data).affectedKeys().hasAny(["member_ids", "archived_for"]) &&
+                    request.resource.data.get('member_ids', []) is list &&
+                    request.resource.data.get('archived_for', {}) is map;
+            allow create: if isAuthorized() && (isSpaceMember(request.resource.data.space_id)) &&
+                    request.resource.data.keys().hasAll(["id", "space_id", "admin_id", "member_ids", "created_at"]) &&
+                    request.resource.data.id is string &&
+                    request.resource.data.space_id is string &&
+                    request.resource.data.admin_id is string &&
+                    request.resource.data.member_ids is list &&
+                    request.resource.data.created_at is int;
+
+        }
+        function isThreadMember(threadId) {
+            let memberIds = get(/databases/$(database)/documents/space_threads/$(threadId)).data.member_ids;
+            return memberIds.hasAny([request.auth.uid]);
+        }
+
+        function isThreadAdmin(threadId) {
+            let adminId = get(/databases/$(database)/documents/space_threads/$(threadId)).data.admin_id;
+            return adminId == request.auth.uid;
+        }
+
+        match /{path=**}/thread_messages/{docId} {
+            allow read: if isAuthorized() && isThreadMember(resource.data.thread_id);
+        }
+
+        match /space_threads/{threadId}/thread_messages/{docId} {
+            allow read: if isAuthorized() && isThreadMember(threadId);
+            allow delete: if isAuthorized() && (isSpaceAdmin(resource.data.space_id));
+            allow update: if isAuthorized() && isThreadMember(threadId) &&
+                    request.resource.data.diff(resource.data).affectedKeys().hasOnly(["seen_by"]) &&
+                    request.resource.data.seen_by is list;
+            allow create: if isAuthorized() && isThreadMember(threadId) && request.resource.data.sender_id == request.auth.uid &&
+                    request.resource.data.keys().hasAll(["id", "thread_id", "sender_id", "message", "seen_by", "created_at"]) &&
+                    request.resource.data.id is string &&
+                    request.resource.data.thread_id is string &&
+                    request.resource.data.sender_id is string &&
+                    request.resource.data.message is string &&
+                    request.resource.data.seen_by is list &&
+                    request.resource.data.created_at is timestamp;
+        }
     }
-
-    function readUserLocation() {
-      let requestedUserSpaceIds = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.space_ids;
-      let resourceUserSpaceIds = get(/databases/$(database)/documents/users/$(resource.data.user_id)).data.space_ids;
-      return requestedUserSpaceIds.hasAny(resourceUserSpaceIds);
-    }
-
-    match /support_requests/{docId} {
-      allow create: if isAuthorized() && request.auth.uid == request.resource.data.user_id &&
-        request.resource.data.keys().hasAll(["user_id", "title", "description", "device_name", "app_version", "device_os", "created_at"]) &&
-        request.resource.data.user_id is string &&
-        request.resource.data.title is string &&
-        request.resource.data.description is string &&
-        request.resource.data.device_name is string &&
-        request.resource.data.app_version is string &&
-        request.resource.data.device_os is string &&
-        request.resource.data.created_at is timestamp &&
-        request.resource.data.get('attachments', []) is list;
-      allow update: if false;
-      allow delete: if false;
-      allow read: if isAuthorized() && request.auth.uid == resource.data.user_id;
-    }
-
-    match /users/{docId} {
-      allow create: if isAuthorized() && request.auth.uid == docId &&
-        request.resource.data.keys().hasAll(["id", "auth_type", "location_enabled", "provider_firebase_id_token", "created_at"]) &&
-        request.resource.data.email is string &&
-        request.resource.data.id is string &&
-        request.resource.data.auth_type is int &&
-        (request.resource.data.auth_type == 1 || request.resource.data.auth_type == 2) &&
-        request.resource.data.location_enabled is bool &&
-        request.resource.data.provider_firebase_id_token is string &&
-        request.resource.data.created_at is int &&
-        request.resource.data.get('first_name', '') is string &&
-        request.resource.data.get('email', '') is string &&
-        request.resource.data.get('last_name', '') is string &&
-        request.resource.data.get('fcm_token', '') is string &&
-        request.resource.data.get('profile_image', '') is string &&
-        request.resource.data.get('space_ids', []) is list;
-      allow update: if true;
-      allow delete: if isAuthorized() && request.auth.uid == resource.data.id;
-      allow read: if isAuthorized();
-
-      match /user_locations/{docId} {
-        allow read: if isAuthorized() && (request.auth.uid == resource.data.user_id || readUserLocation());
-        allow update: if isAuthorized() && request.auth.uid == resource.data.user_id;
-        allow delete: if isAuthorized() && request.auth.uid == resource.data.user_id;
-        allow create: if isAuthorized() && request.auth.uid == request.resource.data.user_id &&
-          request.resource.data.keys().hasAll(["id", "user_id", "latitude", "longitude", "created_at"]) &&
-          request.resource.data.id is string &&
-          request.resource.data.user_id is string &&
-          request.resource.data.latitude is number &&
-          request.resource.data.longitude is number &&
-          request.resource.data.created_at is int;
-      }
-
-      match /user_journeys/{docId} {
-        allow read: if isAuthorized() && (request.auth.uid == resource.data.user_id || readUserLocation());
-        allow update: if true;
-        allow delete: if isAuthorized() && request.auth.uid == resource.data.user_id;
-        allow create: if isAuthorized() && request.auth.uid == request.resource.data.user_id &&
-          request.resource.data.keys().hasAll(["id", "user_id", "from_latitude", "from_longitude", "created_at"]) &&
-          request.resource.data.id is string &&
-          request.resource.data.user_id is string &&
-          request.resource.data.from_latitude is number &&
-          request.resource.data.from_longitude is number &&
-          request.resource.data.created_at is int;
-      }
-
-      match /user_sessions/{docId} {
-        allow read: if isAuthorized();
-        allow create: if isAuthorized() && request.auth.uid == request.resource.data.user_id &&
-          request.resource.data.keys().hasAll(["id", "user_id", "device_id", "device_name", "platform", "session_active", "app_version", "created_at"]) &&
-          request.resource.data.id is string &&
-          request.resource.data.user_id is string &&
-          request.resource.data.device_id is string &&
-          request.resource.data.device_name is string &&
-          request.resource.data.platform is int &&
-          request.resource.data.platform == 1 &&
-          request.resource.data.session_active is bool &&
-          request.resource.data.app_version is int &&
-          request.resource.data.created_at is int;
-        allow delete: if isAuthorized() && request.auth.uid == resource.data.user_id;
-        allow update: if isAuthorized() && request.auth.uid == resource.data.user_id;
-      }
-    }
-
-    match /users/{docId}/user_sessions/{document=**} {
-      allow read: if isAuthorized() && request.auth.uid == docId;
-    }
-
-    function isSpaceAdmin(spaceId) {
-      let adminId = get(/databases/$(database)/documents/spaces/$(spaceId)).data.admin_id;
-      return request.auth.uid == adminId;
-    }
-
-    function isSpaceMember(spaceId) {
-      let isMember = exists(/databases/$(database)/documents/spaces/$(spaceId)/space_members/$(request.auth.uid));
-      return isMember;
-    }
-
-    match /spaces/{docId} {
-      allow read: if true;
-      allow delete: if isAuthorized() && request.auth.uid == resource.data.admin_id;
-      allow update: if isAuthorized() && request.auth.uid == resource.data.admin_id;
-      allow create: if isAuthorized() &&
-        request.resource.data.keys().hasAll(["id", "admin_id", "name", "created_at"]) &&
-        request.resource.data.id is string &&
-        request.resource.data.admin_id is string &&
-        request.resource.data.name is string &&
-        request.resource.data.created_at is int;
-    }
-
-    match /{path=**}/space_places/{place} {
-      allow read: if isAuthorized() && isSpaceMember(resource.data.space_id);
-      allow write: if false;
-    }
-
-    match /spaces/{spaceId}/space_places/{place} {
-      allow read: if isAuthorized() && isSpaceMember(spaceId);
-      allow delete: if isAuthorized() && (isSpaceAdmin(resource.data.space_id) || request.auth.uid == resource.data.created_by);
-      allow update: if isAuthorized() && request.auth.uid == resource.data.created_by;
-      allow create: if isAuthorized() && (isSpaceAdmin(request.resource.data.space_id) || request.auth.uid == request.resource.data.created_by) &&
-        request.resource.data.keys().hasAll(["id", "space_id", "created_by", "latitude", "longitude", "radius", "name", "created_at"]) &&
-        request.resource.data.id is string &&
-        request.resource.data.space_id is string &&
-        request.resource.data.created_by is string &&
-        request.resource.data.latitude is number &&
-        request.resource.data.longitude is number &&
-        request.resource.data.radius is number &&
-        request.resource.data.name is string &&
-        request.resource.data.created_at is timestamp;
-    }
-
-    function isPlaceAdmin(spaceId, place) {
-      let created_by = get(/databases/$(database)/documents/spaces/$(spaceId)/space_places/$(place)).data.created_by;
-      return request.auth.uid == created_by;
-    }
-
-    match /spaces/{spaceId}/space_places/{place}/place_settings_by_members/{member} {
-      allow read: if isAuthorized() && isSpaceMember(spaceId);
-      allow update: if isAuthorized() && isSpaceMember(spaceId) &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(["alert_enable", "leave_alert_for", "arrival_alert_for"]) &&
-        request.resource.data.arrival_alert_for is list &&
-        request.resource.data.leave_alert_for is list &&
-        request.resource.data.alert_enable is bool;
-      allow delete: if isAuthorized() && (request.auth.uid == resource.data.user_id || isPlaceAdmin(spaceId, place));
-      allow create: if isAuthorized() && isSpaceMember(spaceId) &&
-        request.resource.data.keys().hasAll(["user_id", "place_id", "alert_enable", "leave_alert_for", "arrival_alert_for"]) &&
-        request.resource.data.user_id is string &&
-        request.resource.data.place_id is string &&
-        request.resource.data.get('arrival_alert_for', []) is list &&
-        request.resource.data.get('leave_alert_for', []) is list &&
-        request.resource.data.alert_enable is bool;
-    }
-
-    match /{path=**}/space_members/{member} {
-      allow read: if isAuthorized() && (request.auth.uid == resource.data.user_id || isSpaceMember(resource.data.space_id));
-      allow write: if false;
-    }
-
-    match /spaces/{spaceId}/space_members/{member} {
-      allow read: if isAuthorized() && (request.auth.uid == resource.data.user_id || isSpaceMember(spaceId));
-      allow delete: if isAuthorized() && (isSpaceAdmin(resource.data.space_id) || request.auth.uid == resource.data.user_id);
-      allow update: if isAuthorized() &&
-        (request.auth.uid == resource.data.user_id || isSpaceAdmin(resource.data.space_id)) &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(["location_enabled", "role"]) &&
-        ((request.resource.data.location_enabled is bool) ||
-          (request.resource.data.role is int && (request.resource.data.role == 1 || request.resource.data.role == 2)));
-      allow create: if isAuthorized() && (isSpaceAdmin(request.resource.data.space_id) || request.auth.uid == request.resource.data.user_id) &&
-        request.resource.data.keys().hasAll(["id", "space_id", "user_id", "role", "location_enabled", "created_at"]) &&
-        request.resource.data.id is string &&
-        request.resource.data.space_id is string &&
-        request.resource.data.user_id is string &&
-        request.resource.data.role is int &&
-        (request.resource.data.role == 1 || request.resource.data.role == 2) &&
-        request.resource.data.location_enabled is bool &&
-        request.resource.data.created_at is int;
-    }
-
-    match /spaces/{spaceId}/space_members/{docId} {
-      match /user_locations/{docId} {
-        allow read: if true;
-        allow update: if isAuthorized() && request.auth.uid == resource.data.user_id;
-        allow delete: if isAuthorized() && request.auth.uid == resource.data.user_id;
-        allow create: if isAuthorized() && request.auth.uid == request.resource.data.user_id &&
-          request.resource.data.keys().hasAll(["id", "user_id", "encrypted_latitude", "encrypted_longitude", "created_at"]) &&
-          request.resource.data.id is string &&
-          request.resource.data.user_id is string &&
-          request.resource.data.encrypted_latitude is string &&
-          request.resource.data.encrypted_longitude is string &&
-          request.resource.data.created_at is int;
-      }
-
-      match /user_journeys/{docId} {
-        allow read: if isAuthorized() && (request.auth.uid == resource.data.user_id || readUserLocation());
-        allow update: if true;
-        allow delete: if isAuthorized() && request.auth.uid == resource.data.user_id;
-        allow create: if isAuthorized() && request.auth.uid == request.resource.data.user_id &&
-          request.resource.data.keys().hasAll(["id", "user_id", "encrypted_from_latitude", "encrypted_from_longitude", "created_at"]) &&
-          request.resource.data.id is string &&
-          request.resource.data.user_id is string &&
-          request.resource.data.encrypted_from_latitude is string &&
-          request.resource.data.encrypted_from_longitude is string &&
-          request.resource.data.created_at is int;
-      }
-    }
-
-    match /space_invitations/{docId} {
-      allow read: if isAuthorized();
-      allow delete: if isAuthorized() && isSpaceAdmin(resource.data.space_id);
-      allow update: if isAuthorized() && isSpaceMember(resource.data.space_id) &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(["code", "created_at"]) &&
-        request.resource.data.code is string &&
-        request.resource.data.code.size() == 6 &&
-        request.resource.data.created_at is int;
-      allow create: if isAuthorized() && isSpaceAdmin(request.resource.data.space_id) &&
-        request.resource.data.keys().hasAll(["id", "code", "space_id", "created_at"]) &&
-        request.resource.data.id is string &&
-        request.resource.data.space_id is string &&
-        request.resource.data.code is string &&
-        request.resource.data.code.size() == 6 &&
-        request.resource.data.created_at is int;
-    }
-
-    match /space_threads/{docId} {
-      allow read: if isAuthorized() && (isSpaceAdmin(resource.data.space_id) || isSpaceMember(resource.data.space_id));
-      allow delete: if isAuthorized() && isThreadAdmin(docId);
-      allow update: if isAuthorized() && isThreadMember(docId) &&
-        request.resource.data.diff(resource.data).affectedKeys().hasAny(["member_ids", "archived_for"]) &&
-        request.resource.data.get('member_ids', []) is list &&
-        request.resource.data.get('archived_for', {}) is map;
-      allow create: if isAuthorized() && (isSpaceMember(request.resource.data.space_id)) &&
-        request.resource.data.keys().hasAll(["id", "space_id", "admin_id", "member_ids", "created_at"]) &&
-        request.resource.data.id is string &&
-        request.resource.data.space_id is string &&
-        request.resource.data.admin_id is string &&
-        request.resource.data.member_ids is list &&
-        request.resource.data.created_at is int;
-    }
-
-    function isThreadMember(threadId) {
-      let memberIds = get(/databases/$(database)/documents/space_threads/$(threadId)).data.member_ids;
-      return memberIds.hasAny([request.auth.uid]);
-    }
-
-    function isThreadAdmin(threadId) {
-      let adminId = get(/databases/$(database)/documents/space_threads/$(threadId)).data.admin_id;
-      return adminId == request.auth.uid;
-    }
-
-    match /{path=**}/thread_messages/{docId} {
-      allow read: if isAuthorized() && isThreadMember(resource.data.thread_id);
-    }
-
-    match /space_threads/{threadId}/thread_messages/{docId} {
-      allow read: if isAuthorized() && isThreadMember(threadId);
-      allow delete: if isAuthorized() && (isSpaceAdmin(resource.data.space_id));
-      allow update: if isAuthorized() && isThreadMember(threadId) &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(["seen_by"]) &&
-        request.resource.data.seen_by is list;
-      allow create: if isAuthorized() && isThreadMember(threadId) && request.resource.data.sender_id == request.auth.uid &&
-        request.resource.data.keys().hasAll(["id", "thread_id", "sender_id", "message", "seen_by", "created_at"]) &&
-        request.resource.data.id is string &&
-        request.resource.data.thread_id is string &&
-        request.resource.data.sender_id is string &&
-        request.resource.data.message is string &&
-        request.resource.data.seen_by is list &&
-        request.resource.data.created_at is timestamp;
-    }
-  }
 }

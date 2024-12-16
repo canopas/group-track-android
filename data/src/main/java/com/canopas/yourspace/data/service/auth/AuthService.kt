@@ -75,7 +75,7 @@ class AuthService @Inject constructor(
             userPreferences.currentUser = newUser
         }
 
-    var currentUserSession: ApiUserSession?
+    private var currentUserSession: ApiUserSession?
         get() {
             return userPreferences.currentUserSession
         }

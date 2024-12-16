@@ -38,6 +38,7 @@ data class EncryptedLocationJourney(
     val updated_at: Long? = System.currentTimeMillis()
 )
 
+
 @Keep
 data class JourneyRoute(val latitude: Double = 0.0, val longitude: Double = 0.0)
 

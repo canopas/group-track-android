@@ -4,6 +4,7 @@ plugins {
     id("com.google.dagger.hilt.android")
     id("org.jlleitschuh.gradle.ktlint")
     id("com.google.devtools.ksp")
+    id("com.google.protobuf")
 }
 
 android {
@@ -27,15 +28,18 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
         isCoreLibraryDesugaringEnabled = true
     }
     kotlinOptions {
-        jvmTarget = "17"
+        jvmTarget = "1.8"
     }
     ktlint {
         debug = true
+    }
+    configurations.all {
+        resolutionStrategy.force("com.google.protobuf:protobuf-javalite:3.10.0")
     }
 }
 
@@ -85,6 +89,27 @@ dependencies {
     implementation("com.google.android.libraries.places:places:4.0.0")
 
     // Signal Protocol
-    implementation("org.signal:libsignal-client:0.64.1")
-    implementation("org.signal:libsignal-android:0.64.1")
+    implementation("org.whispersystems:signal-protocol-android:2.8.1") {
+        exclude(group = "com.google.protobuf", module = "protolite-java")
+    }
+    implementation("com.google.protobuf:protobuf-javalite:3.10.0") // Align with Signal Protocol version
+
+    // AndroidX Security for EncryptedSharedPreferences
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.10.0"
+    }
+    generateProtoTasks {
+        all().forEach { task ->
+            task.builtins {
+                create("java") {
+                    option("lite")
+                }
+            }
+        }
+    }
 }
