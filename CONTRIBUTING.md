@@ -1,5 +1,5 @@
 # Contributing
-Thank you so much for your interest in contributing!. All types of contributions are encouraged and valued. See below for different ways to help, and details about how this project handles them!
+Thank you so much for your interest in contributing! All types of contributions are encouraged and valued. See below for different ways to help, and details about how this project handles them!
 
 Please make sure to read the relevant section before making your contribution! It will make it a lot easier for us maintainers to make the most of it and smooth out the experience for all involved. 💙
 
@@ -33,7 +33,7 @@ Once it's filed:
 
 * The project team will [label the issue](#label-issues).
 * The project team will evaluate the feature request, possibly asking you more questions to understand its purpose and any relevant requirements. If the issue is closed, the team will convey their reasoning and suggest an alternative path forward.
-* If the feature request is accepted, it will be marked for implementation with `feature-accepted`, which can then be done by either by a core team member or by anyone in the community who wants to [contribute code](#contribute-code).
+* If the feature request is accepted, it will be marked for implementation with `feature-accepted`, which can then be done either by a core team member or by anyone in the community who wants to [contribute code](#contribute-code).
 
 Note: The team is unlikely to be able to accept every single feature request that is filed. Please understand if they need to say no.
 
@@ -49,10 +49,10 @@ If you run into an error or bug with the project:
 Once it's filed:
 
 * The project team will [label the issue](#label-issues).
-* A team member will try to reproduce the issue with your provided steps. If there are no repro steps or no obvious way to reproduce the issue, the team will ask you for those steps and mark the issue as `needs-repro`. Bugs with the `needs-repro` tag will not be addressed until they are reproduced.
-* If the team is able to reproduce the issue, it will be marked `needs-fix`, as well as possibly other tags (such as `critical`).
+* A team member will try reproducing the issue with your steps. If there are no repro steps or no obvious way to reproduce the issue, the team will ask you for those steps and mark the issue as `needs-repro`. Bugs with the `needs-repro` tag will not be addressed until they are reproduced.
+* If the team can reproduce the issue, it will be marked `needs-fix`, as well as possibly other tags (such as `critical`).
 * If you or the maintainers don't respond to an issue for 30 days, the [issue will be closed](#clean-up-issues-and-prs). If you want to come back to it, reply (once, please), and we'll reopen the existing issue. Please avoid filing new issues as extensions of one you already made.
-* `critical` issues may be left open, depending on perceived immediacy and severity, even past the 30 day deadline.
+* `critical` issues may be left open, depending on perceived immediacy and severity, even past the 30-day deadline.
 
  ## Request Support
 
@@ -70,7 +70,7 @@ Once it's filed:
 
 ## Project Setup
 
-So you wanna contribute some code! That's great! This project uses GitHub Pull Requests to manage contributions, so [read up on how to fork a GitHub project and file a PR](https://guides.github.com/activities/forking) if you've never done it before.
+So you wanna contribute some code? That's great! This project uses GitHub Pull Requests to manage contributions, so [read up on how to fork a GitHub project and file a PR](https://guides.github.com/activities/forking) if you've never done it before.
 
 If this seems like a lot or you aren't able to do all this setup, you might also be able to [edit the files directly](https://help.github.com/articles/editing-files-in-another-user-s-repository/) without having to do any of this setup. Yes, [even code](#contribute-code).
 
@@ -95,21 +95,21 @@ Once you've filed the PR:
 * One or more maintainers will use GitHub's review feature to review your PR.
 * If the maintainer asks for any changes, edit your changes, push, and ask for another review. Additional tags (such as `needs-tests`) will be added depending on the review.
 * If the maintainer decides to pass on your PR, they will thank you for the contribution and explain why they won't be accepting the changes. That's ok! We still really appreciate you taking the time to do it, and we don't take that lightly. 💚
-* If your PR gets accepted, it will be marked as such, and merged into the `master` branch soon after.
+* If your PR gets accepted, it will be marked as such and merged into the `master` branch soon after.
 
   
 ## Provide Support on Issues
 
-Helping out other users with their questions is a really awesome way of contributing to any community. It's not uncommon for most of the issues on open source projects to be support-related questions by users trying to understand something they ran into or find their way around a known bug.
+Helping out other users with their questions is an awesome way of contributing to any community. It's not uncommon for most of the issues on open-source projects to be support-related questions by users trying to understand something they ran into or find their way around a known bug.
 
-Sometimes, the `support` label will be added to things that turn out to actually be other things, like bugs or feature requests. In that case, suss out the details with the person who filed the original issue, add a comment explaining what the bug is, and change the label from `support` to `bug` or `feature`. If you can't do this yourself, @mention a maintainer so they can do it.
+Sometimes, the `support` label will be added to things that turn out to be other things, like bugs or feature requests. In that case, suss out the details with the person who filed the original issue, add a comment explaining what the bug is, and change the label from `support` to `bug` or `feature`. If you can't do this yourself, @mention a maintainer so they can do it.
 
-In order to help other folks out with their questions:
+To help other folks out with their questions:
 
 * Go to the issue tracker and [filter open issues by the `support` label](https://github.com/canopas/group-track-android/pulls?q=is%3Aopen+is%3Aissue+label%3Asupport).
-* Read through the list until you find something that you're familiar enough with to give an answer to.
+* Read through the list until you find something that you're familiar enough with to answer.
 * Respond to the issue with whatever details are needed to clarify the question, or get more details about what's going on.
-* Once the discussion wraps up and things are clarified, either close the issue, or ask the original issue filer (or a maintainer) to close it for you.
+* Once the discussion wraps up and things are clarified, either close the issue or ask the original issue filer (or a maintainer) to close it for you.
 
 Some notes on picking up support issues:
 
@@ -122,26 +122,26 @@ Some notes on picking up support issues:
 
 One of the most important tasks in handling issues is labelling them usefully and accurately. All other tasks involving issues ultimately rely on the issue being classified so that relevant parties looking to do their tasks can find them quickly and easily.
 
-To label issues, [open up the list of unlabeled issues](https://github.com/canopas/group-track-android/issues?q=is%3Aopen+is%3Aissue+no%3Alabel+) and, **from newest to oldest**, read through each one and apply issue labels according to the table below. If you're unsure about what label to apply, skip the issue and try the next one: don't feel obligated to label each and every issue yourself!
+To label issues, [open up the list of unlabeled issues](https://github.com/canopas/group-track-android/issues?q=is%3Aopen+is%3Aissue+no%3Alabel+) and, **from newest to oldest**, read through each one and apply issue labels according to the table below. If you're unsure about what label to apply, skip the issue and try the next one: don't feel obligated to label every issue yourself!
 
 Label | Apply When | Notes
 --- | --- | ---
 `bug` | Cases where the code (or documentation) is behaving in a way it wasn't intended to. | If something is happening that surprises the *user* but does not go against the way the code is designed, it should use the `enhancement` label.
 `critical` | Added to `bug` issues if the problem described makes the code completely unusable in a common situation. |
 `documentation` | Added to issues or pull requests that affect any of the documentation for the project. | Can be combined with other labels, such as `bug` or `enhancement`.
-`duplicate` | Added to issues or PRs that refer to the exact same issue as another one that's been previously labeled. | Duplicate issues should be marked and closed right away, with a message referencing the issue it's a duplicate of (with `#123`)
-`enhancement` | Added to [feature requests](#request-a-feature), PRs, or documentation issues that are purely additive: the code or docs currently work as expected, but a change is being requested or suggested. |
-`help wanted` | Generally, this means it's lower priority for the maintainer team to itself implement, but that the community is encouraged to pick up if they so desire | Never applied on first-pass labelling.
-`in-progress` | Applied by Committers to PRs that are pending work before being ready for review. | The original PR submitter should @mention the team member that applied the label once the PR is complete.
+`duplicate` | Added to issues or PRs that refer to the same issue as another one that's been previously labelled. | Duplicate issues should be marked and closed right away, with a message referencing the issue it's a duplicate of (with `#123`)
+`enhancement` | Added to [feature requests](#request-a-feature), PRs, or purely additive documentation issues: the code or docs currently work as expected, but a change is being requested or suggested. |
+`help wanted` | Generally, this means it's a lower priority for the maintainer team to itself implement, but that the community is encouraged to pick up if they so desire | Never applied on first-pass labelling.
+`in-progress` | Applied by Committers to PRs that are pending work before being ready for review. | The original PR submitter should @mention the team member who applied the label once the PR is complete.
 `performance` | This issue or PR is directly related to improving performance. |
 `refactor` | Added to issues or PRs that deal with cleaning up or modifying the project for the betterment of it. |
-`support` | This issue is either asking a question about how to use the project, clarifying the reason for unexpected behavior, or possibly reporting a `bug` but does not have enough detail yet to determine whether it would count as such. | The label should be switched to `bug` if reliable reproduction steps are provided. Issues primarily with unintended configurations of a user's environment are not considered bugs, even if they cause crashes.
+`support` | This issue is either asking a question about how to use the project, clarifying the reason for unexpected behaviour, or possibly reporting a `bug` but does not have enough detail yet to determine whether it would count as such. | The label should be switched to `bug` if reliable reproduction steps are provided. Issues primarily with unintended configurations of a user's environment are not considered bugs, even if they cause crashes.
 `tests` | This issue or PR either requests or adds primarily tests to the project. | 
-`wontfix` | Apply this label to issues that clearly have nothing at all to do with the project or are otherwise entirely outside of its scope/sphere of influence or maintainer decide to pass on an otherwise relevant issue. | The issue or PR should be closed as soon as the label is applied, and a clear explanation provided of why the label was used. Contributors are free to contest the labelling, but the decision ultimately falls on committers as to whether to accept something or not.
+`wont fix` | Apply this label to issues that have nothing at all to do with the project or are otherwise entirely outside of its scope/sphere of influence or the maintainer decide to pass on an otherwise relevant issue. | The issue or PR should be closed as soon as the label is applied, and a clear explanation provided of why the label was used. Contributors are free to contest the labelling, but the decision ultimately falls on committers as to whether to accept something or not.
 
 ## Clean Up Issues and PRs
 
-Issues and PRs can go stale after a while. Maybe they're abandoned. Maybe the team will just plain not have time to address them any time soon.
+Issues and PRs can go stale after a while. Maybe they're abandoned. Maybe the team will just not have time to address them any time soon.
 
 In these cases, they should be closed until they're brought up again or the interaction starts over.
 
@@ -154,7 +154,7 @@ To clean up issues and PRs:
   * not marked as `starter` or `help wanted` (these might stick around for a while, in general, as they're intended to be available)
   * no explicit messages in the comments asking for it to be left open
   * does not belong to a milestone
-* Leave a message when closing saying "Cleaning up stale issue. Please reopen or ping us if and when you're ready to resume this.
+* Leave a message when closing saying "Cleaning up the stale issue. Please reopen or ping us if and when you're ready to resume this.
 
 Merge Pull Requests 
 ----------------------------------------------------------
