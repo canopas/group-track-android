@@ -55,6 +55,7 @@ import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 @Composable
 fun SelectedUserDetail(
@@ -160,19 +161,28 @@ private fun MemberInfoView(
 
     var address by remember { mutableStateOf("") }
     val time = timeAgo(location?.created_at ?: 0)
-    val userStateText = if (user.noNetwork) {
-        stringResource(R.string.map_selected_user_item_no_network_state)
-    } else if (user.locationPermissionDenied) {
-        stringResource(R.string.map_selected_user_item_location_off_state)
+    Timber.e("XXX Value of battery save mode is ${state.batterySaveModeValue}")
+    val userStateText = if (!state.batterySaveModeValue) {
+        if (user.noNetwork) {
+            stringResource(R.string.map_selected_user_item_no_network_state)
+        } else if (user.locationPermissionDenied) {
+            stringResource(R.string.map_selected_user_item_location_off_state)
+        } else {
+            stringResource(R.string.map_selected_user_item_online_state)
+        }
     } else {
-        stringResource(R.string.map_selected_user_item_online_state)
+        "Battery saver mode is on"
     }
-    val userStateTextColor = if (user.noNetwork) {
-        AppTheme.colorScheme.textSecondary
-    } else if (user.locationPermissionDenied) {
-        AppTheme.colorScheme.alertColor
+    val userStateTextColor = if (!state.batterySaveModeValue) {
+        if (user.noNetwork) {
+            AppTheme.colorScheme.textSecondary
+        } else if (user.locationPermissionDenied) {
+            AppTheme.colorScheme.alertColor
+        } else {
+            AppTheme.colorScheme.successColor
+        }
     } else {
-        AppTheme.colorScheme.successColor
+        AppTheme.colorScheme.alertColor
     }
 
     LaunchedEffect(location) {

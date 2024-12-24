@@ -48,6 +48,7 @@ data class ApiUserSession(
     val device_name: String? = "",
     val platform: Int = LOGIN_DEVICE_TYPE_ANDROID,
     val session_active: Boolean = true,
+    val power_save_mode_enabled: Boolean = false,
     val app_version: Long? = 0,
     val created_at: Long? = System.currentTimeMillis()
 ) {

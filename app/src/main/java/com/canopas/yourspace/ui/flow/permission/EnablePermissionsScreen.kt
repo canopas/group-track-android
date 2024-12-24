@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -39,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -48,6 +50,7 @@ import com.canopas.yourspace.R
 import com.canopas.yourspace.data.utils.openAppSettings
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.ShowBackgroundLocationRequestDialog
+import com.canopas.yourspace.ui.flow.home.activity.navigateToSettings
 import com.canopas.yourspace.ui.theme.AppTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
@@ -187,6 +190,29 @@ fun EnablePermissionsContent(modifier: Modifier) {
             }
         )
 
+        val chineseDeviceList = stringArrayResource(R.array.chinese_devices_name)
+        val manufacturer = Build.MANUFACTURER.lowercase()
+        val isChineseDevice = chineseDeviceList.contains(manufacturer)
+
+        val subtitle1 = if (isChineseDevice) {
+            "To ensure uninterrupted performance, please make this app to Don't optimize in power-saving settings."
+        } else {
+            "To ensure uninterrupted performance, please make this app unrestricted in your power-saving settings."
+        }
+
+        val subTitle2 = if (isChineseDevice) {
+            "Battery > Advanced Settings > Optimize battery Use > GroupTrack > Make it Don't optimize"
+        } else {
+            "App Info > Battery > Make it Unrestricted"
+        }
+
+        PermissionContent(
+            title = "Battery Optimization",
+            description = "$subtitle1\n\n$subTitle2",
+            isGranted = false,
+            onClick = { navigateToSettings(context) }
+        )
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             PermissionContent(
                 title = stringResource(R.string.enable_permission_notification_access_title),
@@ -201,6 +227,12 @@ fun EnablePermissionsContent(modifier: Modifier) {
         }
 
         Spacer(modifier = Modifier.weight(1f))
+
+        HorizontalDivider(
+            color = AppTheme.colorScheme.outline,
+            thickness = 1.dp,
+            modifier = Modifier.padding(8.dp)
+        )
         Text(
             text = stringResource(R.string.enable_permission_footer),
             style = AppTheme.appTypography.caption.copy(color = AppTheme.colorScheme.textDisabled),

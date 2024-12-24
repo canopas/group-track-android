@@ -134,6 +134,11 @@ class AuthService @Inject constructor(
         val currentUser = currentUser ?: return
         apiUserService.updateSessionState(currentUser.id, state)
     }
+
+    suspend fun updatePowerSaveModeStatus(powerSavingEnabled: Boolean) {
+        val currentUser = currentUser ?: return
+        apiUserService.updatePowerSaveModeStatus(currentUser.id, powerSavingEnabled)
+    }
 }
 
 interface AuthStateChangeListener {

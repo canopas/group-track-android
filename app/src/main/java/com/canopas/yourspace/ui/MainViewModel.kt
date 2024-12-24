@@ -143,6 +143,14 @@ class MainViewModel @Inject constructor(
     fun dismissSpaceNotFoundPopup() {
         _state.value = state.value.copy(showSpaceNotFoundPopup = false)
     }
+
+    fun showPowerSavingDialog() {
+        _state.value = state.value.copy(isPowerSavingEnabled = true)
+    }
+
+    fun dismissPowerSavingDialog() {
+        _state.value = state.value.copy(isPowerSavingEnabled = false)
+    }
 }
 
 data class MainScreenState(
@@ -150,5 +158,6 @@ data class MainScreenState(
     val initialRoute: String? = null,
     val verifyingSpace: Boolean = false,
     val showSpaceNotFoundPopup: Boolean = false,
-    val isInitialRouteSet: Boolean = false
+    val isInitialRouteSet: Boolean = false,
+    val isPowerSavingEnabled: Boolean = false
 )

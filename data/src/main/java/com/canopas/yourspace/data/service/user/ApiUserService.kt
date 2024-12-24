@@ -166,4 +166,16 @@ class ApiUserService @Inject constructor(
             }
         }
     }
+
+    suspend fun updatePowerSaveModeStatus(currentUserId: String, powerSavingEnabled: Boolean) {
+        val activeSession = getUserSession(currentUserId)
+        try {
+            if (activeSession != null) {
+                val updatedSession = activeSession.copy(power_save_mode_enabled = powerSavingEnabled)
+                sessionRef(currentUserId).document(activeSession.id).set(updatedSession).await()
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to update power-saving mode status for user $currentUserId")
+        }
+    }
 }

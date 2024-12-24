@@ -304,4 +304,17 @@
 
     <string name="place_list_screen_no_members_title">Add members to add places</string>
     <string name="place_list_screen_no_members_subtitle">At least one member needs to join your group to be able to add places.</string>
+
+    <string name="notification_channel_power_saving">Power saving notification</string>
+
+    <string-array name="chinese_devices_name">
+        <item>huawei</item>
+        <item>xiaomi</item>
+        <item>oppo</item>
+        <item>vivo</item>
+        <item>realme</item>
+        <item>lenovo</item>
+        <item>asus</item>
+        <item>oneplus</item>
+    </string-array>
 </resources>

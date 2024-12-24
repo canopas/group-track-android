@@ -119,7 +119,8 @@ class MapViewModel @Inject constructor(
                 _state.value.copy(
                     selectedUser = userInfo,
                     defaultCameraPosition = selectedLocation,
-                    showUserDetails = true
+                    showUserDetails = true,
+                    batterySaveModeValue = userInfo.session?.power_save_mode_enabled ?: false
                 )
             )
 
@@ -229,5 +230,6 @@ data class MapScreenState(
     var isStyleSheetVisible: Boolean = false,
     var selectedMapStyle: String = "",
     val error: Exception? = null,
+    val batterySaveModeValue: Boolean = false,
     var errorMessage: String? = null
 )

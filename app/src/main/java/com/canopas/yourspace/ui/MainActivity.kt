@@ -1,9 +1,13 @@
 package com.canopas.yourspace.ui
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.os.PowerManager
+import android.provider.Settings
 import android.view.Window
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -16,6 +20,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -72,6 +77,11 @@ class MainActivity : ComponentActivity() {
 
         super.onCreate(savedInstanceState)
 
+        val isPowerSavingEnabled = isPowerSavingModeEnabled()
+        if (isPowerSavingEnabled) {
+            viewModel.showPowerSavingDialog()
+        }
+
         setContent {
             CatchMeTheme {
                 // A surface container using the 'background' color from the theme
@@ -95,6 +105,11 @@ class MainActivity : ComponentActivity() {
         viewModel.handleIntentData(intent)
         intent.extras?.clear()
     }
+
+    private fun isPowerSavingModeEnabled(): Boolean {
+        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        return powerManager.isPowerSaveMode
+    }
 }
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -102,6 +117,10 @@ class MainActivity : ComponentActivity() {
 fun MainApp(viewModel: MainViewModel) {
     val navController = rememberNavController()
     val state by viewModel.state.collectAsState()
+
+    if (state.isPowerSavingEnabled) {
+        PowerSavingAlertPopup()
+    }
 
     if (state.isSessionExpired) {
         SessionExpiredAlertPopup()
@@ -283,6 +302,31 @@ fun SpaceNotFoundPopup() {
         confirmBtnText = stringResource(id = R.string.common_btn_ok),
         onConfirmClick = {
             viewModel.dismissSpaceNotFoundPopup()
+        },
+        properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
+    )
+}
+
+@Composable
+fun PowerSavingAlertPopup() {
+    val viewModel = hiltViewModel<MainViewModel>()
+    val context = LocalContext.current
+
+    AppAlertDialog(
+        title = "Turn off Battery Saver Mode",
+        subTitle = "When Battery Saver is on, GroupTrack cannot access location data, preventing the app from working correctly. Please turn off the power saving mode.",
+        confirmBtnText = "Turn Off",
+        dismissBtnText = stringResource(R.string.common_btn_cancel),
+        onConfirmClick = {
+            try {
+                val intent = Intent(Settings.ACTION_BATTERY_SAVER_SETTINGS)
+                context.startActivity(intent)
+            } catch (e: Exception) {
+                Toast.makeText(context, "Unable to navigate to settings", Toast.LENGTH_SHORT).show()
+            }
+        },
+        onDismissClick = {
+            viewModel.dismissPowerSavingDialog()
         },
         properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
     )
