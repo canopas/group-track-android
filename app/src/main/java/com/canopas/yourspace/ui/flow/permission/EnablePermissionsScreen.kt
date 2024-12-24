@@ -31,6 +31,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,6 +58,7 @@ import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
+import timber.log.Timber
 
 @Composable
 fun EnablePermissionsScreen() {
@@ -101,6 +103,8 @@ private fun EnablePermissionsAppBar() {
 @Composable
 fun EnablePermissionsContent(modifier: Modifier) {
     val viewModel = hiltViewModel<EnablePermissionViewModel>()
+    val state by viewModel.state.collectAsState()
+
     val context = LocalContext.current
     val locationPermissionStates = rememberMultiplePermissionsState(
         listOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -206,11 +210,12 @@ fun EnablePermissionsContent(modifier: Modifier) {
             "App Info > Battery > Make it Unrestricted"
         }
 
+        Timber.e("Screen Value ${state.isBatteryOptimized}")
         PermissionContent(
             title = "Battery Optimization",
             description = "$subtitle1\n\n$subTitle2",
-            isGranted = false,
-            onClick = { navigateToSettings(context) }
+            isGranted = state.isBatteryOptimized,
+            onClick = { navigateToSettings(context,viewModel) }
         )
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

@@ -45,6 +45,7 @@ class UserPreferences @Inject constructor(
         val LAST_BATTERY_DIALOG_DATE = stringPreferencesKey("last_battery_dialog_date")
 
         val KEY_USER_MAP_STYLE = stringPreferencesKey("user_map_style")
+        val KEY_BATTERY_OPTIMIZATION = booleanPreferencesKey("battery_optimization_enabled")
     }
 
     suspend fun isIntroShown(): Boolean {
@@ -163,6 +164,16 @@ class UserPreferences @Inject constructor(
                 preferencesDataStore.edit { preferences ->
                     preferences[PreferencesKey.KEY_USER_MAP_STYLE] = newStyle
                 }
+            }
+        }
+
+    var isBatteryOptimizationEnabled: Boolean
+        get() = runBlocking {
+            preferencesDataStore.data.first()[PreferencesKey.KEY_BATTERY_OPTIMIZATION] ?: false
+        }
+        set(value) = runBlocking {
+            preferencesDataStore.edit { preferences ->
+                preferences[PreferencesKey.KEY_BATTERY_OPTIMIZATION] = value
             }
         }
 }

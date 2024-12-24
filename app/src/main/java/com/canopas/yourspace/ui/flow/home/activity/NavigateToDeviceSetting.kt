@@ -6,9 +6,10 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import com.canopas.yourspace.ui.flow.permission.EnablePermissionViewModel
 import timber.log.Timber
 
-fun navigateToSettings(context: Context) {
+fun navigateToSettings(context: Context, viewModel: EnablePermissionViewModel) {
     val packageManager = context.packageManager
     val intent = Intent()
 
@@ -76,4 +77,5 @@ fun navigateToSettings(context: Context) {
         Timber.e("Error launching settings: ${e.localizedMessage}")
         context.startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
     }
+    viewModel.changeBatteryOptimizationValue(true)
 }

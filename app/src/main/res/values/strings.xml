@@ -306,6 +306,9 @@
     <string name="place_list_screen_no_members_subtitle">At least one member needs to join your group to be able to add places.</string>
 
     <string name="notification_channel_power_saving">Power saving notification</string>
+    <string name="btn_turn_off">Turn Off</string>
+    <string name="battery_saver_dialog_title">Turn off Battery Saver Mode</string>
+    <string name="battery_saver_dialog_description">When Battery Saver is on, GroupTrack cannot access location data, preventing the app from working correctly. Please turn off the power saving mode.</string>
 
     <string-array name="chinese_devices_name">
         <item>huawei</item>

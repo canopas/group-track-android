@@ -7,7 +7,6 @@ import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
 import android.view.Window
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -66,6 +65,7 @@ import com.canopas.yourspace.ui.navigation.slideComposable
 import com.canopas.yourspace.ui.theme.CatchMeTheme
 import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -313,16 +313,16 @@ fun PowerSavingAlertPopup() {
     val context = LocalContext.current
 
     AppAlertDialog(
-        title = "Turn off Battery Saver Mode",
-        subTitle = "When Battery Saver is on, GroupTrack cannot access location data, preventing the app from working correctly. Please turn off the power saving mode.",
-        confirmBtnText = "Turn Off",
+        title = stringResource(R.string.battery_saver_dialog_title),
+        subTitle = stringResource(R.string.battery_saver_dialog_description),
+        confirmBtnText = stringResource(R.string.btn_turn_off),
         dismissBtnText = stringResource(R.string.common_btn_cancel),
         onConfirmClick = {
             try {
                 val intent = Intent(Settings.ACTION_BATTERY_SAVER_SETTINGS)
                 context.startActivity(intent)
             } catch (e: Exception) {
-                Toast.makeText(context, "Unable to navigate to settings", Toast.LENGTH_SHORT).show()
+                Timber.e("PowerSavingAlertPopup", "Failed to open battery saver settings", e)
             }
         },
         onDismissClick = {
