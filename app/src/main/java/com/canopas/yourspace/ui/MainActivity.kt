@@ -116,6 +116,11 @@ class MainActivity : ComponentActivity() {
         viewModel.handleIntentData(intent)
         intent.extras?.clear()
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(powerSaveReceiver)
+    }
 }
 
 @OptIn(ExperimentalAnimationApi::class)
