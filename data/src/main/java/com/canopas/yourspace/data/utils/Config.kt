@@ -10,6 +10,7 @@ object Config {
     const val FIRESTORE_COLLECTION_SPACE_MEMBERS = "space_members"
     const val FIRESTORE_COLLECTION_SPACE_PLACES = "space_places"
     const val FIRESTORE_COLLECTION_SPACE_PLACES_MEMBER_SETTINGS = "place_settings_by_members"
+    const val FIRESTORE_COLLECTION_SPACE_GROUP_KEYS = "group_keys"
 
     const val FIRESTORE_COLLECTION_SPACE_INVITATION = "space_invitations"
     const val FIRESTORE_COLLECTION_SPACE_THREADS = "space_threads"

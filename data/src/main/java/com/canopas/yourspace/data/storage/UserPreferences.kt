@@ -1,5 +1,6 @@
 package com.canopas.yourspace.data.storage
 
+import android.util.Base64
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -10,8 +11,11 @@ import com.canopas.yourspace.data.models.user.ApiUserSession
 import com.canopas.yourspace.data.storage.UserPreferences.PreferencesKey.KEY_USER_CURRENT_SPACE
 import com.canopas.yourspace.data.storage.UserPreferences.PreferencesKey.KEY_USER_JSON
 import com.canopas.yourspace.data.storage.UserPreferences.PreferencesKey.KEY_USER_SESSION_JSON
+import com.google.firebase.firestore.Blob
+import com.squareup.moshi.FromJson
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
+import com.squareup.moshi.ToJson
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -26,9 +30,9 @@ const val PREF_USER_PREFERENCES = "your_space_user_preferences"
 class UserPreferences @Inject constructor(
     @Named(PREF_USER_PREFERENCES) private val preferencesDataStore: DataStore<Preferences>
 ) {
-
     private val userJsonAdapter: JsonAdapter<ApiUser> =
-        Moshi.Builder().addLast(KotlinJsonAdapterFactory()).build().adapter(ApiUser::class.java)
+        Moshi.Builder().add(BlobTypeAdapter()).addLast(KotlinJsonAdapterFactory()).build()
+            .adapter(ApiUser::class.java)
     private val userSessionJsonAdapter: JsonAdapter<ApiUserSession> =
         Moshi.Builder().addLast(KotlinJsonAdapterFactory()).build()
             .adapter(ApiUserSession::class.java)
@@ -165,4 +169,19 @@ class UserPreferences @Inject constructor(
                 }
             }
         }
+}
+
+class BlobTypeAdapter {
+    @ToJson
+    fun toJson(blob: Blob?): String? {
+        return blob?.let { Base64.encodeToString(it.toBytes(), Base64.DEFAULT) }
+    }
+
+    @FromJson
+    fun fromJson(base64: String?): Blob? {
+        return base64?.let {
+            val bytes = Base64.decode(it, Base64.DEFAULT)
+            Blob.fromBytes(bytes)
+        }
+    }
 }

@@ -4,7 +4,6 @@ plugins {
     id("com.google.dagger.hilt.android")
     id("org.jlleitschuh.gradle.ktlint")
     id("com.google.devtools.ksp")
-    id("com.google.protobuf")
 }
 
 android {
@@ -28,18 +27,15 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
         isCoreLibraryDesugaringEnabled = true
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
     ktlint {
         debug = true
-    }
-    configurations.all {
-        resolutionStrategy.force("com.google.protobuf:protobuf-javalite:3.10.0")
     }
 }
 
@@ -48,6 +44,8 @@ dependencies {
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("com.google.android.material:material:1.12.0")
+    implementation("androidx.hilt:hilt-common:1.2.0")
+    implementation("androidx.work:work-runtime:2.9.1")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
@@ -83,33 +81,17 @@ dependencies {
     implementation("androidx.room:room-ktx:2.6.1")
 
     // Desugaring
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.3")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:1.1.6")
 
     // Place
     implementation("com.google.android.libraries.places:places:4.0.0")
 
     // Signal Protocol
-    implementation("org.whispersystems:signal-protocol-android:2.8.1") {
-        exclude(group = "com.google.protobuf", module = "protolite-java")
-    }
-    implementation("com.google.protobuf:protobuf-javalite:3.10.0") // Align with Signal Protocol version
+    implementation("org.signal:libsignal-client:0.64.1")
+    implementation("org.signal:libsignal-android:0.64.1")
 
-    // AndroidX Security for EncryptedSharedPreferences
-    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+    // Bouncy-castle for Signal Protocol
+    implementation("org.bouncycastle:bcprov-jdk15on:1.70")
 
-}
-
-protobuf {
-    protoc {
-        artifact = "com.google.protobuf:protoc:3.10.0"
-    }
-    generateProtoTasks {
-        all().forEach { task ->
-            task.builtins {
-                create("java") {
-                    option("lite")
-                }
-            }
-        }
-    }
+    implementation("androidx.security:security-crypto:1.1.0-alpha03")
 }

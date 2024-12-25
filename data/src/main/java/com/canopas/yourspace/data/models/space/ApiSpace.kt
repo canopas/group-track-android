@@ -1,6 +1,7 @@
 package com.canopas.yourspace.data.models.space
 
 import androidx.annotation.Keep
+import com.google.firebase.firestore.Blob
 import com.google.firebase.firestore.Exclude
 import java.util.UUID
 import java.util.concurrent.TimeUnit
@@ -23,6 +24,7 @@ data class ApiSpaceMember(
     val user_id: String = "",
     val role: Int = SPACE_MEMBER_ROLE_MEMBER,
     val location_enabled: Boolean = true,
+    val identity_key_public: Blob? = Blob.fromBytes(ByteArray(0)),
     val created_at: Long? = System.currentTimeMillis()
 )
 
@@ -44,4 +46,33 @@ data class ApiSpaceInvitation(
 
             return differenceMillis > twoDaysMillis
         }
+}
+
+/**
+ * Data class that represents the entire "groupKeys/{senderUserId}" doc
+ * in Firestore for a single sender's key distribution.
+ */
+data class SenderKeyDistributionDoc(
+    val senderId: String = "",
+    val distributions: List<EncryptedDistribution> = emptyList(),
+    val createdAt: Long = 0
+)
+
+/**
+ * Represents one encrypted distribution for a specific recipient.
+ * Each recipient gets their own ciphertext, which is the group SenderKeyDistributionMessage
+ * encrypted with the recipient's public key.
+ */
+data class EncryptedDistribution(
+    val recipientId: String,
+    val deviceId: Blob,
+    val ciphertext: Blob
+) {
+    fun toMap(): Map<String, Any> {
+        return mapOf(
+            "recipientId" to recipientId,
+            "deviceId" to deviceId,
+            "ciphertext" to ciphertext
+        )
+    }
 }

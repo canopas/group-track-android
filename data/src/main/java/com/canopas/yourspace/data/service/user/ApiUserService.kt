@@ -1,5 +1,6 @@
 package com.canopas.yourspace.data.service.user
 
+import android.content.Context
 import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.models.user.ApiUserSession
 import com.canopas.yourspace.data.models.user.LOGIN_TYPE_APPLE
@@ -8,9 +9,11 @@ import com.canopas.yourspace.data.service.location.ApiLocationService
 import com.canopas.yourspace.data.utils.Config
 import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_USERS
 import com.canopas.yourspace.data.utils.Device
+import com.canopas.yourspace.data.utils.KeyHelper
 import com.canopas.yourspace.data.utils.snapshotFlow
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.firestore.Blob
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.functions.FirebaseFunctions
@@ -29,7 +32,8 @@ class ApiUserService @Inject constructor(
     db: FirebaseFirestore,
     private val device: Device,
     private val locationService: ApiLocationService,
-    private val functions: FirebaseFunctions
+    private val functions: FirebaseFunctions,
+    val context: Context
 ) {
     private val userRef = db.collection(FIRESTORE_COLLECTION_USERS)
     private fun sessionRef(userId: String) =
@@ -45,10 +49,10 @@ class ApiUserService @Inject constructor(
         }
     }
 
-    suspend fun getUserFlow(userId: String) =
+    fun getUserFlow(userId: String) =
         userRef.document(userId).snapshotFlow(ApiUser::class.java)
 
-    suspend fun getUserSessionFlow(userId: String, sessionId: String) =
+    fun getUserSessionFlow(userId: String, sessionId: String) =
         sessionRef(userId).document(sessionId).snapshotFlow(ApiUserSession::class.java)
 
     suspend fun saveUser(
@@ -74,6 +78,7 @@ class ApiUserService @Inject constructor(
             sessionDocRef.set(session).await()
             return Triple(false, savedUser, session)
         } else {
+            val identityKeyPair = KeyHelper.generateIdentityKeyPair()
             val user = ApiUser(
                 id = uid!!,
                 email = account?.email ?: firebaseUser?.email ?: "",
@@ -82,7 +87,9 @@ class ApiUserService @Inject constructor(
                 last_name = account?.familyName ?: "",
                 provider_firebase_id_token = firebaseToken,
                 profile_image = account?.photoUrl?.toString() ?: firebaseUser?.photoUrl?.toString()
-                    ?: ""
+                    ?: "",
+                identity_key_public = Blob.fromBytes(identityKeyPair.publicKey.serialize()),
+                identity_key_private = Blob.fromBytes(identityKeyPair.privateKey.serialize())
             )
             userRef.document(uid).set(user).await()
             val sessionDocRef = sessionRef(user.id).document()

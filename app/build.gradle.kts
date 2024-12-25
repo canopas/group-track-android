@@ -30,7 +30,6 @@ android {
     defaultConfig {
         applicationId = "com.canopas.yourspace"
         minSdk = 24
-        targetSdk = 34
         versionCode = versionMajor * 1000000 + versionMinor * 10000 + versionBuild
         versionName = "$versionMajor.$versionMinor.$versionBuild"
         setProperty("archivesBaseName", "GroupTrack-$versionName-$versionCode")
@@ -103,12 +102,12 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
         isCoreLibraryDesugaringEnabled = true
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
@@ -208,7 +207,7 @@ dependencies {
     implementation("androidx.core:core-splashscreen:1.0.1")
 
     // Desugaring
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.3")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:1.1.6")
 
     implementation(project(":data"))
 }

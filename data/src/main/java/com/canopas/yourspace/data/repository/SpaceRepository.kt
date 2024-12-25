@@ -152,7 +152,7 @@ class SpaceRepository @Inject constructor(
                         val session = userService.getUserSession(member.user_id)
                         user?.let {
                             locationService.getCurrentLocation(user.id)
-                                ?.map {
+                                .map {
                                     UserInfo(
                                         user,
                                         it.firstOrNull(),

@@ -9,7 +9,6 @@ import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_SPACE_MEMBER
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.toObject
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 import javax.inject.Inject
@@ -32,9 +31,9 @@ class ApiJourneyService @Inject constructor(
             FIRESTORE_COLLECTION_SPACE_MEMBERS
         )
 
-    private fun spaceMemberJourneyRef(spaceId: String) =
+    private fun spaceMemberJourneyRef(spaceId: String, userId: String) =
         spaceMemberRef(spaceId)
-            .document(currentSpaceId.takeIf { it.isNotBlank() } ?: "null")
+            .document(userId.takeIf { it.isNotBlank() } ?: "null")
             .collection(Config.FIRESTORE_COLLECTION_USER_JOURNEYS)
 
     suspend fun saveCurrentJourney(
@@ -51,7 +50,7 @@ class ApiJourneyService @Inject constructor(
         newJourneyId: ((String) -> Unit)? = null
     ) {
         userPreferences.currentUser?.space_ids?.forEach {
-            val docRef = spaceMemberJourneyRef(it).document()
+            val docRef = spaceMemberJourneyRef(it, userId).document()
 
             val journey = LocationJourney(
                 id = docRef.id,
@@ -76,7 +75,7 @@ class ApiJourneyService @Inject constructor(
     suspend fun updateLastLocationJourney(userId: String, journey: LocationJourney) {
         try {
             userPreferences.currentUser?.space_ids?.forEach {
-                spaceMemberJourneyRef(it).document(journey.id).set(journey).await()
+                spaceMemberJourneyRef(it, userId).document(journey.id).set(journey).await()
             }
         } catch (e: Exception) {
             Timber.e(e, "Error while updating last location journey")
@@ -84,7 +83,7 @@ class ApiJourneyService @Inject constructor(
     }
 
     suspend fun getLastJourneyLocation(userId: String) = try {
-        spaceMemberJourneyRef(currentSpaceId).whereEqualTo("user_id", userId)
+        spaceMemberJourneyRef(currentSpaceId, userId).whereEqualTo("user_id", userId)
             .orderBy("created_at", Query.Direction.DESCENDING).limit(1)
             .get().await().documents.firstOrNull()?.toObject<LocationJourney>()
     } catch (e: Exception) {
@@ -97,11 +96,11 @@ class ApiJourneyService @Inject constructor(
         from: Long?
     ): List<LocationJourney> {
         val query = if (from == null) {
-            spaceMemberJourneyRef(currentSpaceId).whereEqualTo("user_id", userId)
+            spaceMemberJourneyRef(currentSpaceId, userId).whereEqualTo("user_id", userId)
                 .orderBy("created_at", Query.Direction.DESCENDING)
                 .limit(20)
         } else {
-            spaceMemberJourneyRef(currentSpaceId).whereEqualTo("user_id", userId)
+            spaceMemberJourneyRef(currentSpaceId, userId).whereEqualTo("user_id", userId)
                 .orderBy("created_at", Query.Direction.DESCENDING)
                 .whereLessThan("created_at", from)
                 .limit(20)
@@ -114,13 +113,13 @@ class ApiJourneyService @Inject constructor(
         from: Long,
         to: Long
     ): List<LocationJourney> {
-        val previousDayJourney = spaceMemberJourneyRef(currentSpaceId).whereEqualTo("user_id", userId)
+        val previousDayJourney = spaceMemberJourneyRef(currentSpaceId, userId).whereEqualTo("user_id", userId)
             .whereLessThan("created_at", from)
             .whereGreaterThanOrEqualTo("update_at", from)
             .limit(1)
             .get().await().documents.mapNotNull { it.toObject<LocationJourney>() }
 
-        val currentDayJourney = spaceMemberJourneyRef(currentSpaceId).whereEqualTo("user_id", userId)
+        val currentDayJourney = spaceMemberJourneyRef(currentSpaceId, userId).whereEqualTo("user_id", userId)
             .whereGreaterThanOrEqualTo("created_at", from)
             .whereLessThanOrEqualTo("created_at", to)
             .orderBy("created_at", Query.Direction.DESCENDING)
@@ -131,7 +130,8 @@ class ApiJourneyService @Inject constructor(
     }
 
     suspend fun getLocationJourneyFromId(journeyId: String): LocationJourney? {
-        return spaceMemberJourneyRef(currentSpaceId).document(journeyId).get().await()
+        val userId = userPreferences.currentUser?.id ?: return null
+        return spaceMemberJourneyRef(currentSpaceId, userId).document(journeyId).get().await()
             .toObject(LocationJourney::class.java)
     }
 }

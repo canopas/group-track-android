@@ -51,4 +51,8 @@ class AppDataProvider {
     @Provides
     @Singleton
     fun providedApiUserSession(): ApiUserSession = ApiUserSession()
+
+    @Provides
+    @Singleton
+    fun provideAppContext(@ApplicationContext context: Context): Context = context
 }
