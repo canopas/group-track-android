@@ -199,7 +199,11 @@ private fun EditProfileScreenContent(modifier: Modifier) {
                 label = stringResource(id = R.string.settings_btn_delete_account),
                 onClick = {
                     if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
-                        viewModel.showDeleteAccountConfirmation(true)
+                        if (state.adminGroupList.isNotEmpty()) {
+                            viewModel.showAdminChangeDialog(true)
+                        } else {
+                            viewModel.showDeleteAccountConfirmation(true)
+                        }
                     } else {
                         Toast.makeText(
                             context,
@@ -224,6 +228,10 @@ private fun EditProfileScreenContent(modifier: Modifier) {
 
         if (state.showDeleteAccountConfirmation) {
             ShowDeleteAccountDialog(viewModel)
+        }
+
+        if (state.showAdminChangeDialog) {
+            ShowAdminChangeDialog(viewModel)
         }
     }
 }
@@ -294,4 +302,25 @@ fun UserTextField(
             color = outlineColor
         )
     }
+}
+
+@Composable
+fun ShowAdminChangeDialog(viewModel: EditProfileViewModel) {
+    val state by viewModel.state.collectAsState()
+
+    AppAlertDialog(
+        title = stringResource(R.string.account_deletion_change_admin_dialog_title),
+        subTitle = stringResource(
+            R.string.account_deletion_change_admin_dialog_subtitle,
+            state.adminGroupList.joinToString(separator = "\n") { "\u2022 ${it.name}" }
+        ),
+        confirmBtnText = stringResource(R.string.common_btn_ok),
+        dismissBtnText = stringResource(R.string.common_btn_cancel),
+        onConfirmClick = {
+            viewModel.showAdminChangeDialog(false)
+            viewModel.popBackStack()
+        },
+        onDismissClick = { viewModel.showAdminChangeDialog(false) },
+        isConfirmDestructive = false
+    )
 }

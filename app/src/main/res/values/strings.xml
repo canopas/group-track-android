@@ -304,4 +304,7 @@
 
     <string name="place_list_screen_no_members_title">Add members to add places</string>
     <string name="place_list_screen_no_members_subtitle">At least one member needs to join your group to be able to add places.</string>
+
+    <string name="account_deletion_change_admin_dialog_title">Reassign Admin Before Deletion</string>
+    <string name="account_deletion_change_admin_dialog_subtitle">Please assign a new admin before proceeding with the account deletion to avoid data loss. \nYou are an admin of the following groups :\n%1$s</string>
 </resources>
