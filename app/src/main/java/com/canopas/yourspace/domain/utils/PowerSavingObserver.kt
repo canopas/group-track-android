@@ -30,8 +30,8 @@ fun sendPowerSavingNotification(context: Context) {
 
     val notificationBuilder = NotificationCompat.Builder(context, YOURSPACE_CHANNEL_POWER_SAVING)
         .setSmallIcon(R.drawable.app_logo)
-        .setContentTitle("Battery Save is on, disabling GroupTrack")
-        .setContentText("Your phone is in power saving mode, and some features might be limited. Turn off Battery Saver in Settings to reconnect GroupTrack.")
+        .setContentTitle(context.getString(R.string.battery_saving_notification_title))
+        .setContentText(context.getString(R.string.battery_saving_notification_description))
         .setAutoCancel(true)
         .setContentIntent(pendingIntent)
 

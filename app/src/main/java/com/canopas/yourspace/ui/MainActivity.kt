@@ -1,7 +1,9 @@
 package com.canopas.yourspace.ui
 
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.net.Uri
 import android.os.Bundle
 import android.os.PowerManager
@@ -72,15 +74,20 @@ class MainActivity : ComponentActivity() {
 
     private val viewModel: MainViewModel by viewModels()
 
+    private val powerSaveReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val isPowerSavingMode = viewModel.isPowerSavingModeEnabled(context ?: return)
+            viewModel.updatePowerSavingState(isPowerSavingMode)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         requestWindowFeature(Window.FEATURE_NO_TITLE)
 
         super.onCreate(savedInstanceState)
 
-        val isPowerSavingEnabled = isPowerSavingModeEnabled()
-        if (isPowerSavingEnabled) {
-            viewModel.showPowerSavingDialog()
-        }
+        val filter = IntentFilter(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED)
+        registerReceiver(powerSaveReceiver, filter)
 
         setContent {
             CatchMeTheme {
@@ -89,10 +96,14 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+                    val context = LocalContext.current
+
                     MainApp(viewModel)
 
                     LaunchedEffect(Unit) {
                         viewModel.handleIntentData(intent)
+                        val isPowerSavingEnable = viewModel.isPowerSavingModeEnabled(context)
+                        viewModel.updatePowerSavingState(isPowerSavingEnable) // Ensure initial state is set
                     }
                 }
             }
@@ -104,11 +115,6 @@ class MainActivity : ComponentActivity() {
         val viewModel = ViewModelProvider(this)[MainViewModel::class.java]
         viewModel.handleIntentData(intent)
         intent.extras?.clear()
-    }
-
-    private fun isPowerSavingModeEnabled(): Boolean {
-        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
-        return powerManager.isPowerSaveMode
     }
 }
 
@@ -311,6 +317,8 @@ fun SpaceNotFoundPopup() {
 fun PowerSavingAlertPopup() {
     val viewModel = hiltViewModel<MainViewModel>()
     val context = LocalContext.current
+
+    Timber.d("XXX :- PowerSavingAlertPopup: Displaying power saving dialog")
 
     AppAlertDialog(
         title = stringResource(R.string.battery_saver_dialog_title),

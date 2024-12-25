@@ -55,7 +55,6 @@ import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 
 @Composable
 fun SelectedUserDetail(
@@ -161,7 +160,7 @@ private fun MemberInfoView(
 
     var address by remember { mutableStateOf("") }
     val time = timeAgo(location?.created_at ?: 0)
-    Timber.e("XXX Value of battery save mode is ${state.batterySaveModeValue}")
+
     val userStateText = if (!state.batterySaveModeValue) {
         if (user.noNetwork) {
             stringResource(R.string.map_selected_user_item_no_network_state)
@@ -171,7 +170,7 @@ private fun MemberInfoView(
             stringResource(R.string.map_selected_user_item_online_state)
         }
     } else {
-        "Battery saver mode is on"
+        stringResource(R.string.battery_saver_text)
     }
     val userStateTextColor = if (!state.batterySaveModeValue) {
         if (user.noNetwork) {

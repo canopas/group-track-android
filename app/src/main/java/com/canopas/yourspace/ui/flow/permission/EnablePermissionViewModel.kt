@@ -21,7 +21,7 @@ class EnablePermissionViewModel @Inject constructor(
     private val _state = MutableStateFlow(EnablePermissionState())
     val state = _state.asStateFlow()
 
-    init {
+    fun refreshBatteryOptimizationState() {
         viewModelScope.launch(appDispatcher.IO) {
             _state.emit(
                 state.value.copy(
@@ -33,7 +33,8 @@ class EnablePermissionViewModel @Inject constructor(
 
     fun changeBatteryOptimizationValue(value: Boolean) {
         viewModelScope.launch(appDispatcher.IO) {
-            state.value.isBatteryOptimized = value
+            _state.value = _state.value.copy(isBatteryOptimized = value)
+            userPreferences.isBatteryOptimizationEnabled = value
         }
     }
 

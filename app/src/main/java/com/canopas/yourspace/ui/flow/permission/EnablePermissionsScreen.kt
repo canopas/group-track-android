@@ -31,6 +31,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -58,7 +59,6 @@ import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
-import timber.log.Timber
 
 @Composable
 fun EnablePermissionsScreen() {
@@ -109,6 +109,10 @@ fun EnablePermissionsContent(modifier: Modifier) {
     val locationPermissionStates = rememberMultiplePermissionsState(
         listOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION)
     )
+
+    LaunchedEffect(Unit) {
+        viewModel.refreshBatteryOptimizationState()
+    }
 
     val bgLocationPermissionStates =
         rememberPermissionState(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
@@ -199,23 +203,22 @@ fun EnablePermissionsContent(modifier: Modifier) {
         val isChineseDevice = chineseDeviceList.contains(manufacturer)
 
         val subtitle1 = if (isChineseDevice) {
-            "To ensure uninterrupted performance, please make this app to Don't optimize in power-saving settings."
+            stringResource(R.string.battery_optimization_permission_subtitle_chinese)
         } else {
-            "To ensure uninterrupted performance, please make this app unrestricted in your power-saving settings."
+            stringResource(R.string.battery_optimization_permission_subtitle_other)
         }
 
         val subTitle2 = if (isChineseDevice) {
-            "Battery > Advanced Settings > Optimize battery Use > GroupTrack > Make it Don't optimize"
+            stringResource(R.string.battery_optimization_permission_path_chinese)
         } else {
-            "App Info > Battery > Make it Unrestricted"
+            stringResource(R.string.battery_optimization_permission_path_other)
         }
 
-        Timber.e("Screen Value ${state.isBatteryOptimized}")
         PermissionContent(
-            title = "Battery Optimization",
+            title = stringResource(R.string.battery_optimization_permission_title),
             description = "$subtitle1\n\n$subTitle2",
             isGranted = state.isBatteryOptimized,
-            onClick = { navigateToSettings(context,viewModel) }
+            onClick = { navigateToSettings(context, viewModel) }
         )
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

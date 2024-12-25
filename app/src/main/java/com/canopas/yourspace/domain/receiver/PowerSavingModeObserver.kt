@@ -29,10 +29,8 @@ class PowerSavingModeObserver @Inject constructor(
     }
 
     override fun onReceive(context: Context?, intent: Intent?) {
-        Timber.e("Received Power Saving Mode change")
         val powerManager = context?.getSystemService(Context.POWER_SERVICE) as PowerManager
         val isPowerSaving = powerManager.isPowerSaveMode
-        Timber.e("Power Saving Mode is $isPowerSaving")
 
         if (isPowerSaving) {
             sendPowerSavingNotification(context)
