@@ -83,13 +83,6 @@ class SpaceInviteCodeViewModel @Inject constructor(
         }
     }
 
-    fun regenerateInviteCode() = viewModelScope.launch(appDispatcher.IO) {
-        if (state.value.isUserAdmin) {
-            spaceRepository.regenerateInviteCode(spaceRepository.currentSpaceId)
-        }
-        fetchInviteCode()
-    }
-
     fun checkInternetConnection() {
         viewModelScope.launch(appDispatcher.IO) {
             connectivityObserver.observe().collectLatest { status ->
@@ -104,14 +97,6 @@ class SpaceInviteCodeViewModel @Inject constructor(
 
     fun resetErrorState() {
         _state.value = _state.value.copy(error = null)
-    }
-
-    fun setErrorState(exception: Exception) {
-        viewModelScope.launch {
-            _state.emit(
-                _state.value.copy(error = exception)
-            )
-        }
     }
 }
 

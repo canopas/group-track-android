@@ -1,5 +1,7 @@
 package com.canopas.yourspace.ui.flow.settings.space
 
+import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -21,6 +23,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -44,6 +48,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -236,6 +241,7 @@ private fun SpaceProfileContent() {
     val viewModel = hiltViewModel<SpaceProfileViewModel>()
     val state by viewModel.state.collectAsState()
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -251,6 +257,42 @@ private fun SpaceProfileContent() {
                 onValueChange = {
                     viewModel.onNameChanged(it.trimStart())
                 }
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = stringResource(R.string.space_invite_code_title),
+                style = AppTheme.appTypography.body2,
+                color = AppTheme.colorScheme.textDisabled,
+                modifier = Modifier.padding(start = 8.dp)
+            )
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(horizontal = 8.dp)
+            ) {
+                Text(
+                    text = state.inviteCode,
+                    modifier = Modifier.weight(1f),
+                    style = AppTheme.appTypography.header4
+                )
+                IconButton(
+                    onClick = { shareInvitationCode(context = context, code = state.inviteCode) }
+                ) {
+                    Icon(Icons.Default.Share, contentDescription = "")
+                }
+                if (state.isAdmin) {
+                    IconButton(onClick = { viewModel.regenerateInviteCode() }) {
+                        Icon(Icons.Default.Refresh, contentDescription = "")
+                    }
+                }
+            }
+            Text(
+                text = stringResource(R.string.code_expire_text, state.codeExpireTime),
+                style = AppTheme.appTypography.body2,
+                color = AppTheme.colorScheme.textDisabled,
+                modifier = Modifier.padding(start = 8.dp)
             )
 
             HorizontalDivider(
@@ -351,6 +393,20 @@ private fun SpaceProfileContent() {
             )
         }
     }
+}
+
+private fun shareInvitationCode(context: Context, code: String) {
+    val sendIntent: Intent = Intent().apply {
+        action = Intent.ACTION_SEND
+        putExtra(
+            Intent.EXTRA_TEXT,
+            context.getString(R.string.common_share_invite_code_message, code)
+        )
+        type = "text/plain"
+    }
+
+    val shareIntent = Intent.createChooser(sendIntent, null)
+    context.startActivity(shareIntent)
 }
 
 @Composable
