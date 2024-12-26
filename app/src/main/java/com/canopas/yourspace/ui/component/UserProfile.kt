@@ -64,7 +64,7 @@ fun UserProfile(
         } else if (!user?.fullName.isNullOrEmpty()) {
             Text(
                 text = user?.fullName?.take(1)?.uppercase() ?: "?",
-                style = AppTheme.appTypography.header4.copy(color = AppTheme.colorScheme.onPrimary)
+                style = AppTheme.appTypography.header4.copy(color = AppTheme.colorScheme.textInversePrimary)
             )
         } else {
             Icon(

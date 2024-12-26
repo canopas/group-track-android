@@ -6,7 +6,8 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 
-private val primaryColor = Color(0xFF1679AB)
+private val primaryLightColor = Color(0xFF1679AB)
+private val primaryDarkColor = Color(0xFF74BFE4)
 
 private val secondaryLightColor = Color(0xFF34495E)
 private val secondaryVariantLightColor = Color(0x5234495E)
@@ -25,7 +26,7 @@ private val containerB40LightColor = Color(0x0A61A4C6)
 private val containerHighDarkColor = Color(0x3DABCFE1)
 private val containerNormalDarkColor = Color(0x1FABCFE1)
 private val containerLowDarkColor = Color(0x14ABCFE1)
-private val containerB40DarkColor = Color(0x0AABCFE1)
+private val containerB40DarkColor = Color(0x06ABCFE1)
 
 private val textPrimaryLightColor = Color(0xDE000000)
 private val textSecondaryLightColor = Color(0x99000000)
@@ -50,7 +51,7 @@ private val locationMarkerColor = Color(0xFFFF5722)
 private val markerInfoWindowColor = Color(0xE7E0E0E0)
 
 internal val themeLightColorScheme = lightColorScheme().copy(
-    primary = primaryColor,
+    primary = primaryLightColor,
     onPrimary = textPrimaryLightColor,
     background = surfaceLightColor,
     onBackground = textPrimaryLightColor,
@@ -58,7 +59,7 @@ internal val themeLightColorScheme = lightColorScheme().copy(
 )
 
 internal val appLightColorScheme = AppColorScheme(
-    primary = primaryColor,
+    primary = primaryLightColor,
     secondary = secondaryLightColor,
     secondaryVariant = secondaryVariantLightColor,
     tertiary = tertiaryDarkColor,
@@ -82,7 +83,7 @@ internal val appLightColorScheme = AppColorScheme(
 )
 
 internal val themeDarkColorScheme = darkColorScheme().copy(
-    primary = primaryColor,
+    primary = primaryDarkColor,
     onPrimary = textPrimaryDarkColor,
     background = surfaceDarkColor,
     onBackground = textPrimaryDarkColor,
@@ -90,7 +91,7 @@ internal val themeDarkColorScheme = darkColorScheme().copy(
 )
 
 internal val appDarkColorScheme = AppColorScheme(
-    primary = primaryColor,
+    primary = primaryDarkColor,
     secondary = secondaryDarkColor,
     secondaryVariant = secondaryVariantDarkColor,
     tertiary = tertiaryLightColor,

@@ -90,7 +90,7 @@ fun PlacesListScreen() {
                 FloatingActionButton(
                     onClick = { viewModel.navigateToAddPlace() },
                     containerColor = AppTheme.colorScheme.primary,
-                    contentColor = AppTheme.colorScheme.onPrimary,
+                    contentColor = AppTheme.colorScheme.textInversePrimary,
                     shape = RoundedCornerShape(30.dp),
                     elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 0.dp)
                 ) {
@@ -173,7 +173,7 @@ private fun AddPlaceButton() {
         Text(
             text = stringResource(id = R.string.places_list_add_new_place_btn),
             style = AppTheme.appTypography.button,
-            color = AppTheme.colorScheme.onPrimary
+            color = AppTheme.colorScheme.textInversePrimary
         )
     }
 }

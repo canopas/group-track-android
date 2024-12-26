@@ -26,7 +26,7 @@ fun PrimaryButton(
     enabled: Boolean = true,
     showLoader: Boolean = false,
     containerColor: Color = AppTheme.colorScheme.primary,
-    contentColor: Color = AppTheme.colorScheme.onPrimary
+    contentColor: Color = AppTheme.colorScheme.textInversePrimary
 ) {
     val isEnable = enabled && !showLoader
     val textColor = if (enabled) contentColor else AppTheme.colorScheme.textDisabled
