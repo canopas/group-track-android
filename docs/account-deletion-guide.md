@@ -17,16 +17,17 @@ If you wish to delete your GroupTrack account, follow these steps:
 
    <img src="./assets/edit_profile.png" alt="Tap Delete Account" width="450" height="900">
 
-5. If you are an admin of any group, this dialog box will appear. You must have to transfer admin rights to another user before deleting your account. 
-Here on click of **Change Admin** button, you will be redirected to the **Settings** screen.
+5. If you are an admin of any group, a dialog box will appear requesting you to transfer admin rights before account deletion. Click the **Change Admin** button to proceed to the **Settings** screen.
 
    <img src="./assets/change_admin_dialog.png" alt="Change Admin" width="450" height="900">
 
-6. Select that group and tap on **More Option** button. The menu will appear. Tap on **Change Admin**. This will redirect you to the **Change Admin** screen where you can select a new admin.
-
+6. Select the group and tap on the **More Options** button.
+   - When the menu appears, tap **Change Admin**
+   - Select a new admin from the list on the **Change Admin** screen
+   
    <img src="./assets/group_settings.png" alt="Tap Change Admin" width="450" height="900">
 
-7. If you are not an admin of any group, this dialog box will appear. Confirm the deletion by tapping on **Delete Account** in the dialog box.
+7. Once you have transferred all admin rights (or if you were not an admin), you'll see a final confirmation dialog. Tap **Delete Account** to proceed with account deletion.
 
    <img src="./assets/delete_confirmation.png" alt="Tap Delete Account" width="450" height="900">
 
