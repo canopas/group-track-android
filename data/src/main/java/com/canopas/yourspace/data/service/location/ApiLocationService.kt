@@ -168,7 +168,7 @@ class ApiLocationService @Inject constructor(
         if (currentUserDistribution == null && canDistributeSenderKey) {
             Timber.e(
                 "Sender key distribution not found for $userId in space $spaceId.\n+" +
-                        "Can be a new member. Distributing sender key to new member..."
+                    "Can be a new member. Distributing sender key to new member..."
             )
             distributeSenderKeyToNewMember(
                 spaceId,

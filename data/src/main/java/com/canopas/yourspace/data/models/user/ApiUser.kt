@@ -28,7 +28,7 @@ data class ApiUser(
     val updated_at: Long? = System.currentTimeMillis(),
     val identity_key_public: Blob? = Blob.fromBytes(ByteArray(0)),
     val identity_key_private: Blob? = Blob.fromBytes(ByteArray(0)),
-    val profile_key: Blob? = null,
+    val profile_key: Blob? = null
 ) {
     @get:Exclude
     val fullName: String get() = "$first_name $last_name"

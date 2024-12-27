@@ -89,7 +89,7 @@ class ApiUserService @Inject constructor(
                     ?: "",
                 identity_key_public = Blob.fromBytes(identityKeyPair.publicKey.publicKey.serialize()),
                 identity_key_private = Blob.fromBytes(identityKeyPair.privateKey.serialize()),
-                profile_key = Blob.fromBytes(profileKey.serialize()),
+                profile_key = Blob.fromBytes(profileKey.serialize())
             )
             userRef.document(uid).set(user).await()
             val sessionDocRef = sessionRef(user.id).document()

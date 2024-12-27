@@ -18,11 +18,10 @@ import com.canopas.yourspace.data.utils.EphemeralECDHUtils
 import com.canopas.yourspace.data.utils.snapshotFlow
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
-import timber.log.Timber
 import org.signal.libsignal.protocol.SignalProtocolAddress
 import org.signal.libsignal.protocol.ecc.Curve
 import org.signal.libsignal.protocol.groups.GroupSessionBuilder
-import org.signal.libsignal.protocol.groups.state.InMemorySenderKeyStore
+import timber.log.Timber
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
