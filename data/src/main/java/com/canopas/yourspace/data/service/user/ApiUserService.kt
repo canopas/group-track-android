@@ -1,6 +1,5 @@
 package com.canopas.yourspace.data.service.user
 
-import android.content.Context
 import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.models.user.ApiUserSession
 import com.canopas.yourspace.data.models.user.LOGIN_TYPE_APPLE
@@ -32,8 +31,7 @@ class ApiUserService @Inject constructor(
     db: FirebaseFirestore,
     private val device: Device,
     private val locationService: ApiLocationService,
-    private val functions: FirebaseFunctions,
-    val context: Context
+    private val functions: FirebaseFunctions
 ) {
     private val userRef = db.collection(FIRESTORE_COLLECTION_USERS)
     private fun sessionRef(userId: String) =
@@ -88,7 +86,7 @@ class ApiUserService @Inject constructor(
                 provider_firebase_id_token = firebaseToken,
                 profile_image = account?.photoUrl?.toString() ?: firebaseUser?.photoUrl?.toString()
                     ?: "",
-                identity_key_public = Blob.fromBytes(identityKeyPair.publicKey.serialize()),
+                identity_key_public = Blob.fromBytes(identityKeyPair.publicKey.publicKey.serialize()),
                 identity_key_private = Blob.fromBytes(identityKeyPair.privateKey.serialize())
             )
             userRef.document(uid).set(user).await()

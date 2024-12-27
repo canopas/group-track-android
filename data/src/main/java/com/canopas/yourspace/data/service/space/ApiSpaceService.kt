@@ -5,17 +5,17 @@ import com.canopas.yourspace.data.models.space.ApiSpaceMember
 import com.canopas.yourspace.data.models.space.EncryptedDistribution
 import com.canopas.yourspace.data.models.space.SPACE_MEMBER_ROLE_ADMIN
 import com.canopas.yourspace.data.models.space.SPACE_MEMBER_ROLE_MEMBER
-import com.canopas.yourspace.data.models.space.SenderKeyDistributionDoc
+import com.canopas.yourspace.data.models.space.SenderKeyDistribution
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.place.ApiPlaceService
 import com.canopas.yourspace.data.service.user.ApiUserService
 import com.canopas.yourspace.data.storage.UserPreferences
+import com.canopas.yourspace.data.storage.bufferedkeystore.BufferedSenderKeyStore
 import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_SPACES
 import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_SPACE_GROUP_KEYS
 import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_SPACE_MEMBERS
 import com.canopas.yourspace.data.utils.EphemeralECDHUtils
 import com.canopas.yourspace.data.utils.snapshotFlow
-import com.google.firebase.firestore.Blob
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import org.signal.libsignal.protocol.SignalProtocolAddress
@@ -33,7 +33,8 @@ class ApiSpaceService @Inject constructor(
     private val authService: AuthService,
     private val apiUserService: ApiUserService,
     private val placeService: ApiPlaceService,
-    private val userPreferences: UserPreferences
+    private val userPreferences: UserPreferences,
+    private val bufferedSenderKeyStore: BufferedSenderKeyStore
 ) {
     private val spaceRef = db.collection(FIRESTORE_COLLECTION_SPACES)
     private fun spaceMemberRef(spaceId: String) =
@@ -86,15 +87,14 @@ class ApiSpaceService @Inject constructor(
     }
 
     /**
-     * Create a sender key distribution for the current/joining user, and encrypt that distribution
-     * for each member.
+     * Create a sender key distribution for the current/joining user, and encrypt the distribution key
+     * for each member using their public key(ECDH).
      **/
     private suspend fun distributeSenderKeyToSpaceMembers(spaceId: String, senderUserId: String) {
         val deviceId = userPreferences.currentUserSession?.device_id ?: ""
         val deviceIdInt = deviceId.hashCode() and 0x7FFFFFFF
         val groupAddress = SignalProtocolAddress(spaceId, deviceIdInt)
-        val senderKeyStore = InMemorySenderKeyStore()
-        val sessionBuilder = GroupSessionBuilder(senderKeyStore)
+        val sessionBuilder = GroupSessionBuilder(bufferedSenderKeyStore)
         val distributionMessage = sessionBuilder.create(groupAddress, UUID.fromString(spaceId))
         val distributionBytes = distributionMessage.serialize()
 
@@ -106,21 +106,14 @@ class ApiSpaceService @Inject constructor(
             val publicKey = Curve.decodePoint(publicBlob.toBytes(), 0)
 
             // Encrypt distribution using member's public key
-            val encBytes = EphemeralECDHUtils.encrypt(distributionBytes, publicKey)
-            val encDeviceId = EphemeralECDHUtils.encrypt(deviceIdInt.toString().toByteArray(), publicKey)
-            distributions.add(
-                EncryptedDistribution(
-                    recipientId = member.user_id,
-                    deviceId = Blob.fromBytes(encDeviceId),
-                    ciphertext = Blob.fromBytes(encBytes)
-                )
-            )
+            distributions.add(EphemeralECDHUtils.encrypt(member.user_id, distributionBytes, publicKey))
         }
 
         val docRef = spaceGroupKeysRef(spaceId).document(senderUserId)
 
-        val data = SenderKeyDistributionDoc(
+        val data = SenderKeyDistribution(
             senderId = senderUserId,
+            senderDeviceId = deviceIdInt,
             distributions = distributions,
             createdAt = System.currentTimeMillis()
         )
@@ -178,4 +171,8 @@ class ApiSpaceService @Inject constructor(
     suspend fun updateSpace(space: ApiSpace) {
         spaceRef.document(space.id).set(space).await()
     }
+}
+
+fun InMemorySenderKeyStore.createSenderKeyRecord(spaceId: String, deviceId: Int): ByteArray {
+    return "$spaceId-$deviceId".toByteArray()
 }

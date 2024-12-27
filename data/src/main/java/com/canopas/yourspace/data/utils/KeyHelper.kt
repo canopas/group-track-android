@@ -6,6 +6,7 @@ import org.signal.libsignal.protocol.ecc.Curve
 import org.signal.libsignal.protocol.state.PreKeyRecord
 import org.signal.libsignal.protocol.state.SignedPreKeyRecord
 import org.signal.libsignal.protocol.util.KeyHelper
+import org.signal.libsignal.zkgroup.profiles.ProfileKey
 import java.security.SecureRandom
 
 private const val INTEGER_MAX = 0x7fffffff
@@ -15,6 +16,10 @@ object KeyHelper {
         val keyPair = Curve.generateKeyPair()
         val publicKey = IdentityKey(keyPair.publicKey)
         return IdentityKeyPair(publicKey, keyPair.privateKey)
+    }
+
+    fun getProfileKey(): ProfileKey {
+        return ProfileKey(SecureRandom().generateSeed(32))
     }
 
     fun generateRegistrationId(extendedRange: Boolean): Int {

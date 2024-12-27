@@ -53,7 +53,7 @@ class YourSpaceApplication :
 
         super<Application>.onCreate()
         Timber.plant(Timber.DebugTree())
-        FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled = false
+        FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled = true
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
         authService.addListener(this)
         setNotificationChannel()

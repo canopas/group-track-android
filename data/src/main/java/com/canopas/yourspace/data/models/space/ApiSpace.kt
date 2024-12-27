@@ -52,8 +52,9 @@ data class ApiSpaceInvitation(
  * Data class that represents the entire "groupKeys/{senderUserId}" doc
  * in Firestore for a single sender's key distribution.
  */
-data class SenderKeyDistributionDoc(
+data class SenderKeyDistribution(
     val senderId: String = "",
+    val senderDeviceId: Int = 0,
     val distributions: List<EncryptedDistribution> = emptyList(),
     val createdAt: Long = 0
 )
@@ -64,15 +65,8 @@ data class SenderKeyDistributionDoc(
  * encrypted with the recipient's public key.
  */
 data class EncryptedDistribution(
-    val recipientId: String,
-    val deviceId: Blob,
-    val ciphertext: Blob
-) {
-    fun toMap(): Map<String, Any> {
-        return mapOf(
-            "recipientId" to recipientId,
-            "deviceId" to deviceId,
-            "ciphertext" to ciphertext
-        )
-    }
-}
+    val recipientId: String = "",
+    val ephemeralPub: Blob = Blob.fromBytes(ByteArray(0)), // 32 bytes
+    val iv: Blob = Blob.fromBytes(ByteArray(0)), // 12 bytes
+    val ciphertext: Blob = Blob.fromBytes(ByteArray(0)) // AES/GCM ciphertext
+)
