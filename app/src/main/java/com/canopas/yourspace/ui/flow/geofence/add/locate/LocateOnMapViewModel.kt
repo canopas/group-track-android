@@ -77,6 +77,13 @@ class LocateOnMapViewModel @Inject constructor(
             val currentSpaceId = userPreferences.currentSpace ?: return@launch
             val currentUser = userPreferences.currentUser ?: return@launch
 
+            if (latitude == 0.0 || longitude == 0.0) {
+                _state.value = _state.value.copy(
+                    error = Exception("Invalid location.")
+                )
+                return@launch
+            }
+
             _state.emit(state.value.copy(addingPlace = true))
             try {
                 val memberIds =
@@ -130,6 +137,10 @@ class LocateOnMapViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    fun resetErrorState() {
+        _state.value = _state.value.copy(error = null)
     }
 }
 

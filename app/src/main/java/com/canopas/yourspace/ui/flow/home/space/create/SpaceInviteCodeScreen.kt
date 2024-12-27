@@ -36,6 +36,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
+import com.canopas.yourspace.domain.utils.ConnectivityObserver
+import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.PrimaryButton
 import com.canopas.yourspace.ui.theme.AppTheme
 
@@ -44,6 +46,12 @@ import com.canopas.yourspace.ui.theme.AppTheme
 fun SpaceInvite() {
     val viewModel = hiltViewModel<SpaceInviteCodeViewModel>()
     val state by viewModel.state.collectAsState()
+
+    if (state.error != null) {
+        AppBanner(msg = state.error!!) {
+            viewModel.resetErrorState()
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.onStart()
@@ -68,7 +76,15 @@ fun SpaceInvite() {
             },
             actions = {
                 if (state.isUserAdmin) {
-                    IconButton(onClick = { viewModel.regenerateInviteCode() }) {
+                    IconButton(
+                        onClick = {
+                            if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
+                                viewModel.regenerateInviteCode()
+                            } else {
+                                viewModel.setErrorState(Exception())
+                            }
+                        }
+                    ) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
                             contentDescription = ""

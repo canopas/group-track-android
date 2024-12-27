@@ -67,6 +67,13 @@ class ChoosePlaceNameViewModel @Inject constructor(
         val currentSpaceId = userPreferences.currentSpace ?: return@launch
         val currentUser = userPreferences.currentUser ?: return@launch
 
+        if (selectedLatitude == 0.0 || selectedLongitude == 0.0) {
+            _state.value = _state.value.copy(
+                error = Exception("Invalid location.")
+            )
+            return@launch
+        }
+
         _state.emit(state.value.copy(addingPlace = true))
         try {
             val memberIds = spaceRepository.getMemberBySpaceId(currentSpaceId)?.map { it.user_id }

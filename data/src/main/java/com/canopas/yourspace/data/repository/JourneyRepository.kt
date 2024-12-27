@@ -192,6 +192,8 @@ class JourneyRepository @Inject constructor(
         extractedLocation: Location,
         lastKnownJourney: LocationJourney
     ) {
+        if (isDayChanged(extractedLocation, lastKnownJourney)) return
+
         val geometricMedian = locationCache.getLastFiveLocations(userId)?.let {
             geometricMedian(it)
         }

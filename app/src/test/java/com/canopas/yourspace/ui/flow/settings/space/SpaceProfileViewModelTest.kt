@@ -29,10 +29,11 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class SpaceProfileViewModelTest {
 
     private val space = ApiSpace(id = "space1", admin_id = "user1", name = "space_name")
-    val user1 = ApiUser(id = "user1", first_name = "first_name", last_name = "last_name")
+    private val user1 = ApiUser(id = "user1", first_name = "first_name", last_name = "last_name")
     private val user2 = ApiUser(id = "user2", first_name = "first_name", last_name = "last_name")
     private val userInfo1 = UserInfo(user1, isLocationEnable = true)
     private val userInfo2 = UserInfo(user2)
@@ -40,7 +41,6 @@ class SpaceProfileViewModelTest {
 
     val space_info1 = SpaceInfo(space = space, members = members)
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     @get:Rule
     val mainCoroutineRule = MainCoroutineRule()
 
@@ -53,7 +53,6 @@ class SpaceProfileViewModelTest {
     private val authService = mock<AuthService>()
     private val connectivityObserver = mock<ConnectivityObserver>()
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     private val testDispatcher = AppDispatcher(IO = UnconfinedTestDispatcher())
 
     private lateinit var viewModel: SpaceProfileViewModel
@@ -83,6 +82,7 @@ class SpaceProfileViewModelTest {
             }
         }
         setup()
+        viewModel.fetchSpaceDetail()
         assert(viewModel.state.value.isLoading)
     }
 
@@ -90,6 +90,7 @@ class SpaceProfileViewModelTest {
     fun `fetchSpaceDetail should update state with spaceInfo`() = runTest {
         whenever(spaceRepository.getSpaceInfo("space1")).thenReturn(space_info1)
         setup()
+        viewModel.fetchSpaceDetail()
         assert(viewModel.state.value.spaceInfo == space_info1)
     }
 
@@ -98,6 +99,7 @@ class SpaceProfileViewModelTest {
         whenever(spaceRepository.getSpaceInfo("space1")).thenReturn(space_info1)
         whenever(authService.currentUser).thenReturn(user1)
         setup()
+        viewModel.fetchSpaceDetail()
         assert(viewModel.state.value.currentUserId == user1.id)
     }
 
@@ -106,6 +108,7 @@ class SpaceProfileViewModelTest {
         whenever(spaceRepository.getSpaceInfo("space1")).thenReturn(space_info1)
         whenever(authService.currentUser).thenReturn(user1)
         setup()
+        viewModel.fetchSpaceDetail()
         assert(viewModel.state.value.isAdmin)
     }
 
@@ -113,6 +116,7 @@ class SpaceProfileViewModelTest {
     fun `fetchSpaceDetail should update state with spaceName`() = runTest {
         whenever(spaceRepository.getSpaceInfo("space1")).thenReturn(space_info1)
         setup()
+        viewModel.fetchSpaceDetail()
         assert(viewModel.state.value.spaceName == space_info1.space.name)
     }
 
@@ -121,6 +125,7 @@ class SpaceProfileViewModelTest {
         whenever(spaceRepository.getSpaceInfo("space1")).thenReturn(space_info1)
         whenever(authService.currentUser).thenReturn(user1)
         setup()
+        viewModel.fetchSpaceDetail()
         assert(viewModel.state.value.locationEnabled)
     }
 
@@ -129,6 +134,7 @@ class SpaceProfileViewModelTest {
         val exception = RuntimeException("Error")
         whenever(spaceRepository.getSpaceInfo("space1")).thenThrow(exception)
         setup()
+        viewModel.fetchSpaceDetail()
         assert(viewModel.state.value.error == exception)
         assert(!viewModel.state.value.isLoading)
     }
@@ -169,6 +175,7 @@ class SpaceProfileViewModelTest {
         whenever(spaceRepository.getSpaceInfo("space1")).thenReturn(space_info1)
         whenever(authService.currentUser).thenReturn(user1)
         setup()
+        viewModel.fetchSpaceDetail()
         viewModel.onLocationEnabledChanged(false)
         assert(viewModel.state.value.allowSave)
     }
@@ -200,6 +207,7 @@ class SpaceProfileViewModelTest {
         }
 
         setup()
+        viewModel.fetchSpaceDetail()
         viewModel.onNameChanged("new_name")
         viewModel.saveSpace()
         assert(viewModel.state.value.saving)
@@ -211,6 +219,7 @@ class SpaceProfileViewModelTest {
         whenever(authService.currentUser).thenReturn(user1)
 
         setup()
+        viewModel.fetchSpaceDetail()
         viewModel.onNameChanged("new_name")
         viewModel.saveSpace()
         verify(spaceRepository).updateSpace(
@@ -240,6 +249,7 @@ class SpaceProfileViewModelTest {
         whenever(authService.currentUser).thenReturn(user1)
 
         setup()
+        viewModel.fetchSpaceDetail()
         viewModel.onLocationEnabledChanged(false)
         viewModel.saveSpace()
         verify(spaceRepository).enableLocation(space.id, user1.id, false)
@@ -261,6 +271,7 @@ class SpaceProfileViewModelTest {
         whenever(authService.currentUser).thenReturn(user1)
 
         setup()
+        viewModel.fetchSpaceDetail()
         viewModel.saveSpace()
         verify(navigator).navigateBack()
     }

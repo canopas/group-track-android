@@ -18,11 +18,11 @@ import com.canopas.yourspace.data.utils.EphemeralECDHUtils
 import com.canopas.yourspace.data.utils.snapshotFlow
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
+import timber.log.Timber
 import org.signal.libsignal.protocol.SignalProtocolAddress
 import org.signal.libsignal.protocol.ecc.Curve
 import org.signal.libsignal.protocol.groups.GroupSessionBuilder
 import org.signal.libsignal.protocol.groups.state.InMemorySenderKeyStore
-import timber.log.Timber
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -171,8 +171,14 @@ class ApiSpaceService @Inject constructor(
     suspend fun updateSpace(space: ApiSpace) {
         spaceRef.document(space.id).set(space).await()
     }
-}
 
-fun InMemorySenderKeyStore.createSenderKeyRecord(spaceId: String, deviceId: Int): ByteArray {
-    return "$spaceId-$deviceId".toByteArray()
+    suspend fun changeAdmin(spaceId: String, newAdminId: String) {
+        try {
+            val spaceRef = spaceRef.document(spaceId)
+            spaceRef.update("admin_id", newAdminId).await()
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to change admin")
+            throw e
+        }
+    }
 }

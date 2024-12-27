@@ -83,7 +83,7 @@ fun UserJourneyDetailScreen() {
                     .padding(it)
                     .fillMaxSize()
             ) {
-                MapView(state.journey)
+                MapView(state.journey, state.selectedMapStyle)
                 FooterContent(state.isLoading, state.journey)
             }
         } else {
@@ -220,7 +220,7 @@ private fun JourneyTopBar(journey: LocationJourney?, navigateBack: () -> Unit) {
 }
 
 @Composable
-private fun ColumnScope.MapView(journey: LocationJourney?) {
+private fun ColumnScope.MapView(journey: LocationJourney?, selectedMapStyle: String) {
     JourneyMap(
         modifier = Modifier
             .fillMaxWidth()
@@ -251,7 +251,8 @@ private fun ColumnScope.MapView(journey: LocationJourney?) {
         },
         shouldAnimate = true,
         polyLineWidth = 8f,
-        anchor = Offset(0.5f, 0.5f)
+        anchor = Offset(0.5f, 0.5f),
+        selectedMapStyle = selectedMapStyle
     )
 }
 

@@ -209,5 +209,8 @@ dependencies {
     // Desugaring
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:1.1.6")
 
+    // Gson
+    implementation("com.google.code.gson:gson:2.10.1")
+
     implementation(project(":data"))
 }

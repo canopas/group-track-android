@@ -20,6 +20,24 @@ object AppDestinations {
         override val path: String = "settings"
     }
 
+    object ChangeAdminScreen {
+        const val KEY_SPACE_NAME = "space-name"
+
+        private const val PATH = "change-admin"
+        const val path = "$PATH/{$KEY_SPACE_NAME}"
+
+        fun getSpaceDetail(
+            spaceInfo: String
+        ) = object : AppRoute {
+
+            override val arguments = listOf(
+                navArgument(KEY_SPACE_NAME) { type = NavType.StringType }
+            )
+
+            override val path = "$PATH/$spaceInfo"
+        }
+    }
+
     val contactSupport = object : AppRoute {
         override val arguments: List<NamedNavArgument> = emptyList()
         override val path: String = "contact-support"

@@ -3,6 +3,7 @@ package com.canopas.yourspace.ui.flow.geofence.places
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.canopas.yourspace.data.models.place.ApiPlace
+import com.canopas.yourspace.data.models.space.SpaceInfo
 import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
@@ -37,6 +38,44 @@ class PlacesListViewModel @Inject constructor(
     init {
         checkInternetConnection()
         loadPlaces()
+        getCurrentSpace()
+    }
+
+    private fun getCurrentSpace() = viewModelScope.launch(appDispatcher.IO) {
+        try {
+            _state.emit(_state.value.copy(loadingSpace = true))
+            val space = spaceRepository.getCurrentSpaceInfo()
+            val members = space?.members ?: emptyList()
+
+            _state.emit(
+                _state.value.copy(
+                    currentSpace = space,
+                    loadingSpace = false,
+                    hasMembers = members.size > 1
+                )
+            )
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to fetch current space")
+            _state.emit(_state.value.copy(error = e.message, loadingSpace = false))
+        }
+    }
+
+    fun addMember() = viewModelScope.launch(appDispatcher.IO) {
+        try {
+            val space = spaceRepository.getCurrentSpace() ?: return@launch
+            var inviteCode = _state.value.inviteCode
+            if (inviteCode.isEmpty()) {
+                _state.emit(_state.value.copy(loadingInviteCode = true))
+                inviteCode = spaceRepository.getInviteCode(space.id) ?: return@launch
+                _state.emit(_state.value.copy(loadingInviteCode = false, inviteCode = inviteCode))
+            }
+            appNavigator.navigateTo(
+                AppDestinations.SpaceInvitation.spaceInvitation(inviteCode, space.name).path
+            )
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to get invite code")
+            _state.emit(_state.value.copy(error = e.message, loadingInviteCode = false))
+        }
     }
 
     private fun loadPlaces() = viewModelScope.launch(appDispatcher.IO) {
@@ -146,5 +185,10 @@ data class PlacesListScreenState(
     val currentUser: ApiUser? = null,
     val placesLoading: Boolean = false,
     val places: List<ApiPlace> = emptyList(),
-    val error: String? = null
+    val error: String? = null,
+    val loadingInviteCode: Boolean = false,
+    val inviteCode: String = "",
+    val loadingSpace: Boolean = false,
+    val currentSpace: SpaceInfo? = null,
+    val hasMembers: Boolean = false
 )

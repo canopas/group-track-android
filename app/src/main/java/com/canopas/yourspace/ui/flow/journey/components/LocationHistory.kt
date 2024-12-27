@@ -68,19 +68,25 @@ fun LocationHistoryItem(
     isLastItem: Boolean,
     journeyList: List<LocationJourney>,
     addPlaceTap: (latitude: Double, longitude: Double) -> Unit,
-    showJourneyDetails: () -> Unit
+    showJourneyDetails: () -> Unit,
+    selectedMapStyle: String
 ) {
     if (location.isSteadyLocation()) {
         SteadyLocationItem(location, isFirstItem, isLastItem, journeyList) {
             addPlaceTap(location.from_latitude, location.from_longitude)
         }
     } else {
-        JourneyLocationItem(location, isLastItem, showJourneyDetails)
+        JourneyLocationItem(location, isLastItem, showJourneyDetails, selectedMapStyle)
     }
 }
 
 @Composable
-fun JourneyLocationItem(location: LocationJourney, lastItem: Boolean, onTap: () -> Unit) {
+fun JourneyLocationItem(
+    location: LocationJourney,
+    lastItem: Boolean,
+    onTap: () -> Unit,
+    selectedMapStyle: String
+) {
     val context = LocalContext.current
     var fromAddress by remember { mutableStateOf<Address?>(null) }
     var toAddress by remember { mutableStateOf<Address?>(null) }
@@ -136,7 +142,8 @@ fun JourneyLocationItem(location: LocationJourney, lastItem: Boolean, onTap: () 
                         modifier = Modifier.size(28.dp)
                     )
                 },
-                onMapTap = onTap
+                onMapTap = onTap,
+                selectedMapStyle = selectedMapStyle
             )
         }
     }

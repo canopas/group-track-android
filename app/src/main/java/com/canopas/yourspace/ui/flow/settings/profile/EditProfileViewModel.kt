@@ -3,6 +3,7 @@ package com.canopas.yourspace.ui.flow.settings.profile
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.canopas.yourspace.data.models.space.ApiSpace
 import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.models.user.LOGIN_TYPE_APPLE
 import com.canopas.yourspace.data.models.user.LOGIN_TYPE_GOOGLE
@@ -18,6 +19,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -40,6 +42,7 @@ class EditProfileViewModel @Inject constructor(
     init {
         checkInternetConnection()
         getUser()
+        fetchAdminSpaces()
     }
 
     private fun getUser() = viewModelScope.launch(appDispatcher.IO) {
@@ -160,8 +163,44 @@ class EditProfileViewModel @Inject constructor(
         _state.value = _state.value.copy(showDeleteAccountConfirmation = show)
     }
 
+    fun showAdminChangeDialog(show: Boolean) {
+        _state.value = _state.value.copy(showAdminChangeDialog = show)
+    }
+
+    private fun fetchAdminSpaces() = viewModelScope.launch(appDispatcher.IO) {
+        try {
+            val userId = authService.currentUser?.id ?: return@launch
+            val userSpaceList = spaceRepository.getUserSpaces(userId).firstOrNull() ?: return@launch
+            val spaceWithMember = mutableListOf<ApiSpace>()
+
+            for (space in userSpaceList) {
+                val spaceDetail = spaceRepository.getSpaceInfo(space.id)
+                if (spaceDetail!!.members.size > 1 && space.admin_id == userId) {
+                    spaceWithMember.add(space)
+                }
+            }
+            _state.emit(_state.value.copy(adminGroupList = spaceWithMember))
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to fetch admin spaces")
+            _state.emit(_state.value.copy(error = e))
+        }
+    }
+
     fun deleteAccount() = viewModelScope.launch(appDispatcher.IO) {
         try {
+            val userId = authService.currentUser?.id ?: return@launch
+            val isAdmin = spaceRepository.isUserAdminOfAnySpace(userId)
+
+            if (isAdmin) {
+                _state.emit(
+                    _state.value.copy(
+                        showDeleteAccountConfirmation = false,
+                        showAdminChangeDialog = true
+                    )
+                )
+                return@launch
+            }
+
             _state.emit(
                 _state.value.copy(
                     deletingAccount = true,
@@ -210,5 +249,7 @@ data class EditProfileState(
     val email: String? = null,
     val profileUrl: String? = null,
     val isImageUploadInProgress: Boolean = false,
-    val connectivityStatus: ConnectivityObserver.Status = ConnectivityObserver.Status.Available
+    val connectivityStatus: ConnectivityObserver.Status = ConnectivityObserver.Status.Available,
+    val showAdminChangeDialog: Boolean = false,
+    val adminGroupList: List<ApiSpace> = emptyList()
 )

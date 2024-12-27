@@ -9,6 +9,7 @@ import com.canopas.yourspace.data.repository.JourneyRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.location.ApiJourneyService
 import com.canopas.yourspace.data.service.user.ApiUserService
+import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.utils.AppDispatcher
 import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.navigation.AppDestinations
@@ -31,7 +32,8 @@ class JourneyTimelineViewModel @Inject constructor(
     private val authService: AuthService,
     private val journeyRepository: JourneyRepository,
     private val appDispatcher: AppDispatcher,
-    private val connectivityObserver: ConnectivityObserver
+    private val connectivityObserver: ConnectivityObserver,
+    private val userPreferences: UserPreferences
 ) : ViewModel() {
 
     private var userId: String =
@@ -54,6 +56,9 @@ class JourneyTimelineViewModel @Inject constructor(
         fetchUser()
         setSelectedTimeRange()
         loadLocations()
+        _state.value = state.value.copy(
+            selectedMapStyle = userPreferences.currentMapStyle ?: ""
+        )
     }
 
     private fun setSelectedTimeRange() {
@@ -274,5 +279,6 @@ data class JourneyTimelineState(
     val showDatePicker: Boolean = false,
     val connectivityStatus: ConnectivityObserver.Status = ConnectivityObserver.Status.Available,
     val error: String? = null,
-    val isLoadingMore: Boolean = true
+    val isLoadingMore: Boolean = true,
+    val selectedMapStyle: String = ""
 )
