@@ -77,6 +77,7 @@ class ApiUserService @Inject constructor(
             return Triple(false, savedUser, session)
         } else {
             val identityKeyPair = KeyHelper.generateIdentityKeyPair()
+            val profileKey = KeyHelper.getProfileKey()
             val user = ApiUser(
                 id = uid!!,
                 email = account?.email ?: firebaseUser?.email ?: "",
@@ -87,7 +88,8 @@ class ApiUserService @Inject constructor(
                 profile_image = account?.photoUrl?.toString() ?: firebaseUser?.photoUrl?.toString()
                     ?: "",
                 identity_key_public = Blob.fromBytes(identityKeyPair.publicKey.publicKey.serialize()),
-                identity_key_private = Blob.fromBytes(identityKeyPair.privateKey.serialize())
+                identity_key_private = Blob.fromBytes(identityKeyPair.privateKey.serialize()),
+                profile_key = Blob.fromBytes(profileKey.serialize()),
             )
             userRef.document(uid).set(user).await()
             val sessionDocRef = sessionRef(user.id).document()

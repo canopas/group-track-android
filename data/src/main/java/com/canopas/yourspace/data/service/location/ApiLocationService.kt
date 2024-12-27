@@ -2,6 +2,8 @@ package com.canopas.yourspace.data.service.location
 
 import com.canopas.yourspace.data.models.location.ApiLocation
 import com.canopas.yourspace.data.models.location.EncryptedApiLocation
+import com.canopas.yourspace.data.models.space.ApiSpaceMember
+import com.canopas.yourspace.data.models.space.EncryptedDistribution
 import com.canopas.yourspace.data.models.space.SenderKeyDistribution
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.storage.bufferedkeystore.BufferedSenderKeyStore
@@ -22,6 +24,7 @@ import org.signal.libsignal.protocol.groups.GroupCipher
 import org.signal.libsignal.protocol.groups.GroupSessionBuilder
 import org.signal.libsignal.protocol.message.SenderKeyDistributionMessage
 import timber.log.Timber
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -55,7 +58,8 @@ class ApiLocationService @Inject constructor(
     ) {
         val lastLocation = locationManager.getLastLocation() ?: return
         userPreferences.currentUser?.space_ids?.forEach { spaceId ->
-            val cipherAndDistributionMessage = getGroupCipherAndDistributionMessage(spaceId, userId)
+            val cipherAndDistributionMessage =
+                getGroupCipherAndDistributionMessage(spaceId, userId, canDistributeSenderKey = true)
             val groupCipher = cipherAndDistributionMessage?.second ?: return
             val distributionMessage = cipherAndDistributionMessage.first
             Timber.e("XXXXXX: Distribution id: ${distributionMessage.distributionId}")
@@ -90,7 +94,8 @@ class ApiLocationService @Inject constructor(
         recordedAt: Long
     ) {
         userPreferences.currentUser?.space_ids?.forEach { spaceId ->
-            val cipherAndDistributionMessage = getGroupCipherAndDistributionMessage(spaceId, userId)
+            val cipherAndDistributionMessage =
+                getGroupCipherAndDistributionMessage(spaceId, userId, canDistributeSenderKey = true)
             val groupCipher = cipherAndDistributionMessage?.second ?: return
             val distributionMessage = cipherAndDistributionMessage.first
             val lat = groupCipher.encrypt(
@@ -151,15 +156,36 @@ class ApiLocationService @Inject constructor(
 
     private suspend fun getGroupCipherAndDistributionMessage(
         spaceId: String,
-        userId: String
+        userId: String,
+        canDistributeSenderKey: Boolean = false
     ): Pair<SenderKeyDistributionMessage, GroupCipher?>? {
         val currentUser = userPreferences.currentUser ?: return null
         val senderKeyDistribution = spaceGroupKeysRef(spaceId)
             .document(userId).get().await().toObject(SenderKeyDistribution::class.java)
+
         val distributions = senderKeyDistribution?.distributions ?: return null
         val currentUserDistribution = distributions.firstOrNull { it.recipientId == currentUser.id }
-            ?: return null
-        val currentUserPrivateKey = Curve.decodePrivatePoint(currentUser.identity_key_private?.toBytes())
+        if (currentUserDistribution == null && canDistributeSenderKey) {
+            Timber.e(
+                "Sender key distribution not found for $userId in space $spaceId.\n+" +
+                        "Can be a new member. Distributing sender key to new member..."
+            )
+            distributeSenderKeyToNewMember(
+                spaceId,
+                currentUser.id,
+                ApiSpaceMember(
+                    user_id = userId,
+                    space_id = spaceId,
+                    identity_key_public = currentUser.identity_key_public
+                )
+            )
+            getGroupCipherAndDistributionMessage(spaceId, userId, canDistributeSenderKey = false)
+        }
+        if (currentUserDistribution == null) {
+            return null
+        }
+        val currentUserPrivateKey =
+            Curve.decodePrivatePoint(currentUser.identity_key_private?.toBytes())
 
         val decryptedDistribution =
             EphemeralECDHUtils.decrypt(currentUserDistribution, currentUserPrivateKey)
@@ -173,5 +199,40 @@ class ApiLocationService @Inject constructor(
         val receiverGroupCipher = GroupCipher(bufferedSenderKeyStore, senderAddress)
         sessionBuilder.process(senderAddress, distributionMessage)
         return Pair(distributionMessage, receiverGroupCipher)
+    }
+
+    private suspend fun distributeSenderKeyToNewMember(
+        spaceId: String,
+        senderUserId: String,
+        newMember: ApiSpaceMember
+    ) {
+        val deviceId = userPreferences.currentUserSession?.device_id ?: ""
+        val deviceIdInt = deviceId.hashCode() and 0x7FFFFFFF
+        val groupAddress = SignalProtocolAddress(spaceId, deviceIdInt)
+        val sessionBuilder = GroupSessionBuilder(bufferedSenderKeyStore)
+        val distributionMessage = sessionBuilder.create(groupAddress, UUID.fromString(spaceId))
+        val distributionBytes = distributionMessage.serialize()
+        val distributions = mutableListOf<EncryptedDistribution>()
+        val publicBlob = newMember.identity_key_public ?: return
+        val publicKey = Curve.decodePoint(publicBlob.toBytes(), 0)
+        distributions.add(
+            EphemeralECDHUtils.encrypt(
+                newMember.user_id,
+                distributionBytes,
+                publicKey
+            )
+        )
+
+        val docRef = spaceGroupKeysRef(spaceId).document(senderUserId)
+
+        val data = SenderKeyDistribution(
+            senderId = senderUserId,
+            senderDeviceId = deviceIdInt,
+            distributions = distributions,
+            createdAt = System.currentTimeMillis()
+        )
+
+        docRef.set(data).await()
+        Timber.d("Sender key distribution uploaded for $senderUserId in space $spaceId.")
     }
 }
