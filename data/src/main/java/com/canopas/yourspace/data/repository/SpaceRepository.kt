@@ -232,6 +232,14 @@ class SpaceRepository @Inject constructor(
         spaceService.updateSpace(newSpace)
     }
 
+    suspend fun isUserAdminOfAnySpace(userId: String): Boolean {
+        val spaces = getUserSpaces(userId).firstOrNull() ?: return false
+        return spaces.any { space ->
+            space.admin_id == userId &&
+                (spaceService.getMemberBySpaceId(space.id).firstOrNull()?.size ?: 1) > 1
+        }
+    }
+
     suspend fun removeUserFromSpace(spaceId: String, userId: String) {
         spaceService.removeUserFromSpace(spaceId, userId)
         val user = userService.getUser(userId)
