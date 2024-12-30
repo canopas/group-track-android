@@ -12,8 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -36,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
-import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.PrimaryButton
 import com.canopas.yourspace.ui.theme.AppTheme
@@ -62,7 +59,7 @@ fun SpaceInvite() {
             colors = TopAppBarDefaults.topAppBarColors(containerColor = AppTheme.colorScheme.surface),
             title = {
                 Text(
-                    text = stringResource(id = R.string.space_inviate_code_title),
+                    text = stringResource(id = R.string.space_invite_code_title),
                     style = AppTheme.appTypography.subTitle1
                 )
             },
@@ -72,24 +69,6 @@ fun SpaceInvite() {
                         painter = painterResource(id = R.drawable.ic_nav_back_arrow_icon),
                         contentDescription = ""
                     )
-                }
-            },
-            actions = {
-                if (state.isUserAdmin) {
-                    IconButton(
-                        onClick = {
-                            if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
-                                viewModel.regenerateInviteCode()
-                            } else {
-                                viewModel.setErrorState(Exception())
-                            }
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = ""
-                        )
-                    }
                 }
             }
         )

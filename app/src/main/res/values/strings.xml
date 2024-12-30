@@ -134,9 +134,10 @@
         <item>Blood Bond</item>
     </string-array>
 
-    <string name="space_inviate_code_title">Invite Code</string>
+    <string name="space_invite_code_title">Invite Code</string>
     <string name="space_invite_title">Invite members to the %s</string>
     <string name="space_invite_subtitle">Share this invite code with your trusted ones in your own style. Connecting is as flexible as you are.</string>
+    <string name="space_invite_code_expire_text">Code will expire in %1$s</string>
 
     <string name="join_space_title_enter_code">Enter the invite code</string>
     <string name="join_space_title">Join Group</string>

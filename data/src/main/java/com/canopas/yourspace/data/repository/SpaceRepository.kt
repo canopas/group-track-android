@@ -175,6 +175,11 @@ class SpaceRepository @Inject constructor(
         return code?.code
     }
 
+    suspend fun getCurrentSpaceInviteCodeExpireTime(spaceId: String): Long? {
+        val code = invitationService.getSpaceInviteCode(spaceId)
+        return code?.created_at
+    }
+
     suspend fun enableLocation(spaceId: String, userId: String, locationEnabled: Boolean) {
         spaceService.enableLocation(spaceId, userId, locationEnabled)
     }
