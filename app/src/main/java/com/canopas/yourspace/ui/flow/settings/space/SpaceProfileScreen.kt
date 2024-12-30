@@ -289,7 +289,7 @@ private fun SpaceProfileContent() {
                 }
             }
             Text(
-                text = stringResource(R.string.code_expire_text, state.codeExpireTime),
+                text = stringResource(R.string.space_invite_code_expire_text, state.codeExpireTime),
                 style = AppTheme.appTypography.body2,
                 color = AppTheme.colorScheme.textDisabled,
                 modifier = Modifier.padding(start = 8.dp)
