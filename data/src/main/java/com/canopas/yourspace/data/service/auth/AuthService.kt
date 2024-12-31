@@ -119,6 +119,19 @@ class AuthService @Inject constructor(
         signOut()
     }
 
+    suspend fun generateAndSaveUserKeys(passKey: String) {
+        currentUser?.id?.let { apiUserService.generateAndSaveUserKeys(it, passKey) }
+    }
+
+    suspend fun validatePasskey(passKey: String): Boolean {
+        val user = currentUser ?: return false
+        val validationResult = apiUserService.validatePasskey(user, passKey)
+        if (validationResult != null) {
+            userPreferences.storePasskey(passKey)
+        }
+        return validationResult != null
+    }
+
     suspend fun getUser(): ApiUser? = apiUserService.getUser(currentUser?.id ?: "")
     suspend fun getUserFlow() = apiUserService.getUserFlow(currentUser?.id ?: "")
 

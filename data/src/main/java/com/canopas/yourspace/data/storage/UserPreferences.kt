@@ -10,6 +10,7 @@ import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.models.user.ApiUserSession
 import com.canopas.yourspace.data.storage.UserPreferences.PreferencesKey.KEY_USER_CURRENT_SPACE
 import com.canopas.yourspace.data.storage.UserPreferences.PreferencesKey.KEY_USER_JSON
+import com.canopas.yourspace.data.storage.UserPreferences.PreferencesKey.KEY_USER_PASSKEY
 import com.canopas.yourspace.data.storage.UserPreferences.PreferencesKey.KEY_USER_SESSION_JSON
 import com.google.firebase.firestore.Blob
 import com.squareup.moshi.FromJson
@@ -49,6 +50,8 @@ class UserPreferences @Inject constructor(
         val LAST_BATTERY_DIALOG_DATE = stringPreferencesKey("last_battery_dialog_date")
 
         val KEY_USER_MAP_STYLE = stringPreferencesKey("user_map_style")
+
+        val KEY_USER_PASSKEY = stringPreferencesKey("user_passkey")
     }
 
     suspend fun isIntroShown(): Boolean {
@@ -169,6 +172,22 @@ class UserPreferences @Inject constructor(
                 }
             }
         }
+
+    suspend fun storePasskey(passkey: String) {
+        preferencesDataStore.edit { preferences ->
+            preferences[KEY_USER_PASSKEY] = passkey
+        }
+    }
+
+    suspend fun getPasskey(): String? {
+        return preferencesDataStore.data.first()[KEY_USER_PASSKEY]
+    }
+
+    suspend fun clearPasskey() {
+        preferencesDataStore.edit {
+            it.remove(KEY_USER_PASSKEY)
+        }
+    }
 }
 
 class BlobTypeAdapter {

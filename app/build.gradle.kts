@@ -212,5 +212,9 @@ dependencies {
     // Gson
     implementation("com.google.code.gson:gson:2.10.1")
 
+    // Signal Protocol
+    implementation("org.signal:libsignal-client:0.64.1")
+    implementation("org.signal:libsignal-android:0.64.1")
+
     implementation(project(":data"))
 }

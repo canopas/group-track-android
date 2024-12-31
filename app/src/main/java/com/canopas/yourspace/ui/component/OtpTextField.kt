@@ -67,7 +67,7 @@ fun OtpInputField(
                     repeat(digitCount) { index ->
                         OTPDigit(index, pinText, textStyle, focusRequester, width = width)
 
-                        if (index == 2) {
+                        if (index == 2 && digitCount > 4) {
                             HorizontalDivider(
                                 modifier = Modifier
                                     .width(16.dp)

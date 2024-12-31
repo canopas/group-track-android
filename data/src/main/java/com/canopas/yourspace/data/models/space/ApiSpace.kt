@@ -25,7 +25,6 @@ data class ApiSpaceMember(
     val role: Int = SPACE_MEMBER_ROLE_MEMBER,
     val location_enabled: Boolean = true,
     val identity_key_public: Blob? = Blob.fromBytes(ByteArray(0)),
-    val profile_key: Blob? = Blob.fromBytes(ByteArray(0)),
     val created_at: Long? = System.currentTimeMillis()
 )
 

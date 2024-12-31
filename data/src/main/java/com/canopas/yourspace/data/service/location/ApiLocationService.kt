@@ -3,7 +3,6 @@ package com.canopas.yourspace.data.service.location
 import com.canopas.yourspace.data.models.location.ApiLocation
 import com.canopas.yourspace.data.models.location.EncryptedApiLocation
 import com.canopas.yourspace.data.models.space.ApiSpaceMember
-import com.canopas.yourspace.data.models.space.EncryptedDistribution
 import com.canopas.yourspace.data.models.space.SenderKeyDistribution
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.storage.bufferedkeystore.BufferedSenderKeyStore
@@ -13,6 +12,7 @@ import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_SPACE_MEMBER
 import com.canopas.yourspace.data.utils.EphemeralECDHUtils
 import com.canopas.yourspace.data.utils.snapshotFlow
 import com.google.firebase.firestore.Blob
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.flow.Flow
@@ -62,7 +62,6 @@ class ApiLocationService @Inject constructor(
                 getGroupCipherAndDistributionMessage(spaceId, userId, canDistributeSenderKey = true)
             val groupCipher = cipherAndDistributionMessage?.second ?: return
             val distributionMessage = cipherAndDistributionMessage.first
-            Timber.e("XXXXXX: Distribution id: ${distributionMessage.distributionId}")
             val lat = groupCipher.encrypt(
                 distributionMessage.distributionId,
                 lastLocation.latitude.toString().toByteArray(Charsets.UTF_8)
@@ -72,7 +71,6 @@ class ApiLocationService @Inject constructor(
                 lastLocation.longitude.toString().toByteArray(Charsets.UTF_8)
             )
 
-            Timber.d("Last known location: $lastLocation\nLat: $lat\nLon: $lon")
             val docRef = spaceMemberLocationRef(spaceId, userId).document()
 
             val location = EncryptedApiLocation(
@@ -107,6 +105,7 @@ class ApiLocationService @Inject constructor(
                 longitude.toString().toByteArray(Charsets.UTF_8)
             )
 
+            Timber.e("YYYYYY: LAt: $lat, Lon: $lon")
             val docRef = spaceMemberLocationRef(spaceId, userId).document()
 
             val location = EncryptedApiLocation(
@@ -124,10 +123,12 @@ class ApiLocationService @Inject constructor(
     suspend fun getCurrentLocation(userId: String): Flow<List<ApiLocation?>> {
         return flow {
             try {
+                Timber.e("YYYYYY: Here")
                 val encryptedLocation =
                     spaceMemberLocationRef(currentSpaceId, userId).whereEqualTo("user_id", userId)
                         .orderBy("created_at", Query.Direction.DESCENDING).limit(1)
                         .snapshotFlow(EncryptedApiLocation::class.java)
+                Timber.e("YYYYYY: Here - encryptedLocation: $encryptedLocation")
                 encryptedLocation.collect { encryptedLocationList ->
                     val apiLocations = encryptedLocationList.map { encryptedLocation ->
                         val receiverGroupCipher =
@@ -146,6 +147,7 @@ class ApiLocationService @Inject constructor(
                             created_at = encryptedLocation.created_at
                         )
                     }
+                    Timber.e("YYYYYY: Here - apiLocations: $apiLocations")
                     emit(apiLocations)
                 }
             } catch (e: Exception) {
@@ -171,13 +173,14 @@ class ApiLocationService @Inject constructor(
                     "Can be a new member. Distributing sender key to new member..."
             )
             distributeSenderKeyToNewMember(
-                spaceId,
-                currentUser.id,
-                ApiSpaceMember(
+                spaceId = spaceId,
+                senderUserId = senderKeyDistribution.senderId,
+                newMember = ApiSpaceMember(
                     user_id = userId,
                     space_id = spaceId,
                     identity_key_public = currentUser.identity_key_public
-                )
+                ),
+                senderDeviceId = senderKeyDistribution.senderDeviceId
             )
             getGroupCipherAndDistributionMessage(spaceId, userId, canDistributeSenderKey = false)
         }
@@ -195,6 +198,10 @@ class ApiLocationService @Inject constructor(
             spaceId,
             senderKeyDistribution.senderDeviceId
         )
+
+        // Load sender key for particular distributionId/space
+        bufferedSenderKeyStore.loadSenderKey(senderAddress, distributionMessage.distributionId)
+
         val sessionBuilder = GroupSessionBuilder(bufferedSenderKeyStore)
         val receiverGroupCipher = GroupCipher(bufferedSenderKeyStore, senderAddress)
         sessionBuilder.process(senderAddress, distributionMessage)
@@ -204,35 +211,26 @@ class ApiLocationService @Inject constructor(
     private suspend fun distributeSenderKeyToNewMember(
         spaceId: String,
         senderUserId: String,
-        newMember: ApiSpaceMember
+        newMember: ApiSpaceMember,
+        senderDeviceId: Int
     ) {
-        val deviceId = userPreferences.currentUserSession?.device_id ?: ""
-        val deviceIdInt = deviceId.hashCode() and 0x7FFFFFFF
-        val groupAddress = SignalProtocolAddress(spaceId, deviceIdInt)
+        val groupAddress = SignalProtocolAddress(spaceId, senderDeviceId)
         val sessionBuilder = GroupSessionBuilder(bufferedSenderKeyStore)
         val distributionMessage = sessionBuilder.create(groupAddress, UUID.fromString(spaceId))
         val distributionBytes = distributionMessage.serialize()
-        val distributions = mutableListOf<EncryptedDistribution>()
         val publicBlob = newMember.identity_key_public ?: return
         val publicKey = Curve.decodePoint(publicBlob.toBytes(), 0)
-        distributions.add(
-            EphemeralECDHUtils.encrypt(
-                newMember.user_id,
-                distributionBytes,
-                publicKey
-            )
-        )
-
         val docRef = spaceGroupKeysRef(spaceId).document(senderUserId)
 
-        val data = SenderKeyDistribution(
-            senderId = senderUserId,
-            senderDeviceId = deviceIdInt,
-            distributions = distributions,
-            createdAt = System.currentTimeMillis()
+        val distribution = EphemeralECDHUtils.encrypt(
+            newMember.user_id,
+            distributionBytes,
+            publicKey
         )
-
-        docRef.set(data).await()
-        Timber.d("Sender key distribution uploaded for $senderUserId in space $spaceId.")
+        docRef.update(
+            "distributions",
+            FieldValue.arrayUnion(distribution)
+        ).await()
+        Timber.d("Sender key distribution uploaded for new member: ${newMember.user_id} for sender $senderUserId.")
     }
 }

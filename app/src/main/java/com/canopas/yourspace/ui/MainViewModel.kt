@@ -42,9 +42,20 @@ class MainViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
+            val currentUser = authService.getUser()
+            val isExistingUser = currentUser != null
+            val showSetPinScreen =
+                isExistingUser && currentUser!!.identity_key_public?.toBytes()
+                    .contentEquals(currentUser.identity_key_private?.toBytes())
+            val showEnterPinScreen =
+                isExistingUser && currentUser!!.identity_key_public?.toBytes()
+                    .contentEquals(currentUser.identity_key_private?.toBytes()) && userPreferences.getPasskey()
+                    .isNullOrEmpty()
             val initialRoute = when {
                 !userPreferences.isIntroShown() -> AppDestinations.intro.path
                 userPreferences.currentUser == null -> AppDestinations.signIn.path
+                showSetPinScreen -> AppDestinations.setPin.path
+                showEnterPinScreen -> AppDestinations.enterPin.path
                 !userPreferences.isOnboardShown() -> AppDestinations.onboard.path
                 else -> AppDestinations.home.path
             }

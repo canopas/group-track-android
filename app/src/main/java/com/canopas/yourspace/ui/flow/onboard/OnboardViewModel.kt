@@ -36,6 +36,10 @@ class OnboardViewModel @Inject constructor(
     private val currentUser get() = authService.currentUser
 
     init {
+        Timber.e(
+            "XXXXXX:\n" +
+                "identity_key_public: ${userPreferences.currentUser?.identity_key_public?.toBytes()?.size}\n"
+        )
         checkInternetConnection()
         val user = authService.currentUser
         _state.value = _state.value.copy(
