@@ -6,9 +6,6 @@ import com.google.android.gms.maps.model.LatLng
 import com.squareup.moshi.JsonClass
 import java.util.UUID
 
-const val JOURNEY_TYPE_MOVING = "moving"
-const val JOURNEY_TYPE_STEADY = "steady"
-
 @Keep
 @JsonClass(generateAdapter = true)
 data class LocationJourney(
@@ -23,7 +20,7 @@ data class LocationJourney(
     val routes: List<JourneyRoute> = emptyList(),
     val created_at: Long? = System.currentTimeMillis(),
     val update_at: Long? = System.currentTimeMillis(),
-    val type: String? = null
+    val type: JourneyType? = JourneyType.STEADY
 )
 
 @Keep
@@ -35,7 +32,7 @@ fun Location.toRoute(): JourneyRoute {
 
 fun JourneyRoute.toLatLng() = LatLng(latitude, longitude)
 fun LocationJourney.toRoute() =
-    if (isSteadyLocation()) {
+    if (type == JourneyType.STEADY) {
         emptyList()
     } else {
         listOf(
@@ -48,12 +45,12 @@ fun LocationJourney.toRoute() =
         )
     }
 
-fun LocationJourney.isSteadyLocation(): Boolean {
-    if (type != null) {
-        return type == JOURNEY_TYPE_STEADY
-    }
-    return to_latitude == null && to_longitude == null
-}
+// fun LocationJourney.isSteadyLocation(): Boolean {
+//    if (type != null) {
+//        return type == JourneyType.STEADY
+//    }
+//    return to_latitude == null && to_longitude == null
+// }
 
 fun LocationJourney.toLocationFromSteadyJourney() = Location("").apply {
     latitude = this@toLocationFromSteadyJourney.from_latitude
@@ -71,3 +68,8 @@ fun Location.toLocationJourney(userId: String, journeyId: String) = LocationJour
     from_latitude = latitude,
     from_longitude = longitude
 )
+
+enum class JourneyType {
+    MOVING,
+    STEADY
+}

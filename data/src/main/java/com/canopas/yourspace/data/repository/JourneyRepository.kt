@@ -1,10 +1,8 @@
 package com.canopas.yourspace.data.repository
 
 import android.location.Location
-import com.canopas.yourspace.data.models.location.JOURNEY_TYPE_MOVING
-import com.canopas.yourspace.data.models.location.JOURNEY_TYPE_STEADY
+import com.canopas.yourspace.data.models.location.JourneyType
 import com.canopas.yourspace.data.models.location.LocationJourney
-import com.canopas.yourspace.data.models.location.isSteadyLocation
 import com.canopas.yourspace.data.models.location.toLocationFromMovingJourney
 import com.canopas.yourspace.data.models.location.toLocationFromSteadyJourney
 import com.canopas.yourspace.data.models.location.toLocationJourney
@@ -120,7 +118,7 @@ class JourneyRepository @Inject constructor(
             userId = userId,
             fromLatitude = extractedLocation.latitude,
             fromLongitude = extractedLocation.longitude,
-            type = JOURNEY_TYPE_STEADY
+            type = JourneyType.STEADY
         ) {
             newJourneyId = it
         }
@@ -176,7 +174,7 @@ class JourneyRepository @Inject constructor(
                     fromLatitude = extractedLocation?.latitude ?: 0.0,
                     fromLongitude = extractedLocation?.longitude ?: 0.0,
                     createdAt = extractedLocation?.time,
-                    type = JOURNEY_TYPE_STEADY
+                    type = JourneyType.STEADY
                 ) {
                     newJourneyId = it
                 }
@@ -202,7 +200,7 @@ class JourneyRepository @Inject constructor(
             geometricMedian(it)
         }
         val distance =
-            if (lastKnownJourney.isSteadyLocation()) {
+            if (lastKnownJourney.type == JourneyType.STEADY) {
                 distanceBetween(
                     geometricMedian ?: extractedLocation,
                     lastKnownJourney.toLocationFromSteadyJourney()
@@ -217,7 +215,7 @@ class JourneyRepository @Inject constructor(
         val timeDifference =
             (geometricMedian?.time ?: extractedLocation.time) - lastKnownJourney.update_at!!
 
-        if (lastKnownJourney.isSteadyLocation()) {
+        if (lastKnownJourney.type == JourneyType.STEADY) {
             // Handle steady user
             if (distance > MIN_DISTANCE) {
                 // Here, means last known journey is steady and and now user has started moving
@@ -289,7 +287,7 @@ class JourneyRepository @Inject constructor(
             toLongitude = extractedLocation.longitude,
             routeDistance = distance.toDouble(),
             routeDuration = duration,
-            type = JOURNEY_TYPE_MOVING
+            type = JourneyType.MOVING
         ) {
             newJourneyId = it
         }
@@ -317,7 +315,7 @@ class JourneyRepository @Inject constructor(
             route_duration = (lastKnownJourney.update_at!! - lastKnownJourney.created_at!!),
             routes = lastKnownJourney.routes + listOf(extractedLocation.toRoute()),
             created_at = lastKnownJourney.created_at,
-            type = JOURNEY_TYPE_MOVING
+            type = JourneyType.MOVING
         )
         val lastJourneyUpdatedTime = locationCache.getLastJourneyUpdatedTime(userId)
         val timeDifference = journey.update_at!! - lastJourneyUpdatedTime
@@ -367,7 +365,7 @@ class JourneyRepository @Inject constructor(
             fromLatitude = extractedLocation.latitude,
             fromLongitude = extractedLocation.longitude,
             createdAt = lastKnownJourney.update_at,
-            type = JOURNEY_TYPE_STEADY
+            type = JourneyType.STEADY
         ) {
             newJourneyId = it
         }
@@ -426,7 +424,7 @@ class JourneyRepository @Inject constructor(
                         userId = userId,
                         fromLatitude = journey.from_latitude,
                         fromLongitude = journey.from_longitude,
-                        type = JOURNEY_TYPE_STEADY
+                        type = JourneyType.STEADY
                     ) {
                         Timber.d("Local journey added to remote database with steady state")
                     }
