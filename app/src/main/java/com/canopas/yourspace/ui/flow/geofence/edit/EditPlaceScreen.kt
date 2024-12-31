@@ -354,7 +354,7 @@ private fun PlaceSwitchView(
             checked = enableSwitch,
             onCheckedChange = toggleSwitch,
             colors = SwitchDefaults.colors(
-                checkedThumbColor = AppTheme.colorScheme.onPrimary
+                checkedThumbColor = AppTheme.colorScheme.textInversePrimary
             )
         )
     }

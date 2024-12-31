@@ -46,7 +46,7 @@ fun Context.messageNotificationBuilder(
     ).addRemoteInput(remoteInput).build()
 
     return NotificationCompat.Builder(this, YOURSPACE_CHANNEL_MESSAGES)
-        .setSmallIcon(R.drawable.app_logo)
+        .setSmallIcon(R.drawable.ic_app_logo)
         .setContentTitle(title)
         .setContentText(body)
         .setAutoCancel(true)

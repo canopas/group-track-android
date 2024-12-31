@@ -121,7 +121,7 @@ fun ThreadsScreen() {
                     shape = RoundedCornerShape(30.dp),
                     onClick = { viewModel.createNewThread() },
                     containerColor = AppTheme.colorScheme.primary,
-                    contentColor = AppTheme.colorScheme.onPrimary,
+                    contentColor = AppTheme.colorScheme.textInversePrimary,
                     elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 0.dp)
                 ) {
                     Icon(Icons.Filled.Add, "Floating action button.")

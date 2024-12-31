@@ -20,10 +20,10 @@ fun AppLogo(colorTint: Color = colorScheme.primary) {
     Image(
         painter = painterResource(id = R.drawable.app_logo),
         contentDescription = "app_log",
-        modifier = Modifier.size(50.dp)
+        modifier = Modifier.size(70.dp)
     )
 
-    Spacer(modifier = Modifier.size(16.dp))
+    Spacer(modifier = Modifier.size(8.dp))
 
     Text(
         text = stringResource(id = R.string.app_name),

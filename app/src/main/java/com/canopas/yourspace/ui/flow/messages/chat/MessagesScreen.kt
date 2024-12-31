@@ -237,7 +237,7 @@ fun NewMessageInput(
                 .clip(shape = CircleShape),
             colors = IconButtonDefaults.iconButtonColors(
                 containerColor = AppTheme.colorScheme.primary,
-                contentColor = AppTheme.colorScheme.onPrimary,
+                contentColor = AppTheme.colorScheme.textInversePrimary,
                 disabledContainerColor = AppTheme.colorScheme.containerLow,
                 disabledContentColor = AppTheme.colorScheme.textDisabled
             ),

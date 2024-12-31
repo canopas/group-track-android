@@ -227,7 +227,7 @@ fun MessageBubble(
     val screenWidth = configuration.screenWidthDp.dp
     val align = if (isSender) Alignment.End else Alignment.Start
     val containerColor = if (isSender) {
-        AppTheme.colorScheme.primary.copy(alpha = if (isSent) 0.7f else 0.5f)
+        AppTheme.colorScheme.primary.copy(alpha = if (isSent) 1f else 0.5f)
     } else {
         AppTheme.colorScheme.containerLow
     }
@@ -278,7 +278,7 @@ fun MessageBubble(
             }
             Text(
                 text = message,
-                style = AppTheme.appTypography.subTitle3.copy(color = AppTheme.colorScheme.textPrimary)
+                style = AppTheme.appTypography.subTitle3.copy(color = AppTheme.colorScheme.textInversePrimary)
             )
         }
 

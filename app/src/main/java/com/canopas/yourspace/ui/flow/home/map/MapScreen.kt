@@ -167,7 +167,7 @@ fun MapScreen() {
                     MapControlBtn(
                         icon = R.drawable.ic_geofence,
                         containerColor = AppTheme.colorScheme.primary,
-                        contentColor = AppTheme.colorScheme.onPrimary
+                        contentColor = AppTheme.colorScheme.textInversePrimary
                     ) {
                         viewModel.navigateToPlaces()
                     }

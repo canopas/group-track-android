@@ -497,9 +497,10 @@ private fun UserItem(
             checked = isChecked,
             enabled = enable,
             colors = SwitchDefaults.colors(
-                checkedThumbColor = AppTheme.colorScheme.onPrimary,
+                checkedThumbColor = AppTheme.colorScheme.textInversePrimary,
                 uncheckedThumbColor = AppTheme.colorScheme.onPrimary,
-                uncheckedTrackColor = AppTheme.colorScheme.containerHigh
+                uncheckedTrackColor = AppTheme.colorScheme.containerHigh,
+                disabledCheckedTrackColor = AppTheme.colorScheme.containerHigh
             ),
             onCheckedChange = {
                 onCheckedChange(it)
