@@ -107,6 +107,12 @@
     <string name="enable_permission_rational_msg">To receive timely updates, check-ins, and alerts from GroupTrack, grant notification access. We respect your privacy and will only use notifications to enhance your experience. Enable now for seamless communication!</string>
     <string name="enable_permission_rational_title">Enable Notification Access</string>
 
+    <string name="battery_optimization_permission_title">Battery Optimization</string>
+    <string name="battery_optimization_permission_subtitle_chinese">To ensure uninterrupted performance, please make this app to Don\'t optimize in power-saving settings.</string>
+    <string name="battery_optimization_permission_subtitle_other">To ensure uninterrupted performance, please make this app unrestricted in your power-saving settings.</string>
+    <string name="battery_optimization_permission_path_chinese"><![CDATA[Battery > Advanced Settings > Optimize battery Use > GroupTrack > Make it Don\'t optimize]]></string>
+    <string name="battery_optimization_permission_path_other"><![CDATA[App Info > Battery > Make it Unrestricted]]></string>
+
     <string name="home_tab_label_home">Home</string>
     <string name="home_tab_label_activities">Activities</string>
     <string name="home_tab_label_places">Places</string>
@@ -305,6 +311,25 @@
 
     <string name="place_list_screen_no_members_title">Add members to add places</string>
     <string name="place_list_screen_no_members_subtitle">At least one member needs to join your group to be able to add places.</string>
+
+    <string name="notification_channel_power_saving">Power saving notification</string>
+    <string name="btn_turn_off">Turn Off</string>
+    <string name="battery_saver_dialog_title">Turn off Battery Saver Mode</string>
+    <string name="battery_saver_dialog_description">When Battery Saver is on, GroupTrack cannot access location data, preventing the app from working correctly. Please turn off the power saving mode.</string>
+    <string name="battery_saving_notification_title">Battery Save is on, disabling GroupTrack</string>
+    <string name="battery_saving_notification_description">Your phone is in power saving mode, and some features might be limited. Turn off Battery Saver in Settings to reconnect GroupTrack.</string>
+    <string name="battery_saver_text">Battery saver mode is on</string>
+
+    <string-array name="chinese_devices_name">
+        <item>huawei</item>
+        <item>xiaomi</item>
+        <item>oppo</item>
+        <item>vivo</item>
+        <item>realme</item>
+        <item>lenovo</item>
+        <item>asus</item>
+        <item>oneplus</item>
+    </string-array>
 
     <string name="account_deletion_change_admin_dialog_title">Reassign Admin Before Deletion</string>
     <string name="account_deletion_change_admin_dialog_subtitle">Please assign a new admin before proceeding with the account deletion to avoid data loss. \nYou are an admin of the following groups :\n%1$s</string>
