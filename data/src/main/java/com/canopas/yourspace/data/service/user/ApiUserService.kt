@@ -10,7 +10,6 @@ import com.canopas.yourspace.data.utils.Config
 import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_USERS
 import com.canopas.yourspace.data.utils.Device
 import com.canopas.yourspace.data.utils.EncryptionException
-import com.canopas.yourspace.data.utils.KeyHelper
 import com.canopas.yourspace.data.utils.PrivateKeyUtils
 import com.canopas.yourspace.data.utils.snapshotFlow
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
@@ -24,6 +23,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import org.signal.libsignal.protocol.IdentityKey
+import org.signal.libsignal.protocol.IdentityKeyPair
+import org.signal.libsignal.protocol.ecc.Curve
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -37,8 +39,7 @@ class ApiUserService @Inject constructor(
     private val device: Device,
     private val locationService: ApiLocationService,
     private val functions: FirebaseFunctions,
-    userPreferences: UserPreferences,
-    private val privateKeyUtils: PrivateKeyUtils
+    private val userPreferences: UserPreferences
 ) {
     private val currentUser = userPreferences.currentUser
     private val userRef = db.collection(FIRESTORE_COLLECTION_USERS)
@@ -118,27 +119,41 @@ class ApiUserService @Inject constructor(
         }
     }
 
-    suspend fun saveSenderKeyRecord(address: String, deviceId: Int, distributionId: String) {
-    }
-
-    suspend fun generateAndSaveUserKeys(userId: String, passKey: String) {
-        val identityKeyPair = KeyHelper.generateIdentityKeyPair()
+    suspend fun generateAndSaveUserKeys(user: ApiUser, passKey: String): ApiUser {
+        val identityKeyPair = generateIdentityKeyPair()
         val salt = ByteArray(16).apply { Random.nextBytes(this) }
-        val encryptedPrivateKey = privateKeyUtils.encryptPrivateKey(
+        val encryptedPrivateKey = PrivateKeyUtils.encryptPrivateKey(
             identityKeyPair.privateKey.serialize(),
             passkey = passKey,
             salt = salt
         )
-        userRef.document(userId).update(
+        // Store passkey in preferences
+        userPreferences.storePasskey(passKey)
+
+        userRef.document(user.id).update(
             mapOf(
                 "identity_key_public" to Blob.fromBytes(identityKeyPair.publicKey.publicKey.serialize()),
                 "identity_key_private" to Blob.fromBytes(encryptedPrivateKey),
                 "identity_key_salt" to Blob.fromBytes(salt)
             )
         ).await()
+        return user.copy(
+            identity_key_public = Blob.fromBytes(identityKeyPair.publicKey.publicKey.serialize()),
+            identity_key_private = Blob.fromBytes(identityKeyPair.privateKey.serialize()),
+            identity_key_salt = Blob.fromBytes(salt)
+        )
     }
 
-    fun validatePasskey(user: ApiUser, passKey: String): ByteArray? {
+    /**
+     * Generates a new IdentityKeyPair.
+     * */
+    private fun generateIdentityKeyPair(): IdentityKeyPair {
+        val keyPair = Curve.generateKeyPair()
+        val publicKey = IdentityKey(keyPair.publicKey)
+        return IdentityKeyPair(publicKey, keyPair.privateKey)
+    }
+
+    suspend fun validatePasskey(user: ApiUser, passKey: String): ByteArray? {
         val decryptedPrivateKey = decryptPrivateKey(user, passKey)
         return if (decryptedPrivateKey != null) {
             decryptedPrivateKey
@@ -152,12 +167,12 @@ class ApiUserService @Inject constructor(
      * Decrypts the private key using the stored passkey/PIN and salt from ApiUser.
      * Returns the decrypted private key as ByteArray.
      */
-    private fun decryptPrivateKey(user: ApiUser, pin: String? = null): ByteArray? {
+    private suspend fun decryptPrivateKey(user: ApiUser, pin: String? = null): ByteArray? {
         val encryptedPrivateKey = user.identity_key_private?.toBytes() ?: return null
         val salt = user.identity_key_salt?.toBytes() ?: return null
         return try {
-            val decrypted = privateKeyUtils.decryptPrivateKey(encryptedPrivateKey, salt, pin)
-            Timber.e("XXXXXX: Encrypted Private Key: $encryptedPrivateKey\nDecrypted: $decrypted")
+            val passkey = pin ?: userPreferences.getPasskey() ?: return null
+            val decrypted = PrivateKeyUtils.decryptPrivateKey(encryptedPrivateKey, salt, passkey)
             decrypted
         } catch (e: EncryptionException) {
             Timber.e(e, "Failed to decrypt private key for user ${user.id}")

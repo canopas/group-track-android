@@ -66,7 +66,6 @@ class ApiSpaceService @Inject constructor(
 
     suspend fun joinSpace(spaceId: String, role: Int = SPACE_MEMBER_ROLE_MEMBER) {
         val user = authService.currentUser ?: return
-        Timber.e("SpaceId: $spaceId, UserId: ${user.id}")
         spaceMemberRef(spaceId)
             .document(user.id).also {
                 val member = ApiSpaceMember(
@@ -144,21 +143,6 @@ class ApiSpaceService @Inject constructor(
     fun getSpaceMemberByUserId(userId: String) =
         db.collectionGroup(FIRESTORE_COLLECTION_SPACE_MEMBERS).whereEqualTo("user_id", userId)
             .snapshotFlow(ApiSpaceMember::class.java)
-
-    suspend fun doesUserHaveAnySpace(userId: String): Boolean {
-        return try {
-            val querySnapshot = db.collectionGroup(FIRESTORE_COLLECTION_SPACE_MEMBERS)
-                .whereEqualTo("user_id", userId)
-                .limit(1)
-                .get()
-                .await()
-
-            querySnapshot.documents.isNotEmpty()
-        } catch (e: Exception) {
-            Timber.e(e, "Error checking if user is part of any space")
-            false
-        }
-    }
 
     fun getMemberBySpaceId(spaceId: String) =
         spaceMemberRef(spaceId).snapshotFlow(ApiSpaceMember::class.java)

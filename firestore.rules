@@ -131,11 +131,44 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    match /spaces/{spaceId}/group_keys/{senderId} {
+      allow read: if isAuthorized() && isSpaceMember(spaceId);
+
+      allow create: if isAuthorized() &&
+                    request.auth.uid == senderId &&
+                    isSpaceMember(spaceId) &&
+                    request.resource.data.keys().hasAll(["senderId", "distributions", "createdAt"]) &&
+                    request.resource.data.senderId is string &&
+                    request.resource.data.distributions is list &&
+                    request.resource.data.createdAt is int;
+
+      allow update: if isAuthorized() && isSpaceMember(spaceId);
+      allow delete: if isAuthorized() && isSpaceMember(spaceId);
+    }
+
+    match /spaces/{spaceId}/space_members/{userId}/sender_key_record/{docId} {
+      allow read: if isAuthorized() && isSpaceMember(spaceId);
+      allow write: if isAuthorized() && request.auth.uid == userId && isSpaceMember(spaceId);
+      allow delete: if false; // Disallow deletion for safety, adjust if needed.
+      allow create: if isAuthorized() &&
+                    request.auth.uid == userId &&
+                    isSpaceMember(spaceId) &&
+                    request.resource.data.keys().hasAll(["address", "deviceId", "distributionId", "record"]) &&
+                    request.resource.data.address is string &&
+                    request.resource.data.deviceId is int &&
+                    request.resource.data.distributionId is string &&
+                    request.resource.data.record is bytes;
+    }
+
     match /spaces/{spaceId}/space_places/{place} {
       allow read: if isAuthorized() && isSpaceMember(spaceId);
       allow delete: if isAuthorized() &&
         (isSpaceAdmin(resource.data.space_id) || request.auth.uid == resource.data.created_by);
-      allow update: if isAuthorized() && request.auth.uid == resource.data.created_by;
+      allow update: if isAuthorized() &&
+  			(request.auth.uid == resource.data.created_by ||
+   			(request.resource.data.diff(resource.data).affectedKeys().hasOnly(["space_member_ids"]) &&
+     			request.resource.data.space_member_ids.hasAny([request.auth.uid])
+ 				));
       allow create: if isAuthorized() &&
         (isSpaceAdmin(request.resource.data.space_id) || request.auth.uid == request.resource.data.created_by) &&
         request.resource.data.keys().hasAll(["id", "space_id", "created_by", "latitude", "longitude", "radius", "name", "created_at"]) &&
@@ -178,21 +211,6 @@ service cloud.firestore {
       allow read: if isAuthorized() &&
         (request.auth.uid == resource.data.user_id || isSpaceMember(resource.data.space_id));
       allow write: if false;
-    }
-
-    match /spaces/{spaceId}/group_keys/{senderId} {
-      allow read: if isAuthorized() && isSpaceMember(spaceId);
-
-      allow create: if isAuthorized() &&
-                    request.auth.uid == senderId &&
-                    isSpaceMember(spaceId) &&
-                    request.resource.data.keys().hasAll(["senderId", "distributions", "createdAt"]) &&
-                    request.resource.data.senderId is string &&
-                    request.resource.data.distributions is list &&
-                    request.resource.data.createdAt is int;
-
-      allow update: if false;
-      allow delete: if false;
     }
 
     match /spaces/{spaceId}/space_members/{member} {
@@ -267,9 +285,7 @@ service cloud.firestore {
       allow delete: if isAuthorized() && isThreadAdmin(docId);
       allow update: if isAuthorized() &&
         isThreadMember(docId) &&
-        request.resource.data.diff(resource.data).affectedKeys().hasAny(["member_ids", "archived_for"]) &&
-        request.resource.data.get('member_ids', []) is list &&
-        request.resource.data.get('archived_for', {}) is map;
+        request.resource.data.diff(resource.data).affectedKeys().hasAny(["member_ids", "archived_for", "seen_by_ids"]);
       allow create: if isAuthorized() &&
         (isSpaceMember(request.resource.data.space_id)) &&
         request.resource.data.keys().hasAll(["id", "space_id", "admin_id", "member_ids", "created_at"]) &&

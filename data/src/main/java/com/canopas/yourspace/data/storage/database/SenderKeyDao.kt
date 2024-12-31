@@ -55,11 +55,4 @@ interface SenderKeyDao {
         deviceId: Int,
         distributionId: String
     )
-
-    @Query(
-        """
-        SELECT * FROM sender_keys
-    """
-    )
-    suspend fun getAllSenderKeys(): List<SenderKeyEntity>
 }

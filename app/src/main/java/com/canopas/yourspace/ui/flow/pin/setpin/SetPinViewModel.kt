@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -72,11 +71,8 @@ class SetPinViewModel @Inject constructor(
             authService.generateAndSaveUserKeys(passKey = pin)
             val userId = authService.getUser()?.id
             val userHasSpaces = userId?.let {
-                val flowList = spaceRepository.getUserSpaces(it)
-                Timber.e("XXXXXX: Flowlist - ${flowList.firstOrNull()}")
-                flowList.firstOrNull()?.isNotEmpty() ?: false
+                spaceRepository.getUserSpaces(it).firstOrNull()?.isNotEmpty() ?: false
             }
-            Timber.e("XXXXXX: User has spaces - $userHasSpaces")
             if (userHasSpaces == false) {
                 navigator.navigateTo(
                     AppDestinations.onboard.path,

@@ -1,7 +1,5 @@
 package com.canopas.yourspace.data.utils
 
-import com.canopas.yourspace.data.storage.UserPreferences
-import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
@@ -9,23 +7,18 @@ import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.SecretKeySpec
-import javax.inject.Inject
-import javax.inject.Singleton
 import kotlin.random.Random
+
+private const val AES_ALGORITHM = "AES/GCM/NoPadding"
+private const val KEY_DERIVATION_ALGORITHM = "PBKDF2WithHmacSHA256"
+private const val KEY_SIZE = 256 // bits
+private const val ITERATION_COUNT = 10000
+private const val GCM_IV_SIZE = 12 // bytes
+private const val GCM_TAG_SIZE = 128 // bits
 
 class EncryptionException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
-@Singleton
-class PrivateKeyUtils @Inject constructor(private val userPreferences: UserPreferences) {
-
-    companion object {
-        private const val AES_ALGORITHM = "AES/GCM/NoPadding"
-        private const val KEY_DERIVATION_ALGORITHM = "PBKDF2WithHmacSHA256"
-        private const val KEY_SIZE = 256 // bits
-        private const val ITERATION_COUNT = 10000
-        private const val GCM_IV_SIZE = 12 // bytes
-        private const val GCM_TAG_SIZE = 128 // bits
-    }
+object PrivateKeyUtils {
 
     /**
      * Derives a SecretKey from the user's passkey/PIN using PBKDF2.
@@ -90,9 +83,6 @@ class PrivateKeyUtils @Inject constructor(private val userPreferences: UserPrefe
         if (salt.isEmpty()) {
             throw EncryptionException("Salt is empty")
         }
-        runBlocking {
-            userPreferences.storePasskey(passkey)
-        }
         val key = deriveKeyFromPasskey(passkey, salt)
         return encryptData(privateKey, key)
     }
@@ -100,11 +90,8 @@ class PrivateKeyUtils @Inject constructor(private val userPreferences: UserPrefe
     /**
      * Decrypts the private key using the user's passkey/PIN and salt from ApiUser.
      */
-    fun decryptPrivateKey(encryptedPrivateKey: ByteArray, salt: ByteArray, pin: String?): ByteArray? {
+    fun decryptPrivateKey(encryptedPrivateKey: ByteArray, salt: ByteArray, passkey: String): ByteArray? {
         return try {
-            val passkey = runBlocking {
-                pin ?: userPreferences.getPasskey()
-            } ?: return null
             val key = deriveKeyFromPasskey(passkey, salt)
             decryptData(encryptedPrivateKey, key)
         } catch (e: EncryptionException) {

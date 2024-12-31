@@ -9,6 +9,7 @@ import com.canopas.yourspace.data.storage.UserPreferences
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.firestore.Blob
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -120,7 +121,10 @@ class AuthService @Inject constructor(
     }
 
     suspend fun generateAndSaveUserKeys(passKey: String) {
-        currentUser?.id?.let { apiUserService.generateAndSaveUserKeys(it, passKey) }
+        currentUser?.let {
+            val updatedUser = apiUserService.generateAndSaveUserKeys(currentUser!!, passKey)
+            currentUser = updatedUser
+        }
     }
 
     suspend fun validatePasskey(passKey: String): Boolean {
@@ -128,6 +132,7 @@ class AuthService @Inject constructor(
         val validationResult = apiUserService.validatePasskey(user, passKey)
         if (validationResult != null) {
             userPreferences.storePasskey(passKey)
+            currentUser = currentUser?.copy(identity_key_private = Blob.fromBytes(validationResult))
         }
         return validationResult != null
     }

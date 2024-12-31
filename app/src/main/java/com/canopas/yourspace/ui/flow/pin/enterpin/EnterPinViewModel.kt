@@ -32,7 +32,9 @@ class EnterPinViewModel @Inject constructor(
 
     fun onPinChanged(newPin: String) {
         _state.value = _state.value.copy(pin = newPin)
-        validatePin(newPin)
+        if (newPin.length == 4) {
+            _state.value = _state.value.copy(pinError = "")
+        }
     }
 
     private fun validatePin(newPin: String) {
@@ -58,8 +60,10 @@ class EnterPinViewModel @Inject constructor(
         }
     }
 
-    fun processPin() = viewModelScope.launch(appDispatcher.IO) {
+    fun processPin() = viewModelScope.launch(appDispatcher.MAIN) {
+        _state.value = _state.value.copy(showLoader = true)
         val pin = state.value.pin
+        validatePin(pin)
         if (pin.length == 4) {
             val isPinValid = authService.validatePasskey(passKey = pin)
             if (isPinValid) {
