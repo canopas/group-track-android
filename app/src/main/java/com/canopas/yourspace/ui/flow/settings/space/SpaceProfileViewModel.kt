@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
@@ -59,6 +60,7 @@ class SpaceProfileViewModel @Inject constructor(
                     spaceMemberCount = spaceInfo?.members?.size ?: 1
                 )
             )
+            fetchInviteCode(spaceInfo?.space?.id ?: "")
         } catch (e: Exception) {
             Timber.e(e, "Failed to fetch space detail")
             _state.emit(_state.value.copy(error = e, isLoading = false))
@@ -91,6 +93,48 @@ class SpaceProfileViewModel @Inject constructor(
     fun onLocationEnabledChanged(enable: Boolean) {
         _state.value = state.value.copy(locationEnabled = enable)
         onChange()
+    }
+
+    private fun fetchInviteCode(spaceId: String) {
+        viewModelScope.launch(appDispatcher.IO) {
+            try {
+                val inviteCodeData = spaceRepository.getInviteCode(spaceId)
+                val inviteCodeCratedAt = spaceRepository.getCurrentSpaceInviteCodeExpireTime(spaceId)
+                inviteCodeData?.let {
+                    val expireTime = getRemainingTime(inviteCodeCratedAt ?: 0)
+                    _state.emit(state.value.copy(inviteCode = it, codeExpireTime = expireTime))
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun regenerateInviteCode() = viewModelScope.launch(appDispatcher.IO) {
+        if (state.value.isAdmin) {
+            _state.emit(_state.value.copy(isLoading = true))
+            spaceRepository.regenerateInviteCode(spaceRepository.currentSpaceId)
+            _state.emit(_state.value.copy(isLoading = false))
+            fetchSpaceDetail()
+        }
+    }
+
+    private fun getRemainingTime(
+        createTimeMillis: Long,
+        durationMillis: Long = TimeUnit.HOURS.toMillis(48)
+    ): String {
+        val currentTimeMillis = System.currentTimeMillis()
+        val expireTimeMillis = createTimeMillis + durationMillis
+        val diffInMillis = expireTimeMillis - currentTimeMillis
+
+        if (diffInMillis <= 0) {
+            Timber.e("XXX :- The invite code is expired.")
+            return "Expired"
+        }
+
+        val hours = TimeUnit.MILLISECONDS.toHours(diffInMillis) % 48
+        val minutes = TimeUnit.MILLISECONDS.toMinutes(diffInMillis) % 60
+        return String.format("%02d hours %02d minutes", hours, minutes)
     }
 
     fun saveSpace() = viewModelScope.launch(appDispatcher.IO) {
@@ -264,5 +308,7 @@ data class SpaceProfileState(
     val memberToRemove: String? = null,
     val spaceMemberCount: Int = 1,
     val showChangeAdminDialog: Boolean = false,
-    var isMenuExpanded: Boolean = false
+    var isMenuExpanded: Boolean = false,
+    val inviteCode: String = "",
+    val codeExpireTime: String = ""
 )

@@ -175,6 +175,11 @@ class SpaceRepository @Inject constructor(
         return code?.code
     }
 
+    suspend fun getCurrentSpaceInviteCodeExpireTime(spaceId: String): Long? {
+        val code = invitationService.getSpaceInviteCode(spaceId)
+        return code?.created_at
+    }
+
     suspend fun enableLocation(spaceId: String, userId: String, locationEnabled: Boolean) {
         spaceService.enableLocation(spaceId, userId, locationEnabled)
     }
@@ -225,6 +230,14 @@ class SpaceRepository @Inject constructor(
 
     suspend fun updateSpace(newSpace: ApiSpace) {
         spaceService.updateSpace(newSpace)
+    }
+
+    suspend fun isUserAdminOfAnySpace(userId: String): Boolean {
+        val spaces = getUserSpaces(userId).firstOrNull() ?: return false
+        return spaces.any { space ->
+            space.admin_id == userId &&
+                (spaceService.getMemberBySpaceId(space.id).firstOrNull()?.size ?: 1) > 1
+        }
     }
 
     suspend fun removeUserFromSpace(spaceId: String, userId: String) {

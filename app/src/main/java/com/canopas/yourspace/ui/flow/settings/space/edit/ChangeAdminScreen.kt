@@ -1,5 +1,9 @@
 package com.canopas.yourspace.ui.flow.settings.space.edit
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -18,12 +23,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -33,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -133,16 +138,26 @@ private fun UserItem(
             modifier = Modifier.weight(1f)
         )
 
-        RadioButton(
-            selected = isSelected,
-            onClick = { onUserSelect(userInfo.user.id) },
-            enabled = true,
-            colors = RadioButtonDefaults.colors(
-                selectedColor = AppTheme.colorScheme.primary,
-                unselectedColor = AppTheme.colorScheme.textDisabled
-            ),
-            modifier = Modifier.padding(end = 4.dp)
-        )
+        Box(
+            modifier = Modifier
+                .clip(CircleShape)
+                .size(24.dp)
+                .background(if (isSelected) AppTheme.colorScheme.primary else AppTheme.colorScheme.surface)
+                .border(1.dp, AppTheme.colorScheme.primary, CircleShape)
+                .clickable(enabled = !isSelected) {
+                    onUserSelect(userInfo.user.id)
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            if (isSelected) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = "",
+                    tint = AppTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+        }
     }
 }
 
@@ -174,14 +189,18 @@ fun ChangeAdminAppBar(selectedUserId: String?) {
             }
         },
         actions = {
-            IconButton(
-                onClick = { selectedUserId?.let { viewModel.changeAdmin(it) } }
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = ""
-                )
-            }
+            Text(
+                text = stringResource(id = R.string.edit_profile_toolbar_save_text),
+                color = AppTheme.colorScheme.primary,
+                style = AppTheme.appTypography.button,
+                modifier = Modifier
+                    .padding(end = 8.dp)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = ripple(bounded = false),
+                        onClick = { selectedUserId?.let { viewModel.changeAdmin(it) } }
+                    )
+            )
         }
     )
 }
