@@ -1,6 +1,8 @@
 package com.canopas.yourspace.data.repository
 
 import android.location.Location
+import com.canopas.yourspace.data.models.location.JOURNEY_TYPE_MOVING
+import com.canopas.yourspace.data.models.location.JOURNEY_TYPE_STEADY
 import com.canopas.yourspace.data.models.location.LocationJourney
 import com.canopas.yourspace.data.models.location.isSteadyLocation
 import com.canopas.yourspace.data.models.location.toLocationFromMovingJourney
@@ -117,7 +119,8 @@ class JourneyRepository @Inject constructor(
         journeyService.saveCurrentJourney(
             userId = userId,
             fromLatitude = extractedLocation.latitude,
-            fromLongitude = extractedLocation.longitude
+            fromLongitude = extractedLocation.longitude,
+            type = JOURNEY_TYPE_STEADY
         ) {
             newJourneyId = it
         }
@@ -172,7 +175,8 @@ class JourneyRepository @Inject constructor(
                     userId = userid,
                     fromLatitude = extractedLocation?.latitude ?: 0.0,
                     fromLongitude = extractedLocation?.longitude ?: 0.0,
-                    createdAt = extractedLocation?.time
+                    createdAt = extractedLocation?.time,
+                    type = JOURNEY_TYPE_STEADY
                 ) {
                     newJourneyId = it
                 }
@@ -284,7 +288,8 @@ class JourneyRepository @Inject constructor(
             toLatitude = extractedLocation.latitude,
             toLongitude = extractedLocation.longitude,
             routeDistance = distance.toDouble(),
-            routeDuration = duration
+            routeDuration = duration,
+            type = JOURNEY_TYPE_MOVING
         ) {
             newJourneyId = it
         }
@@ -311,7 +316,8 @@ class JourneyRepository @Inject constructor(
             route_distance = distance.toDouble() + (lastKnownJourney.route_distance ?: 0.0),
             route_duration = (lastKnownJourney.update_at!! - lastKnownJourney.created_at!!),
             routes = lastKnownJourney.routes + listOf(extractedLocation.toRoute()),
-            created_at = lastKnownJourney.created_at
+            created_at = lastKnownJourney.created_at,
+            type = JOURNEY_TYPE_MOVING
         )
         val lastJourneyUpdatedTime = locationCache.getLastJourneyUpdatedTime(userId)
         val timeDifference = journey.update_at!! - lastJourneyUpdatedTime
@@ -360,7 +366,8 @@ class JourneyRepository @Inject constructor(
             userId = userId,
             fromLatitude = extractedLocation.latitude,
             fromLongitude = extractedLocation.longitude,
-            createdAt = lastKnownJourney.update_at
+            createdAt = lastKnownJourney.update_at,
+            type = JOURNEY_TYPE_STEADY
         ) {
             newJourneyId = it
         }
@@ -418,7 +425,8 @@ class JourneyRepository @Inject constructor(
                     journeyService.saveCurrentJourney(
                         userId = userId,
                         fromLatitude = journey.from_latitude,
-                        fromLongitude = journey.from_longitude
+                        fromLongitude = journey.from_longitude,
+                        type = JOURNEY_TYPE_STEADY
                     ) {
                         Timber.d("Local journey added to remote database with steady state")
                     }

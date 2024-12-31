@@ -6,6 +6,9 @@ import com.google.android.gms.maps.model.LatLng
 import com.squareup.moshi.JsonClass
 import java.util.UUID
 
+const val JOURNEY_TYPE_MOVING = "moving"
+const val JOURNEY_TYPE_STEADY = "steady"
+
 @Keep
 @JsonClass(generateAdapter = true)
 data class LocationJourney(
@@ -19,7 +22,8 @@ data class LocationJourney(
     val route_duration: Long? = null,
     val routes: List<JourneyRoute> = emptyList(),
     val created_at: Long? = System.currentTimeMillis(),
-    val update_at: Long? = System.currentTimeMillis()
+    val update_at: Long? = System.currentTimeMillis(),
+    val type: String? = null
 )
 
 @Keep
@@ -45,6 +49,9 @@ fun LocationJourney.toRoute() =
     }
 
 fun LocationJourney.isSteadyLocation(): Boolean {
+    if (type != null) {
+        return type == JOURNEY_TYPE_STEADY
+    }
     return to_latitude == null && to_longitude == null
 }
 

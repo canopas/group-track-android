@@ -36,6 +36,7 @@ class ApiJourneyService @Inject constructor(
         routes: List<JourneyRoute> = emptyList(),
         createdAt: Long? = null,
         updateAt: Long? = null,
+        type: String? = null,
         newJourneyId: ((String) -> Unit)? = null
     ) {
         val docRef = journeyRef(userId).document()
@@ -51,7 +52,8 @@ class ApiJourneyService @Inject constructor(
             route_duration = routeDuration,
             routes = routes,
             created_at = createdAt ?: System.currentTimeMillis(),
-            update_at = updateAt ?: System.currentTimeMillis()
+            update_at = updateAt ?: System.currentTimeMillis(),
+            type = type
         )
 
         newJourneyId?.invoke(journey.id)
