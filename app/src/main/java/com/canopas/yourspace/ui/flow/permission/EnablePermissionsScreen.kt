@@ -29,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -294,7 +295,14 @@ private fun PermissionContent(
     isGranted: Boolean = false,
     onClick: () -> Unit = {}
 ) {
-    Row(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+    Row(
+        modifier = Modifier
+            .clickable {
+                ripple()
+                onClick()
+            }
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+    ) {
         Box(
             modifier = Modifier
                 .clip(CircleShape)
@@ -323,14 +331,12 @@ private fun PermissionContent(
         ) {
             Text(
                 text = title,
-                style = AppTheme.appTypography.subTitle2.copy(color = AppTheme.colorScheme.textPrimary),
-                modifier = Modifier.clickable(enabled = !isGranted) { onClick() }
+                style = AppTheme.appTypography.subTitle2.copy(color = AppTheme.colorScheme.textPrimary)
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = description,
-                style = AppTheme.appTypography.body2.copy(color = AppTheme.colorScheme.textDisabled),
-                modifier = Modifier.clickable(enabled = !isGranted) { onClick() }
+                style = AppTheme.appTypography.body2.copy(color = AppTheme.colorScheme.textDisabled)
             )
         }
     }
