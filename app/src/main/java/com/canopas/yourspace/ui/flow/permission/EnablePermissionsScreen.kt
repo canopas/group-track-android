@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -30,6 +31,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -48,6 +52,7 @@ import com.canopas.yourspace.R
 import com.canopas.yourspace.data.utils.openAppSettings
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.ShowBackgroundLocationRequestDialog
+import com.canopas.yourspace.ui.flow.home.activity.navigateToSettings
 import com.canopas.yourspace.ui.theme.AppTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
@@ -98,10 +103,16 @@ private fun EnablePermissionsAppBar() {
 @Composable
 fun EnablePermissionsContent(modifier: Modifier) {
     val viewModel = hiltViewModel<EnablePermissionViewModel>()
+    val state by viewModel.state.collectAsState()
+
     val context = LocalContext.current
     val locationPermissionStates = rememberMultiplePermissionsState(
         listOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION)
     )
+
+    LaunchedEffect(Unit) {
+        viewModel.refreshBatteryOptimizationState()
+    }
 
     val bgLocationPermissionStates =
         rememberPermissionState(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
@@ -187,6 +198,29 @@ fun EnablePermissionsContent(modifier: Modifier) {
             }
         )
 
+        val chineseDeviceList = stringArrayResource(R.array.chinese_devices_name)
+        val manufacturer = Build.MANUFACTURER.lowercase()
+        val isChineseDevice = chineseDeviceList.contains(manufacturer)
+
+        val subtitle1 = if (isChineseDevice) {
+            stringResource(R.string.battery_optimization_permission_subtitle_chinese)
+        } else {
+            stringResource(R.string.battery_optimization_permission_subtitle_other)
+        }
+
+        val subTitle2 = if (isChineseDevice) {
+            stringResource(R.string.battery_optimization_permission_path_chinese)
+        } else {
+            stringResource(R.string.battery_optimization_permission_path_other)
+        }
+
+        PermissionContent(
+            title = stringResource(R.string.battery_optimization_permission_title),
+            description = "$subtitle1\n\n$subTitle2",
+            isGranted = state.isBatteryOptimized,
+            onClick = { navigateToSettings(context, viewModel) }
+        )
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             PermissionContent(
                 title = stringResource(R.string.enable_permission_notification_access_title),
@@ -201,6 +235,12 @@ fun EnablePermissionsContent(modifier: Modifier) {
         }
 
         Spacer(modifier = Modifier.weight(1f))
+
+        HorizontalDivider(
+            color = AppTheme.colorScheme.outline,
+            thickness = 1.dp,
+            modifier = Modifier.padding(8.dp)
+        )
         Text(
             text = stringResource(R.string.enable_permission_footer),
             style = AppTheme.appTypography.caption.copy(color = AppTheme.colorScheme.textDisabled),

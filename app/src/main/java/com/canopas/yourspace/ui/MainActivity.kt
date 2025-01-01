@@ -1,8 +1,13 @@
 package com.canopas.yourspace.ui
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.net.Uri
 import android.os.Bundle
+import android.os.PowerManager
+import android.provider.Settings
 import android.view.Window
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -16,6 +21,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -61,16 +67,27 @@ import com.canopas.yourspace.ui.navigation.slideComposable
 import com.canopas.yourspace.ui.theme.CatchMeTheme
 import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private val viewModel: MainViewModel by viewModels()
 
+    private val powerSaveReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val isPowerSavingMode = viewModel.isPowerSavingModeEnabled(context ?: return)
+            viewModel.updatePowerSavingState(isPowerSavingMode)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         requestWindowFeature(Window.FEATURE_NO_TITLE)
 
         super.onCreate(savedInstanceState)
+
+        val filter = IntentFilter(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED)
+        registerReceiver(powerSaveReceiver, filter)
 
         setContent {
             CatchMeTheme {
@@ -79,10 +96,14 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+                    val context = LocalContext.current
+
                     MainApp(viewModel)
 
                     LaunchedEffect(Unit) {
                         viewModel.handleIntentData(intent)
+                        val isPowerSavingEnable = viewModel.isPowerSavingModeEnabled(context)
+                        viewModel.updatePowerSavingState(isPowerSavingEnable) // Ensure initial state is set
                     }
                 }
             }
@@ -95,6 +116,11 @@ class MainActivity : ComponentActivity() {
         viewModel.handleIntentData(intent)
         intent.extras?.clear()
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(powerSaveReceiver)
+    }
 }
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -102,6 +128,10 @@ class MainActivity : ComponentActivity() {
 fun MainApp(viewModel: MainViewModel) {
     val navController = rememberNavController()
     val state by viewModel.state.collectAsState()
+
+    if (state.isPowerSavingEnabled) {
+        PowerSavingAlertPopup()
+    }
 
     if (state.isSessionExpired) {
         SessionExpiredAlertPopup()
@@ -283,6 +313,33 @@ fun SpaceNotFoundPopup() {
         confirmBtnText = stringResource(id = R.string.common_btn_ok),
         onConfirmClick = {
             viewModel.dismissSpaceNotFoundPopup()
+        },
+        properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
+    )
+}
+
+@Composable
+fun PowerSavingAlertPopup() {
+    val viewModel = hiltViewModel<MainViewModel>()
+    val context = LocalContext.current
+
+    Timber.d("XXX :- PowerSavingAlertPopup: Displaying power saving dialog")
+
+    AppAlertDialog(
+        title = stringResource(R.string.battery_saver_dialog_title),
+        subTitle = stringResource(R.string.battery_saver_dialog_description),
+        confirmBtnText = stringResource(R.string.btn_turn_off),
+        dismissBtnText = stringResource(R.string.common_btn_cancel),
+        onConfirmClick = {
+            try {
+                val intent = Intent(Settings.ACTION_BATTERY_SAVER_SETTINGS)
+                context.startActivity(intent)
+            } catch (e: Exception) {
+                Timber.e("PowerSavingAlertPopup", "Failed to open battery saver settings", e)
+            }
+        },
+        onDismissClick = {
+            viewModel.dismissPowerSavingDialog()
         },
         properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
     )

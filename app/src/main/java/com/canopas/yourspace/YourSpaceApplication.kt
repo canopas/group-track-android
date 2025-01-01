@@ -20,6 +20,7 @@ import com.canopas.yourspace.domain.fcm.YOURSPACE_CHANNEL_GEOFENCE
 import com.canopas.yourspace.domain.fcm.YOURSPACE_CHANNEL_MESSAGES
 import com.canopas.yourspace.domain.fcm.YOURSPACE_CHANNEL_PLACES
 import com.canopas.yourspace.domain.receiver.BatteryBroadcastReceiver
+import com.canopas.yourspace.domain.receiver.PowerSavingModeObserver
 import com.google.android.libraries.places.api.Places
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dagger.hilt.android.HiltAndroidApp
@@ -48,14 +49,18 @@ class YourSpaceApplication :
     @Inject
     lateinit var notificationManager: NotificationManager
 
+    @Inject
+    lateinit var powerSavingModeObserver: PowerSavingModeObserver
+
     override fun onCreate() {
         Places.initializeWithNewPlacesApiEnabled(this, BuildConfig.PLACE_API_KEY)
 
         super<Application>.onCreate()
         Timber.plant(Timber.DebugTree())
-        FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled = !BuildConfig.DEBUG
+        FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled = false
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
         authService.addListener(this)
+        powerSavingModeObserver.initReceiver(this)
         setNotificationChannel()
 
         registerBatteryBroadcastReceiver()
@@ -68,6 +73,7 @@ class YourSpaceApplication :
     override fun onDestroy(owner: LifecycleOwner) {
         super.onDestroy(owner)
         unregisterReceiver(BatteryBroadcastReceiver(authService))
+        powerSavingModeObserver.unregisterReceiver()
     }
 
     private fun registerBatteryBroadcastReceiver() {

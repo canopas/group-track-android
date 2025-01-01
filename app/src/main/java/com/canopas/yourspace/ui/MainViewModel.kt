@@ -1,6 +1,8 @@
 package com.canopas.yourspace.ui
 
+import android.content.Context
 import android.content.Intent
+import android.os.PowerManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.canopas.yourspace.data.models.user.ApiUserSession
@@ -143,6 +145,19 @@ class MainViewModel @Inject constructor(
     fun dismissSpaceNotFoundPopup() {
         _state.value = state.value.copy(showSpaceNotFoundPopup = false)
     }
+
+    fun updatePowerSavingState(isEnabled: Boolean) {
+        _state.value = state.value.copy(isPowerSavingEnabled = isEnabled)
+    }
+
+    fun dismissPowerSavingDialog() {
+        _state.value = state.value.copy(isPowerSavingEnabled = false)
+    }
+
+    fun isPowerSavingModeEnabled(context: Context): Boolean {
+        val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+        return powerManager.isPowerSaveMode
+    }
 }
 
 data class MainScreenState(
@@ -150,5 +165,6 @@ data class MainScreenState(
     val initialRoute: String? = null,
     val verifyingSpace: Boolean = false,
     val showSpaceNotFoundPopup: Boolean = false,
-    val isInitialRouteSet: Boolean = false
+    val isInitialRouteSet: Boolean = false,
+    val isPowerSavingEnabled: Boolean = false
 )
