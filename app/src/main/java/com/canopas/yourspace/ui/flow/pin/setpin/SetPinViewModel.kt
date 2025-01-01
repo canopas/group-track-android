@@ -40,17 +40,6 @@ class SetPinViewModel @Inject constructor(
         }
     }
 
-    private fun validatePin(newPin: String) {
-        _state.value = _state.value.copy(
-            pinError =
-            when {
-                newPin.length < 4 -> "Pin must be at least 4 characters"
-                !newPin.all { it.isDigit() } -> "PIN must contain only digits"
-                else -> ""
-            }
-        )
-    }
-
     fun checkInternetConnection() {
         viewModelScope.launch(appDispatcher.IO) {
             connectivityObserver.observe().collectLatest { status ->
@@ -63,10 +52,13 @@ class SetPinViewModel @Inject constructor(
         }
     }
 
-    fun processPin() = viewModelScope.launch(appDispatcher.MAIN) {
+    fun processPin(lengthError: String) = viewModelScope.launch(appDispatcher.MAIN) {
         _state.value = _state.value.copy(showLoader = true)
         val pin = state.value.pin
-        validatePin(pin)
+        if (pin.length < 4) {
+            _state.value = _state.value.copy(pinError = lengthError)
+            return@launch
+        }
         if (pin.length == 4) {
             authService.generateAndSaveUserKeys(passKey = pin)
             val userId = authService.getUser()?.id

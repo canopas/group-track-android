@@ -32,20 +32,7 @@ class EnterPinViewModel @Inject constructor(
 
     fun onPinChanged(newPin: String) {
         _state.value = _state.value.copy(pin = newPin)
-        if (newPin.length == 4) {
-            _state.value = _state.value.copy(pinError = "")
-        }
-    }
-
-    private fun validatePin(newPin: String) {
-        _state.value = _state.value.copy(
-            pinError =
-            when {
-                newPin.length < 4 -> "Pin must be at least 4 characters"
-                !newPin.all { it.isDigit() } -> "PIN must contain only digits"
-                else -> ""
-            }
-        )
+        _state.value = _state.value.copy(pinError = if (newPin.length == 4) "" else null)
     }
 
     fun checkInternetConnection() {
@@ -60,10 +47,9 @@ class EnterPinViewModel @Inject constructor(
         }
     }
 
-    fun processPin() = viewModelScope.launch(appDispatcher.MAIN) {
+    fun processPin(invalidPinText: String) = viewModelScope.launch(appDispatcher.MAIN) {
         _state.value = _state.value.copy(showLoader = true)
         val pin = state.value.pin
-        validatePin(pin)
         if (pin.length == 4) {
             val isPinValid = authService.validatePasskey(passKey = pin)
             if (isPinValid) {
@@ -74,10 +60,8 @@ class EnterPinViewModel @Inject constructor(
                     inclusive = true
                 )
             } else {
-                _state.value = _state.value.copy(pinError = "Invalid Pin")
+                _state.value = _state.value.copy(pinError = invalidPinText)
             }
-        } else {
-            _state.value = _state.value.copy(pinError = "Pin must be 4 characters")
         }
     }
 }
@@ -85,7 +69,6 @@ class EnterPinViewModel @Inject constructor(
 data class EnterPinScreenState(
     val showLoader: Boolean = false,
     val pin: String = "",
-    val confirmPin: String = "",
     val pinError: String? = null,
     val connectivityStatus: ConnectivityObserver.Status = ConnectivityObserver.Status.Available,
     val error: Exception? = null

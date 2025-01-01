@@ -44,13 +44,16 @@ class ApiLocationService @Inject constructor(
     private val spaceRef by lazy { db.collection(FIRESTORE_COLLECTION_SPACES) }
 
     private fun spaceMemberRef(spaceId: String) =
-        spaceRef.document(spaceId).collection(FIRESTORE_COLLECTION_SPACE_MEMBERS)
+        spaceRef.document(spaceId.takeIf { it.isNotBlank() } ?: "null")
+            .collection(FIRESTORE_COLLECTION_SPACE_MEMBERS)
 
     private fun spaceMemberLocationRef(spaceId: String, userId: String) =
-        spaceMemberRef(spaceId).document(userId).collection(Config.FIRESTORE_COLLECTION_USER_LOCATIONS)
+        spaceMemberRef(spaceId.takeIf { it.isNotBlank() } ?: "null").document(userId)
+            .collection(Config.FIRESTORE_COLLECTION_USER_LOCATIONS)
 
     private fun spaceGroupKeysRef(spaceId: String) =
-        spaceRef.document(spaceId).collection(Config.FIRESTORE_COLLECTION_SPACE_GROUP_KEYS)
+        spaceRef.document(spaceId.takeIf { it.isNotBlank() } ?: "null")
+            .collection(Config.FIRESTORE_COLLECTION_SPACE_GROUP_KEYS)
 
     suspend fun saveLastKnownLocation(userId: String) {
         val lastLocation = locationManager.getLastLocation() ?: return
@@ -125,7 +128,10 @@ class ApiLocationService @Inject constructor(
         try {
             spaceMemberLocationRef(spaceId, userId).document(location.id).set(location).await()
         } catch (e: Exception) {
-            Timber.e(e, "Failed to save encrypted location for userId: $userId in spaceId: $spaceId")
+            Timber.e(
+                e,
+                "Failed to save encrypted location for userId: $userId in spaceId: $spaceId"
+            )
         }
     }
 
@@ -149,12 +155,17 @@ class ApiLocationService @Inject constructor(
         }
     }
 
-    private suspend fun decryptLocation(encryptedLocation: EncryptedApiLocation, userId: String): ApiLocation? {
-        val groupCipher = getGroupCipherAndDistributionMessage(currentSpaceId, userId)?.second ?: return null
+    private suspend fun decryptLocation(
+        encryptedLocation: EncryptedApiLocation,
+        userId: String
+    ): ApiLocation? {
+        val groupCipher =
+            getGroupCipherAndDistributionMessage(currentSpaceId, userId)?.second ?: return null
 
         return try {
             val latitudeBytes = groupCipher.decrypt(encryptedLocation.encrypted_latitude.toBytes())
-            val longitudeBytes = groupCipher.decrypt(encryptedLocation.encrypted_longitude.toBytes())
+            val longitudeBytes =
+                groupCipher.decrypt(encryptedLocation.encrypted_longitude.toBytes())
 
             ApiLocation(
                 id = encryptedLocation.id,
@@ -201,7 +212,11 @@ class ApiLocationService @Inject constructor(
                         senderDeviceId = senderKeyDistribution.senderDeviceId
                     )
                     // Retry fetching the distribution after distribution
-                    return getGroupCipherAndDistributionMessage(spaceId, userId, canDistributeSenderKey = false)
+                    return getGroupCipherAndDistributionMessage(
+                        spaceId,
+                        userId,
+                        canDistributeSenderKey = false
+                    )
                 }
                 null
             } ?: return null
@@ -283,7 +298,10 @@ class ApiLocationService @Inject constructor(
                 .await()
             Timber.d("Sender key distribution uploaded for new member: ${newMember.user_id} in spaceId=$spaceId.")
         } catch (e: Exception) {
-            Timber.e(e, "Failed to upload sender key distribution for new member userId=${newMember.user_id} in spaceId=$spaceId")
+            Timber.e(
+                e,
+                "Failed to upload sender key distribution for new member userId=${newMember.user_id} in spaceId=$spaceId"
+            )
         }
     }
 }

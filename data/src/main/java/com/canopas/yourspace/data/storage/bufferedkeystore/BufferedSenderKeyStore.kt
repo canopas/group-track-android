@@ -43,10 +43,10 @@ class BufferedSenderKeyStore @Inject constructor(
     private val inMemoryStore: MutableMap<StoreKey, SenderKeyRecord> = mutableMapOf()
     private val sharedWithAddresses: MutableSet<SignalProtocolAddress> = mutableSetOf()
 
-    private suspend fun saveSenderKeyToServer(distributionId: UUID, senderKeyRecord: ApiSenderKeyRecord) {
+    private suspend fun saveSenderKeyToServer(senderKeyRecord: ApiSenderKeyRecord) {
         val currentUser = userPreferences.currentUser ?: return
-        spaceSenderKeyRecordRef(distributionId.toString(), currentUser.id)
-            .document(distributionId.toString()).set(senderKeyRecord).await()
+        spaceSenderKeyRecordRef(senderKeyRecord.distributionId, currentUser.id)
+            .document(senderKeyRecord.distributionId).set(senderKeyRecord).await()
     }
 
     override fun storeSenderKey(
@@ -77,7 +77,7 @@ class BufferedSenderKeyStore @Inject constructor(
                 distributionId = distributionId.toString(),
                 record = Blob.fromBytes(record.serialize())
             )
-            saveSenderKeyToServer(distributionId, senderKeyRecord)
+            saveSenderKeyToServer(senderKeyRecord)
         }
     }
 
@@ -91,16 +91,16 @@ class BufferedSenderKeyStore @Inject constructor(
             )?.let {
                 inMemoryStore[key] = it
                 it
-            } ?: fetchSenderKeyFromServer(distributionId)?.also {
+            } ?: fetchSenderKeyFromServer(sender)?.also {
                 inMemoryStore[key] = it
             }
         }
     }
 
-    private suspend fun fetchSenderKeyFromServer(distributionId: UUID): SenderKeyRecord? {
+    private suspend fun fetchSenderKeyFromServer(sender: SignalProtocolAddress): SenderKeyRecord? {
         val currentUser = userPreferences.currentUser ?: return null
-        return spaceSenderKeyRecordRef(distributionId.toString(), currentUser.id)
-            .document(distributionId.toString()).get().await().toObject(ApiSenderKeyRecord::class.java)?.let {
+        return spaceSenderKeyRecordRef(sender.name.toString(), currentUser.id)
+            .document(sender.name.toString()).get().await().toObject(ApiSenderKeyRecord::class.java)?.let {
                 try {
                     SenderKeyRecord(it.record.toBytes())
                 } catch (e: Exception) {

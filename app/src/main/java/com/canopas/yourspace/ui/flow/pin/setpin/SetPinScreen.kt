@@ -12,15 +12,21 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.canopas.yourspace.R
 import com.canopas.yourspace.ui.component.OtpInputField
 import com.canopas.yourspace.ui.component.PrimaryButton
 
@@ -29,9 +35,14 @@ import com.canopas.yourspace.ui.component.PrimaryButton
 fun SetPinScreen() {
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Set Your PIN") })
+            TopAppBar(
+                title = { Text(stringResource(R.string.set_pin_top_bar_title)) },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
+            )
         },
-        contentColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background
     ) {
         SetPinContent(modifier = Modifier.padding(it))
     }
@@ -41,6 +52,10 @@ fun SetPinScreen() {
 private fun SetPinContent(modifier: Modifier) {
     val viewModel = hiltViewModel<SetPinViewModel>()
     val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
+    val lengthErrorText by remember {
+        mutableStateOf(context.getString(R.string.set_pin_error_text_length))
+    }
 
     Column(
         modifier = modifier
@@ -50,16 +65,20 @@ private fun SetPinContent(modifier: Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Secure your account by setting a 4-digit PIN",
+            text = stringResource(R.string.set_pin_header_text_part_one),
             style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 24.dp),
             textAlign = TextAlign.Center
         )
 
         Text(
-            text = "Your PIN ensures that only you can access your account",
+            text = stringResource(R.string.set_pin_header_text_part_two),
             style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 24.dp),
             textAlign = TextAlign.Center
         )
 
@@ -81,9 +100,9 @@ private fun SetPinContent(modifier: Modifier) {
         Spacer(modifier = Modifier.height(24.dp))
 
         PrimaryButton(
-            label = "Set Pin",
+            label = stringResource(R.string.set_pin_button_text),
             onClick = {
-                viewModel.processPin()
+                viewModel.processPin(lengthErrorText)
             },
             enabled = state.pin != "" && state.pinError == "",
             modifier = Modifier.fillMaxWidth(),

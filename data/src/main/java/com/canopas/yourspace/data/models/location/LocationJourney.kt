@@ -3,6 +3,7 @@ package com.canopas.yourspace.data.models.location
 import android.location.Location
 import androidx.annotation.Keep
 import com.google.android.gms.maps.model.LatLng
+import com.google.firebase.firestore.Blob
 import com.squareup.moshi.JsonClass
 import java.util.UUID
 
@@ -27,13 +28,13 @@ data class LocationJourney(
 data class EncryptedLocationJourney(
     val id: String = UUID.randomUUID().toString(),
     val user_id: String = "",
-    val encrypted_from_latitude: String = "", // Base64 encoded encrypted latitude - from
-    val encrypted_from_longitude: String = "", // Base64 encoded encrypted longitude - from
-    val encrypted_to_latitude: String? = "", // Base64 encoded encrypted latitude - to
-    val encrypted_to_longitude: String? = "", // Base64 encoded encrypted longitude - to
+    val encrypted_from_latitude: Blob = Blob.fromBytes(ByteArray(0)), // Encrypted latitude - from
+    val encrypted_from_longitude: Blob = Blob.fromBytes(ByteArray(0)), // Encrypted longitude - from
+    val encrypted_to_latitude: Blob? = null, // Encrypted latitude - to
+    val encrypted_to_longitude: Blob? = null, // Encrypted longitude - to
     val route_distance: Double? = null,
     val route_duration: Long? = null,
-    val encrypted_routes: List<EncryptedJourneyRoute> = emptyList(), // Base64 encoded encrypted journey routes
+    val encrypted_routes: List<EncryptedJourneyRoute> = emptyList(), // Encrypted journey routes
     val created_at: Long? = System.currentTimeMillis(),
     val updated_at: Long? = System.currentTimeMillis()
 )
@@ -44,8 +45,8 @@ data class JourneyRoute(val latitude: Double = 0.0, val longitude: Double = 0.0)
 @Keep
 @JsonClass(generateAdapter = true)
 data class EncryptedJourneyRoute(
-    val encrypted_latitude: String = "", // Base64 encoded encrypted latitude
-    val encrypted_longitude: String = "" // Base64 encoded encrypted longitude
+    val encrypted_latitude: Blob = Blob.fromBytes(ByteArray(0)), // Encrypted latitude
+    val encrypted_longitude: Blob = Blob.fromBytes(ByteArray(0)) // Encrypted longitude
 )
 
 fun Location.toRoute(): JourneyRoute {
