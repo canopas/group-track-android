@@ -31,21 +31,19 @@ fun Location.toRoute(): JourneyRoute {
 }
 
 fun JourneyRoute.toLatLng() = LatLng(latitude, longitude)
-fun LocationJourney.toRoute() =
-    if (type == JourneyType.STEADY) {
-        emptyList()
-    } else if (type == JourneyType.MOVING) {
-        listOf(
-            LatLng(
-                from_latitude,
-                from_longitude
-            )
-        ) + routes.map { it.toLatLng() } + listOf(
-            LatLng(to_latitude ?: 0.0, to_longitude ?: 0.0)
+fun LocationJourney.toRoute() = when (type) {
+    JourneyType.STEADY -> emptyList()
+    JourneyType.MOVING -> listOf(
+        LatLng(
+            from_latitude,
+            from_longitude
         )
-    } else {
-        emptyList()
-    }
+    ) + routes.map { it.toLatLng() } + listOf(
+        LatLng(to_latitude ?: 0.0, to_longitude ?: 0.0)
+    )
+
+    else -> emptyList()
+}
 
 fun LocationJourney.toLocationFromSteadyJourney() = Location("").apply {
     latitude = this@toLocationFromSteadyJourney.from_latitude
