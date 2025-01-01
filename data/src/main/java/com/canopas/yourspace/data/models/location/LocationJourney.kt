@@ -20,7 +20,7 @@ data class LocationJourney(
     val routes: List<JourneyRoute> = emptyList(),
     val created_at: Long? = System.currentTimeMillis(),
     val update_at: Long? = System.currentTimeMillis(),
-    val type: JourneyType? = JourneyType.STEADY
+    val type: JourneyType? = null
 )
 
 @Keep
@@ -34,7 +34,7 @@ fun JourneyRoute.toLatLng() = LatLng(latitude, longitude)
 fun LocationJourney.toRoute() =
     if (type == JourneyType.STEADY) {
         emptyList()
-    } else {
+    } else if (type == JourneyType.MOVING) {
         listOf(
             LatLng(
                 from_latitude,
@@ -43,14 +43,9 @@ fun LocationJourney.toRoute() =
         ) + routes.map { it.toLatLng() } + listOf(
             LatLng(to_latitude ?: 0.0, to_longitude ?: 0.0)
         )
+    } else {
+        emptyList()
     }
-
-// fun LocationJourney.isSteadyLocation(): Boolean {
-//    if (type != null) {
-//        return type == JourneyType.STEADY
-//    }
-//    return to_latitude == null && to_longitude == null
-// }
 
 fun LocationJourney.toLocationFromSteadyJourney() = Location("").apply {
     latitude = this@toLocationFromSteadyJourney.from_latitude
