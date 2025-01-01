@@ -220,7 +220,6 @@ class JourneyRepository @Inject constructor(
             if (distance > MIN_DISTANCE) {
                 // Here, means last known journey is steady and and now user has started moving
                 // Save journey for moving user and update cache as well:
-                Timber.e("XXX saveJourneyWhenUserStartsMoving")
                 saveJourneyWhenUserStartsMoving(
                     userId,
                     extractedLocation,
@@ -237,7 +236,6 @@ class JourneyRepository @Inject constructor(
             if (distance < MIN_DISTANCE && timeDifference > MIN_TIME_DIFFERENCE) {
                 // Here, means last known journey is moving and user has stopped moving
                 // Save journey for steady user and update last known journey:
-                Timber.e("XXX saveJourneyOnJourneyStopped")
                 saveJourneyOnJourneyStopped(
                     userId,
                     extractedLocation,
@@ -249,7 +247,6 @@ class JourneyRepository @Inject constructor(
                 // Here, means last known journey is moving and user is still moving
                 // Save journey for moving user and update last known journey.
                 // Note: Need to use lastKnownJourney.id as journey id because we are updating the journey
-                Timber.e("XXX updateJourneyForContinuedMovingUser")
                 updateJourneyForContinuedMovingUser(
                     userId,
                     extractedLocation,
