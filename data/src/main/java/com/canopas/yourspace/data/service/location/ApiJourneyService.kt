@@ -1,6 +1,7 @@
 package com.canopas.yourspace.data.service.location
 
 import com.canopas.yourspace.data.models.location.JourneyRoute
+import com.canopas.yourspace.data.models.location.JourneyType
 import com.canopas.yourspace.data.models.location.LocationJourney
 import com.canopas.yourspace.data.utils.Config
 import com.google.firebase.firestore.FirebaseFirestore
@@ -36,6 +37,7 @@ class ApiJourneyService @Inject constructor(
         routes: List<JourneyRoute> = emptyList(),
         createdAt: Long? = null,
         updateAt: Long? = null,
+        type: JourneyType? = null,
         newJourneyId: ((String) -> Unit)? = null
     ) {
         val docRef = journeyRef(userId).document()
@@ -51,7 +53,8 @@ class ApiJourneyService @Inject constructor(
             route_duration = routeDuration,
             routes = routes,
             created_at = createdAt ?: System.currentTimeMillis(),
-            update_at = updateAt ?: System.currentTimeMillis()
+            update_at = updateAt ?: System.currentTimeMillis(),
+            type = type
         )
 
         newJourneyId?.invoke(journey.id)
