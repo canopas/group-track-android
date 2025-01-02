@@ -131,15 +131,9 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    match /spaces/{spaceId}/group_keys/{senderId} {
+    match /spaces/{spaceId}/group_keys/group_keys {
       allow read: if isAuthorized() && isSpaceMember(spaceId);
-      allow create: if isAuthorized() &&
-        request.auth.uid == senderId &&
-        isSpaceMember(spaceId) &&
-        request.resource.data.keys().hasAll(["senderId", "distributions", "createdAt"]) &&
-        request.resource.data.senderId is string &&
-        request.resource.data.distributions is list &&
-        request.resource.data.createdAt is int;
+      allow create: if isAuthorized() && isSpaceAdmin(spaceId);
       allow update: if isAuthorized() && isSpaceMember(spaceId);
       allow delete: if isAuthorized() && isSpaceMember(spaceId);
     }

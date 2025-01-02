@@ -49,14 +49,23 @@ data class ApiSpaceInvitation(
 }
 
 /**
+ * Group key document structure for a single space.
+ */
+@Keep
+data class GroupKeysDoc(
+    val docUpdatedAt: Long = System.currentTimeMillis(), // To be updated whenever users are added/removed
+    val senderKeys: Map<String, SenderKeyData> = emptyMap()
+)
+
+/*
  * Data class that represents the entire "groupKeys/{senderUserId}" doc
  * in Firestore for a single sender's key distribution.
  */
-data class SenderKeyDistribution(
-    val senderId: String = "",
+@Keep
+data class SenderKeyData(
     val senderDeviceId: Int = 0,
     val distributions: List<EncryptedDistribution> = emptyList(),
-    val createdAt: Long = 0
+    val dataUpdatedAt: Long = System.currentTimeMillis() // To be updated whenever a new distribution is added
 )
 
 /**

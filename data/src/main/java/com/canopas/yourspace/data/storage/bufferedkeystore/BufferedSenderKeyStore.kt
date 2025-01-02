@@ -54,8 +54,8 @@ class BufferedSenderKeyStore @Inject constructor(
         distributionId: UUID,
         record: SenderKeyRecord
     ) {
-        val key = StoreKey(sender, distributionId)
-        if (inMemoryStore.containsKey(key)) {
+        val key = StoreKey(sender, distributionId, sender.deviceId)
+        if (inMemoryStore.any { it.key.address.deviceId == sender.deviceId && it.key.distributionId == distributionId }) {
             Timber.d("Sender key already exists for $sender and $distributionId")
             return
         }
@@ -82,7 +82,7 @@ class BufferedSenderKeyStore @Inject constructor(
     }
 
     override fun loadSenderKey(sender: SignalProtocolAddress, distributionId: UUID): SenderKeyRecord? {
-        val key = StoreKey(sender, distributionId)
+        val key = StoreKey(sender, distributionId, sender.deviceId)
         return inMemoryStore[key] ?: runBlocking {
             senderKeyDao.getSenderKeyRecord(
                 address = sender.name,
@@ -99,15 +99,26 @@ class BufferedSenderKeyStore @Inject constructor(
 
     private suspend fun fetchSenderKeyFromServer(sender: SignalProtocolAddress): SenderKeyRecord? {
         val currentUser = userPreferences.currentUser ?: return null
-        return spaceSenderKeyRecordRef(sender.name.toString(), currentUser.id)
-            .document(sender.name.toString()).get().await().toObject(ApiSenderKeyRecord::class.java)?.let {
-                try {
-                    SenderKeyRecord(it.record.toBytes())
-                } catch (e: Exception) {
-                    Timber.e(e, "Failed to deserialize sender key record")
-                    null
+        return try {
+            spaceSenderKeyRecordRef(sender.name.toString(), currentUser.id)
+                .whereEqualTo("deviceId", sender.deviceId)
+                .get()
+                .await()
+                .documents
+                .firstOrNull()
+                ?.toObject(ApiSenderKeyRecord::class.java)
+                ?.let { apiSenderKeyRecord ->
+                    try {
+                        SenderKeyRecord(apiSenderKeyRecord.record.toBytes())
+                    } catch (e: Exception) {
+                        Timber.e(e, "Failed to deserialize sender key record")
+                        null
+                    }
                 }
-            }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to fetch sender key from server for sender: $sender")
+            null
+        }
     }
 
     override fun getSenderKeySharedWith(distributionId: DistributionId?): MutableSet<SignalProtocolAddress> {
@@ -127,5 +138,5 @@ class BufferedSenderKeyStore @Inject constructor(
         }
     }
 
-    data class StoreKey(val address: SignalProtocolAddress, val distributionId: UUID)
+    data class StoreKey(val address: SignalProtocolAddress, val distributionId: UUID, val senderDeviceId: Int)
 }

@@ -3,9 +3,10 @@ package com.canopas.yourspace.data.service.space
 import com.canopas.yourspace.data.models.space.ApiSpace
 import com.canopas.yourspace.data.models.space.ApiSpaceMember
 import com.canopas.yourspace.data.models.space.EncryptedDistribution
+import com.canopas.yourspace.data.models.space.GroupKeysDoc
 import com.canopas.yourspace.data.models.space.SPACE_MEMBER_ROLE_ADMIN
 import com.canopas.yourspace.data.models.space.SPACE_MEMBER_ROLE_MEMBER
-import com.canopas.yourspace.data.models.space.SenderKeyDistribution
+import com.canopas.yourspace.data.models.space.SenderKeyData
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.place.ApiPlaceService
 import com.canopas.yourspace.data.service.user.ApiUserService
@@ -40,10 +41,10 @@ class ApiSpaceService @Inject constructor(
         spaceRef.document(spaceId.takeIf { it.isNotBlank() } ?: "null")
             .collection(FIRESTORE_COLLECTION_SPACE_MEMBERS)
 
-    private fun spaceGroupKeysRef(spaceId: String) =
-        spaceRef.document(spaceId.takeIf { it.isNotBlank() } ?: "null").collection(
-            FIRESTORE_COLLECTION_SPACE_GROUP_KEYS
-        )
+    private fun spaceGroupKeysDoc(spaceId: String) =
+        spaceRef.document(spaceId.takeIf { it.isNotBlank() } ?: "null")
+            .collection(FIRESTORE_COLLECTION_SPACE_GROUP_KEYS)
+            .document(FIRESTORE_COLLECTION_SPACE_GROUP_KEYS)
 
     suspend fun createSpace(spaceName: String): String {
         val spaceId = UUID.randomUUID().toString()
@@ -56,6 +57,11 @@ class ApiSpaceService @Inject constructor(
             admin_id = userId
         )
         docRef.set(space).await()
+
+        // Initialize the single group_keys doc to a default structure:
+        val emptyGroupKeys = GroupKeysDoc()
+        spaceGroupKeysDoc(spaceId).set(emptyGroupKeys).await()
+
         joinSpace(spaceId, SPACE_MEMBER_ROLE_ADMIN)
         return spaceId
     }
@@ -79,6 +85,10 @@ class ApiSpaceService @Inject constructor(
             }
 
         apiUserService.addSpaceId(user.id, spaceId)
+
+        // Update the "docUpdatedAt" so others see membership changed
+        val docRef = spaceGroupKeysDoc(spaceId)
+        docRef.update("docUpdatedAt", System.currentTimeMillis()).await()
 
         // Distribute sender key to all members
         distributeSenderKeyToSpaceMembers(spaceId, user.id)
@@ -107,17 +117,26 @@ class ApiSpaceService @Inject constructor(
             distributions.add(EphemeralECDHUtils.encrypt(member.user_id, distributionBytes, publicKey))
         }
 
-        val docRef = spaceGroupKeysRef(spaceId).document(senderUserId)
+        val docRef = spaceGroupKeysDoc(spaceId)
+        val snapshot = docRef.get().await()
+        val groupKeysDoc = snapshot.toObject(GroupKeysDoc::class.java) ?: GroupKeysDoc()
 
-        val data = SenderKeyDistribution(
-            senderId = senderUserId,
+        val oldSenderKeyData = groupKeysDoc.senderKeys[senderUserId] ?: SenderKeyData()
+        val newSenderKeyData = oldSenderKeyData.copy(
             senderDeviceId = deviceIdInt,
             distributions = distributions,
-            createdAt = System.currentTimeMillis()
+            dataUpdatedAt = System.currentTimeMillis()
+        )
+        val updates = mapOf(
+            "senderKeys.$senderUserId" to newSenderKeyData.copy(
+                dataUpdatedAt = System.currentTimeMillis()
+            ),
+            "docUpdatedAt" to System.currentTimeMillis()
         )
 
-        docRef.set(data).await()
-        Timber.d("Sender key distribution uploaded for $senderUserId in space $spaceId.")
+        docRef.update(updates).await()
+
+        Timber.d("Sender key distribution updated for $senderUserId in space $spaceId")
     }
 
     suspend fun enableLocation(spaceId: String, userId: String, enable: Boolean) {

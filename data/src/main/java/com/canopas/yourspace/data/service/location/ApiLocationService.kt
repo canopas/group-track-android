@@ -3,18 +3,19 @@ package com.canopas.yourspace.data.service.location
 import com.canopas.yourspace.data.models.location.ApiLocation
 import com.canopas.yourspace.data.models.location.EncryptedApiLocation
 import com.canopas.yourspace.data.models.space.ApiSpaceMember
-import com.canopas.yourspace.data.models.space.SenderKeyDistribution
+import com.canopas.yourspace.data.models.space.GroupKeysDoc
+import com.canopas.yourspace.data.models.space.SenderKeyData
 import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.storage.bufferedkeystore.BufferedSenderKeyStore
 import com.canopas.yourspace.data.utils.Config
 import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_SPACES
+import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_SPACE_GROUP_KEYS
 import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_SPACE_MEMBERS
 import com.canopas.yourspace.data.utils.EphemeralECDHUtils
 import com.canopas.yourspace.data.utils.PrivateKeyUtils
 import com.canopas.yourspace.data.utils.snapshotFlow
 import com.google.firebase.firestore.Blob
-import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.flow.Flow
@@ -53,7 +54,8 @@ class ApiLocationService @Inject constructor(
 
     private fun spaceGroupKeysRef(spaceId: String) =
         spaceRef.document(spaceId.takeIf { it.isNotBlank() } ?: "null")
-            .collection(Config.FIRESTORE_COLLECTION_SPACE_GROUP_KEYS)
+            .collection(FIRESTORE_COLLECTION_SPACE_GROUP_KEYS)
+            .document(FIRESTORE_COLLECTION_SPACE_GROUP_KEYS)
 
     suspend fun saveLastKnownLocation(userId: String) {
         val lastLocation = locationManager.getLastLocation() ?: return
@@ -180,6 +182,10 @@ class ApiLocationService @Inject constructor(
         }
     }
 
+    private suspend fun getSpaceMembers(spaceId: String): List<ApiSpaceMember> {
+        return spaceMemberRef(spaceId).get().await().toObjects(ApiSpaceMember::class.java)
+    }
+
     /**
      * Provide group cipher and sender key distribution message for a particular space and user.
      */
@@ -190,36 +196,13 @@ class ApiLocationService @Inject constructor(
     ): Pair<SenderKeyDistributionMessage, GroupCipher>? {
         val currentUser = userPreferences.currentUser ?: return null
 
-        val senderKeyDistribution = spaceGroupKeysRef(spaceId)
-            .document(userId)
-            .get()
-            .await()
-            .toObject(SenderKeyDistribution::class.java) ?: return null
+        val snapshot = spaceGroupKeysRef(spaceId).get().await()
+        val groupKeysDoc = snapshot.toObject(GroupKeysDoc::class.java) ?: return null
+        val senderKeyData = groupKeysDoc.senderKeys[userId] ?: return null
 
-        val distribution = senderKeyDistribution.distributions
-            .firstOrNull { it.recipientId == currentUser.id }
-            ?: run {
-                if (canDistributeSenderKey) {
-                    Timber.d("Distributing sender key to new member: userId=$userId in spaceId=$spaceId")
-                    distributeSenderKeyToNewMember(
-                        spaceId = spaceId,
-                        senderUserId = senderKeyDistribution.senderId,
-                        newMember = ApiSpaceMember(
-                            user_id = userId,
-                            space_id = spaceId,
-                            identity_key_public = currentUser.identity_key_public
-                        ),
-                        senderDeviceId = senderKeyDistribution.senderDeviceId
-                    )
-                    // Retry fetching the distribution after distribution
-                    return getGroupCipherAndDistributionMessage(
-                        spaceId,
-                        userId,
-                        canDistributeSenderKey = false
-                    )
-                }
-                null
-            } ?: return null
+        val distribution = senderKeyData.distributions.firstOrNull {
+            it.recipientId == currentUser.id
+        } ?: return null
 
         val currentUserPrivateKey = getCurrentUserPrivateKey(currentUser) ?: return null
 
@@ -230,9 +213,28 @@ class ApiLocationService @Inject constructor(
             }
 
         val distributionMessage = SenderKeyDistributionMessage(decryptedDistribution)
-        val senderAddress = SignalProtocolAddress(spaceId, senderKeyDistribution.senderDeviceId)
+        val senderAddress = SignalProtocolAddress(spaceId, senderKeyData.senderDeviceId)
 
         bufferedSenderKeyStore.loadSenderKey(senderAddress, distributionMessage.distributionId)
+
+        // If the sender key data is outdated, we need to distribute the sender key to the pending users
+        if (senderKeyData.dataUpdatedAt < groupKeysDoc.docUpdatedAt && canDistributeSenderKey) {
+            // Here means the sender key data is outdated, so we need to distribute the sender key to the users.
+            val apiSpaceMembers = getSpaceMembers(spaceId)
+            val membersPendingForSenderKey = apiSpaceMembers.filter { member ->
+                senderKeyData.distributions.none { it.recipientId == member.user_id }
+            }
+
+            if (membersPendingForSenderKey.isNotEmpty()) {
+                distributeSenderKeyToNewSpaceMembers(
+                    spaceId = spaceId,
+                    senderUserId = userId,
+                    distributionMessage = distributionMessage,
+                    senderDeviceId = senderKeyData.senderDeviceId,
+                    apiSpaceMembers = membersPendingForSenderKey
+                )
+            }
+        }
 
         return try {
             GroupSessionBuilder(bufferedSenderKeyStore).process(senderAddress, distributionMessage)
@@ -261,47 +263,44 @@ class ApiLocationService @Inject constructor(
     }
 
     /**
-     * Distribute sender key to a new member.
-     */
-    private suspend fun distributeSenderKeyToNewMember(
+     * Create a sender key distribution for the new users, and encrypt the distribution key
+     * for each member using their public key(ECDH).
+     **/
+    private suspend fun distributeSenderKeyToNewSpaceMembers(
         spaceId: String,
         senderUserId: String,
-        newMember: ApiSpaceMember,
-        senderDeviceId: Int
+        distributionMessage: SenderKeyDistributionMessage,
+        senderDeviceId: Int,
+        apiSpaceMembers: List<ApiSpaceMember>
     ) {
-        val groupAddress = SignalProtocolAddress(spaceId, senderDeviceId)
-        val sessionBuilder = GroupSessionBuilder(bufferedSenderKeyStore)
-        val distributionMessage = sessionBuilder.create(groupAddress, UUID.fromString(spaceId))
         val distributionBytes = distributionMessage.serialize()
+        val docRef = spaceGroupKeysRef(spaceId)
+        val snapshot = docRef.get().await()
+        val groupKeysDoc = snapshot.toObject(GroupKeysDoc::class.java) ?: GroupKeysDoc()
 
-        val publicBlob = newMember.identity_key_public ?: run {
-            Timber.e("New member's public key is null for userId=${newMember.user_id}")
-            return
-        }
+        val oldSenderKeyData = groupKeysDoc.senderKeys[senderUserId] ?: SenderKeyData()
 
-        val publicKey = try {
-            Curve.decodePoint(publicBlob.toBytes(), 0)
-        } catch (e: InvalidKeyException) {
-            Timber.e(e, "Invalid public key for new member userId=${newMember.user_id}")
-            return
-        }
+        val distributions = oldSenderKeyData.distributions.toMutableList()
 
-        val distribution = EphemeralECDHUtils.encrypt(
-            newMember.user_id,
-            distributionBytes,
-            publicKey
-        )
+        for (member in apiSpaceMembers) {
+            val publicBlob = member.identity_key_public ?: continue
+            val publicKey = Curve.decodePoint(publicBlob.toBytes(), 0)
 
-        try {
-            spaceGroupKeysRef(spaceId).document(senderUserId)
-                .update("distributions", FieldValue.arrayUnion(distribution))
-                .await()
-            Timber.d("Sender key distribution uploaded for new member: ${newMember.user_id} in spaceId=$spaceId.")
-        } catch (e: Exception) {
-            Timber.e(
-                e,
-                "Failed to upload sender key distribution for new member userId=${newMember.user_id} in spaceId=$spaceId"
+            // Encrypt distribution using member's public key
+            distributions.add(
+                EphemeralECDHUtils.encrypt(
+                    member.user_id,
+                    distributionBytes,
+                    publicKey
+                )
             )
         }
+
+        val newSenderKeyData = oldSenderKeyData.copy(
+            senderDeviceId = senderDeviceId,
+            distributions = distributions,
+            dataUpdatedAt = System.currentTimeMillis()
+        )
+        docRef.update(mapOf("senderKeys.$senderUserId" to newSenderKeyData)).await()
     }
 }
