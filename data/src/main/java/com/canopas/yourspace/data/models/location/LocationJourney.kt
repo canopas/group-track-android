@@ -31,18 +31,36 @@ fun Location.toRoute(): JourneyRoute {
 }
 
 fun JourneyRoute.toLatLng() = LatLng(latitude, longitude)
-fun LocationJourney.toRoute() = when (type) {
-    JourneyType.STEADY -> emptyList()
-    JourneyType.MOVING -> listOf(
-        LatLng(
-            from_latitude,
-            from_longitude
+fun LocationJourney.toRoute(): List<LatLng> {
+    if (isSteadyJourney()) {
+        return emptyList()
+    } else if (isMovingJourney()) {
+        val result = listOf(
+            LatLng(
+                from_latitude,
+                from_longitude
+            )
+        ) + routes.map { it.toLatLng() } + listOf(
+            LatLng(to_latitude ?: 0.0, to_longitude ?: 0.0)
         )
-    ) + routes.map { it.toLatLng() } + listOf(
-        LatLng(to_latitude ?: 0.0, to_longitude ?: 0.0)
-    )
+        return result
+    } else {
+        return emptyList()
+    }
+}
 
-    else -> emptyList()
+fun LocationJourney.isSteadyJourney(): Boolean {
+    if (type != null) {
+        return type == JourneyType.STEADY
+    }
+    return to_latitude == null || to_longitude == null
+}
+
+fun LocationJourney.isMovingJourney(): Boolean {
+    if (type != null) {
+        return type == JourneyType.MOVING
+    }
+    return to_latitude != null && to_longitude != null
 }
 
 fun LocationJourney.toLocationFromSteadyJourney() = Location("").apply {
