@@ -69,7 +69,8 @@ class SetPinViewModel @Inject constructor(
             if (userHasSpaces) {
                 userPreferences.setOnboardShown(true)
                 spaceRepository.generateAndDistributeSenderKeysForExistingSpaces(
-                    spaceIds = userSpaces?.firstOrNull()?.map { it.id } ?: emptyList())
+                    spaceIds = userSpaces?.firstOrNull()?.map { it.id } ?: emptyList()
+                )
                 navigator.navigateTo(
                     AppDestinations.home.path,
                     popUpToRoute = AppDestinations.signIn.path,
