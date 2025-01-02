@@ -62,19 +62,22 @@ class SetPinViewModel @Inject constructor(
         if (pin.length == 4) {
             authService.generateAndSaveUserKeys(passKey = pin)
             val userId = authService.getUser()?.id
-            val userHasSpaces = userId?.let {
-                spaceRepository.getUserSpaces(it).firstOrNull()?.isNotEmpty() ?: false
+            val userSpaces = userId?.let {
+                spaceRepository.getUserSpaces(it)
             }
-            if (userHasSpaces == false) {
+            val userHasSpaces = userSpaces?.firstOrNull() != null
+            if (userHasSpaces) {
+                userPreferences.setOnboardShown(true)
+                spaceRepository.generateAndDistributeSenderKeysForExistingSpaces(
+                    spaceIds = userSpaces?.firstOrNull()?.map { it.id } ?: emptyList())
                 navigator.navigateTo(
-                    AppDestinations.onboard.path,
+                    AppDestinations.home.path,
                     popUpToRoute = AppDestinations.signIn.path,
                     inclusive = true
                 )
             } else {
-                userPreferences.setOnboardShown(true)
                 navigator.navigateTo(
-                    AppDestinations.home.path,
+                    AppDestinations.onboard.path,
                     popUpToRoute = AppDestinations.signIn.path,
                     inclusive = true
                 )

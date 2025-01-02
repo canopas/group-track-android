@@ -255,4 +255,8 @@ class SpaceRepository @Inject constructor(
             throw e
         }
     }
+
+    suspend fun generateAndDistributeSenderKeysForExistingSpaces(spaceIds: List<String>) {
+        spaceService.generateAndDistributeSenderKeysForExistingSpaces(spaceIds)
+    }
 }

@@ -133,7 +133,7 @@ service cloud.firestore {
 
     match /spaces/{spaceId}/group_keys/group_keys {
       allow read: if isAuthorized() && isSpaceMember(spaceId);
-      allow create: if isAuthorized() && isSpaceAdmin(spaceId);
+      allow create: if isAuthorized() && (isSpaceAdmin(spaceId) || isSpaceMember(spaceId));
       allow update: if isAuthorized() && isSpaceMember(spaceId);
       allow delete: if isAuthorized() && isSpaceMember(spaceId);
     }

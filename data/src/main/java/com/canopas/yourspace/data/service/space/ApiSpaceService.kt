@@ -198,4 +198,14 @@ class ApiSpaceService @Inject constructor(
             throw e
         }
     }
+
+
+    suspend fun generateAndDistributeSenderKeysForExistingSpaces(spaceIds: List<String>) {
+        val userId = authService.currentUser?.id ?: return
+        spaceIds.forEach { spaceId ->
+            val emptyGroupKeys = GroupKeysDoc()
+            spaceGroupKeysDoc(spaceId).set(emptyGroupKeys).await()
+            distributeSenderKeyToSpaceMembers(spaceId,userId)
+        }
+    }
 }

@@ -159,7 +159,7 @@ private fun MemberInfoView(
     val state by viewModel.state.collectAsState()
 
     var address by remember { mutableStateOf("") }
-    val time = timeAgo(location?.created_at ?: 0)
+    val time = timeAgo(location?.created_at ?: System.currentTimeMillis())
     val userStateText = if (user.noNetwork) {
         stringResource(R.string.map_selected_user_item_no_network_state)
     } else if (user.locationPermissionDenied) {
