@@ -89,12 +89,13 @@ class ApiJourneyService @Inject constructor(
      * Decrypts and retrieves the current user's private key.
      */
     private suspend fun getCurrentUserPrivateKey(currentUser: ApiUser): ECPrivateKey? {
+        val privateKey = userPreferences.getPrivateKey() ?: currentUser.identity_key_private?.toBytes()
         return try {
-            Curve.decodePrivatePoint(currentUser.identity_key_private?.toBytes())
+            Curve.decodePrivatePoint(privateKey)
         } catch (e: InvalidKeyException) {
             Timber.e(e, "Error decoding private key for userId=${currentUser.id}")
             PrivateKeyUtils.decryptPrivateKey(
-                currentUser.identity_key_private?.toBytes() ?: return null,
+                privateKey ?: return null,
                 currentUser.identity_key_salt?.toBytes() ?: return null,
                 userPreferences.getPasskey() ?: return null
             )?.let { Curve.decodePrivatePoint(it) }

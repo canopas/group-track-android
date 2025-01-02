@@ -56,7 +56,6 @@ class BufferedSenderKeyStore @Inject constructor(
     ) {
         val key = StoreKey(sender, distributionId, sender.deviceId)
         if (inMemoryStore.any { it.key.address.deviceId == sender.deviceId && it.key.distributionId == distributionId }) {
-            Timber.d("Sender key already exists for $sender and $distributionId")
             return
         }
         inMemoryStore[key] = record

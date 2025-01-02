@@ -19,14 +19,16 @@ import com.google.firebase.firestore.Blob
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 import org.signal.libsignal.protocol.InvalidKeyException
+import org.signal.libsignal.protocol.NoSessionException
 import org.signal.libsignal.protocol.SignalProtocolAddress
 import org.signal.libsignal.protocol.ecc.Curve
 import org.signal.libsignal.protocol.ecc.ECPrivateKey
 import org.signal.libsignal.protocol.groups.GroupCipher
 import org.signal.libsignal.protocol.groups.GroupSessionBuilder
+import org.signal.libsignal.protocol.groups.InvalidSenderKeySessionException
 import org.signal.libsignal.protocol.message.SenderKeyDistributionMessage
 import timber.log.Timber
 import java.util.UUID
@@ -102,60 +104,66 @@ class ApiLocationService @Inject constructor(
         longitude: Double,
         recordedAt: Long
     ) {
-        val cipherAndDistribution = getGroupCipherAndDistributionMessage(
-            spaceId = spaceId,
-            userId = userId,
-            canDistributeSenderKey = true
-        ) ?: return
-
-        val (distributionMessage, groupCipher) = cipherAndDistribution
-
-        val encryptedLatitude = groupCipher.encrypt(
-            distributionMessage.distributionId,
-            latitude.toString().toByteArray(Charsets.UTF_8)
-        )
-        val encryptedLongitude = groupCipher.encrypt(
-            distributionMessage.distributionId,
-            longitude.toString().toByteArray(Charsets.UTF_8)
-        )
-
-        val location = EncryptedApiLocation(
-            id = UUID.randomUUID().toString(),
-            user_id = userId,
-            encrypted_latitude = Blob.fromBytes(encryptedLatitude.serialize()),
-            encrypted_longitude = Blob.fromBytes(encryptedLongitude.serialize()),
-            created_at = recordedAt
-        )
-
         try {
+            val cipherAndDistribution = getGroupCipherAndDistributionMessage(
+                spaceId = spaceId,
+                userId = userId,
+                canDistributeSenderKey = true
+            ) ?: return
+
+            val (distributionMessage, groupCipher) = cipherAndDistribution
+
+            val encryptedLatitude = groupCipher.encrypt(
+                distributionMessage.distributionId,
+                latitude.toString().toByteArray(Charsets.UTF_8)
+            )
+            val encryptedLongitude = groupCipher.encrypt(
+                distributionMessage.distributionId,
+                longitude.toString().toByteArray(Charsets.UTF_8)
+            )
+
+            val location = EncryptedApiLocation(
+                id = UUID.randomUUID().toString(),
+                user_id = userId,
+                encrypted_latitude = Blob.fromBytes(encryptedLatitude.serialize()),
+                encrypted_longitude = Blob.fromBytes(encryptedLongitude.serialize()),
+                created_at = recordedAt
+            )
+
             spaceMemberLocationRef(spaceId, userId).document(location.id).set(location).await()
         } catch (e: Exception) {
-            Timber.e(
-                e,
-                "Failed to save encrypted location for userId: $userId in spaceId: $spaceId"
-            )
-        }
-    }
+            when (e) {
+                is NoSessionException -> {
+                    Timber.e("No session found for userId: $userId in spaceId: $spaceId. Skipping save.")
+                }
 
-    fun getCurrentLocation(userId: String): Flow<List<ApiLocation?>> = flow {
-        try {
-            val encryptedLocationsFlow = spaceMemberLocationRef(currentSpaceId, userId)
-                .whereEqualTo("user_id", userId)
-                .orderBy("created_at", Query.Direction.DESCENDING)
-                .limit(1)
-                .snapshotFlow(EncryptedApiLocation::class.java)
+                is InvalidSenderKeySessionException -> {
+                    Timber.e("Invalid sender key session for userId: $userId in spaceId: $spaceId. Skipping save.")
+                }
 
-            encryptedLocationsFlow.collect { encryptedLocationList ->
-                emit(
-                    encryptedLocationList.mapNotNull { encryptedLocation ->
-                        decryptLocation(encryptedLocation, userId)
-                    }
-                )
+                else -> {
+                    Timber.e(e, "Failed to save encrypted location for userId: $userId in spaceId: $spaceId")
+                }
             }
-        } catch (e: Exception) {
-            Timber.e(e, "Error while getting current location for userId: $userId")
         }
     }
+
+    fun getCurrentLocation(userId: String): Flow<List<ApiLocation?>> =
+        spaceMemberLocationRef(currentSpaceId, userId)
+            .whereEqualTo("user_id", userId)
+            .orderBy("created_at", Query.Direction.DESCENDING)
+            .limit(1)
+            .snapshotFlow(EncryptedApiLocation::class.java)
+            .map { encryptedLocations ->
+                encryptedLocations.mapNotNull { encryptedLocation ->
+                    try {
+                        decryptLocation(encryptedLocation, userId)
+                    } catch (e: Exception) {
+                        Timber.e(e, "Failed to decrypt location for userId: $userId")
+                        null
+                    }
+                }
+            }
 
     private suspend fun decryptLocation(
         encryptedLocation: EncryptedApiLocation,
@@ -250,12 +258,13 @@ class ApiLocationService @Inject constructor(
      * Decrypts and retrieves the current user's private key.
      */
     private suspend fun getCurrentUserPrivateKey(currentUser: ApiUser): ECPrivateKey? {
+        val privateKey = userPreferences.getPrivateKey() ?: currentUser.identity_key_private?.toBytes()
         return try {
-            Curve.decodePrivatePoint(currentUser.identity_key_private?.toBytes())
+            Curve.decodePrivatePoint(privateKey)
         } catch (e: InvalidKeyException) {
             Timber.e(e, "Error decoding private key for userId=${currentUser.id}")
             PrivateKeyUtils.decryptPrivateKey(
-                currentUser.identity_key_private?.toBytes() ?: return null,
+                privateKey ?: return null,
                 currentUser.identity_key_salt?.toBytes() ?: return null,
                 userPreferences.getPasskey() ?: return null
             )?.let { Curve.decodePrivatePoint(it) }

@@ -9,7 +9,6 @@ import com.canopas.yourspace.data.storage.UserPreferences
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.firestore.Blob
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -102,13 +101,15 @@ class AuthService @Inject constructor(
         currentUser = user
     }
 
-    fun signOut() {
+    suspend fun signOut() {
         locationManager.stopLocationTracking()
         currentUser = null
         currentUserSession = null
         userPreferences.isFCMRegistered = false
         userPreferences.setOnboardShown(false)
         userPreferences.currentSpace = ""
+        userPreferences.clearPasskey()
+        userPreferences.clearPrivateKey()
         firebaseAuth.signOut()
         locationManager.stopService()
         locationCache.clear()
@@ -123,6 +124,8 @@ class AuthService @Inject constructor(
     suspend fun generateAndSaveUserKeys(passKey: String) {
         currentUser?.let {
             val updatedUser = apiUserService.generateAndSaveUserKeys(currentUser!!, passKey)
+            updatedUser.identity_key_private?.toBytes()
+                ?.let { privateKey -> userPreferences.storePrivateKey(privateKey) }
             currentUser = updatedUser
         }
     }
@@ -132,7 +135,7 @@ class AuthService @Inject constructor(
         val validationResult = apiUserService.validatePasskey(user, passKey)
         if (validationResult != null) {
             userPreferences.storePasskey(passKey)
-            currentUser = currentUser?.copy(identity_key_private = Blob.fromBytes(validationResult))
+            userPreferences.storePrivateKey(validationResult)
         }
         return validationResult != null
     }

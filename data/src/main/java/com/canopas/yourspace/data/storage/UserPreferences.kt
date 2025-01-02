@@ -4,6 +4,7 @@ import android.util.Base64
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.byteArrayPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.canopas.yourspace.data.models.user.ApiUser
@@ -52,6 +53,7 @@ class UserPreferences @Inject constructor(
         val KEY_USER_MAP_STYLE = stringPreferencesKey("user_map_style")
 
         val KEY_USER_PASSKEY = stringPreferencesKey("user_passkey")
+        val KEY_USER_PRIVATE_KEY = byteArrayPreferencesKey("user_private_key")
     }
 
     suspend fun isIntroShown(): Boolean {
@@ -186,6 +188,22 @@ class UserPreferences @Inject constructor(
     suspend fun clearPasskey() {
         preferencesDataStore.edit {
             it.remove(KEY_USER_PASSKEY)
+        }
+    }
+
+    suspend fun storePrivateKey(privateKey: ByteArray) {
+        preferencesDataStore.edit { preferences ->
+            preferences[PreferencesKey.KEY_USER_PRIVATE_KEY] = privateKey
+        }
+    }
+
+    suspend fun getPrivateKey(): ByteArray? {
+        return preferencesDataStore.data.first()[PreferencesKey.KEY_USER_PRIVATE_KEY]
+    }
+
+    suspend fun clearPrivateKey() {
+        preferencesDataStore.edit {
+            it.remove(PreferencesKey.KEY_USER_PRIVATE_KEY)
         }
     }
 }
