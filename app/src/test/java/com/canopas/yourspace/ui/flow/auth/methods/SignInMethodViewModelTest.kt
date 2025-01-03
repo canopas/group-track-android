@@ -2,6 +2,7 @@ package com.canopas.yourspace.ui.flow.auth.methods
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.canopas.yourspace.MainCoroutineRule
+import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.auth.FirebaseAuthService
 import com.canopas.yourspace.data.storage.UserPreferences
@@ -42,10 +43,12 @@ class SignInMethodViewModelTest {
     private val authService = mock<AuthService>()
     private val userPreferences = mock<UserPreferences>()
     private val connectivityObserver = mock<ConnectivityObserver>()
+    private val currentUser = ApiUser(first_name = "first", last_name = "last")
 
     @Before
     fun setup() {
         whenever(connectivityObserver.observe()).thenReturn(flowOf(ConnectivityObserver.Status.Available))
+        whenever(authService.currentUser).thenReturn(currentUser)
 
         viewModel = SignInMethodViewModel(
             navigator,
@@ -83,20 +86,6 @@ class SignInMethodViewModelTest {
     }
 
     @Test
-    fun `proceedGoogleSignIn should navigate to home screen`() = runTest {
-        val account = mock<GoogleSignInAccount>()
-        whenever(account.idToken).thenReturn("token")
-        whenever(firebaseAuth.signInWithGoogleAuthCredential("token"))
-            .thenReturn("firebaseToken")
-        whenever(firebaseAuth.currentUserUid).thenReturn("uid")
-
-        whenever(authService.verifiedGoogleLogin("uid", "firebaseToken", account))
-            .thenReturn(false)
-        viewModel.proceedGoogleSignIn(account)
-        verify(navigator).navigateTo("home", "sign-in", true)
-    }
-
-    @Test
     fun `proceedGoogleSignIn should navigate to onboard screen`() = runTest {
         val account = mock<GoogleSignInAccount>()
         whenever(account.idToken).thenReturn("token")
@@ -107,7 +96,7 @@ class SignInMethodViewModelTest {
         whenever(authService.verifiedGoogleLogin("uid", "firebaseToken", account))
             .thenReturn(true)
         viewModel.proceedGoogleSignIn(account)
-        verify(navigator).navigateTo("onboard", "sign-in", true)
+        verify(navigator).navigateTo("set-pin", "sign-in", true)
     }
 
     @Test

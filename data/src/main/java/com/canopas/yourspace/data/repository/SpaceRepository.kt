@@ -153,7 +153,7 @@ class SpaceRepository @Inject constructor(
                         val session = userService.getUserSession(member.user_id)
                         user?.let {
                             locationService.getCurrentLocation(user.id)
-                                ?.map {
+                                .map {
                                     UserInfo(
                                         user,
                                         it.firstOrNull(),
@@ -257,6 +257,15 @@ class SpaceRepository @Inject constructor(
             spaceService.changeAdmin(spaceId, newAdminId)
         } catch (e: Exception) {
             Timber.e(e, "Failed to change space admin")
+            throw e
+        }
+    }
+
+    suspend fun generateAndDistributeSenderKeysForExistingSpaces(spaceIds: List<String>) {
+        try {
+            spaceService.generateAndDistributeSenderKeysForExistingSpaces(spaceIds)
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to generate and distribute sender keys")
             throw e
         }
     }

@@ -1,7 +1,11 @@
 package com.canopas.yourspace.data.di
 
 import android.content.Context
+import androidx.room.Room
 import com.canopas.yourspace.data.models.user.ApiUserSession
+import com.canopas.yourspace.data.storage.database.AppDatabase
+import com.canopas.yourspace.data.storage.database.MIGRATION_1_1
+import com.canopas.yourspace.data.storage.database.SenderKeyDao
 import com.canopas.yourspace.data.utils.Config
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.LocationServices
@@ -18,7 +22,10 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Named
 import javax.inject.Singleton
+
+private const val DATABASE_NAME = "sender_keys_db"
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -51,4 +58,25 @@ class AppDataProvider {
     @Provides
     @Singleton
     fun providedApiUserSession(): ApiUserSession = ApiUserSession()
+
+    @Provides
+    @Singleton
+    fun provideAppDatabase(
+        @ApplicationContext appContext: Context
+    ): AppDatabase {
+        return Room.databaseBuilder(
+            appContext,
+            AppDatabase::class.java,
+            DATABASE_NAME
+        )
+            .addMigrations(MIGRATION_1_1)
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    @Named("sender_key_dao")
+    fun provideSenderKeyDao(appDatabase: AppDatabase): SenderKeyDao {
+        return appDatabase.senderKeyDao()
+    }
 }

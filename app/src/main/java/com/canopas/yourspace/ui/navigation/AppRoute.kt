@@ -86,6 +86,16 @@ object AppDestinations {
         override val path: String = "sign-in"
     }
 
+    val setPin = object : AppRoute {
+        override val arguments: List<NamedNavArgument> = emptyList()
+        override val path: String = "set-pin"
+    }
+
+    val enterPin = object : AppRoute {
+        override val arguments: List<NamedNavArgument> = emptyList()
+        override val path: String = "enter-pin"
+    }
+
     val map = object : AppRoute {
         override val arguments: List<NamedNavArgument> = emptyList()
         override val path: String = "map"

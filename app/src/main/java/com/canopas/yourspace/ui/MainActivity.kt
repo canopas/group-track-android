@@ -47,6 +47,8 @@ import com.canopas.yourspace.ui.flow.messages.chat.MessagesScreen
 import com.canopas.yourspace.ui.flow.messages.thread.ThreadsScreen
 import com.canopas.yourspace.ui.flow.onboard.OnboardScreen
 import com.canopas.yourspace.ui.flow.permission.EnablePermissionsScreen
+import com.canopas.yourspace.ui.flow.pin.enterpin.EnterPinScreen
+import com.canopas.yourspace.ui.flow.pin.setpin.SetPinScreen
 import com.canopas.yourspace.ui.flow.settings.SettingsScreen
 import com.canopas.yourspace.ui.flow.settings.profile.EditProfileScreen
 import com.canopas.yourspace.ui.flow.settings.space.SpaceProfileScreen
@@ -123,6 +125,12 @@ fun MainApp(viewModel: MainViewModel) {
             }
             slideComposable(AppDestinations.signIn.path) {
                 SignInMethodsScreen()
+            }
+            slideComposable(AppDestinations.setPin.path) {
+                SetPinScreen()
+            }
+            slideComposable(AppDestinations.enterPin.path) {
+                EnterPinScreen()
             }
 
             slideComposable(AppDestinations.home.path) {
