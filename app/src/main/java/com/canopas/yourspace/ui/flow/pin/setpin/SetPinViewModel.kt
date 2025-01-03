@@ -49,9 +49,9 @@ class SetPinViewModel @Inject constructor(
     private fun validatePin() {
         val pin = state.value.pin
         if (pin.length < 4) {
-            _state.value = _state.value.copy(pinError = PinErrorState.LENGTH_ERROR)
+            _state.value = _state.value.copy(pinError = PinErrorState.LENGTH_ERROR, showLoader = false)
         } else if (pin.length == 4 && !pin.all { it.isDigit() }) {
-            _state.value = _state.value.copy(pinError = PinErrorState.CHARACTERS_ERROR)
+            _state.value = _state.value.copy(pinError = PinErrorState.CHARACTERS_ERROR, showLoader = false)
         } else {
             _state.value = _state.value.copy(pinError = null)
         }
@@ -113,7 +113,7 @@ class SetPinViewModel @Inject constructor(
                     )
                 }
             } catch (e: Exception) {
-                _state.value = _state.value.copy(error = e)
+                _state.value = _state.value.copy(error = e, showLoader = false)
             }
         }
     }

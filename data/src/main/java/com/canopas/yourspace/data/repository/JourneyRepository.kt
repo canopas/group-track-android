@@ -83,7 +83,7 @@ class JourneyRepository @Inject constructor(
         lastKnownJourney: LocationJourney
     ): Boolean {
         val calendar = Calendar.getInstance()
-        calendar.timeInMillis = lastKnownJourney.update_at!!
+        calendar.timeInMillis = lastKnownJourney.updated_at!!
         val lastKnownDay = calendar.get(Calendar.DAY_OF_MONTH)
         calendar.timeInMillis = extractedLocation?.time ?: System.currentTimeMillis()
         val currentDay = calendar.get(Calendar.DAY_OF_MONTH)
@@ -94,7 +94,7 @@ class JourneyRepository @Inject constructor(
         extractedLocation: Location? = null,
         lastKnownJourney: LocationJourney
     ): Boolean {
-        val lastKnownDate = Instant.ofEpochMilli(lastKnownJourney.update_at!!)
+        val lastKnownDate = Instant.ofEpochMilli(lastKnownJourney.updated_at!!)
             .atZone(ZoneId.systemDefault())
             .toLocalDate()
         val currentDate =
@@ -135,7 +135,7 @@ class JourneyRepository @Inject constructor(
         lastKnownJourney: LocationJourney
     ) {
         val updatedJourney = lastKnownJourney.copy(
-            update_at = System.currentTimeMillis()
+            updated_at = System.currentTimeMillis()
         )
         journeyService.updateLastLocationJourney(
             userId = userId,
@@ -211,7 +211,7 @@ class JourneyRepository @Inject constructor(
             }
 
         val timeDifference =
-            (geometricMedian?.time ?: extractedLocation.time) - lastKnownJourney.update_at!!
+            (geometricMedian?.time ?: extractedLocation.time) - lastKnownJourney.updated_at!!
 
         if (lastKnownJourney.isSteadyLocation()) {
             // Handle steady user
@@ -309,12 +309,12 @@ class JourneyRepository @Inject constructor(
             to_latitude = extractedLocation.latitude,
             to_longitude = extractedLocation.longitude,
             route_distance = distance.toDouble() + (lastKnownJourney.route_distance ?: 0.0),
-            route_duration = (lastKnownJourney.update_at!! - lastKnownJourney.created_at!!),
+            route_duration = (lastKnownJourney.updated_at!! - lastKnownJourney.created_at!!),
             routes = lastKnownJourney.routes + listOf(extractedLocation.toRoute()),
             created_at = lastKnownJourney.created_at
         )
         val lastJourneyUpdatedTime = locationCache.getLastJourneyUpdatedTime(userId)
-        val timeDifference = journey.update_at!! - lastJourneyUpdatedTime
+        val timeDifference = journey.updated_at!! - lastJourneyUpdatedTime
         if (timeDifference >= MIN_UPDATE_INTERVAL_MS) {
             // Update last location journey in remote database
             // as one minute is passed since last update
@@ -344,10 +344,10 @@ class JourneyRepository @Inject constructor(
             to_latitude = extractedLocation.latitude,
             to_longitude = extractedLocation.longitude,
             route_distance = distance.toDouble() + (lastKnownJourney.route_distance ?: 0.0),
-            route_duration = (lastKnownJourney.update_at!! - lastKnownJourney.created_at!!),
+            route_duration = (lastKnownJourney.updated_at!! - lastKnownJourney.created_at!!),
             routes = lastKnownJourney.routes + listOf(extractedLocation.toRoute()),
             created_at = lastKnownJourney.created_at,
-            update_at = lastKnownJourney.update_at
+            updated_at = lastKnownJourney.updated_at
         )
         journeyService.updateLastLocationJourney(
             userId = userId,
@@ -360,7 +360,7 @@ class JourneyRepository @Inject constructor(
             userId = userId,
             fromLatitude = extractedLocation.latitude,
             fromLongitude = extractedLocation.longitude,
-            createdAt = lastKnownJourney.update_at
+            createdAt = lastKnownJourney.updated_at
         ) {
             newJourneyId = it
         }

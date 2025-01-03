@@ -136,18 +136,15 @@ class ApiLocationService @Inject constructor(
         } catch (e: Exception) {
             when (e) {
                 is NoSessionException -> {
-                    Timber.e("No session found for userId: $userId in spaceId: $spaceId. Skipping save.")
+                    Timber.e("No session found. Skipping save.")
                 }
 
                 is InvalidSenderKeySessionException -> {
-                    Timber.e("Invalid sender key session for userId: $userId in spaceId: $spaceId. Skipping save.")
+                    Timber.e("Invalid sender key session. Skipping save.")
                 }
 
                 else -> {
-                    Timber.e(
-                        e,
-                        "Failed to save encrypted location for userId: $userId in spaceId: $spaceId"
-                    )
+                    Timber.e(e, "Failed to save encrypted location")
                 }
             }
         }

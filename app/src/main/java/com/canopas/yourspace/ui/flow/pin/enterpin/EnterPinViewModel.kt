@@ -41,9 +41,9 @@ class EnterPinViewModel @Inject constructor(
     private fun validatePin() {
         val pin = state.value.pin
         if (pin.length < 4) {
-            _state.value = _state.value.copy(pinError = PinErrorState.LENGTH_ERROR)
-        } else if (pin.length == 4 && !pin.contains(Regex("[0-9]"))) {
-            _state.value = _state.value.copy(pinError = PinErrorState.CHARACTERS_ERROR)
+            _state.value = _state.value.copy(pinError = PinErrorState.LENGTH_ERROR, showLoader = false)
+        } else if (pin.length == 4 && !pin.all { it.isDigit() }) {
+            _state.value = _state.value.copy(pinError = PinErrorState.CHARACTERS_ERROR, showLoader = false)
         }
     }
 
@@ -73,7 +73,7 @@ class EnterPinViewModel @Inject constructor(
                     inclusive = true
                 )
             } else {
-                _state.value = _state.value.copy(pinError = PinErrorState.INVALID_PIN)
+                _state.value = _state.value.copy(pinError = PinErrorState.INVALID_PIN, showLoader = false)
             }
         }
     }

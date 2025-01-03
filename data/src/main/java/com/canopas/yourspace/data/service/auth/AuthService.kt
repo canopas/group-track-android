@@ -116,9 +116,6 @@ class AuthService @Inject constructor(
             locationCache.clear()
         } catch (e: Exception) {
             throw SecurityException("Failed to completely sign out. Some sensitive data might not be cleared.")
-        } finally {
-            // Force garbage collection to clean up any sensitive data in memory
-            System.gc()
         }
     }
 
