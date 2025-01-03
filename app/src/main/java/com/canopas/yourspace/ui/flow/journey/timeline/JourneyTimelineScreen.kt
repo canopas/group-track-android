@@ -1,6 +1,8 @@
 package com.canopas.yourspace.ui.flow.journey.timeline
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,7 +12,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -37,8 +42,8 @@ import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.domain.utils.formattedMessageDateHeader
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.AppProgressIndicator
+import com.canopas.yourspace.ui.component.HorizontalDatePicker
 import com.canopas.yourspace.ui.component.NoInternetScreen
-import com.canopas.yourspace.ui.component.ShowDatePicker
 import com.canopas.yourspace.ui.component.reachedBottom
 import com.canopas.yourspace.ui.flow.journey.components.EmptyHistory
 import com.canopas.yourspace.ui.flow.journey.components.LocationHistoryItem
@@ -91,19 +96,27 @@ fun TimelineTopBar() {
         },
         actions = {
             if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
-                TextButton(onClick = viewModel::showDatePicker) {
+                TextButton(onClick = { if (state.showDatePicker) viewModel.dismissDatePicker() else viewModel.showDatePicker() }) {
                     Text(
-                        text = state.selectedTimeFrom?.formattedMessageDateHeader(LocalContext.current)
-                            ?: "",
+                        text = state.selectedTimeFrom.formattedMessageDateHeader(LocalContext.current),
                         style = AppTheme.appTypography.body1,
                         color = AppTheme.colorScheme.textPrimary
                     )
                     Spacer(modifier = Modifier.width(6.dp))
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_action_filter),
-                        contentDescription = "",
-                        tint = AppTheme.colorScheme.textPrimary
-                    )
+
+                    if (state.showDatePicker) {
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowUp,
+                            contentDescription = "",
+                            tint = AppTheme.colorScheme.textPrimary
+                        )
+                    } else {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_action_filter),
+                            contentDescription = "",
+                            tint = AppTheme.colorScheme.textPrimary
+                        )
+                    }
                 }
             }
         }
@@ -119,33 +132,48 @@ private fun TimelineContent(modifier: Modifier) {
         AppBanner(msg = state.error!!, onDismiss = viewModel::resetErrorState)
     }
 
-    if (state.showDatePicker) {
-        ShowDatePicker(
-            selectedTimestamp = state.selectedTimeTo,
-            confirmButtonClick = viewModel::onFilterByDate,
-            dismissButtonClick = viewModel::dismissDatePicker
-        )
-    }
-
-    if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
-        Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            if (state.isLoading) {
-                AppProgressIndicator()
-            } else if (state.groupedLocation.isEmpty()) {
-                EmptyHistory()
-            } else {
-                JourneyList(
-                    appending = state.appending,
-                    journeys = state.groupedLocation,
-                    onScrollToBottom = viewModel::loadMoreLocations,
-                    onAddPlaceClicked = viewModel::addPlace,
-                    showJourneyDetails = viewModel::showJourneyDetails,
-                    selectedMapStyle = state.selectedMapStyle
+    Column(modifier = modifier.fillMaxSize()) {
+        if (state.showDatePicker) {
+            if (state.selectedTimeFrom != System.currentTimeMillis()) {
+                Text(
+                    "Today",
+                    style = AppTheme.appTypography.header4,
+                    color = AppTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .clickable {
+                            viewModel.onFilterByDate(System.currentTimeMillis())
+                        }
                 )
             }
+            HorizontalDatePicker(
+                modifier = Modifier.fillMaxWidth(),
+                selectedTimestamp = state.selectedTimeTo,
+                onDateClick = viewModel::onFilterByDate
+            )
+            HorizontalDivider()
         }
-    } else {
-        NoInternetScreen(viewModel::checkInternetConnection)
+
+        if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                if (state.isLoading) {
+                    AppProgressIndicator()
+                } else if (state.groupedLocation.isEmpty()) {
+                    EmptyHistory()
+                } else {
+                    JourneyList(
+                        appending = state.appending,
+                        journeys = state.groupedLocation,
+                        onScrollToBottom = viewModel::loadMoreLocations,
+                        onAddPlaceClicked = viewModel::addPlace,
+                        showJourneyDetails = viewModel::showJourneyDetails,
+                        selectedMapStyle = state.selectedMapStyle
+                    )
+                }
+            }
+        } else {
+            NoInternetScreen(viewModel::checkInternetConnection)
+        }
     }
 }
 
