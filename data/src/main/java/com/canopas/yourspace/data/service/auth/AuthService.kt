@@ -102,17 +102,24 @@ class AuthService @Inject constructor(
     }
 
     suspend fun signOut() {
-        locationManager.stopLocationTracking()
-        currentUser = null
-        currentUserSession = null
-        userPreferences.isFCMRegistered = false
-        userPreferences.setOnboardShown(false)
-        userPreferences.currentSpace = ""
-        userPreferences.clearPasskey()
-        userPreferences.clearPrivateKey()
-        firebaseAuth.signOut()
-        locationManager.stopService()
-        locationCache.clear()
+        try {
+            locationManager.stopLocationTracking()
+            currentUser = null
+            currentUserSession = null
+            userPreferences.isFCMRegistered = false
+            userPreferences.setOnboardShown(false)
+            userPreferences.currentSpace = ""
+            userPreferences.clearPasskey()
+            userPreferences.clearPrivateKey()
+            firebaseAuth.signOut()
+            locationManager.stopService()
+            locationCache.clear()
+        } catch (e: Exception) {
+            throw SecurityException("Failed to completely sign out. Some sensitive data might not be cleared.")
+        } finally {
+            // Force garbage collection to clean up any sensitive data in memory
+            System.gc()
+        }
     }
 
     suspend fun deleteAccount() {
@@ -122,11 +129,12 @@ class AuthService @Inject constructor(
     }
 
     suspend fun generateAndSaveUserKeys(passKey: String) {
-        currentUser?.let {
-            val updatedUser = apiUserService.generateAndSaveUserKeys(currentUser!!, passKey)
-            updatedUser.identity_key_private?.toBytes()
-                ?.let { privateKey -> userPreferences.storePrivateKey(privateKey) }
+        val user = currentUser ?: throw IllegalStateException("No user logged in")
+        try {
+            val updatedUser = apiUserService.generateAndSaveUserKeys(user, passKey)
             currentUser = updatedUser
+        } catch (e: Exception) {
+            throw SecurityException("Failed to generate user keys", e)
         }
     }
 

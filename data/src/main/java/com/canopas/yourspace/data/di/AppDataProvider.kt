@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.canopas.yourspace.data.models.user.ApiUserSession
 import com.canopas.yourspace.data.storage.database.AppDatabase
+import com.canopas.yourspace.data.storage.database.MIGRATION_1_1
 import com.canopas.yourspace.data.storage.database.SenderKeyDao
 import com.canopas.yourspace.data.utils.Config
 import com.google.android.gms.location.GeofencingClient
@@ -68,7 +69,7 @@ class AppDataProvider {
             AppDatabase::class.java,
             DATABASE_NAME
         )
-            .fallbackToDestructiveMigration()
+            .addMigrations(MIGRATION_1_1)
             .build()
     }
 

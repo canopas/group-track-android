@@ -54,7 +54,7 @@ data class ApiSpaceInvitation(
 @Keep
 data class GroupKeysDoc(
     val docUpdatedAt: Long = System.currentTimeMillis(), // To be updated whenever users are added/removed
-    val senderKeys: Map<String, SenderKeyData> = emptyMap()
+    val memberKeys: Map<String, MemberKeyData> = emptyMap()
 )
 
 /*
@@ -62,8 +62,8 @@ data class GroupKeysDoc(
  * in Firestore for a single sender's key distribution.
  */
 @Keep
-data class SenderKeyData(
-    val senderDeviceId: Int = 0,
+data class MemberKeyData(
+    val memberDeviceId: Int = 0,
     val distributions: List<EncryptedDistribution> = emptyList(),
     val dataUpdatedAt: Long = System.currentTimeMillis() // To be updated whenever a new distribution is added
 )
@@ -78,4 +78,20 @@ data class EncryptedDistribution(
     val ephemeralPub: Blob = Blob.fromBytes(ByteArray(0)), // 32 bytes
     val iv: Blob = Blob.fromBytes(ByteArray(0)), // 12 bytes
     val ciphertext: Blob = Blob.fromBytes(ByteArray(0)) // AES/GCM ciphertext
-)
+) {
+    init {
+        validateFieldSizes()
+    }
+
+    private fun validateFieldSizes() {
+        require(ephemeralPub.toBytes().size == 33 || ephemeralPub.toBytes().isEmpty()) {
+            "Invalid size for ephemeralPub: expected 33 bytes, got ${ephemeralPub.toBytes().size} bytes."
+        }
+        require(iv.toBytes().size == 16 || iv.toBytes().isEmpty()) {
+            "Invalid size for iv: expected 16 bytes, got ${iv.toBytes().size} bytes."
+        }
+        require(ciphertext.toBytes().size <= 64 * 1024 || ciphertext.toBytes().isEmpty()) {
+            "Invalid size for ciphertext: maximum allowed size is 64 KB, got ${ciphertext.toBytes().size} bytes."
+        }
+    }
+}

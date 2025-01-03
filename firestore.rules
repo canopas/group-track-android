@@ -138,11 +138,6 @@ service cloud.firestore {
       allow delete: if isAuthorized() && isSpaceMember(spaceId);
     }
 
-    match /{path=**}/space_places/{place} {
-      allow read: if isAuthorized() && isSpaceMember(resource.data.space_id);
-      allow write: if false;
-    }
-
     match /spaces/{spaceId}/space_places/{place} {
       allow read: if isAuthorized() && isSpaceMember(spaceId);
       allow delete: if isAuthorized() &&
@@ -220,7 +215,7 @@ service cloud.firestore {
     match /spaces/{spaceId}/space_members/{docId} {
       match /user_locations/{docId} {
         allow read: if isAuthorized() &&
-          (request.auth.uid == resource.data.user_id || readUserLocation());
+          (request.auth.uid == resource.data.user_id || isSpaceMember(spaceId));
         allow update: if isAuthorized() && request.auth.uid == resource.data.user_id;
         allow delete: if isAuthorized() && request.auth.uid == resource.data.user_id;
         allow create: if isAuthorized() &&
@@ -235,8 +230,8 @@ service cloud.firestore {
 
       match /user_journeys/{docId} {
         allow read: if isAuthorized() &&
-          (request.auth.uid == resource.data.user_id || readUserLocation());
-        allow update: if true;
+          (request.auth.uid == resource.data.user_id || isSpaceMember(spaceId));
+        allow update: if isAuthorized() && request.auth.uid == resource.data.user_id;
         allow delete: if isAuthorized() && request.auth.uid == resource.data.user_id;
         allow create: if isAuthorized() &&
           request.auth.uid == request.resource.data.user_id &&

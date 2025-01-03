@@ -14,6 +14,11 @@ android {
         minSdk = 23
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments["room.schemaLocation"] = "$projectDir/schemas"
+            }
+        }
         consumerProguardFiles("consumer-rules.pro")
     }
 
@@ -81,7 +86,7 @@ dependencies {
     implementation("androidx.room:room-ktx:2.6.1")
 
     // Desugaring
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:1.1.6")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 
     // Place
     implementation("com.google.android.libraries.places:places:4.0.0")
@@ -89,9 +94,4 @@ dependencies {
     // Signal Protocol
     implementation("org.signal:libsignal-client:0.64.1")
     implementation("org.signal:libsignal-android:0.64.1")
-
-    // Bouncy-castle for Signal Protocol
-    implementation("org.bouncycastle:bcprov-jdk15on:1.70")
-
-    implementation("androidx.security:security-crypto:1.1.0-alpha03")
 }

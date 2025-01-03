@@ -38,6 +38,8 @@ class ApiJourneyService @Inject constructor(
     private val bufferedSenderKeyStore: BufferedSenderKeyStore
 ) {
     private val spaceRef = db.collection(FIRESTORE_COLLECTION_SPACES)
+    private val currentSpaceId: String
+        get() = userPreferences.currentSpace ?: ""
 
     private fun spaceMemberRef(spaceId: String) =
         spaceRef.document(spaceId.takeIf { it.isNotBlank() } ?: "null")
@@ -58,19 +60,19 @@ class ApiJourneyService @Inject constructor(
     ): Pair<SenderKeyDistributionMessage, GroupCipher>? {
         val snapshot = spaceGroupKeysRef(spaceId).get().await()
         val groupKeysDoc = snapshot.toObject(GroupKeysDoc::class.java) ?: return null
-        val senderKeyData = groupKeysDoc.senderKeys[userId] ?: return null
+        val memberKeyData = groupKeysDoc.memberKeys[userId] ?: return null
 
         val currentUser = userPreferences.currentUser ?: return null
         val privateKey = getCurrentUserPrivateKey(currentUser) ?: return null
 
         val distribution =
-            senderKeyData.distributions.firstOrNull { it.recipientId == currentUser.id }
+            memberKeyData.distributions.firstOrNull { it.recipientId == currentUser.id }
                 ?: return null
         val decryptedDistributionBytes =
             EphemeralECDHUtils.decrypt(distribution, privateKey) ?: return null
         val distributionMessage = SenderKeyDistributionMessage(decryptedDistributionBytes)
 
-        val groupAddress = SignalProtocolAddress(spaceId, senderKeyData.senderDeviceId)
+        val groupAddress = SignalProtocolAddress(spaceId, memberKeyData.memberDeviceId)
         bufferedSenderKeyStore.loadSenderKey(groupAddress, distributionMessage.distributionId)
 
         // Initialize the session
@@ -81,6 +83,21 @@ class ApiJourneyService @Inject constructor(
         } catch (e: Exception) {
             Timber.e(e, "Error processing group session for spaceId=$spaceId, userId=$userId")
             return null
+        }
+    }
+
+    private suspend fun <T> withGroupCipher(
+        userId: String,
+        block: suspend (GroupCipher) -> T?,
+        defaultValue: T
+    ): T {
+        val (_, groupCipher) = getGroupCipherAndDistributionMessage(currentSpaceId, userId)
+            ?: return defaultValue
+        return try {
+            block(groupCipher) ?: defaultValue
+        } catch (e: Exception) {
+            Timber.e(e, "Error executing operation for userId: $userId")
+            defaultValue
         }
     }
 
@@ -254,15 +271,8 @@ class ApiJourneyService @Inject constructor(
         }
     }
 
-    suspend fun getLastJourneyLocation(userId: String): LocationJourney? {
-        val currentSpaceId = userPreferences.currentSpace ?: return null
-        val cipherAndMessage = getGroupCipherAndDistributionMessage(currentSpaceId, userId) ?: run {
-            Timber.e("Failed to retrieve GroupCipher and DistributionMessage for spaceId: $currentSpaceId, userId: $userId")
-            return null
-        }
-        val (_, groupCipher) = cipherAndMessage
-
-        return try {
+    suspend fun getLastJourneyLocation(userId: String): LocationJourney? =
+        withGroupCipher(userId, { groupCipher ->
             spaceMemberJourneyRef(currentSpaceId, userId)
                 .whereEqualTo("user_id", userId)
                 .orderBy("created_at", Query.Direction.DESCENDING)
@@ -273,14 +283,9 @@ class ApiJourneyService @Inject constructor(
                 .firstOrNull()
                 ?.toObject<EncryptedLocationJourney>()
                 ?.toDecryptedLocationJourney(groupCipher)
-        } catch (e: Exception) {
-            Timber.e(e, "Error while getting last location journey for userId: $userId")
-            null
-        }
-    }
+        }, null)
 
     suspend fun getMoreJourneyHistory(userId: String, from: Long?): List<LocationJourney> {
-        val currentSpaceId = userPreferences.currentSpace ?: return emptyList()
         val cipherAndMessage = getGroupCipherAndDistributionMessage(currentSpaceId, userId) ?: run {
             Timber.e("Failed to retrieve GroupCipher and DistributionMessage for spaceId: $currentSpaceId, userId: $userId")
             return emptyList()
@@ -311,7 +316,6 @@ class ApiJourneyService @Inject constructor(
     }
 
     suspend fun getJourneyHistory(userId: String, from: Long, to: Long): List<LocationJourney> {
-        val currentSpaceId = userPreferences.currentSpace ?: return emptyList()
         val cipherAndMessage = getGroupCipherAndDistributionMessage(currentSpaceId, userId) ?: run {
             Timber.e("Failed to retrieve GroupCipher and DistributionMessage for spaceId: $currentSpaceId, userId: $userId")
             return emptyList()
@@ -352,7 +356,6 @@ class ApiJourneyService @Inject constructor(
     }
 
     suspend fun getLocationJourneyFromId(journeyId: String): LocationJourney? {
-        val currentSpaceId = userPreferences.currentSpace ?: return null
         val currentUser = userPreferences.currentUser ?: return null
         val cipherAndMessage =
             getGroupCipherAndDistributionMessage(currentSpaceId, currentUser.id) ?: run {

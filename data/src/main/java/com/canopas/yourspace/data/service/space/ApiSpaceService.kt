@@ -4,13 +4,12 @@ import com.canopas.yourspace.data.models.space.ApiSpace
 import com.canopas.yourspace.data.models.space.ApiSpaceMember
 import com.canopas.yourspace.data.models.space.EncryptedDistribution
 import com.canopas.yourspace.data.models.space.GroupKeysDoc
+import com.canopas.yourspace.data.models.space.MemberKeyData
 import com.canopas.yourspace.data.models.space.SPACE_MEMBER_ROLE_ADMIN
 import com.canopas.yourspace.data.models.space.SPACE_MEMBER_ROLE_MEMBER
-import com.canopas.yourspace.data.models.space.SenderKeyData
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.place.ApiPlaceService
 import com.canopas.yourspace.data.service.user.ApiUserService
-import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.storage.bufferedkeystore.BufferedSenderKeyStore
 import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_SPACES
 import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_SPACE_GROUP_KEYS
@@ -33,7 +32,6 @@ class ApiSpaceService @Inject constructor(
     private val authService: AuthService,
     private val apiUserService: ApiUserService,
     private val placeService: ApiPlaceService,
-    private val userPreferences: UserPreferences,
     private val bufferedSenderKeyStore: BufferedSenderKeyStore
 ) {
     private val spaceRef = db.collection(FIRESTORE_COLLECTION_SPACES)
@@ -99,9 +97,8 @@ class ApiSpaceService @Inject constructor(
      * for each member using their public key(ECDH).
      **/
     private suspend fun distributeSenderKeyToSpaceMembers(spaceId: String, senderUserId: String) {
-        val deviceId = userPreferences.currentUserSession?.device_id ?: ""
-        val deviceIdInt = deviceId.hashCode() and 0x7FFFFFFF
-        val groupAddress = SignalProtocolAddress(spaceId, deviceIdInt)
+        val deviceId = UUID.randomUUID().mostSignificantBits and 0x7FFFFFFF
+        val groupAddress = SignalProtocolAddress(spaceId, deviceId.toInt())
         val sessionBuilder = GroupSessionBuilder(bufferedSenderKeyStore)
         val distributionMessage = sessionBuilder.create(groupAddress, UUID.fromString(spaceId))
         val distributionBytes = distributionMessage.serialize()
@@ -111,31 +108,38 @@ class ApiSpaceService @Inject constructor(
 
         for (member in apiSpaceMembers) {
             val publicBlob = member.identity_key_public ?: continue
-            val publicKey = Curve.decodePoint(publicBlob.toBytes(), 0)
+            val publicKey = try {
+                val publicKeyBytes = publicBlob.toBytes()
+                if (publicKeyBytes.size != 33) { // Expected size for compressed EC public key
+                    Timber.e("Invalid public key size for member ${member.user_id}")
+                    continue
+                }
+                Curve.decodePoint(publicKeyBytes, 0)
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to decode public key for member ${member.user_id}")
+                continue
+            }
 
             // Encrypt distribution using member's public key
             distributions.add(EphemeralECDHUtils.encrypt(member.user_id, distributionBytes, publicKey))
         }
 
-        val docRef = spaceGroupKeysDoc(spaceId)
-        val snapshot = docRef.get().await()
-        val groupKeysDoc = snapshot.toObject(GroupKeysDoc::class.java) ?: GroupKeysDoc()
-
-        val oldSenderKeyData = groupKeysDoc.senderKeys[senderUserId] ?: SenderKeyData()
-        val newSenderKeyData = oldSenderKeyData.copy(
-            senderDeviceId = deviceIdInt,
-            distributions = distributions,
-            dataUpdatedAt = System.currentTimeMillis()
-        )
-        val updates = mapOf(
-            "senderKeys.$senderUserId" to newSenderKeyData.copy(
+        db.runTransaction { transaction ->
+            val docRef = spaceGroupKeysDoc(spaceId)
+            val snapshot = transaction.get(docRef)
+            val groupKeysDoc = snapshot.toObject(GroupKeysDoc::class.java) ?: GroupKeysDoc()
+            val oldMemberKeyData = groupKeysDoc.memberKeys[senderUserId] ?: MemberKeyData()
+            val newMemberKeyData = oldMemberKeyData.copy(
+                memberDeviceId = deviceId.toInt(),
+                distributions = distributions,
                 dataUpdatedAt = System.currentTimeMillis()
-            ),
-            "docUpdatedAt" to System.currentTimeMillis()
-        )
-
-        docRef.update(updates).await()
-
+            )
+            val updates = mapOf(
+                "memberKeys.$senderUserId" to newMemberKeyData,
+                "docUpdatedAt" to System.currentTimeMillis()
+            )
+            transaction.update(docRef, updates)
+        }.await()
         Timber.d("Sender key distribution updated for $senderUserId in space $spaceId")
     }
 
@@ -202,9 +206,13 @@ class ApiSpaceService @Inject constructor(
     suspend fun generateAndDistributeSenderKeysForExistingSpaces(spaceIds: List<String>) {
         val userId = authService.currentUser?.id ?: return
         spaceIds.forEach { spaceId ->
-            val emptyGroupKeys = GroupKeysDoc()
-            spaceGroupKeysDoc(spaceId).set(emptyGroupKeys).await()
-            distributeSenderKeyToSpaceMembers(spaceId, userId)
+            try {
+                val emptyGroupKeys = GroupKeysDoc()
+                spaceGroupKeysDoc(spaceId).set(emptyGroupKeys).await()
+                distributeSenderKeyToSpaceMembers(spaceId, userId)
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to distribute sender key for space $spaceId")
+            }
         }
     }
 }

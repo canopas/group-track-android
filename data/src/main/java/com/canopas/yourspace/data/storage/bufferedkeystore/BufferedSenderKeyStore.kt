@@ -4,11 +4,14 @@ import com.canopas.yourspace.data.models.user.ApiSenderKeyRecord
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.storage.database.SenderKeyDao
 import com.canopas.yourspace.data.storage.database.SenderKeyEntity
+import com.canopas.yourspace.data.utils.AppDispatcher
 import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_SPACES
 import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_SPACE_MEMBERS
 import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_USER_SENDER_KEY_RECORD
 import com.google.firebase.firestore.Blob
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import org.signal.libsignal.protocol.SignalProtocolAddress
@@ -26,7 +29,8 @@ import javax.inject.Singleton
 class BufferedSenderKeyStore @Inject constructor(
     db: FirebaseFirestore,
     @Named("sender_key_dao") private val senderKeyDao: SenderKeyDao,
-    private val userPreferences: UserPreferences
+    private val userPreferences: UserPreferences,
+    private val appDispatcher: AppDispatcher
 ) : SignalServiceSenderKeyStore {
 
     private val spaceRef = db.collection(FIRESTORE_COLLECTION_SPACES)
@@ -44,10 +48,14 @@ class BufferedSenderKeyStore @Inject constructor(
     private val sharedWithAddresses: MutableSet<SignalProtocolAddress> = mutableSetOf()
 
     private suspend fun saveSenderKeyToServer(senderKeyRecord: ApiSenderKeyRecord) {
-        val currentUser = userPreferences.currentUser ?: return
-        val uniqueDocId = "${senderKeyRecord.deviceId}-${senderKeyRecord.distributionId}"
-        spaceSenderKeyRecordRef(senderKeyRecord.distributionId, currentUser.id)
-            .document(uniqueDocId).set(senderKeyRecord).await()
+        try {
+            val currentUser = userPreferences.currentUser ?: return
+            val uniqueDocId = "${senderKeyRecord.deviceId}-${senderKeyRecord.distributionId}"
+            spaceSenderKeyRecordRef(senderKeyRecord.distributionId, currentUser.id)
+                .document(uniqueDocId).set(senderKeyRecord).await()
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to save sender key to server: $senderKeyRecord")
+        }
     }
 
     override fun storeSenderKey(
@@ -56,12 +64,12 @@ class BufferedSenderKeyStore @Inject constructor(
         record: SenderKeyRecord
     ) {
         val key = StoreKey(sender, distributionId, sender.deviceId)
-        if (inMemoryStore.any { it.key.address.deviceId == sender.deviceId && it.key.distributionId == distributionId }) {
+        if (inMemoryStore.containsKey(key)) {
             return
         }
         inMemoryStore[key] = record
 
-        runBlocking {
+        CoroutineScope(appDispatcher.IO).launch {
             senderKeyDao.insertSenderKey(
                 SenderKeyEntity(
                     address = sender.name,
@@ -134,7 +142,7 @@ class BufferedSenderKeyStore @Inject constructor(
 
     override fun clearSenderKeySharedWith(addresses: Collection<SignalProtocolAddress?>?) {
         addresses?.forEach { address ->
-            address?.let { sharedWithAddresses.add(it) }
+            address?.let { sharedWithAddresses.remove(it) }
         }
     }
 

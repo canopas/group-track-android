@@ -19,8 +19,8 @@ data class LocationJourney(
     val route_distance: Double? = null,
     val route_duration: Long? = null,
     val routes: List<JourneyRoute> = emptyList(),
-    val created_at: Long? = System.currentTimeMillis(),
-    val update_at: Long? = System.currentTimeMillis()
+    val created_at: Long = System.currentTimeMillis(),
+    val update_at: Long = System.currentTimeMillis()
 )
 
 @Keep
@@ -35,8 +35,8 @@ data class EncryptedLocationJourney(
     val route_distance: Double? = null,
     val route_duration: Long? = null,
     val encrypted_routes: List<EncryptedJourneyRoute> = emptyList(), // Encrypted journey routes
-    val created_at: Long? = System.currentTimeMillis(),
-    val updated_at: Long? = System.currentTimeMillis()
+    val created_at: Long = System.currentTimeMillis(),
+    val updated_at: Long = System.currentTimeMillis()
 )
 
 @Keep

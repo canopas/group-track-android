@@ -14,10 +14,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
+import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.OtpInputField
 import com.canopas.yourspace.ui.component.PrimaryButton
 
@@ -53,8 +53,14 @@ private fun SetPinContent(modifier: Modifier) {
     val viewModel = hiltViewModel<SetPinViewModel>()
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
-    val lengthErrorText by remember {
-        mutableStateOf(context.getString(R.string.set_pin_error_text_length))
+    var pinErrorText = ""
+
+    LaunchedEffect(state.pinError) {
+        pinErrorText = when (state.pinError) {
+            PinErrorState.LENGTH_ERROR -> context.getString(R.string.set_pin_error_text_length)
+            PinErrorState.CHARACTERS_ERROR -> context.getString(R.string.set_pin_error_characters_input)
+            else -> ""
+        }
     }
 
     Column(
@@ -91,8 +97,8 @@ private fun SetPinContent(modifier: Modifier) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = state.pinError ?: "",
-            color = if (!state.pinError.isNullOrEmpty()) MaterialTheme.colorScheme.error else Color.Transparent,
+            text = pinErrorText,
+            color = if (pinErrorText.isNotEmpty()) MaterialTheme.colorScheme.error else Color.Transparent,
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(top = 8.dp)
         )
@@ -102,11 +108,19 @@ private fun SetPinContent(modifier: Modifier) {
         PrimaryButton(
             label = stringResource(R.string.set_pin_button_text),
             onClick = {
-                viewModel.processPin(lengthErrorText)
+                viewModel.processPin()
             },
-            enabled = state.pin != "" && state.pinError == "",
+            enabled = state.pin != "" && state.pinError == null,
             modifier = Modifier.fillMaxWidth(),
             showLoader = state.showLoader
         )
+    }
+
+    if (state.error != null) {
+        AppBanner(
+            msg = stringResource(R.string.common_something_went_wrong_error)
+        ) {
+            viewModel.onPinChanged("")
+        }
     }
 }

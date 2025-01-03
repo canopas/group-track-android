@@ -45,7 +45,7 @@ object EphemeralECDHUtils {
         val cipherKey: ByteArray = computeCipherKey(masterSecret, syntheticIv)
 
         val cipher = Cipher.getInstance("AES/CTR/NoPadding")
-        cipher.init(Cipher.ENCRYPT_MODE, SecretKeySpec(cipherKey, "AES"), IvParameterSpec(ByteArray(16)))
+        cipher.init(Cipher.ENCRYPT_MODE, SecretKeySpec(cipherKey, "AES"), IvParameterSpec(syntheticIv))
         val cipherText = cipher.doFinal(plaintext)
 
         return EncryptedDistribution(
@@ -81,7 +81,7 @@ object EphemeralECDHUtils {
             val cipherKey = mac.doFinal(syntheticIv)
 
             val cipher = Cipher.getInstance("AES/CTR/NoPadding")
-            cipher.init(Cipher.DECRYPT_MODE, SecretKeySpec(cipherKey, "AES"), IvParameterSpec(ByteArray(16)))
+            cipher.init(Cipher.DECRYPT_MODE, SecretKeySpec(cipherKey, "AES"), IvParameterSpec(syntheticIv))
             val plaintext = cipher.doFinal(cipherText)
 
             mac.init(SecretKeySpec(masterSecret, "HmacSHA256"))

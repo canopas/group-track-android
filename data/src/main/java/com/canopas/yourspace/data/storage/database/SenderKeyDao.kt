@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import org.signal.libsignal.protocol.groups.state.SenderKeyRecord
+import timber.log.Timber
 
 @Dao
 interface SenderKeyDao {
@@ -37,6 +38,7 @@ interface SenderKeyDao {
             try {
                 SenderKeyRecord(it.record)
             } catch (e: Exception) {
+                Timber.e(e, "Failed to create SenderKeyRecord.")
                 null
             }
         }

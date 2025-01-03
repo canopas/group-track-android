@@ -12,7 +12,7 @@ import kotlin.random.Random
 private const val AES_ALGORITHM = "AES/GCM/NoPadding"
 private const val KEY_DERIVATION_ALGORITHM = "PBKDF2WithHmacSHA256"
 private const val KEY_SIZE = 256 // bits
-private const val ITERATION_COUNT = 10000
+private const val ITERATION_COUNT = 100000
 private const val GCM_IV_SIZE = 12 // bytes
 private const val GCM_TAG_SIZE = 128 // bits
 

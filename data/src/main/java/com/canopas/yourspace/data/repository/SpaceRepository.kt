@@ -257,6 +257,11 @@ class SpaceRepository @Inject constructor(
     }
 
     suspend fun generateAndDistributeSenderKeysForExistingSpaces(spaceIds: List<String>) {
-        spaceService.generateAndDistributeSenderKeysForExistingSpaces(spaceIds)
+        try {
+            spaceService.generateAndDistributeSenderKeysForExistingSpaces(spaceIds)
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to generate and distribute sender keys")
+            throw e
+        }
     }
 }
