@@ -65,7 +65,7 @@ class SetPinViewModel @Inject constructor(
             val userSpaces = userId?.let {
                 spaceRepository.getUserSpaces(it)
             }
-            val userHasSpaces = userSpaces?.firstOrNull() != null
+            val userHasSpaces = userSpaces?.firstOrNull() != null && userSpaces.firstOrNull()?.isNotEmpty() == true
             if (userHasSpaces) {
                 userPreferences.setOnboardShown(true)
                 spaceRepository.generateAndDistributeSenderKeysForExistingSpaces(

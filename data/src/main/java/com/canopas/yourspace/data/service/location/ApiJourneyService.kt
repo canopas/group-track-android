@@ -76,13 +76,12 @@ class ApiJourneyService @Inject constructor(
         // Initialize the session
         try {
             GroupSessionBuilder(bufferedSenderKeyStore).process(groupAddress, distributionMessage)
+            val groupCipher = GroupCipher(bufferedSenderKeyStore, groupAddress)
+            return Pair(distributionMessage, groupCipher)
         } catch (e: Exception) {
             Timber.e(e, "Error processing group session for spaceId=$spaceId, userId=$userId")
             return null
         }
-
-        val groupCipher = GroupCipher(bufferedSenderKeyStore, groupAddress)
-        return Pair(distributionMessage, groupCipher)
     }
 
     /**

@@ -45,8 +45,9 @@ class BufferedSenderKeyStore @Inject constructor(
 
     private suspend fun saveSenderKeyToServer(senderKeyRecord: ApiSenderKeyRecord) {
         val currentUser = userPreferences.currentUser ?: return
+        val uniqueDocId = "${senderKeyRecord.deviceId}-${senderKeyRecord.distributionId}"
         spaceSenderKeyRecordRef(senderKeyRecord.distributionId, currentUser.id)
-            .document(senderKeyRecord.distributionId).set(senderKeyRecord).await()
+            .document(uniqueDocId).set(senderKeyRecord).await()
     }
 
     override fun storeSenderKey(
