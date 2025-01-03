@@ -1,6 +1,6 @@
 package com.canopas.yourspace.ui.flow.journey.timeline
 
-import androidx.compose.foundation.clickable
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -31,6 +31,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -64,6 +65,12 @@ fun JourneyTimelineScreen() {
 fun TimelineTopBar() {
     val viewModel = hiltViewModel<JourneyTimelineViewModel>()
     val state by viewModel.state.collectAsState()
+
+    val dropDownArrowRotation by
+    animateFloatAsState(
+        targetValue = if (state.showDatePicker) 0f else 180f,
+        label = ""
+    )
 
     val title =
         if (state.selectedUser == null) {
@@ -108,7 +115,8 @@ fun TimelineTopBar() {
                         Icon(
                             imageVector = Icons.Default.KeyboardArrowUp,
                             contentDescription = "",
-                            tint = AppTheme.colorScheme.textPrimary
+                            tint = AppTheme.colorScheme.textPrimary,
+                            modifier = Modifier.rotate(dropDownArrowRotation)
                         )
                     } else {
                         Icon(
@@ -134,19 +142,6 @@ private fun TimelineContent(modifier: Modifier) {
 
     Column(modifier = modifier.fillMaxSize()) {
         if (state.showDatePicker) {
-            if (state.selectedTimeFrom != System.currentTimeMillis()) {
-                Text(
-                    stringResource(R.string.today),
-                    style = AppTheme.appTypography.header4,
-                    color = AppTheme.colorScheme.primary,
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .clickable {
-                            viewModel.onFilterByDate(System.currentTimeMillis())
-                        }
-                        .align(Alignment.End)
-                )
-            }
             HorizontalDatePicker(
                 modifier = Modifier.fillMaxWidth(),
                 selectedTimestamp = state.selectedTimeTo,

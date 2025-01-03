@@ -1,5 +1,10 @@
 package com.canopas.yourspace.ui.component
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -22,7 +27,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.canopas.yourspace.ui.theme.AppTheme
@@ -44,21 +48,30 @@ fun HorizontalDatePicker(
     var selectedDate by remember { mutableLongStateOf(currentTimestamp) }
 
     val dateRange = generateDateRange(selectedDate)
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .wrapContentHeight()
-            .padding(16.dp)
+    AnimatedVisibility(
+        visible = true,
+        enter = slideInVertically { -it } + fadeIn(),
+        exit = slideOutVertically { -it } + fadeOut()
     ) {
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxWidth(),
-            reverseLayout = true
+        Box(
+            modifier = modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .padding(16.dp)
         ) {
-            items(dateRange.size) { index ->
-                DateCard(date = dateRange[index], isSelected = dateRange[index] == selectedDate) {
-                    selectedDate = dateRange[index]
-                    onDateClick(selectedDate)
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth(),
+                reverseLayout = true
+            ) {
+                items(dateRange.size) { index ->
+                    DateCard(
+                        date = dateRange[index],
+                        isSelected = dateRange[index] == selectedDate
+                    ) {
+                        selectedDate = dateRange[index]
+                        onDateClick(selectedDate)
+                    }
                 }
             }
         }
@@ -73,7 +86,6 @@ fun DateCard(
 ) {
     val dayOfWeek = SimpleDateFormat("EEE", Locale.getDefault()).format(date)
     val day = SimpleDateFormat("dd", Locale.getDefault()).format(date)
-    val month = SimpleDateFormat("MMM", Locale.getDefault()).format(date)
 
     Card(
         modifier = Modifier
@@ -87,27 +99,21 @@ fun DateCard(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
             modifier = Modifier
-                .background(if (isSelected) AppTheme.colorScheme.primary else AppTheme.colorScheme.containerInverseHigh)
+                .background(if (isSelected) AppTheme.colorScheme.primary else AppTheme.colorScheme.secondaryInverseVariant)
                 .padding(8.dp)
         ) {
             Text(
                 text = dayOfWeek,
-                style = AppTheme.appTypography.body2,
+                style = AppTheme.appTypography.label3,
                 modifier = Modifier.padding(4.dp),
-                color = if (isSelected) AppTheme.colorScheme.textInversePrimary else Color.White
+                color = if (isSelected) AppTheme.colorScheme.textInversePrimary else AppTheme.colorScheme.textPrimary
             )
             Text(
                 text = day,
-                style = AppTheme.appTypography.header4,
+                style = AppTheme.appTypography.label1,
                 fontWeight = FontWeight.Bold,
-                color = if (isSelected) AppTheme.colorScheme.textInversePrimary else Color.White,
+                color = if (isSelected) AppTheme.colorScheme.textInversePrimary else AppTheme.colorScheme.textPrimary,
                 modifier = Modifier.padding(horizontal = 8.dp)
-            )
-            Text(
-                text = month,
-                style = AppTheme.appTypography.body2,
-                modifier = Modifier.padding(4.dp),
-                color = if (isSelected) AppTheme.colorScheme.textInversePrimary else Color.White
             )
         }
     }
