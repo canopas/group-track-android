@@ -136,7 +136,7 @@ private fun TimelineContent(modifier: Modifier) {
         if (state.showDatePicker) {
             if (state.selectedTimeFrom != System.currentTimeMillis()) {
                 Text(
-                    "Today",
+                    stringResource(R.string.today),
                     style = AppTheme.appTypography.header4,
                     color = AppTheme.colorScheme.primary,
                     modifier = Modifier
@@ -144,6 +144,7 @@ private fun TimelineContent(modifier: Modifier) {
                         .clickable {
                             viewModel.onFilterByDate(System.currentTimeMillis())
                         }
+                        .align(Alignment.End)
                 )
             }
             HorizontalDatePicker(
