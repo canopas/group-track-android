@@ -15,11 +15,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
@@ -34,20 +36,25 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
+private const val DAYS_IN_YEAR = 365
+
 @Composable
 fun HorizontalDatePicker(
     modifier: Modifier,
-    selectedTimestamp: Long? = System.currentTimeMillis(),
+    selectedTimestamp: Long? = null,
     onDateClick: (Long) -> Unit
 ) {
     val currentTimestamp = selectedTimestamp ?: System.currentTimeMillis()
 
-    val calendar = Calendar.getInstance()
-    calendar.timeInMillis = currentTimestamp
-
     var selectedDate by remember { mutableLongStateOf(currentTimestamp) }
 
-    val dateRange = generateDateRange(selectedDate)
+    val dateRange = generateDateRange(selectedDate).reversed()
+    val listState = rememberLazyListState()
+    val selectedDateIndex = dateRange.indexOf(selectedDate)
+    LaunchedEffect(selectedDate) {
+        listState.scrollToItem(selectedDateIndex)
+    }
+
     AnimatedVisibility(
         visible = true,
         enter = slideInVertically { -it } + fadeIn(),
@@ -60,6 +67,7 @@ fun HorizontalDatePicker(
                 .padding(16.dp)
         ) {
             LazyRow(
+                state = listState,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth(),
                 reverseLayout = true
@@ -125,9 +133,18 @@ fun generateDateRange(selectedDate: Long): List<Long> {
 
     val dateRange = mutableListOf<Long>()
 
-    for (i in 0 until 365) {
-        dateRange.add(calendar.timeInMillis)
+    repeat(DAYS_IN_YEAR) {
         calendar.add(Calendar.DATE, -1)
+        dateRange.add(0, calendar.timeInMillis)
+    }
+
+    dateRange.add(selectedDate)
+
+    calendar.timeInMillis = selectedDate
+
+    repeat(DAYS_IN_YEAR) {
+        calendar.add(Calendar.DATE, 1)
+        dateRange.add(calendar.timeInMillis)
     }
 
     return dateRange
