@@ -2,6 +2,7 @@ package com.canopas.yourspace.data.service.location
 
 import com.canopas.yourspace.data.models.location.EncryptedLocationJourney
 import com.canopas.yourspace.data.models.location.JourneyRoute
+import com.canopas.yourspace.data.models.location.JourneyType
 import com.canopas.yourspace.data.models.location.LocationJourney
 import com.canopas.yourspace.data.models.location.toDecryptedLocationJourney
 import com.canopas.yourspace.data.models.location.toEncryptedLocationJourney
@@ -129,6 +130,7 @@ class ApiJourneyService @Inject constructor(
         routes: List<JourneyRoute> = emptyList(),
         createdAt: Long? = null,
         updateAt: Long? = null,
+        type: JourneyType? = null,
         newJourneyId: ((String) -> Unit)? = null
     ) {
         userPreferences.currentUser?.space_ids?.forEach { spaceId ->
@@ -149,7 +151,8 @@ class ApiJourneyService @Inject constructor(
                 route_duration = routeDuration,
                 routes = routes,
                 created_at = createdAt ?: System.currentTimeMillis(),
-                updated_at = updateAt ?: System.currentTimeMillis()
+                updated_at = updateAt ?: System.currentTimeMillis(),
+                type = type
             )
 
             val docRef = spaceMemberJourneyRef(spaceId, userId).document(journey.id)

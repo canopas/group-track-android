@@ -21,7 +21,8 @@ data class LocationJourney(
     val route_duration: Long? = null,
     val routes: List<JourneyRoute> = emptyList(),
     val created_at: Long = System.currentTimeMillis(),
-    val updated_at: Long = System.currentTimeMillis()
+    val updated_at: Long = System.currentTimeMillis(),
+    val type: JourneyType? = null
 )
 
 @Keep
@@ -37,7 +38,8 @@ data class EncryptedLocationJourney(
     val route_duration: Long? = null,
     val routes: List<EncryptedJourneyRoute> = emptyList(), // Encrypted journey routes
     val created_at: Long = System.currentTimeMillis(),
-    val updated_at: Long = System.currentTimeMillis()
+    val updated_at: Long = System.currentTimeMillis(),
+    val type: JourneyType? = null
 )
 
 @Keep
@@ -55,11 +57,11 @@ fun Location.toRoute(): JourneyRoute {
 }
 
 fun JourneyRoute.toLatLng() = LatLng(latitude, longitude)
-fun LocationJourney.toRoute() =
-    if (isSteadyLocation()) {
-        emptyList()
-    } else {
-        listOf(
+fun LocationJourney.toRoute(): List<LatLng> {
+    if (isSteadyJourney()) {
+        return emptyList()
+    } else if (isMovingJourney()) {
+        val result = listOf(
             LatLng(
                 from_latitude,
                 from_longitude
@@ -67,10 +69,24 @@ fun LocationJourney.toRoute() =
         ) + routes.map { it.toLatLng() } + listOf(
             LatLng(to_latitude ?: 0.0, to_longitude ?: 0.0)
         )
+        return result
+    } else {
+        return emptyList()
     }
+}
 
-fun LocationJourney.isSteadyLocation(): Boolean {
-    return to_latitude == null && to_longitude == null
+fun LocationJourney.isSteadyJourney(): Boolean {
+    if (type != null) {
+        return type == JourneyType.STEADY
+    }
+    return to_latitude == null || to_longitude == null
+}
+
+fun LocationJourney.isMovingJourney(): Boolean {
+    if (type != null) {
+        return type == JourneyType.MOVING
+    }
+    return to_latitude != null && to_longitude != null
 }
 
 fun LocationJourney.toLocationFromSteadyJourney() = Location("").apply {
@@ -89,6 +105,11 @@ fun Location.toLocationJourney(userId: String, journeyId: String) = LocationJour
     from_latitude = latitude,
     from_longitude = longitude
 )
+
+enum class JourneyType {
+    MOVING,
+    STEADY
+}
 
 /**
  * Convert an [EncryptedLocationJourney] to a [LocationJourney] using the provided [GroupCipher]

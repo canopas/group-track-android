@@ -326,7 +326,7 @@ class SpaceProfileViewModelTest {
         whenever(authService.currentUser).thenReturn(user1)
         setup()
         viewModel.deleteSpace()
-        verify(navigator).navigateBack(AppDestinations.home.path)
+        verify(navigator).navigateBack()
     }
 
     @Test
@@ -369,7 +369,7 @@ class SpaceProfileViewModelTest {
         whenever(authService.currentUser).thenReturn(user1)
         setup()
         viewModel.leaveSpace()
-        verify(navigator).navigateBack(AppDestinations.home.path)
+        verify(navigator).navigateBack()
     }
 
     @Test

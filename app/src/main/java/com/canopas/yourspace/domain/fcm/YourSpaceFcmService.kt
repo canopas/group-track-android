@@ -209,7 +209,7 @@ class YourSpaceFcmService : FirebaseMessagingService() {
         )
 
         val nBuilder = NotificationCompat.Builder(this, YOURSPACE_CHANNEL_PLACES)
-            .setSmallIcon(R.drawable.app_logo)
+            .setSmallIcon(R.drawable.ic_app_logo)
             .setContentTitle(title)
             .setContentText(body)
             .setAutoCancel(true)
@@ -247,7 +247,7 @@ class YourSpaceFcmService : FirebaseMessagingService() {
         )
 
         val nBuilder = NotificationCompat.Builder(this, YOURSPACE_CHANNEL_PLACES)
-            .setSmallIcon(R.drawable.app_logo)
+            .setSmallIcon(R.drawable.ic_app_logo)
             .setContentTitle(title)
             .setContentText(body)
             .setAutoCancel(true)

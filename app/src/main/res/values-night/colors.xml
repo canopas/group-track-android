@@ -8,4 +8,6 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="surface">#000000</color>
+    <color name="icon_eye_color">#FFFFFF</color>
+    <color name="icon_primary_color">#FF74BFE4</color>
 </resources>

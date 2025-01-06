@@ -118,7 +118,7 @@ private fun MemberProfileView(profileUrl: String?, name: String, user: ApiUser?)
             if (profileUrl.isNullOrEmpty()) {
                 Text(
                     name,
-                    style = AppTheme.appTypography.header4.copy(color = AppTheme.colorScheme.onPrimary)
+                    style = AppTheme.appTypography.header4.copy(color = AppTheme.colorScheme.textInversePrimary)
                 )
             } else {
                 val painter = rememberAsyncImagePainter(

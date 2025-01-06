@@ -175,6 +175,11 @@ class SpaceRepository @Inject constructor(
         return code?.code
     }
 
+    suspend fun getCurrentSpaceInviteCodeExpireTime(spaceId: String): Long? {
+        val code = invitationService.getSpaceInviteCode(spaceId)
+        return code?.created_at
+    }
+
     suspend fun enableLocation(spaceId: String, userId: String, locationEnabled: Boolean) {
         spaceService.enableLocation(spaceId, userId, locationEnabled)
     }
@@ -215,12 +220,14 @@ class SpaceRepository @Inject constructor(
     suspend fun leaveSpace(spaceId: String) {
         val userId = authService.currentUser?.id ?: ""
         spaceService.removeUserFromSpace(spaceId, userId)
-        val spaces = getUserSpaces(userId)
-        currentSpaceId = spaces.firstOrNull()?.sortedBy { it.created_at }?.firstOrNull()?.id
-            ?: ""
-        val idList = spaces.firstOrNull()?.map { it.id } ?: emptyList()
-        val newUser = authService.currentUser?.copy(space_ids = idList)
-        newUser?.let { authService.updateUser(it) }
+        val user = userService.getUser(userId)
+        val updatedSpaceIds = user?.space_ids?.toMutableList()?.apply {
+            remove(spaceId)
+        } ?: return
+
+        user.copy(space_ids = updatedSpaceIds).let {
+            userService.updateUser(it)
+        }
     }
 
     suspend fun updateSpace(newSpace: ApiSpace) {

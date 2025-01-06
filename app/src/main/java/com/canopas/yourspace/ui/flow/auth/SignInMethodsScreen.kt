@@ -139,6 +139,7 @@ private fun GoogleSignInBtn() {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
+        containerColor = Color.White,
         showLoader = state.showGoogleLoading,
         label = stringResource(id = R.string.sign_in_btn_continue_with_google),
         icon = {
