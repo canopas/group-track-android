@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -23,36 +24,57 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.canopas.yourspace.ui.flow.journey.timeline.component.CalendarDataSource
+import com.canopas.yourspace.ui.flow.journey.timeline.component.CalendarUiModel
 import com.canopas.yourspace.ui.theme.AppTheme
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Locale
-
-private const val DAYS_IN_YEAR = 365
+import java.time.LocalDate
 
 @Composable
 fun HorizontalDatePicker(
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     selectedTimestamp: Long? = null,
     onDateClick: (Long) -> Unit
 ) {
-    val currentTimestamp = selectedTimestamp ?: System.currentTimeMillis()
+    val calendarDataSource = remember { CalendarDataSource() }
+    val today = calendarDataSource.today
+    val initialSelectedDate = selectedTimestamp?.let {
+        LocalDate.ofEpochDay(it / (24 * 60 * 60 * 1000))
+    } ?: today
 
-    var selectedDate by remember { mutableLongStateOf(currentTimestamp) }
-
-    val dateRange = generateDateRange(selectedDate).reversed()
+    var currentList by remember {
+        mutableStateOf(calendarDataSource.getDatesBetween(today.minusDays(15), today.plusDays(15)))
+    }
+    var selectedDate by remember { mutableStateOf(initialSelectedDate) }
     val listState = rememberLazyListState()
-    val selectedDateIndex = dateRange.indexOf(selectedDate)
-    LaunchedEffect(selectedDate) {
-        listState.scrollToItem(selectedDateIndex)
+
+    LaunchedEffect(selectedDate, Unit) {
+        val selectedIndex = currentList.indexOf(selectedDate)
+        if (selectedIndex >= 0) {
+            listState.scrollToItem(selectedIndex)
+        }
+    }
+
+    LaunchedEffect(listState.firstVisibleItemIndex) {
+        when {
+            listState.firstVisibleItemIndex == 0 -> {
+                val updatedModel =
+                    calendarDataSource.getData(currentList, selectedDate, isScrollUp = true)
+                currentList = (updatedModel.visibleDates.map { it.date } + currentList).distinct()
+            }
+
+            listState.firstVisibleItemIndex + listState.layoutInfo.visibleItemsInfo.size == currentList.size -> {
+                val updatedModel =
+                    calendarDataSource.getData(currentList, selectedDate, isScrollUp = false)
+                currentList = (currentList + updatedModel.visibleDates.map { it.date }).distinct()
+            }
+        }
     }
 
     AnimatedVisibility(
@@ -69,17 +91,17 @@ fun HorizontalDatePicker(
             LazyRow(
                 state = listState,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxWidth(),
-                reverseLayout = true
+                modifier = modifier.fillMaxWidth()
             ) {
-                items(dateRange.size) { index ->
+                items(currentList) { date ->
+                    val isSelected = date == selectedDate
                     DateCard(
-                        date = dateRange[index],
-                        isSelected = dateRange[index] == selectedDate
-                    ) {
-                        selectedDate = dateRange[index]
-                        onDateClick(selectedDate)
-                    }
+                        date = CalendarUiModel.Date(date, isSelected, date == today),
+                        onClick = {
+                            selectedDate = date
+                            onDateClick(date.toEpochDay() * 24 * 60 * 60 * 1000)
+                        }
+                    )
                 }
             }
         }
@@ -88,64 +110,36 @@ fun HorizontalDatePicker(
 
 @Composable
 fun DateCard(
-    date: Long,
-    isSelected: Boolean,
+    date: CalendarUiModel.Date,
     onClick: () -> Unit
 ) {
-    val dayOfWeek = SimpleDateFormat("EEE", Locale.getDefault()).format(date)
-    val day = SimpleDateFormat("dd", Locale.getDefault()).format(date)
-
     Card(
         modifier = Modifier
             .wrapContentSize()
             .padding(4.dp)
             .clip(RoundedCornerShape(8.dp))
             .clickable { onClick() },
-        elevation = CardDefaults.cardElevation(if (isSelected) 8.dp else 4.dp)
+        elevation = CardDefaults.cardElevation(if (date.isSelected) 8.dp else 4.dp)
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
             modifier = Modifier
-                .background(if (isSelected) AppTheme.colorScheme.primary else AppTheme.colorScheme.secondaryInverseVariant)
+                .background(if (date.isSelected) AppTheme.colorScheme.primary else AppTheme.colorScheme.secondaryInverseVariant)
                 .padding(8.dp)
         ) {
             Text(
-                text = dayOfWeek,
+                text = date.day,
                 style = AppTheme.appTypography.label3,
                 modifier = Modifier.padding(4.dp),
-                color = if (isSelected) AppTheme.colorScheme.textInversePrimary else AppTheme.colorScheme.textPrimary
+                color = if (date.isSelected) AppTheme.colorScheme.textInversePrimary else AppTheme.colorScheme.textPrimary
             )
             Text(
-                text = day,
+                text = date.date.dayOfMonth.toString(),
                 style = AppTheme.appTypography.label1,
-                fontWeight = FontWeight.Bold,
-                color = if (isSelected) AppTheme.colorScheme.textInversePrimary else AppTheme.colorScheme.textPrimary,
+                color = if (date.isSelected) AppTheme.colorScheme.textInversePrimary else AppTheme.colorScheme.textPrimary,
                 modifier = Modifier.padding(horizontal = 8.dp)
             )
         }
     }
-}
-
-fun generateDateRange(selectedDate: Long): List<Long> {
-    val calendar = Calendar.getInstance()
-    calendar.timeInMillis = selectedDate
-
-    val dateRange = mutableListOf<Long>()
-
-    repeat(DAYS_IN_YEAR) {
-        calendar.add(Calendar.DATE, -1)
-        dateRange.add(0, calendar.timeInMillis)
-    }
-
-    dateRange.add(selectedDate)
-
-    calendar.timeInMillis = selectedDate
-
-    repeat(DAYS_IN_YEAR) {
-        calendar.add(Calendar.DATE, 1)
-        dateRange.add(calendar.timeInMillis)
-    }
-
-    return dateRange
 }
