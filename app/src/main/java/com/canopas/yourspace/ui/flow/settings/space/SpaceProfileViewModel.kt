@@ -128,7 +128,7 @@ class SpaceProfileViewModel @Inject constructor(
         val diffInMillis = expireTimeMillis - currentTimeMillis
 
         if (diffInMillis <= 0) {
-            Timber.e("XXX :- The invite code is expired.")
+            Timber.e("The invite code is expired.")
             return "Expired"
         }
 
@@ -195,7 +195,7 @@ class SpaceProfileViewModel @Inject constructor(
                 )
             )
             spaceRepository.deleteSpace(spaceID)
-            navigator.navigateBack(AppDestinations.home.path)
+            navigator.navigateBack()
         } catch (e: Exception) {
             Timber.e(e, "Failed to delete space")
             _state.emit(
@@ -217,7 +217,7 @@ class SpaceProfileViewModel @Inject constructor(
                 )
             )
             spaceRepository.leaveSpace(spaceID)
-            navigator.navigateBack(AppDestinations.home.path)
+            navigator.navigateBack()
         } catch (e: Exception) {
             Timber.e(e, "Failed to leave space")
             _state.emit(
