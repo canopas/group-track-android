@@ -19,11 +19,19 @@ data class LocationJourney(
     val route_duration: Long? = null,
     val routes: List<JourneyRoute> = emptyList(),
     val created_at: Long? = System.currentTimeMillis(),
-    val update_at: Long? = System.currentTimeMillis()
+    val updated_at: Long? = System.currentTimeMillis()
 )
 
 @Keep
 data class JourneyRoute(val latitude: Double = 0.0, val longitude: Double = 0.0)
+
+/**
+ * Data class to hold the result of the journey generation.
+ */
+data class JourneyResult(
+    val updatedJourney: LocationJourney?,
+    val newJourney: LocationJourney?
+)
 
 fun Location.toRoute(): JourneyRoute {
     return JourneyRoute(latitude, longitude)
@@ -31,7 +39,7 @@ fun Location.toRoute(): JourneyRoute {
 
 fun JourneyRoute.toLatLng() = LatLng(latitude, longitude)
 fun LocationJourney.toRoute() =
-    if (isSteadyLocation()) {
+    if (isSteady()) {
         emptyList()
     } else {
         listOf(
@@ -44,7 +52,7 @@ fun LocationJourney.toRoute() =
         )
     }
 
-fun LocationJourney.isSteadyLocation(): Boolean {
+fun LocationJourney.isSteady(): Boolean {
     return to_latitude == null && to_longitude == null
 }
 

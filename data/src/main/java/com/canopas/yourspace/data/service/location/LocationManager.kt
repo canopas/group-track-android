@@ -23,6 +23,8 @@ import javax.inject.Singleton
 
 private const val LOCATION_UPDATE_INTERVAL = 10000L // 10 seconds
 private const val STEADY_UPDATE_INTERVAL = 30000L // 30 seconds
+private const val MOVING_DISTANCE = 10f // 10 meters
+private const val STEADY_DISTANCE = 50f // 50 meters
 
 @SuppressLint("MissingPermission")
 @Singleton
@@ -78,7 +80,7 @@ class LocationManager @Inject constructor(@ApplicationContext private val contex
         startLocationTracking()
     }
 
-    internal fun startLocationTracking() {
+    fun startLocationTracking() {
         if (context.hasFineLocationPermission) {
             locationClient.requestLocationUpdates(request, locationUpdatePendingIntent)
         }
