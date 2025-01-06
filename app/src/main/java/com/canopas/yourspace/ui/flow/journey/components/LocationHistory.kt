@@ -480,23 +480,33 @@ fun Address.formattedTitle(toAddress: Address?): String {
 }
 
 private fun extractLocationName(address: Address): String {
+    val roadName = address.thoroughfare?.trim()
+    val area = address.subLocality?.trim()
     val featureName = address.featureName?.trim()
-    val thoroughfare = address.thoroughfare?.trim()
+    val city = address.locality?.trim()
+    val state = address.adminArea?.trim()
 
     val potentialNames = listOf(
-        featureName,
-        thoroughfare
+        roadName,
+        area,
+        city,
+        state,
+        featureName
     ).filterNot { it.isNullOrEmpty() }
 
     val cleanedNames = potentialNames.map { it?.replace(Regex("^[A-Za-z0-9]+\\+.*"), "")?.trim() }
     val name = cleanedNames.firstOrNull { it?.isNotEmpty() == true } ?: "Unknown Road"
 
-    val resultName = if (name.matches(Regex("^[0-9].*"))) {
-        val streetName = cleanedNames.getOrNull(1) ?: ""
-        "$name $streetName".trim()
-    } else {
-        name
+    val addressName = when {
+        name.matches(Regex("^[0-9].*")) -> {
+            val streetName = cleanedNames.getOrNull(1) ?: ""
+            "$name $streetName".trim()
+        }
+        roadName != null -> "$roadName, ${area ?: city}"
+        area != null -> "$area, $city"
+        featureName != null -> "$featureName, $city"
+        else -> name
     }
 
-    return resultName
+    return addressName
 }
