@@ -242,7 +242,7 @@ class ApiJourneyService @Inject constructor(
             val previousDayJourney = spaceMemberJourneyRef(currentSpaceId, userId)
                 .whereEqualTo("user_id", userId)
                 .whereLessThan("created_at", from)
-                .whereGreaterThanOrEqualTo("update_at", from)
+                .whereGreaterThanOrEqualTo("updated_at", from)
                 .limit(1)
                 .get()
                 .await()
