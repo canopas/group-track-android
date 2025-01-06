@@ -394,6 +394,7 @@ exports.updateUserStateNotification = onDocumentCreated({
         const userRef = db.collection('users').doc(userId);
         await userRef.update({
             state: 1,
+            battery_pct: 0,
             updated_at: admin.firestore.Timestamp.now().toMillis()
         });
         console.log('User is not in network, updated state to 1:', userId);
