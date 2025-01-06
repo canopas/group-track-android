@@ -38,7 +38,7 @@ fun getJourney(
             from_longitude = newLocation.longitude,
             // to_latitude and to_longitude remain null => steady
             created_at = System.currentTimeMillis(),
-            updated_at = System.currentTimeMillis()
+            update_at = System.currentTimeMillis()
         )
         return JourneyResult(null, newSteadyJourney)
     }
@@ -66,7 +66,7 @@ fun getJourney(
     }
 
     // 4. Calculate time difference
-    val timeDifference = newLocation.time - (lastKnownJourney.updated_at ?: 0L)
+    val timeDifference = newLocation.time - (lastKnownJourney.update_at ?: 0L)
 
     // 5. Check if the day changed
     val dayChanged = isDayChanged(newLocation, lastKnownJourney)
@@ -76,7 +76,7 @@ fun getJourney(
         val updatedJourney = lastKnownJourney.copy(
             from_latitude = newLocation.latitude,
             from_longitude = newLocation.longitude,
-            updated_at = System.currentTimeMillis()
+            update_at = System.currentTimeMillis()
         )
         return JourneyResult(updatedJourney, null)
     }
@@ -104,7 +104,7 @@ fun getJourney(
             val updatedJourney = lastKnownJourney.copy(
                 from_latitude = newLocation.latitude,
                 from_longitude = newLocation.longitude,
-                updated_at = System.currentTimeMillis()
+                update_at = System.currentTimeMillis()
             )
 
             // 2. Create NEW MOVING journey
@@ -118,7 +118,7 @@ fun getJourney(
                 route_distance = distance,
                 route_duration = timeDifference,
                 created_at = System.currentTimeMillis(),
-                updated_at = System.currentTimeMillis()
+                update_at = System.currentTimeMillis()
             )
             return JourneyResult(updatedJourney, newMovingJourney)
         }
@@ -127,7 +127,7 @@ fun getJourney(
             val updatedJourney = lastKnownJourney.copy(
                 from_latitude = newLocation.latitude,
                 from_longitude = newLocation.longitude,
-                updated_at = System.currentTimeMillis()
+                update_at = System.currentTimeMillis()
             )
             return JourneyResult(updatedJourney, null)
         }
@@ -141,7 +141,7 @@ fun getJourney(
                 to_latitude = newLocation.latitude,
                 to_longitude = newLocation.longitude,
                 route_distance = distance, // or add to existing distance if desired
-                route_duration = (lastKnownJourney.updated_at ?: 0L) -
+                route_duration = (lastKnownJourney.update_at ?: 0L) -
                     (lastKnownJourney.created_at ?: 0L),
                 routes = lastKnownJourney.routes + newLocation.toRoute()
             )
@@ -152,8 +152,8 @@ fun getJourney(
                 from_latitude = newLocation.latitude,
                 from_longitude = newLocation.longitude,
                 // to_latitude and to_longitude remain null => steady
-                created_at = lastKnownJourney.updated_at ?: System.currentTimeMillis(),
-                updated_at = System.currentTimeMillis()
+                created_at = lastKnownJourney.update_at ?: System.currentTimeMillis(),
+                update_at = System.currentTimeMillis()
             )
             return JourneyResult(updatedJourney, newSteadyJourney)
         }
@@ -164,10 +164,10 @@ fun getJourney(
                 to_longitude = newLocation.longitude,
                 // Add new distance to previous distance, if you want cumulative
                 route_distance = (lastKnownJourney.route_distance ?: 0.0) + distance,
-                route_duration = (lastKnownJourney.updated_at ?: 0L) -
+                route_duration = (lastKnownJourney.update_at ?: 0L) -
                     (lastKnownJourney.created_at ?: 0L),
                 routes = lastKnownJourney.routes + newLocation.toRoute(),
-                updated_at = System.currentTimeMillis()
+                update_at = System.currentTimeMillis()
             )
             return JourneyResult(updatedJourney, null)
         }
@@ -184,7 +184,7 @@ private fun isDayChanged(
     newLocation: Location,
     lastKnownJourney: LocationJourney
 ): Boolean {
-    val lastMillis = lastKnownJourney.updated_at ?: System.currentTimeMillis()
+    val lastMillis = lastKnownJourney.update_at ?: System.currentTimeMillis()
     val lastCal = Calendar.getInstance().apply { timeInMillis = lastMillis }
     val lastDay = lastCal.get(Calendar.DAY_OF_YEAR)
 

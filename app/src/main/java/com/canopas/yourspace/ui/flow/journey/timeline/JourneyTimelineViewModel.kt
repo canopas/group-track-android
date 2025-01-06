@@ -30,10 +30,9 @@ class JourneyTimelineViewModel @Inject constructor(
     private val journeyService: ApiJourneyService,
     private val apiUserService: ApiUserService,
     private val authService: AuthService,
-    private val journeyRepository: JourneyRepository,
     private val appDispatcher: AppDispatcher,
     private val connectivityObserver: ConnectivityObserver,
-    private val userPreferences: UserPreferences
+    userPreferences: UserPreferences
 ) : ViewModel() {
 
     private var userId: String =
@@ -98,7 +97,7 @@ class JourneyTimelineViewModel @Inject constructor(
         try {
             val from = _state.value.selectedTimeFrom
             val to = _state.value.selectedTimeTo
-            val lastJourneyTime = allJourneys.minOfOrNull { it.updated_at!! }
+            val lastJourneyTime = allJourneys.minOfOrNull { it.update_at!! }
 
             val locations = if (loadMore) {
                 journeyService.getMoreJourneyHistory(userId, lastJourneyTime)
@@ -108,7 +107,7 @@ class JourneyTimelineViewModel @Inject constructor(
 
             val filteredLocations = locations.filter {
                 (it.created_at?.let { created -> created in from..to } ?: false) ||
-                    (it.updated_at?.let { updated -> updated in from..to } ?: false)
+                    (it.update_at?.let { updated -> updated in from..to } ?: false)
             }
 
             val locationJourneys = (allJourneys + filteredLocations).groupByDate()
@@ -160,7 +159,7 @@ class JourneyTimelineViewModel @Inject constructor(
 
     private fun List<LocationJourney>.groupByDate(): Map<Long, List<LocationJourney>> {
         val journeys = this.distinctBy { it.id }
-            .sortedByDescending { it.updated_at!! }
+            .sortedByDescending { it.update_at!! }
 
         val groupedItems = mutableMapOf<Long, MutableList<LocationJourney>>()
 
