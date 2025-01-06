@@ -2,6 +2,7 @@ package com.canopas.yourspace.data.repository
 
 import android.location.Location
 import com.canopas.yourspace.data.models.location.JourneyResult
+import com.canopas.yourspace.data.models.location.JourneyType
 import com.canopas.yourspace.data.models.location.LocationJourney
 import com.canopas.yourspace.data.models.location.isSteady
 import com.canopas.yourspace.data.models.location.toLocationFromMovingJourney
@@ -38,7 +39,8 @@ fun getJourney(
             from_longitude = newLocation.longitude,
             // to_latitude and to_longitude remain null => steady
             created_at = System.currentTimeMillis(),
-            update_at = System.currentTimeMillis()
+            update_at = System.currentTimeMillis(),
+            type = JourneyType.STEADY
         )
         return JourneyResult(null, newSteadyJourney)
     }
@@ -118,7 +120,8 @@ fun getJourney(
                 route_distance = distance,
                 route_duration = timeDifference,
                 created_at = System.currentTimeMillis(),
-                update_at = System.currentTimeMillis()
+                update_at = System.currentTimeMillis(),
+                type = JourneyType.MOVING
             )
             return JourneyResult(updatedJourney, newMovingJourney)
         }
@@ -153,7 +156,8 @@ fun getJourney(
                 from_longitude = newLocation.longitude,
                 // to_latitude and to_longitude remain null => steady
                 created_at = lastKnownJourney.update_at ?: System.currentTimeMillis(),
-                update_at = System.currentTimeMillis()
+                update_at = System.currentTimeMillis(),
+                type = JourneyType.STEADY
             )
             return JourneyResult(updatedJourney, newSteadyJourney)
         }
