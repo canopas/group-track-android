@@ -14,7 +14,7 @@ import kotlin.math.sqrt
 private const val MIN_DISTANCE = 100.0 // 100 meters
 private const val MIN_TIME_DIFFERENCE = 5 * 60 * 1000L // 5 minutes
 private const val MIN_DISTANCE_FOR_MOVING = 10.0 // 10 meters
-private const val MIN_UPDATE_INTERVAL_MINUTE = 30000L // 10 seconds
+private const val MIN_UPDATE_INTERVAL_MINUTE = 30000L // 30 seconds
 
 /**
  * Function to generate a new journey or update an existing one.
