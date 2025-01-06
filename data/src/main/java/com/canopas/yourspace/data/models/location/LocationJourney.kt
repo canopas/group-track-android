@@ -29,13 +29,13 @@ data class LocationJourney(
 data class EncryptedLocationJourney(
     val id: String = UUID.randomUUID().toString(),
     val user_id: String = "",
-    val encrypted_from_latitude: Blob = Blob.fromBytes(ByteArray(0)), // Encrypted latitude - from
-    val encrypted_from_longitude: Blob = Blob.fromBytes(ByteArray(0)), // Encrypted longitude - from
-    val encrypted_to_latitude: Blob? = null, // Encrypted latitude - to
-    val encrypted_to_longitude: Blob? = null, // Encrypted longitude - to
+    val from_latitude: Blob = Blob.fromBytes(ByteArray(0)), // Encrypted latitude - from
+    val from_longitude: Blob = Blob.fromBytes(ByteArray(0)), // Encrypted longitude - from
+    val to_latitude: Blob? = null, // Encrypted latitude - to
+    val to_longitude: Blob? = null, // Encrypted longitude - to
     val route_distance: Double? = null,
     val route_duration: Long? = null,
-    val encrypted_routes: List<EncryptedJourneyRoute> = emptyList(), // Encrypted journey routes
+    val routes: List<EncryptedJourneyRoute> = emptyList(), // Encrypted journey routes
     val created_at: Long = System.currentTimeMillis(),
     val updated_at: Long = System.currentTimeMillis()
 )
@@ -46,8 +46,8 @@ data class JourneyRoute(val latitude: Double = 0.0, val longitude: Double = 0.0)
 @Keep
 @JsonClass(generateAdapter = true)
 data class EncryptedJourneyRoute(
-    val encrypted_latitude: Blob = Blob.fromBytes(ByteArray(0)), // Encrypted latitude
-    val encrypted_longitude: Blob = Blob.fromBytes(ByteArray(0)) // Encrypted longitude
+    val latitude: Blob = Blob.fromBytes(ByteArray(0)), // Encrypted latitude
+    val longitude: Blob = Blob.fromBytes(ByteArray(0)) // Encrypted longitude
 )
 
 fun Location.toRoute(): JourneyRoute {
@@ -94,16 +94,16 @@ fun Location.toLocationJourney(userId: String, journeyId: String) = LocationJour
  * Convert an [EncryptedLocationJourney] to a [LocationJourney] using the provided [GroupCipher]
  */
 fun EncryptedLocationJourney.toDecryptedLocationJourney(groupCipher: GroupCipher): LocationJourney {
-    val decryptedFromLat = groupCipher.decrypt(encrypted_from_latitude.toBytes())
-    val decryptedFromLong = groupCipher.decrypt(encrypted_from_longitude.toBytes())
-    val decryptedToLat = encrypted_to_latitude?.let { groupCipher.decrypt(it.toBytes()) }
-    val decryptedToLong = encrypted_to_longitude?.let { groupCipher.decrypt(it.toBytes()) }
+    val decryptedFromLat = groupCipher.decrypt(from_latitude.toBytes())
+    val decryptedFromLong = groupCipher.decrypt(from_longitude.toBytes())
+    val decryptedToLat = to_latitude?.let { groupCipher.decrypt(it.toBytes()) }
+    val decryptedToLong = to_longitude?.let { groupCipher.decrypt(it.toBytes()) }
 
-    val decryptedRoutes = encrypted_routes.map {
+    val decryptedRoutes = routes.map {
         JourneyRoute(
-            latitude = groupCipher.decrypt(it.encrypted_latitude.toBytes())
+            latitude = groupCipher.decrypt(it.latitude.toBytes())
                 .toString(Charsets.UTF_8).toDouble(),
-            longitude = groupCipher.decrypt(it.encrypted_longitude.toBytes())
+            longitude = groupCipher.decrypt(it.longitude.toBytes())
                 .toString(Charsets.UTF_8).toDouble()
         )
     }
@@ -153,13 +153,13 @@ fun LocationJourney.toEncryptedLocationJourney(
 
     val encryptedRoutes = routes.map {
         EncryptedJourneyRoute(
-            encrypted_latitude = Blob.fromBytes(
+            latitude = Blob.fromBytes(
                 groupCipher.encrypt(
                     distributionId,
                     it.latitude.toString().toByteArray(Charsets.UTF_8)
                 ).serialize()
             ),
-            encrypted_longitude = Blob.fromBytes(
+            longitude = Blob.fromBytes(
                 groupCipher.encrypt(
                     distributionId,
                     it.longitude.toString().toByteArray(Charsets.UTF_8)
@@ -171,13 +171,13 @@ fun LocationJourney.toEncryptedLocationJourney(
     return EncryptedLocationJourney(
         id = id,
         user_id = user_id,
-        encrypted_from_latitude = Blob.fromBytes(encryptedFromLat.serialize()),
-        encrypted_from_longitude = Blob.fromBytes(encryptedFromLong.serialize()),
-        encrypted_to_latitude = encryptedToLat?.let { Blob.fromBytes(it.serialize()) },
-        encrypted_to_longitude = encryptedToLong?.let { Blob.fromBytes(it.serialize()) },
+        from_latitude = Blob.fromBytes(encryptedFromLat.serialize()),
+        from_longitude = Blob.fromBytes(encryptedFromLong.serialize()),
+        to_latitude = encryptedToLat?.let { Blob.fromBytes(it.serialize()) },
+        to_longitude = encryptedToLong?.let { Blob.fromBytes(it.serialize()) },
         route_distance = route_distance,
         route_duration = route_duration,
-        encrypted_routes = encryptedRoutes,
+        routes = encryptedRoutes,
         created_at = created_at,
         updated_at = updated_at
     )

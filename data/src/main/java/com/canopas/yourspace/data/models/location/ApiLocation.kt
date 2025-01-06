@@ -20,8 +20,8 @@ data class ApiLocation(
 data class EncryptedApiLocation(
     val id: String = UUID.randomUUID().toString(),
     val user_id: String = "",
-    val encrypted_latitude: Blob = Blob.fromBytes(ByteArray(0)), // Base64 encoded encrypted latitude
-    val encrypted_longitude: Blob = Blob.fromBytes(ByteArray(0)), // Base64 encoded encrypted longitude
+    val latitude: Blob = Blob.fromBytes(ByteArray(0)), // Base64 encoded encrypted latitude
+    val longitude: Blob = Blob.fromBytes(ByteArray(0)), // Base64 encoded encrypted longitude
     val created_at: Long = System.currentTimeMillis()
 )
 

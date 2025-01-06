@@ -127,8 +127,8 @@ class ApiLocationService @Inject constructor(
 
             val location = EncryptedApiLocation(
                 user_id = userId,
-                encrypted_latitude = Blob.fromBytes(encryptedLatitude.serialize()),
-                encrypted_longitude = Blob.fromBytes(encryptedLongitude.serialize()),
+                latitude = Blob.fromBytes(encryptedLatitude.serialize()),
+                longitude = Blob.fromBytes(encryptedLongitude.serialize()),
                 created_at = recordedAt
             )
 
@@ -175,9 +175,9 @@ class ApiLocationService @Inject constructor(
             getGroupCipherAndDistributionMessage(currentSpaceId, userId)?.second ?: return null
 
         return try {
-            val latitudeBytes = groupCipher.decrypt(encryptedLocation.encrypted_latitude.toBytes())
+            val latitudeBytes = groupCipher.decrypt(encryptedLocation.latitude.toBytes())
             val longitudeBytes =
-                groupCipher.decrypt(encryptedLocation.encrypted_longitude.toBytes())
+                groupCipher.decrypt(encryptedLocation.longitude.toBytes())
 
             val latitude = latitudeBytes.toString(Charsets.UTF_8).toDoubleOrNull()
             val longitude = longitudeBytes.toString(Charsets.UTF_8).toDoubleOrNull()

@@ -47,7 +47,7 @@ service cloud.firestore {
         request.resource.data.get('fcm_token', '') is string &&
         request.resource.data.get('profile_image', '') is string &&
         request.resource.data.get('space_ids', []) is list;
-      allow update: if true;
+      allow update: if isAuthorized() && request.auth.uid == resource.data.id;
       allow delete: if isAuthorized() && request.auth.uid == resource.data.id;
       allow read: if isAuthorized();
 
@@ -69,7 +69,7 @@ service cloud.firestore {
       match /user_journeys/{docId} {
         allow read: if isAuthorized() &&
           (request.auth.uid == resource.data.user_id || readUserLocation());
-        allow update: if true;
+        allow update: if isAuthorized() && request.auth.uid == resource.data.user_id;
         allow delete: if isAuthorized() && request.auth.uid == resource.data.user_id;
         allow create: if isAuthorized() &&
           request.auth.uid == request.resource.data.user_id &&
@@ -115,7 +115,7 @@ service cloud.firestore {
     }
 
     match /spaces/{spaceId} {
-      allow read: if true;
+      allow read: if isAuthorized() && isSpaceMember(spaceId);
       allow delete: if isAuthorized() && request.auth.uid == resource.data.admin_id;
       allow update: if isAuthorized() && request.auth.uid == resource.data.admin_id;
       allow create: if isAuthorized() &&
@@ -220,11 +220,11 @@ service cloud.firestore {
         allow delete: if isAuthorized() && request.auth.uid == resource.data.user_id;
         allow create: if isAuthorized() &&
           request.auth.uid == request.resource.data.user_id &&
-          request.resource.data.keys().hasAll(["id", "user_id", "encrypted_latitude", "encrypted_longitude", "created_at"]) &&
+          request.resource.data.keys().hasAll(["id", "user_id", "latitude", "longitude", "created_at"]) &&
           request.resource.data.id is string &&
           request.resource.data.user_id is string &&
-          request.resource.data.encrypted_latitude is bytes &&
-          request.resource.data.encrypted_longitude is bytes &&
+          request.resource.data.latitude is bytes &&
+          request.resource.data.longitude is bytes &&
           request.resource.data.created_at is int;
       }
 
@@ -235,11 +235,11 @@ service cloud.firestore {
         allow delete: if isAuthorized() && request.auth.uid == resource.data.user_id;
         allow create: if isAuthorized() &&
           request.auth.uid == request.resource.data.user_id &&
-          request.resource.data.keys().hasAll(["id", "user_id", "encrypted_from_latitude", "encrypted_from_longitude", "created_at"]) &&
+          request.resource.data.keys().hasAll(["id", "user_id", "from_latitude", "from_longitude", "created_at"]) &&
           request.resource.data.id is string &&
           request.resource.data.user_id is string &&
-          request.resource.data.encrypted_from_latitude is bytes &&
-          request.resource.data.encrypted_from_longitude is bytes &&
+          request.resource.data.from_latitude is bytes &&
+          request.resource.data.from_longitude is bytes &&
           request.resource.data.created_at is int;
       }
 

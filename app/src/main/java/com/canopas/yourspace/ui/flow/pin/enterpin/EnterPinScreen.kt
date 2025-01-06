@@ -14,7 +14,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -53,15 +52,6 @@ private fun EnterPinContent(modifier: Modifier) {
     val viewModel = hiltViewModel<EnterPinViewModel>()
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
-    var pinErrorText = ""
-    LaunchedEffect(state.pinError) {
-        pinErrorText = when (state.pinError) {
-            PinErrorState.LENGTH_ERROR -> context.getString(R.string.enter_pin_error_text_length)
-            PinErrorState.CHARACTERS_ERROR -> context.getString(R.string.enter_pin_error_characters_input)
-            PinErrorState.INVALID_PIN -> context.getString(R.string.enter_pin_invalid_pin_text)
-            else -> ""
-        }
-    }
 
     Column(
         modifier = modifier
@@ -96,12 +86,20 @@ private fun EnterPinContent(modifier: Modifier) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
-            text = pinErrorText,
-            color = if (pinErrorText.isNotEmpty()) MaterialTheme.colorScheme.error else Color.Transparent,
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(top = 8.dp)
-        )
+        if (state.pinError != null) {
+            val pinErrorText = when (state.pinError) {
+                PinErrorState.LENGTH_ERROR -> context.getString(R.string.enter_pin_error_text_length)
+                PinErrorState.CHARACTERS_ERROR -> context.getString(R.string.enter_pin_error_characters_input)
+                PinErrorState.INVALID_PIN -> context.getString(R.string.enter_pin_invalid_pin_text)
+                else -> ""
+            }
+            Text(
+                text = pinErrorText,
+                color = if (pinErrorText.isNotEmpty()) MaterialTheme.colorScheme.error else Color.Transparent,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
 
