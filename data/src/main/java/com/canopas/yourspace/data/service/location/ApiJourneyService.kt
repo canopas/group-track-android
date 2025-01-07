@@ -119,19 +119,9 @@ class ApiJourneyService @Inject constructor(
         }
     }
 
-    suspend fun saveCurrentJourney(
+    suspend fun addJourney(
         userId: String,
-        fromLatitude: Double,
-        fromLongitude: Double,
-        toLatitude: Double? = null,
-        toLongitude: Double? = null,
-        routeDistance: Double? = null,
-        routeDuration: Long? = null,
-        routes: List<JourneyRoute> = emptyList(),
-        createdAt: Long? = null,
-        updateAt: Long? = null,
-        type: JourneyType? = null,
-        newJourneyId: ((String) -> Unit)? = null
+        newJourney: LocationJourney
     ) {
         userPreferences.currentUser?.space_ids?.forEach { spaceId ->
             val cipherAndMessage = getGroupCipherAndDistributionMessage(spaceId, userId) ?: run {
@@ -140,32 +130,16 @@ class ApiJourneyService @Inject constructor(
             }
             val (distributionMessage, groupCipher) = cipherAndMessage
 
-            val journey = LocationJourney(
-                id = UUID.randomUUID().toString(),
-                user_id = userId,
-                from_latitude = fromLatitude,
-                from_longitude = fromLongitude,
-                to_latitude = toLatitude,
-                to_longitude = toLongitude,
-                route_distance = routeDistance,
-                route_duration = routeDuration,
-                routes = routes,
-                created_at = createdAt ?: System.currentTimeMillis(),
-                updated_at = updateAt ?: System.currentTimeMillis(),
-                type = type
-            )
-
-            val docRef = spaceMemberJourneyRef(spaceId, userId).document(journey.id)
+            val docRef = spaceMemberJourneyRef(spaceId, userId).document(newJourney.id)
 
             val encryptedJourney =
-                journey.toEncryptedLocationJourney(groupCipher, distributionMessage.distributionId)
-            newJourneyId?.invoke(encryptedJourney.id)
+                newJourney.toEncryptedLocationJourney(groupCipher, distributionMessage.distributionId)
 
             docRef.set(encryptedJourney).await()
         }
     }
 
-    suspend fun updateLastLocationJourney(userId: String, journey: LocationJourney) {
+    suspend fun updateJourney(userId: String, journey: LocationJourney) {
         userPreferences.currentUser?.space_ids?.forEach { spaceId ->
             val cipherAndMessage = getGroupCipherAndDistributionMessage(spaceId, userId) ?: run {
                 Timber.e("Failed to retrieve GroupCipher and DistributionMessage for spaceId: $spaceId, userId: $userId")

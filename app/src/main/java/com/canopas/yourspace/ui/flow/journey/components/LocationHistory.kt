@@ -45,8 +45,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.canopas.yourspace.R
-import com.canopas.yourspace.data.models.location.JourneyType
 import com.canopas.yourspace.data.models.location.LocationJourney
+import com.canopas.yourspace.data.models.location.isSteady
 import com.canopas.yourspace.domain.utils.getAddress
 import com.canopas.yourspace.domain.utils.getPlaceAddress
 import com.canopas.yourspace.domain.utils.isToday
@@ -71,7 +71,7 @@ fun LocationHistoryItem(
     showJourneyDetails: () -> Unit,
     selectedMapStyle: String
 ) {
-    if (location.type == JourneyType.STEADY) {
+    if (location.isSteady()) {
         SteadyLocationItem(location, isFirstItem, isLastItem, journeyList) {
             addPlaceTap(location.from_latitude, location.from_longitude)
         }
@@ -175,7 +175,7 @@ fun SteadyLocationItem(
 
         val nextJourney = sortedList
             .subList(currentIndex + 1, sortedList.size)
-            .firstOrNull { it.type != JourneyType.STEADY }
+            .firstOrNull { !it.isSteady() }
 
         val createdAt = location.created_at ?: System.currentTimeMillis()
 
