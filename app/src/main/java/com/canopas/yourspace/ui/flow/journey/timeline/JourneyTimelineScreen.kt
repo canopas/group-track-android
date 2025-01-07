@@ -1,26 +1,22 @@
 package com.canopas.yourspace.ui.flow.journey.timeline
 
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -31,7 +27,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -45,6 +40,7 @@ import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.AppProgressIndicator
 import com.canopas.yourspace.ui.component.HorizontalDatePicker
 import com.canopas.yourspace.ui.component.NoInternetScreen
+import com.canopas.yourspace.ui.component.ShowDatePicker
 import com.canopas.yourspace.ui.component.reachedBottom
 import com.canopas.yourspace.ui.flow.journey.components.EmptyHistory
 import com.canopas.yourspace.ui.flow.journey.components.LocationHistoryItem
@@ -65,12 +61,6 @@ fun JourneyTimelineScreen() {
 fun TimelineTopBar() {
     val viewModel = hiltViewModel<JourneyTimelineViewModel>()
     val state by viewModel.state.collectAsState()
-
-    val dropDownArrowRotation by
-    animateFloatAsState(
-        targetValue = if (state.showDatePicker) 0f else 180f,
-        label = ""
-    )
 
     val title =
         if (state.selectedUser == null) {
@@ -103,28 +93,13 @@ fun TimelineTopBar() {
         },
         actions = {
             if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
-                TextButton(onClick = { if (state.showDatePicker) viewModel.dismissDatePicker() else viewModel.showDatePicker() }) {
-                    Text(
-                        text = state.selectedTimeFrom.formattedMessageDateHeader(LocalContext.current),
-                        style = AppTheme.appTypography.body1,
-                        color = AppTheme.colorScheme.textPrimary
+                IconButton(onClick = viewModel::showDatePicker) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_calendar),
+                        contentDescription = "",
+                        tint = AppTheme.colorScheme.textPrimary,
+                        modifier = Modifier.size(24.dp)
                     )
-                    Spacer(modifier = Modifier.width(6.dp))
-
-                    if (state.showDatePicker) {
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowUp,
-                            contentDescription = "",
-                            tint = AppTheme.colorScheme.textPrimary,
-                            modifier = Modifier.rotate(dropDownArrowRotation)
-                        )
-                    } else {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_action_filter),
-                            contentDescription = "",
-                            tint = AppTheme.colorScheme.textPrimary
-                        )
-                    }
                 }
             }
         }
@@ -140,15 +115,29 @@ private fun TimelineContent(modifier: Modifier) {
         AppBanner(msg = state.error!!, onDismiss = viewModel::resetErrorState)
     }
 
+    if (state.showDatePicker) {
+        ShowDatePicker(
+            selectedTimestamp = state.selectedTimeTo,
+            confirmButtonClick = viewModel::onFilterByDate,
+            dismissButtonClick = viewModel::dismissDatePicker
+        )
+    }
+
     Column(modifier = modifier.fillMaxSize()) {
-        if (state.showDatePicker) {
-            HorizontalDatePicker(
-                modifier = Modifier.fillMaxWidth(),
-                selectedTimestamp = state.selectedTimeTo,
-                onDateClick = viewModel::onFilterByDate
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+            Text(
+                text = state.selectedTimeFrom.formattedMessageDateHeader(LocalContext.current),
+                style = AppTheme.appTypography.header4,
+                color = AppTheme.colorScheme.textPrimary,
+                modifier = Modifier.weight(1f)
             )
-            HorizontalDivider()
         }
+        HorizontalDatePicker(
+            modifier = Modifier.fillMaxWidth(),
+            selectedTimestamp = state.selectedTimeTo,
+            onDateClick = viewModel::onFilterByDate
+        )
+        HorizontalDivider()
 
         if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

@@ -49,7 +49,10 @@ fun HorizontalDatePicker(
     } ?: today
 
     var currentList by remember {
-        mutableStateOf(calendarDataSource.getDatesBetween(today.minusDays(15), today.plusDays(15)))
+        mutableStateOf(
+            calendarDataSource.getDatesBetween(today.minusDays(15), today.plusDays(15))
+                .filter { it <= today }
+        )
     }
     var selectedDate by remember { mutableStateOf(initialSelectedDate) }
     val listState = rememberLazyListState()
@@ -66,13 +69,17 @@ fun HorizontalDatePicker(
             listState.firstVisibleItemIndex == 0 -> {
                 val updatedModel =
                     calendarDataSource.getData(currentList, selectedDate, isScrollUp = true)
-                currentList = (updatedModel.visibleDates.map { it.date } + currentList).distinct()
+                currentList = (updatedModel.visibleDates.map { it.date } + currentList)
+                    .distinct()
+                    .filter { it <= today }
             }
 
             listState.firstVisibleItemIndex + listState.layoutInfo.visibleItemsInfo.size == currentList.size -> {
                 val updatedModel =
                     calendarDataSource.getData(currentList, selectedDate, isScrollUp = false)
-                currentList = (currentList + updatedModel.visibleDates.map { it.date }).distinct()
+                currentList = (currentList + updatedModel.visibleDates.map { it.date })
+                    .distinct()
+                    .filter { it <= today }
             }
         }
     }
