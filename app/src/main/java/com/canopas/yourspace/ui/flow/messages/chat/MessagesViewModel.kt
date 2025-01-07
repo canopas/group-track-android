@@ -136,7 +136,6 @@ class MessagesViewModel @Inject constructor(
                     error = null
                 )
             )
-            markMessagesAsSeen()
             loadingData = false
         } catch (e: Exception) {
             Timber.e(e, "Error loading messages")
@@ -176,7 +175,7 @@ class MessagesViewModel @Inject constructor(
                             selectedMember = members.filter { it.user.id != state.value.currentUserId }
                         )
                     )
-
+                    markMessagesAsSeen()
                     if (messagesJob == null) listenMessages()
                 }
         }

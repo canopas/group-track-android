@@ -13,10 +13,12 @@ data class ApiThread(
     val id: String = UUID.randomUUID().toString(),
     val admin_id: String = "",
     val space_id: String = "",
+    val last_message:String = "",
     val member_ids: List<String> = emptyList(),
     val seen_by_ids: List<String> = emptyList(),
     val archived_for: Map<String, Long> = emptyMap<String, Long>(),
-    val created_at: Long = System.currentTimeMillis()
+    val created_at: Long = System.currentTimeMillis(),
+    val last_message_at: Date? = null,
 ) {
     @get:Exclude
     val isGroup: Boolean
@@ -29,6 +31,7 @@ data class ApiThreadMessage(
     val thread_id: String = "",
     val sender_id: String = "",
     val message: String = "",
+    val seen_by: List<String> = emptyList(),
     @ServerTimestamp
     val created_at: Date? = null
 ) {
