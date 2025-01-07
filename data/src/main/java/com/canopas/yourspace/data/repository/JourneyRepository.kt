@@ -2,9 +2,7 @@ package com.canopas.yourspace.data.repository
 
 import android.location.Location
 import com.canopas.yourspace.data.models.location.LocationJourney
-import com.canopas.yourspace.data.models.location.isSteady
 import com.canopas.yourspace.data.service.location.ApiJourneyService
-import com.canopas.yourspace.data.service.location.LocationManager
 import com.canopas.yourspace.data.storage.LocationCache
 import timber.log.Timber
 import javax.inject.Inject
@@ -13,8 +11,7 @@ import javax.inject.Singleton
 @Singleton
 class JourneyRepository @Inject constructor(
     private val journeyService: ApiJourneyService,
-    private val locationCache: LocationCache,
-    private val locationManager: LocationManager
+    private val locationCache: LocationCache
 ) {
     suspend fun saveLocationJourney(
         extractedLocation: Location,
@@ -46,13 +43,6 @@ class JourneyRepository @Inject constructor(
                     newJourney = journey
                 )
                 locationCache.putLastJourney(currentJourney, userId)
-            }
-
-            // Update location request based on state
-            if (result?.updatedJourney != null && result.newJourney != null) {
-                locationManager.updateRequestBasedOnState(
-                    isMoving = !result.newJourney.isSteady()
-                )
             }
         } catch (e: Exception) {
             Timber.e(e, "Error while saving location journey")
