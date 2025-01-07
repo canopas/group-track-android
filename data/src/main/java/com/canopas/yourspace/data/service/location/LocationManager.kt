@@ -21,10 +21,8 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
-private const val LOCATION_UPDATE_INTERVAL = 10000L // 10 seconds
-private const val STEADY_UPDATE_INTERVAL = 30000L // 30 seconds
-private const val MOVING_DISTANCE = 10f // 10 meters
-private const val STEADY_DISTANCE = 50f // 50 meters
+private const val LOCATION_UPDATE_INTERVAL = 30000L // 30 seconds
+private const val LOCATION_UPDATE_DISTANCE = 50f // 50 meters
 
 @SuppressLint("MissingPermission")
 @Singleton
@@ -33,7 +31,6 @@ class LocationManager @Inject constructor(@ApplicationContext private val contex
     private var request: LocationRequest
     private var locationClient: FusedLocationProviderClient =
         LocationServices.getFusedLocationProviderClient(context)
-    private var currentMovingState: Boolean = true
 
     init {
         request = createRequest()
@@ -62,22 +59,15 @@ class LocationManager @Inject constructor(@ApplicationContext private val contex
     private fun createRequest(): LocationRequest {
         return LocationRequest.Builder(
             Priority.PRIORITY_HIGH_ACCURACY,
-            if (currentMovingState) LOCATION_UPDATE_INTERVAL else STEADY_UPDATE_INTERVAL
+            LOCATION_UPDATE_INTERVAL
         )
             .apply {
                 setGranularity(Granularity.GRANULARITY_PERMISSION_LEVEL)
-                setMinUpdateIntervalMillis(if (currentMovingState) LOCATION_UPDATE_INTERVAL else STEADY_UPDATE_INTERVAL)
+                setMinUpdateIntervalMillis(LOCATION_UPDATE_INTERVAL)
                 setWaitForAccurateLocation(true)
-                setMinUpdateDistanceMeters(if (currentMovingState) 0f else 10f)
+                setMinUpdateDistanceMeters(LOCATION_UPDATE_DISTANCE)
             }
             .build()
-    }
-
-    internal fun updateRequestBasedOnState(isMoving: Boolean) {
-        if (currentMovingState == isMoving) return
-        currentMovingState = isMoving
-        request = createRequest()
-        startLocationTracking()
     }
 
     fun startLocationTracking() {
