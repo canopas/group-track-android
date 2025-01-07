@@ -1,8 +1,6 @@
 package com.canopas.yourspace.data.service.location
 
 import com.canopas.yourspace.data.models.location.EncryptedLocationJourney
-import com.canopas.yourspace.data.models.location.JourneyRoute
-import com.canopas.yourspace.data.models.location.JourneyType
 import com.canopas.yourspace.data.models.location.LocationJourney
 import com.canopas.yourspace.data.models.location.toDecryptedLocationJourney
 import com.canopas.yourspace.data.models.location.toEncryptedLocationJourney
@@ -28,7 +26,6 @@ import org.signal.libsignal.protocol.groups.GroupCipher
 import org.signal.libsignal.protocol.groups.GroupSessionBuilder
 import org.signal.libsignal.protocol.message.SenderKeyDistributionMessage
 import timber.log.Timber
-import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -144,24 +141,12 @@ class ApiJourneyService @Inject constructor(
     /**
      * Saves a new [LocationJourney] in all of the current user's spaces.
      */
-    suspend fun saveCurrentJourney(
+    suspend fun addJourney(
         userId: String,
-        fromLatitude: Double,
-        fromLongitude: Double,
-        toLatitude: Double? = null,
-        toLongitude: Double? = null,
-        routeDistance: Double? = null,
-        routeDuration: Long? = null,
-        routes: List<JourneyRoute> = emptyList(),
-        createdAt: Long? = null,
-        updateAt: Long? = null,
-        type: JourneyType? = null,
-        newJourneyId: ((String) -> Unit)? = null
-    ) {
-        val currentUser = userPreferences.currentUser ?: return
-        val spaceIds = currentUser.space_ids.orEmpty()
-
-        spaceIds.forEach { spaceId ->
+        newJourney: LocationJourney
+    ): LocationJourney {
+        var journey: LocationJourney = newJourney
+        userPreferences.currentUser?.space_ids?.forEach { spaceId ->
             // Load groupKeysDoc once (per space) and reuse it if needed
             val groupKeysDoc = getGroupKeyDoc(spaceId) ?: return@forEach
 
@@ -176,44 +161,23 @@ class ApiJourneyService @Inject constructor(
                     return@forEach
                 }
 
-            val journey = LocationJourney(
-                id = UUID.randomUUID().toString(),
-                user_id = userId,
-                from_latitude = fromLatitude,
-                from_longitude = fromLongitude,
-                to_latitude = toLatitude,
-                to_longitude = toLongitude,
-                route_distance = routeDistance,
-                route_duration = routeDuration,
-                routes = routes,
-                created_at = createdAt ?: System.currentTimeMillis(),
-                updated_at = updateAt ?: System.currentTimeMillis(),
-                type = type
-            )
+            val docRef = spaceMemberJourneyRef(spaceId, userId).document(newJourney.id)
+
+            journey = newJourney.copy(id = docRef.id)
 
             val encryptedJourney =
                 journey.toEncryptedLocationJourney(groupCipher, distributionMessage.distributionId)
-            newJourneyId?.invoke(encryptedJourney.id)
 
-            try {
-                spaceMemberJourneyRef(spaceId, userId)
-                    .document(journey.id)
-                    .set(encryptedJourney)
-                    .await()
-            } catch (e: Exception) {
-                Timber.e(e, "Error saving journey for spaceId: $spaceId, userId: $userId")
-            }
+            docRef.set(encryptedJourney).await()
         }
+        return journey
     }
 
     /**
      * Updates the last [LocationJourney] for [userId].
      */
-    suspend fun updateLastLocationJourney(userId: String, journey: LocationJourney) {
-        val currentUser = userPreferences.currentUser ?: return
-        val spaceIds = currentUser.space_ids.orEmpty()
-
-        spaceIds.forEach { spaceId ->
+    suspend fun updateJourney(userId: String, journey: LocationJourney) {
+        userPreferences.currentUser?.space_ids?.forEach { spaceId ->
             val groupKeysDoc = getGroupKeyDoc(spaceId) ?: return@forEach
 
             val (distributionMessage, groupCipher) = getGroupCipherByKeyId(

@@ -20,6 +20,7 @@ import com.canopas.yourspace.data.models.user.USER_STATE_NO_NETWORK_OR_PHONE_OFF
 import com.canopas.yourspace.data.models.user.USER_STATE_UNKNOWN
 import com.canopas.yourspace.data.repository.JourneyRepository
 import com.canopas.yourspace.data.service.auth.AuthService
+import com.canopas.yourspace.data.service.location.LocationManager
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.utils.isLocationPermissionGranted
 import com.canopas.yourspace.domain.utils.isNetWorkConnected
@@ -86,6 +87,9 @@ class YourSpaceFcmService : FirebaseMessagingService() {
 
     @Inject
     lateinit var journeyRepository: JourneyRepository
+
+    @Inject
+    lateinit var locationManager: LocationManager
 
     private val job = SupervisorJob()
     private val scope = CoroutineScope(Dispatchers.IO + job)
@@ -165,13 +169,7 @@ class YourSpaceFcmService : FirebaseMessagingService() {
 
         scope.launch {
             try {
-                authService.currentUser?.id?.let { userId ->
-                    val lastKnownJourney = journeyRepository.getLastKnownLocation(userId)
-                    journeyRepository.checkAndSaveLocationOnDayChanged(
-                        userId = userId,
-                        lastKnownJourney = lastKnownJourney
-                    )
-                }
+                locationManager.startLocationTracking()
             } catch (e: Exception) {
                 Timber.e(e, "Failed to update location")
             }

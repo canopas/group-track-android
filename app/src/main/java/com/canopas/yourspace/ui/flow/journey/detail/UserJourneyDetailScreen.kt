@@ -174,7 +174,8 @@ private fun JourneyInfo(journey: LocationJourney) {
                     .padding(start = 16.dp)
                     .weight(1f)
             ) {
-                PlaceInfo(toAddressStr, getFormattedLocationTime(journey.updated_at!!))
+                journey.updated_at?.let { getFormattedLocationTime(it) }
+                    ?.let { PlaceInfo(toAddressStr, it) }
             }
         }
     }
