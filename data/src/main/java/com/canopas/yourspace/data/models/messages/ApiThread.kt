@@ -14,6 +14,7 @@ data class ApiThread(
     val admin_id: String = "",
     val space_id: String = "",
     val member_ids: List<String> = emptyList(),
+    val seen_by_ids: List<String> = emptyList(),
     val archived_for: Map<String, Long> = emptyMap<String, Long>(),
     val created_at: Long = System.currentTimeMillis()
 ) {
@@ -28,7 +29,6 @@ data class ApiThreadMessage(
     val thread_id: String = "",
     val sender_id: String = "",
     val message: String = "",
-    val seen_by: List<String> = emptyList(),
     @ServerTimestamp
     val created_at: Date? = null
 ) {

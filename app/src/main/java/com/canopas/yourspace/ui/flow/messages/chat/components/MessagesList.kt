@@ -36,6 +36,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.canopas.yourspace.R
+import com.canopas.yourspace.data.models.messages.ApiThread
 import com.canopas.yourspace.data.models.messages.ApiThreadMessage
 import com.canopas.yourspace.data.models.user.UserInfo
 import com.canopas.yourspace.domain.utils.formattedMessageDateHeader
@@ -55,6 +56,7 @@ fun ColumnScope.MessageList(
     newMessagesToAppend: List<ApiThreadMessage>,
     members: List<UserInfo>,
     currentUserId: String,
+    thread: ApiThread?,
     loadMore: () -> Unit
 ) {
     val reachedBottom by remember {
@@ -98,11 +100,15 @@ fun ColumnScope.MessageList(
             itemsIndexed(messages, key = { _, item -> item.id }) { index, message ->
                 val by = members.firstOrNull { it.user.id == message.sender_id }
 
-                val seenBy =
-                    members.filter { message.seen_by.contains(it.user.id) && it.user.id != currentUserId }
+                val seenBy = if (thread != null) {
+                    members.filter { thread.seen_by_ids.contains(it.user.id) && it.user.id != currentUserId }
+                } else {
+                    emptyList()
+                }
 
                 val myLatestMsg =
                     messages.firstOrNull { it.sender_id == currentUserId }?.id == message.id
+
                 MessageContent(
                     previousMessage = if (index < messages.size - 1) messages[index + 1] else null,
                     nextMessage = if (index > 0 && index < messages.size - 1) messages[index - 1] else null,
@@ -231,6 +237,11 @@ fun MessageBubble(
     } else {
         AppTheme.colorScheme.containerLow
     }
+    val messageTextColor = if (isSender) {
+        AppTheme.colorScheme.textInversePrimary
+    } else {
+        AppTheme.colorScheme.textPrimary
+    }
 
     val shape = if (isSender) {
         RoundedCornerShape(
@@ -278,7 +289,7 @@ fun MessageBubble(
             }
             Text(
                 text = message,
-                style = AppTheme.appTypography.subTitle3.copy(color = AppTheme.colorScheme.textInversePrimary)
+                style = AppTheme.appTypography.subTitle3.copy(color = messageTextColor)
             )
         }
 
