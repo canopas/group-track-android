@@ -1,8 +1,6 @@
 package com.canopas.yourspace.data.service.location
 
 import com.canopas.yourspace.data.models.location.EncryptedLocationJourney
-import com.canopas.yourspace.data.models.location.JourneyRoute
-import com.canopas.yourspace.data.models.location.JourneyType
 import com.canopas.yourspace.data.models.location.LocationJourney
 import com.canopas.yourspace.data.models.location.toDecryptedLocationJourney
 import com.canopas.yourspace.data.models.location.toEncryptedLocationJourney
@@ -28,7 +26,6 @@ import org.signal.libsignal.protocol.groups.GroupCipher
 import org.signal.libsignal.protocol.groups.GroupSessionBuilder
 import org.signal.libsignal.protocol.message.SenderKeyDistributionMessage
 import timber.log.Timber
-import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -122,7 +119,8 @@ class ApiJourneyService @Inject constructor(
     suspend fun addJourney(
         userId: String,
         newJourney: LocationJourney
-    ) {
+    ): LocationJourney {
+        var journey: LocationJourney = newJourney
         userPreferences.currentUser?.space_ids?.forEach { spaceId ->
             val cipherAndMessage = getGroupCipherAndDistributionMessage(spaceId, userId) ?: run {
                 Timber.e("Failed to retrieve GroupCipher and DistributionMessage for spaceId: $spaceId, userId: $userId")
@@ -132,11 +130,14 @@ class ApiJourneyService @Inject constructor(
 
             val docRef = spaceMemberJourneyRef(spaceId, userId).document(newJourney.id)
 
+            journey = newJourney.copy(id = docRef.id)
+
             val encryptedJourney =
-                newJourney.toEncryptedLocationJourney(groupCipher, distributionMessage.distributionId)
+                journey.toEncryptedLocationJourney(groupCipher, distributionMessage.distributionId)
 
             docRef.set(encryptedJourney).await()
         }
+        return journey
     }
 
     suspend fun updateJourney(userId: String, journey: LocationJourney) {
