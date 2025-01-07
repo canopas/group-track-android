@@ -16,6 +16,7 @@ import com.canopas.yourspace.ui.navigation.AppDestinations.ThreadMessages.KEY_TH
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
@@ -94,6 +95,7 @@ class MessagesViewModel @Inject constructor(
 
     private fun markMessagesAsSeen() =
         viewModelScope.launch(appDispatcher.IO) {
+            delay(2000)
             try {
                 val thread = state.value.thread ?: return@launch
                 val userId = state.value.currentUserId
@@ -175,7 +177,7 @@ class MessagesViewModel @Inject constructor(
                             selectedMember = members.filter { it.user.id != state.value.currentUserId }
                         )
                     )
-                    markMessagesAsSeen()
+
                     if (messagesJob == null) listenMessages()
                 }
         }
