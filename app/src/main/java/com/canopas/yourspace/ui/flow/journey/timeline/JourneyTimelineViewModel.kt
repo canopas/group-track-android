@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.canopas.yourspace.data.models.location.LocationJourney
 import com.canopas.yourspace.data.models.user.ApiUser
-import com.canopas.yourspace.data.repository.JourneyRepository
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.location.ApiJourneyService
 import com.canopas.yourspace.data.service.user.ApiUserService
@@ -30,10 +29,9 @@ class JourneyTimelineViewModel @Inject constructor(
     private val journeyService: ApiJourneyService,
     private val apiUserService: ApiUserService,
     private val authService: AuthService,
-    private val journeyRepository: JourneyRepository,
     private val appDispatcher: AppDispatcher,
     private val connectivityObserver: ConnectivityObserver,
-    private val userPreferences: UserPreferences
+    userPreferences: UserPreferences
 ) : ViewModel() {
 
     private var userId: String =
@@ -120,23 +118,6 @@ class JourneyTimelineViewModel @Inject constructor(
                 appending = false,
                 isLoading = false
             )
-
-            if (!hasMoreItems && locationJourneys.isEmpty()) {
-                // No journey found. Try checking in local database
-                // If any location is found for current user and current date then add it to the list as well as remote database
-                val lastJourney = journeyRepository.checkAndAddLocalJourneyToRemoteDatabase(userId)
-                val locationJourney = (
-                    lastJourney?.let {
-                        listOf(it)
-                    } ?: emptyList()
-                    ).groupByDate()
-                _state.value = _state.value.copy(
-                    groupedLocation = locationJourney,
-                    hasMoreLocations = false,
-                    appending = false,
-                    isLoading = false
-                )
-            }
         } catch (e: Exception) {
             Timber.e(e, "Failed to fetch location history")
             _state.value =

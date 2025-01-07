@@ -26,15 +26,23 @@ data class LocationJourney(
 @Keep
 data class JourneyRoute(val latitude: Double = 0.0, val longitude: Double = 0.0)
 
+/**
+ * Data class to hold the result of the journey generation.
+ */
+data class JourneyResult(
+    val updatedJourney: LocationJourney?,
+    val newJourney: LocationJourney?
+)
+
 fun Location.toRoute(): JourneyRoute {
     return JourneyRoute(latitude, longitude)
 }
 
 fun JourneyRoute.toLatLng() = LatLng(latitude, longitude)
 fun LocationJourney.toRoute(): List<LatLng> {
-    if (isSteadyJourney()) {
+    if (isSteady()) {
         return emptyList()
-    } else if (isMovingJourney()) {
+    } else if (isMoving()) {
         val result = listOf(
             LatLng(
                 from_latitude,
@@ -49,14 +57,14 @@ fun LocationJourney.toRoute(): List<LatLng> {
     }
 }
 
-fun LocationJourney.isSteadyJourney(): Boolean {
+fun LocationJourney.isSteady(): Boolean {
     if (type != null) {
         return type == JourneyType.STEADY
     }
     return to_latitude == null || to_longitude == null
 }
 
-fun LocationJourney.isMovingJourney(): Boolean {
+fun LocationJourney.isMoving(): Boolean {
     if (type != null) {
         return type == JourneyType.MOVING
     }

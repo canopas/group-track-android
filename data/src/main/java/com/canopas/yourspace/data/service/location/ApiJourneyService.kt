@@ -1,7 +1,5 @@
 package com.canopas.yourspace.data.service.location
 
-import com.canopas.yourspace.data.models.location.JourneyRoute
-import com.canopas.yourspace.data.models.location.JourneyType
 import com.canopas.yourspace.data.models.location.LocationJourney
 import com.canopas.yourspace.data.utils.Config
 import com.google.firebase.firestore.FirebaseFirestore
@@ -26,43 +24,20 @@ class ApiJourneyService @Inject constructor(
         userRef.document(userId.takeIf { it.isNotBlank() } ?: "null")
             .collection(Config.FIRESTORE_COLLECTION_USER_JOURNEYS)
 
-    suspend fun saveCurrentJourney(
+    suspend fun addJourney(
         userId: String,
-        fromLatitude: Double,
-        fromLongitude: Double,
-        toLatitude: Double? = null,
-        toLongitude: Double? = null,
-        routeDistance: Double? = null,
-        routeDuration: Long? = null,
-        routes: List<JourneyRoute> = emptyList(),
-        createdAt: Long? = null,
-        updateAt: Long? = null,
-        type: JourneyType? = null,
-        newJourneyId: ((String) -> Unit)? = null
-    ) {
+        newJourney: LocationJourney
+    ): LocationJourney {
         val docRef = journeyRef(userId).document()
 
-        val journey = LocationJourney(
-            id = docRef.id,
-            user_id = userId,
-            from_latitude = fromLatitude,
-            from_longitude = fromLongitude,
-            to_latitude = toLatitude,
-            to_longitude = toLongitude,
-            route_distance = routeDistance,
-            route_duration = routeDuration,
-            routes = routes,
-            created_at = createdAt ?: System.currentTimeMillis(),
-            update_at = updateAt ?: System.currentTimeMillis(),
-            type = type
-        )
-
-        newJourneyId?.invoke(journey.id)
+        val journey = newJourney.copy(id = docRef.id)
 
         docRef.set(journey).await()
+
+        return journey
     }
 
-    suspend fun updateLastLocationJourney(userId: String, journey: LocationJourney) {
+    suspend fun updateJourney(userId: String, journey: LocationJourney) {
         try {
             journeyRef(userId).document(journey.id).set(journey).await()
         } catch (e: Exception) {
