@@ -72,7 +72,6 @@ class ThreadsViewModel @Inject constructor(
             val sortedList =
                 threads.filterArchivedThreadsForUser(authService.currentUser!!.id)
                     .sortedByDescending { it.messages.firstOrNull()?.createdAtMs ?: 0 }
-            Timber.d("XXX listenThreads: $sortedList")
             _state.emit(_state.value.copy(threadInfo = sortedList, loadingThreads = false))
         }
     }
