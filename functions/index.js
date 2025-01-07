@@ -88,11 +88,20 @@ exports.sendNotification = onDocumentCreated({
     const senderName = senderData.first_name + ' ' + senderData.last_name;
     const senderProfile = senderData.profile_image;
 
-    var documentSnapshot = await admin.firestore().collection('space_threads').doc(threadId).get();
+    const threadRef = admin.firestore().collection('space_threads').doc(threadId);
+    var documentSnapshot = await threadRef.get();
+
     if (!documentSnapshot.exists) {
         console.log('Thread does not exist');
         return;
     }
+
+    // update new message, time and seen by
+    await threadRef.update({
+        last_message: message,
+        last_message_at: snap.created_at,
+        seen_by_ids: [senderId],
+    });
 
     const documentData = documentSnapshot.data();
 
@@ -385,6 +394,7 @@ exports.updateUserStateNotification = onDocumentCreated({
         const userRef = db.collection('users').doc(userId);
         await userRef.update({
             state: 1,
+            battery_pct: 0,
             updated_at: admin.firestore.Timestamp.now().toMillis()
         });
         console.log('User is not in network, updated state to 1:', userId);
@@ -527,22 +537,4 @@ exports.sendNewPlaceAddedNotification = onDocumentCreated({
     } catch (error) {
         console.error("Error sending place notification", error);
     }
-});
-
-exports.updateLastMessageAndTimeInThread = onDocumentCreated({
-    document: "space_threads/{threadId}/thread_messages/{messageId}",
-    region: "asia-south1",
-}, async event => {
-    const snap = event.data.data();
-    const threadId = event.params.threadId;
-
-    const message = snap.message;
-    const lastMessageAt = snap.created_at;
-
-    const threadRef = admin.firestore().collection('space_threads').doc(threadId);
-
-    await threadRef.update({
-        last_message: message,
-        last_message_at: lastMessageAt,
-    });
 });
