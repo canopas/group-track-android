@@ -37,7 +37,6 @@ fun getJourney(
             user_id = userId,
             from_latitude = newLocation.latitude,
             from_longitude = newLocation.longitude,
-            // to_latitude and to_longitude remain null => steady
             created_at = System.currentTimeMillis(),
             update_at = System.currentTimeMillis(),
             type = JourneyType.STEADY
@@ -143,9 +142,9 @@ fun getJourney(
             val updatedJourney = lastKnownJourney.copy(
                 to_latitude = newLocation.latitude,
                 to_longitude = newLocation.longitude,
-                route_distance = distance, // or add to existing distance if desired
-                route_duration = (lastKnownJourney.update_at ?: 0L) -
-                    (lastKnownJourney.created_at ?: 0L),
+                route_distance = distance,
+                route_duration = (lastKnownJourney.update_at ?: System.currentTimeMillis()) -
+                    (lastKnownJourney.created_at ?: System.currentTimeMillis()),
                 routes = lastKnownJourney.routes + newLocation.toRoute()
             )
 
@@ -154,7 +153,6 @@ fun getJourney(
                 user_id = userId,
                 from_latitude = newLocation.latitude,
                 from_longitude = newLocation.longitude,
-                // to_latitude and to_longitude remain null => steady
                 created_at = lastKnownJourney.update_at ?: System.currentTimeMillis(),
                 update_at = System.currentTimeMillis(),
                 type = JourneyType.STEADY
