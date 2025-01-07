@@ -32,7 +32,7 @@ object EphemeralECDHUtils {
      * @param receiverId The unique identifier of the receiver.
      * @param plaintext The data to be encrypted as a byte array.
      * @param receiverPub The receiver's public key.
-     * @return EncryptedDistribution The encrypted data and associated metadata.
+     * @return EncryptedDistribution: The encrypted data and associated metadata.
      */
     fun encrypt(
         receiverId: String,

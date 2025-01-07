@@ -51,7 +51,7 @@ class BufferedSenderKeyStore @Inject constructor(
         try {
             val currentUser = userPreferences.currentUser ?: return
             val uniqueDocId = "${senderKeyRecord.deviceId}-${senderKeyRecord.distributionId}"
-            spaceSenderKeyRecordRef(senderKeyRecord.distributionId, currentUser.id)
+            spaceSenderKeyRecordRef(senderKeyRecord.address, currentUser.id)
                 .document(uniqueDocId).set(senderKeyRecord).await()
         } catch (e: Exception) {
             Timber.e(e, "Failed to save sender key to server: $senderKeyRecord")

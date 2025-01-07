@@ -74,6 +74,7 @@ data class MemberKeyData(
  * encrypted with the recipient's public key.
  */
 data class EncryptedDistribution(
+    val id: String = UUID.randomUUID().toString(),
     val recipientId: String = "",
     val ephemeralPub: Blob = Blob.fromBytes(ByteArray(0)), // 32 bytes
     val iv: Blob = Blob.fromBytes(ByteArray(0)), // 12 bytes

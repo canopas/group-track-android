@@ -22,7 +22,8 @@ data class LocationJourney(
     val routes: List<JourneyRoute> = emptyList(),
     val created_at: Long = System.currentTimeMillis(),
     val updated_at: Long = System.currentTimeMillis(),
-    val type: JourneyType? = null
+    val type: JourneyType? = null,
+    val key_id: String = ""
 )
 
 @Keep
@@ -39,7 +40,8 @@ data class EncryptedLocationJourney(
     val routes: List<EncryptedJourneyRoute> = emptyList(), // Encrypted journey routes
     val created_at: Long = System.currentTimeMillis(),
     val updated_at: Long = System.currentTimeMillis(),
-    val type: JourneyType? = null
+    val type: JourneyType? = null,
+    val key_id: String = ""
 )
 
 @Keep
@@ -140,7 +142,8 @@ fun EncryptedLocationJourney.toDecryptedLocationJourney(groupCipher: GroupCipher
         route_duration = route_duration,
         routes = decryptedRoutes,
         created_at = created_at,
-        updated_at = updated_at
+        updated_at = updated_at,
+        key_id = key_id
     )
 }
 
@@ -200,6 +203,7 @@ fun LocationJourney.toEncryptedLocationJourney(
         route_duration = route_duration,
         routes = encryptedRoutes,
         created_at = created_at,
-        updated_at = updated_at
+        updated_at = updated_at,
+        key_id = distributionId.toString()
     )
 }

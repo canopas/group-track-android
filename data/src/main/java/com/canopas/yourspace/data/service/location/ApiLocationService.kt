@@ -181,10 +181,7 @@ class ApiLocationService @Inject constructor(
 
             val latitude = latitudeBytes.toString(Charsets.UTF_8).toDoubleOrNull()
             val longitude = longitudeBytes.toString(Charsets.UTF_8).toDoubleOrNull()
-            if (latitude == null || longitude == null) {
-                Timber.e("Failed to decrypt location for userId: $userId")
-                return null
-            }
+            if (latitude == null || longitude == null) return null
 
             ApiLocation(
                 id = encryptedLocation.id,
@@ -225,7 +222,7 @@ class ApiLocationService @Inject constructor(
 
         val decryptedDistribution = EphemeralECDHUtils.decrypt(distribution, currentUserPrivateKey)
             ?: run {
-                Timber.e("Failed to decrypt distribution for userId=$userId in spaceId=$spaceId")
+                Timber.e("Failed to decrypt distribution for userId=$userId")
                 return null
             }
 
@@ -258,7 +255,7 @@ class ApiLocationService @Inject constructor(
             val groupCipher = GroupCipher(bufferedSenderKeyStore, groupAddress)
             Pair(distributionMessage, groupCipher)
         } catch (e: Exception) {
-            Timber.e(e, "Error processing group session for spaceId=$spaceId, userId=$userId")
+            Timber.e(e, "Error processing group session for userId=$userId")
             null
         }
     }
@@ -278,9 +275,9 @@ class ApiLocationService @Inject constructor(
         } catch (e: InvalidKeyException) {
             Timber.e(e, "Error decoding private key for userId=${currentUser.id}")
             PrivateKeyUtils.decryptPrivateKey(
-                privateKey ?: return null,
-                currentUser.identity_key_salt?.toBytes() ?: return null,
-                userPreferences.getPasskey() ?: return null
+                encryptedPrivateKey = privateKey ?: return null,
+                salt = currentUser.identity_key_salt?.toBytes() ?: return null,
+                passkey = userPreferences.getPasskey() ?: return null
             )?.let { Curve.decodePrivatePoint(it) }
         }
     }
