@@ -59,9 +59,9 @@ Grouptrack ensures the privacy and security of your data by implementing end-to-
     <th  width="33%" >Location History</th>
   </tr>
   <tr>
-    <td><img src="screenshots/Grouptrack_ss_1.jpg"  alt="Family Safety At Your Fingertips"/></td>
-    <td> <img src="screenshots/Grouptrack_ss_2.jpg"   alt="Say Goodbye to 'Where are You?' Texts "/> </td>
-    <td> <img src="screenshots/Grouptrack_ss_3.jpg"  alt="Always Track Your Loved Ones"/> </td>
+    <td><img src="screenshots/grouptrack_ss_1.jpg"  alt="Family Safety At Your Fingertips"/></td>
+    <td> <img src="screenshots/grouptrack_ss_2.jpg"   alt="Say Goodbye to 'Where are You?' Texts "/> </td>
+    <td> <img src="screenshots/grouptrack_ss_3.jpg"  alt="Always Track Your Loved Ones"/> </td>
   </tr>
 </table>
 
@@ -71,8 +71,8 @@ Grouptrack ensures the privacy and security of your data by implementing end-to-
     <th  width="33%" >Communication</th>
   </tr>
   <tr align="center">
-    <td><img src="screenshots/Grouptrack_ss_4.jpg"  alt="Customize Your Places According to Your Needs" width="70%" /></td>
-    <td> <img src="screenshots/Grouptrack_ss_5.jpg"   alt="Chat with Your Loved Ones Anytime, Anywhere" width="70%" /> </td>
+    <td><img src="screenshots/grouptrack_ss_4.jpg"  alt="Customize Your Places According to Your Needs" width="70%" /></td>
+    <td> <img src="screenshots/grouptrack_ss_5.jpg"   alt="Chat with Your Loved Ones Anytime, Anywhere" width="70%" /> </td>
   </tr>
 </table>
 
