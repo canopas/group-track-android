@@ -187,6 +187,7 @@ class ApiSpaceService @Inject constructor(
             .whereEqualTo("user_id", userId).get().await().documents.forEach {
                 it.reference.delete().await()
             }
+        rotateSenderKey(spaceId)
     }
 
     suspend fun updateSpace(space: ApiSpace) {
@@ -216,7 +217,7 @@ class ApiSpaceService @Inject constructor(
         }
     }
 
-    suspend fun rotateSenderKey(spaceId: String) {
+    private suspend fun rotateSenderKey(spaceId: String) {
         val user = authService.currentUser ?: return
         val deviceId = UUID.randomUUID().mostSignificantBits.toInt()
 
@@ -261,14 +262,5 @@ class ApiSpaceService @Inject constructor(
         }.await()
 
         Timber.d("Key rotation completed for space: $spaceId")
-    }
-
-    fun getUserSpacesToRotateKeys(): List<String> {
-        val user = authService.currentUser ?: return emptyList()
-        if (user.identity_key_public == null) {
-            Timber.e("User identity key public is null, can't rotate keys")
-            return emptyList()
-        }
-        return user.space_ids ?: emptyList()
     }
 }

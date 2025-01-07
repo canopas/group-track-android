@@ -19,7 +19,6 @@ import com.canopas.yourspace.domain.fcm.FcmRegisterWorker
 import com.canopas.yourspace.domain.fcm.YOURSPACE_CHANNEL_GEOFENCE
 import com.canopas.yourspace.domain.fcm.YOURSPACE_CHANNEL_MESSAGES
 import com.canopas.yourspace.domain.fcm.YOURSPACE_CHANNEL_PLACES
-import com.canopas.yourspace.domain.keyrotation.KeyRotationWorker
 import com.canopas.yourspace.domain.receiver.BatteryBroadcastReceiver
 import com.google.android.libraries.places.api.Places
 import com.google.firebase.crashlytics.FirebaseCrashlytics
@@ -122,10 +121,6 @@ class YourSpaceApplication :
 
         if (userPreferences.currentUser != null && !userPreferences.isFCMRegistered) {
             FcmRegisterWorker.startService(this)
-        }
-
-        if (userPreferences.currentUser != null && userPreferences.currentUser?.identity_key_public != null) {
-            KeyRotationWorker.schedule(this)
         }
     }
 
