@@ -79,20 +79,34 @@ class SpaceProfileViewModel @Inject constructor(
     private fun onChange() {
         val spaceName = _state.value.spaceInfo?.space?.name
         val validFirstName = (_state.value.spaceName ?: "").trim().length >= 3
-
-        val locationEnabled =
-            _state.value.spaceInfo?.members?.firstOrNull { it.user.id == authService.currentUser?.id }?.isLocationEnable
-                ?: false
-
-        val changes =
-            spaceName != _state.value.spaceName || locationEnabled != _state.value.locationEnabled
+        val changes = spaceName != _state.value.spaceName
 
         _state.value = state.value.copy(allowSave = validFirstName && changes)
     }
 
     fun onLocationEnabledChanged(enable: Boolean) {
-        _state.value = state.value.copy(locationEnabled = enable)
-        onChange()
+        viewModelScope.launch {
+            _state.value = state.value.copy(locationEnabled = enable)
+            spaceRepository.enableLocation(spaceID, authService.currentUser?.id ?: "", enable)
+            onChange()
+        }
+    }
+
+    fun updateMemberLocation(memberId: String, enableLocation: Boolean) {
+        viewModelScope.launch(appDispatcher.IO) {
+            try {
+                spaceRepository.enableLocation(spaceID, memberId, enableLocation)
+                val spaceInfo = spaceRepository.getSpaceInfo(spaceID)
+                _state.emit(
+                    _state.value.copy(
+                        spaceInfo = spaceInfo,
+                        locationEnabledChanges = mapOf(memberId to enableLocation)
+                    )
+                )
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to update member location")
+            }
+        }
     }
 
     private fun fetchInviteCode(spaceId: String) {
@@ -112,10 +126,10 @@ class SpaceProfileViewModel @Inject constructor(
 
     fun regenerateInviteCode() = viewModelScope.launch(appDispatcher.IO) {
         if (state.value.isAdmin) {
-            _state.emit(_state.value.copy(isLoading = true))
+            _state.emit(_state.value.copy(isCodeLoading = true))
             spaceRepository.regenerateInviteCode(spaceRepository.currentSpaceId)
-            _state.emit(_state.value.copy(isLoading = false))
-            fetchSpaceDetail()
+            fetchInviteCode(spaceID)
+            _state.emit(_state.value.copy(isCodeLoading = false))
         }
     }
 
@@ -166,11 +180,11 @@ class SpaceProfileViewModel @Inject constructor(
                     _state.value.locationEnabled
                 )
             }
-            _state.emit(_state.value.copy(saving = false))
-            navigator.navigateBack()
+            val spaceInfo = spaceRepository.getSpaceInfo(spaceID)
+            _state.emit(_state.value.copy(saving = false, allowSave = false, spaceInfo = spaceInfo))
         } catch (e: Exception) {
             Timber.e(e, "Failed to save space")
-            _state.emit(_state.value.copy(saving = false, error = e))
+            _state.emit(_state.value.copy(saving = false, error = e, allowSave = false))
         }
     }
 
@@ -310,5 +324,9 @@ data class SpaceProfileState(
     val showChangeAdminDialog: Boolean = false,
     var isMenuExpanded: Boolean = false,
     val inviteCode: String = "",
-    val codeExpireTime: String = ""
+    val codeExpireTime: String = "",
+    val isCodeLoading: Boolean = false,
+    val locationEnabledChanges: Map<String, Boolean> = emptyMap(),
+    val isLocationSettingChange: Boolean = false,
+    val userLocationUpdatingId: String? = null,
 )
