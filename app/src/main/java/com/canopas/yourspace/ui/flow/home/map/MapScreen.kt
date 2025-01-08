@@ -57,7 +57,6 @@ import com.canopas.yourspace.domain.utils.isLocationServiceEnabled
 import com.canopas.yourspace.domain.utils.openLocationSettings
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.ShowEnableLocationDialog
-import com.canopas.yourspace.ui.flow.home.home.HomeScreenViewModel
 import com.canopas.yourspace.ui.flow.home.map.component.AddMemberBtn
 import com.canopas.yourspace.ui.flow.home.map.component.MapCircles
 import com.canopas.yourspace.ui.flow.home.map.component.MapControlBtn
@@ -86,12 +85,9 @@ private const val DEFAULT_CAMERA_ZOOM_FOR_SELECTED_USER = 17f
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun MapScreen(homeScreenViewModel: HomeScreenViewModel) {
+fun MapScreen(dismissSpaceSelection: () -> Unit) {
     val viewModel = hiltViewModel<MapViewModel>()
     val state by viewModel.state.collectAsState()
-
-    val homeScreenState by homeScreenViewModel.state.collectAsState()
-
     val scope = rememberCoroutineScope()
 
     if (state.errorMessage != null) {
@@ -140,7 +136,7 @@ fun MapScreen(homeScreenViewModel: HomeScreenViewModel) {
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        MapView(cameraPositionState, homeScreenViewModel)
+        MapView(cameraPositionState, dismissSpaceSelection)
 
         Column(
             modifier = Modifier
@@ -149,9 +145,7 @@ fun MapScreen(homeScreenViewModel: HomeScreenViewModel) {
         ) {
             Column(modifier = Modifier.align(Alignment.End)) {
                 MapControlBtn(icon = R.drawable.ic_map_type) {
-                    if (homeScreenState.showSpaceSelectionPopup) {
-                        homeScreenViewModel.dismissSpaceSelection()
-                    }
+                    dismissSpaceSelection()
                     viewModel.toggleStyleSheetVisibility(true)
                 }
 
@@ -160,9 +154,7 @@ fun MapScreen(homeScreenViewModel: HomeScreenViewModel) {
                     show = relocate
                 ) {
                     scope.launch {
-                        if (homeScreenState.showSpaceSelectionPopup) {
-                            homeScreenViewModel.dismissSpaceSelection()
-                        }
+                        dismissSpaceSelection()
                         if (state.isMapLoaded) {
                             cameraPositionState.animate(
                                 CameraUpdateFactory.newLatLngZoom(
@@ -179,9 +171,7 @@ fun MapScreen(homeScreenViewModel: HomeScreenViewModel) {
                         containerColor = AppTheme.colorScheme.primary,
                         contentColor = AppTheme.colorScheme.textInversePrimary
                     ) {
-                        if (homeScreenState.showSpaceSelectionPopup) {
-                            homeScreenViewModel.dismissSpaceSelection()
-                        }
+                        dismissSpaceSelection()
                         viewModel.navigateToPlaces()
                     }
                 }
@@ -225,9 +215,7 @@ fun MapScreen(homeScreenViewModel: HomeScreenViewModel) {
                             }
                             items(state.members) {
                                 MapUserItem(it) {
-                                    if (homeScreenState.showSpaceSelectionPopup) {
-                                        homeScreenViewModel.dismissSpaceSelection()
-                                    }
+                                    dismissSpaceSelection()
                                     viewModel.showMemberDetail(it)
                                 }
                             }
@@ -347,7 +335,7 @@ fun PermissionFooter(onClick: () -> Unit) {
 @Composable
 private fun MapView(
     cameraPositionState: CameraPositionState,
-    homeScreenViewModel: HomeScreenViewModel
+    dismissSpaceSelection: () -> Unit
 ) {
     val viewModel = hiltViewModel<MapViewModel>()
     val state by viewModel.state.collectAsState()
@@ -387,9 +375,7 @@ private fun MapView(
             viewModel.onMapLoaded()
         },
         onMapClick = {
-            if (homeScreenViewModel.state.value.showSpaceSelectionPopup) {
-                homeScreenViewModel.dismissSpaceSelection()
-            }
+            dismissSpaceSelection()
             if (state.showUserDetails) {
                 viewModel.dismissMemberDetail()
             }
@@ -405,9 +391,7 @@ private fun MapView(
                     location = it.location!!,
                     isSelected = it.user.id == state.selectedUser?.user?.id
                 ) {
-                    if (homeScreenViewModel.state.value.showSpaceSelectionPopup) {
-                        homeScreenViewModel.dismissSpaceSelection()
-                    }
+                    dismissSpaceSelection()
                     if (state.isStyleSheetVisible) {
                         viewModel.toggleStyleSheetVisibility(false)
                     }
@@ -423,9 +407,7 @@ private fun MapView(
                     location = location.toApiLocation(currentUser.id),
                     isSelected = currentUser.id == state.selectedUser?.user?.id
                 ) {
-                    if (homeScreenViewModel.state.value.showSpaceSelectionPopup) {
-                        homeScreenViewModel.dismissSpaceSelection()
-                    }
+                    dismissSpaceSelection()
                     if (state.isStyleSheetVisible) {
                         viewModel.toggleStyleSheetVisibility(false)
                     }
