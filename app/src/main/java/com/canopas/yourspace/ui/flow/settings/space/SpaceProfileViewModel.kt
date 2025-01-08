@@ -91,7 +91,7 @@ class SpaceProfileViewModel @Inject constructor(
                 spaceRepository.enableLocation(spaceID, authService.currentUser?.id ?: "", enable)
             } catch (e: Exception) {
                 Timber.e(e, "Failed to update location")
-                _state.value = state.value.copy(error = e)
+                _state.value = state.value.copy(error = e, locationEnabled = !enable)
             }
             onChange()
         }
@@ -110,6 +110,7 @@ class SpaceProfileViewModel @Inject constructor(
                 )
             } catch (e: Exception) {
                 Timber.e(e, "Failed to update member location")
+                _state.emit(_state.value.copy(error = e))
             }
         }
     }
