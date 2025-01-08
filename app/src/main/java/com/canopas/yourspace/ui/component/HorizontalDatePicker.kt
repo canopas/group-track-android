@@ -1,28 +1,22 @@
 package com.canopas.yourspace.ui.component
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,10 +25,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import com.canopas.yourspace.ui.flow.journey.timeline.component.CalendarDataSource
-import com.canopas.yourspace.ui.flow.journey.timeline.component.CalendarUiModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.canopas.yourspace.ui.flow.journey.timeline.component.CalendarViewModel
 import com.canopas.yourspace.ui.theme.AppTheme
 import java.time.LocalDate
+import java.time.format.TextStyle
+import java.util.Locale
 
 @Composable
 fun HorizontalDatePicker(
@@ -42,70 +38,78 @@ fun HorizontalDatePicker(
     selectedTimestamp: Long? = null,
     onDateClick: (Long) -> Unit
 ) {
-    val calendarDataSource = remember { CalendarDataSource() }
-    val today = calendarDataSource.today
+    val today = LocalDate.now()
+    val viewModel = hiltViewModel<CalendarViewModel>()
+    val calendarState by viewModel.state.collectAsState()
+
     val initialSelectedDate = selectedTimestamp?.let {
         LocalDate.ofEpochDay(it / (24 * 60 * 60 * 1000))
-    } ?: today
+    } ?: calendarState.selectedDate
 
     var currentList by remember {
         mutableStateOf(
-            calendarDataSource.getDatesBetween(today.minusDays(15), today.plusDays(15))
-                .filter { it <= today }
+            getDatesBetween(
+                calendarState.weekStartDate.minusDays(initialSelectedDate.toEpochDay()),
+                calendarState.weekStartDate.plusDays(initialSelectedDate.toEpochDay())
+            ).filter { it <= today }
         )
     }
+
     var selectedDate by remember { mutableStateOf(initialSelectedDate) }
-    val listState = rememberLazyListState()
 
-    LaunchedEffect(selectedDate, Unit) {
-        val selectedIndex = currentList.indexOf(selectedDate)
+    fun chunkDates(dates: List<LocalDate>, chunkSize: Int): List<List<LocalDate>> {
+        return dates.chunked(chunkSize)
+    }
+
+    val dateChunks = chunkDates(currentList, 7)
+
+    val pagerState = remember {
+        PagerState(
+            currentPage = dateChunks.indexOfFirst { it.contains(selectedDate) },
+            pageCount = { dateChunks.size }
+        )
+    }
+
+    LaunchedEffect(selectedDate) {
+        val selectedIndex = dateChunks.indexOfFirst { it.contains(selectedDate) }
         if (selectedIndex >= 0) {
-            listState.scrollToItem(selectedIndex)
+            pagerState.scrollToPage(selectedIndex)
         }
     }
 
-    LaunchedEffect(listState.firstVisibleItemIndex) {
-        when {
-            listState.firstVisibleItemIndex == 0 -> {
-                val updatedModel =
-                    calendarDataSource.getData(currentList, selectedDate, isScrollUp = true)
-                currentList = (updatedModel.visibleDates.map { it.date } + currentList)
-                    .distinct()
-                    .filter { it <= today }
+    LaunchedEffect(pagerState.currentPage) {
+        when (pagerState.currentPage) {
+            0 -> {
+                currentList = (currentList).distinct().filter { it <= today }
             }
 
-            listState.firstVisibleItemIndex + listState.layoutInfo.visibleItemsInfo.size == currentList.size -> {
-                val updatedModel =
-                    calendarDataSource.getData(currentList, selectedDate, isScrollUp = false)
-                currentList = (currentList + updatedModel.visibleDates.map { it.date })
-                    .distinct()
-                    .filter { it <= today }
+            currentList.size - 1 -> {
+                currentList = (currentList).distinct()
             }
         }
     }
 
-    AnimatedVisibility(
-        visible = true,
-        enter = slideInVertically { -it } + fadeIn(),
-        exit = slideOutVertically { -it } + fadeOut()
-    ) {
-        Box(
-            modifier = modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
-                .padding(16.dp)
-        ) {
-            LazyRow(
-                state = listState,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = modifier.fillMaxWidth()
+    HorizontalPager(
+        state = pagerState,
+        modifier = modifier.fillMaxWidth(),
+        pageSpacing = 4.dp
+    ) { pageIndex ->
+        val dateChunk = dateChunks.getOrNull(pageIndex)
+        if (dateChunk != null) {
+            Row(
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(4.dp)
             ) {
-                items(currentList) { date ->
+                dateChunk.forEach { date ->
                     val isSelected = date == selectedDate
                     DateCard(
-                        date = CalendarUiModel.Date(date, isSelected, date == today),
+                        date = date,
+                        isSelected = isSelected,
                         onClick = {
                             selectedDate = date
+                            viewModel.setSelectedDate(date)
                             onDateClick(date.toEpochDay() * 24 * 60 * 60 * 1000)
                         }
                     )
@@ -117,36 +121,46 @@ fun HorizontalDatePicker(
 
 @Composable
 fun DateCard(
-    date: CalendarUiModel.Date,
+    date: LocalDate,
+    isSelected: Boolean,
     onClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .wrapContentSize()
-            .padding(4.dp)
             .clip(RoundedCornerShape(8.dp))
             .clickable { onClick() },
-        elevation = CardDefaults.cardElevation(if (date.isSelected) 8.dp else 4.dp)
+        elevation = CardDefaults.cardElevation(if (isSelected) 8.dp else 4.dp)
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
             modifier = Modifier
-                .background(if (date.isSelected) AppTheme.colorScheme.primary else AppTheme.colorScheme.secondaryInverseVariant)
+                .background(if (isSelected) AppTheme.colorScheme.primary else AppTheme.colorScheme.secondaryInverseVariant)
                 .padding(8.dp)
         ) {
             Text(
-                text = date.day,
+                text = date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
                 style = AppTheme.appTypography.label3,
                 modifier = Modifier.padding(4.dp),
-                color = if (date.isSelected) AppTheme.colorScheme.textInversePrimary else AppTheme.colorScheme.textPrimary
+                color = if (isSelected) AppTheme.colorScheme.textInversePrimary else AppTheme.colorScheme.textPrimary
             )
             Text(
-                text = date.date.dayOfMonth.toString(),
+                text = date.dayOfMonth.toString(),
                 style = AppTheme.appTypography.label1,
-                color = if (date.isSelected) AppTheme.colorScheme.textInversePrimary else AppTheme.colorScheme.textPrimary,
+                color = if (isSelected) AppTheme.colorScheme.textInversePrimary else AppTheme.colorScheme.textPrimary,
                 modifier = Modifier.padding(horizontal = 8.dp)
             )
         }
     }
+}
+
+fun getDatesBetween(startDate: LocalDate, endDate: LocalDate): List<LocalDate> {
+    val dates = mutableListOf<LocalDate>()
+    var current = startDate
+    while (!current.isAfter(endDate)) {
+        dates.add(current)
+        current = current.plusDays(1)
+    }
+    return dates
 }

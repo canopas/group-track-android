@@ -24,6 +24,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -124,7 +125,10 @@ private fun TimelineContent(modifier: Modifier) {
     }
 
     Column(modifier = modifier.fillMaxSize()) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+        ) {
             Text(
                 text = state.selectedTimeFrom.formattedMessageDateHeader(LocalContext.current),
                 style = AppTheme.appTypography.header4,
@@ -132,11 +136,13 @@ private fun TimelineContent(modifier: Modifier) {
                 modifier = Modifier.weight(1f)
             )
         }
-        HorizontalDatePicker(
-            modifier = Modifier.fillMaxWidth(),
-            selectedTimestamp = state.selectedTimeTo,
-            onDateClick = viewModel::onFilterByDate
-        )
+        key(state.selectedTimeTo) {
+            HorizontalDatePicker(
+                modifier = Modifier.fillMaxWidth(),
+                selectedTimestamp = state.selectedTimeTo,
+                onDateClick = viewModel::onFilterByDate
+            )
+        }
         HorizontalDivider()
 
         if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
