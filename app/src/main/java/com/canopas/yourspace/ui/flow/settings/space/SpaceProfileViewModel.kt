@@ -86,8 +86,13 @@ class SpaceProfileViewModel @Inject constructor(
 
     fun onLocationEnabledChanged(enable: Boolean) {
         viewModelScope.launch {
-            _state.value = state.value.copy(locationEnabled = enable)
-            spaceRepository.enableLocation(spaceID, authService.currentUser?.id ?: "", enable)
+            try {
+                _state.value = state.value.copy(locationEnabled = enable)
+                spaceRepository.enableLocation(spaceID, authService.currentUser?.id ?: "", enable)
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to update location")
+                _state.value = state.value.copy(error = e)
+            }
             onChange()
         }
     }
@@ -125,11 +130,14 @@ class SpaceProfileViewModel @Inject constructor(
     }
 
     fun regenerateInviteCode() = viewModelScope.launch(appDispatcher.IO) {
-        if (state.value.isAdmin) {
-            _state.emit(_state.value.copy(isCodeLoading = true))
+        _state.emit(_state.value.copy(isCodeLoading = true))
+        try {
             spaceRepository.regenerateInviteCode(spaceRepository.currentSpaceId)
             fetchInviteCode(spaceID)
             _state.emit(_state.value.copy(isCodeLoading = false))
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to regenerate invite code")
+            _state.emit(_state.value.copy(isCodeLoading = false, error = e))
         }
     }
 
