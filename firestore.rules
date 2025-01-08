@@ -190,7 +190,7 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    match /spaces/{spaceId}/space_members/{member} {
+    match /spaces/{spaceId}/space_members/{docId} {
       allow read: if isAuthorized() &&
         (request.auth.uid == resource.data.user_id || isSpaceMember(spaceId));
       allow delete: if isAuthorized() &&
@@ -210,9 +210,7 @@ service cloud.firestore {
         (request.resource.data.role == 1 || request.resource.data.role == 2) &&
         request.resource.data.location_enabled is bool &&
         request.resource.data.created_at is int;
-    }
 
-    match /spaces/{spaceId}/space_members/{docId} {
       match /user_locations/{docId} {
         allow read: if isAuthorized() &&
           (request.auth.uid == resource.data.user_id || isSpaceMember(spaceId));

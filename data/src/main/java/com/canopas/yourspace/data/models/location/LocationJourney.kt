@@ -22,7 +22,7 @@ data class LocationJourney(
     val routes: List<JourneyRoute> = emptyList(),
     val created_at: Long = System.currentTimeMillis(),
     val updated_at: Long = System.currentTimeMillis(),
-    val type: JourneyType? = null,
+    val type: JourneyType = if (to_latitude != null && to_longitude != null) JourneyType.MOVING else JourneyType.STEADY,
     val key_id: String = ""
 )
 
@@ -40,7 +40,7 @@ data class EncryptedLocationJourney(
     val routes: List<EncryptedJourneyRoute> = emptyList(), // Encrypted journey routes
     val created_at: Long = System.currentTimeMillis(),
     val updated_at: Long = System.currentTimeMillis(),
-    val type: JourneyType? = null,
+    val type: JourneyType = if (to_latitude != null && to_longitude != null) JourneyType.MOVING else JourneyType.STEADY,
     val key_id: String = ""
 )
 
@@ -85,19 +85,9 @@ fun LocationJourney.toRoute(): List<LatLng> {
     }
 }
 
-fun LocationJourney.isSteady(): Boolean {
-    if (type != null) {
-        return type == JourneyType.STEADY
-    }
-    return to_latitude == null || to_longitude == null
-}
+fun LocationJourney.isSteady() = type == JourneyType.STEADY
 
-fun LocationJourney.isMoving(): Boolean {
-    if (type != null) {
-        return type == JourneyType.MOVING
-    }
-    return to_latitude != null && to_longitude != null
-}
+fun LocationJourney.isMoving() = type == JourneyType.MOVING
 
 fun LocationJourney.toLocationFromSteadyJourney() = Location("").apply {
     latitude = this@toLocationFromSteadyJourney.from_latitude
@@ -151,6 +141,7 @@ fun EncryptedLocationJourney.toDecryptedLocationJourney(groupCipher: GroupCipher
         routes = decryptedRoutes,
         created_at = created_at,
         updated_at = updated_at,
+        type = type,
         key_id = key_id
     )
 }
@@ -212,6 +203,7 @@ fun LocationJourney.toEncryptedLocationJourney(
         routes = encryptedRoutes,
         created_at = created_at,
         updated_at = updated_at,
-        key_id = distributionId.toString()
+        type = type,
+        key_id = key_id
     )
 }

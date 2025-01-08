@@ -56,7 +56,7 @@ class ApiJourneyService @Inject constructor(
         return try {
             spaceGroupKeysRef(spaceId).get().await().toObject<GroupKeysDoc>()
         } catch (e: Exception) {
-            Timber.e(e, "Failed to fetch GroupKeysDoc for space: $spaceId")
+            Timber.e(e, "Failed to fetch GroupKeysDoc")
             null
         }
     }
@@ -69,31 +69,29 @@ class ApiJourneyService @Inject constructor(
         userId: String,
         keyId: String? = null,
         groupKeysDoc: GroupKeysDoc
-    ): Pair<SenderKeyDistributionMessage, GroupCipher>? {
-        Timber.e("XXXXXX: SpaceId: $spaceId, userId: $userId, keyId: $keyId")
+    ): Triple<SenderKeyDistributionMessage, GroupCipher, String>? {
         val memberKeysData = groupKeysDoc.memberKeys[userId] ?: return null
         val distribution = memberKeysData.distributions
+            .sortedByDescending { it.createdAt }
             .firstOrNull {
                 it.recipientId == userId && (keyId == null || it.id == keyId)
             } ?: return null
 
-        Timber.e("XXXXXX: distribution: $distribution")
         val privateKey = getCurrentUserPrivateKey(userPreferences.currentUser!!) ?: return null
 
         // Decrypt the distribution message
         val decryptedBytes = EphemeralECDHUtils.decrypt(distribution, privateKey) ?: return null
         val distributionMessage = SenderKeyDistributionMessage(decryptedBytes)
 
-        Timber.e("XXXXXX: distributionMessage: $distributionMessage")
         val groupAddress = SignalProtocolAddress(spaceId, memberKeysData.memberDeviceId)
         // Ensures the distribution ID is loaded into the store
         bufferedSenderKeyStore.loadSenderKey(groupAddress, distributionMessage.distributionId)
 
         return try {
             GroupSessionBuilder(bufferedSenderKeyStore).process(groupAddress, distributionMessage)
-            distributionMessage to GroupCipher(bufferedSenderKeyStore, groupAddress)
+            Triple(distributionMessage, GroupCipher(bufferedSenderKeyStore, groupAddress), distribution.id)
         } catch (e: Exception) {
-            Timber.e(e, "Error processing group session for space: $spaceId")
+            Timber.e(e, "Error processing group session")
             null
         }
     }
@@ -115,7 +113,7 @@ class ApiJourneyService @Inject constructor(
         return try {
             block(groupCipher) ?: defaultValue
         } catch (e: Exception) {
-            Timber.e(e, "Error executing operation for userId: $userId in spaceId: $spaceId")
+            Timber.e(e, "Error executing run operation")
             defaultValue
         }
     }
@@ -147,23 +145,22 @@ class ApiJourneyService @Inject constructor(
     ): LocationJourney {
         var journey: LocationJourney = newJourney
         userPreferences.currentUser?.space_ids?.forEach { spaceId ->
-            // Load groupKeysDoc once (per space) and reuse it if needed
             val groupKeysDoc = getGroupKeyDoc(spaceId) ?: return@forEach
 
-            val (distributionMessage, groupCipher) = getGroupCipherByKeyId(
+            val (distributionMessage, groupCipher, keyId) = getGroupCipherByKeyId(
                 spaceId,
                 userId,
                 null,
                 groupKeysDoc
             )
                 ?: run {
-                    Timber.e("Failed to get group cipher for spaceId=$spaceId, userId=$userId")
+                    Timber.e("Failed to get group cipher")
                     return@forEach
                 }
 
             val docRef = spaceMemberJourneyRef(spaceId, userId).document(newJourney.id)
 
-            journey = newJourney.copy(id = docRef.id)
+            journey = newJourney.copy(id = docRef.id, key_id = keyId)
 
             val encryptedJourney =
                 journey.toEncryptedLocationJourney(groupCipher, distributionMessage.distributionId)
@@ -187,7 +184,7 @@ class ApiJourneyService @Inject constructor(
                 groupKeysDoc
             )
                 ?: run {
-                    Timber.e("Failed to get group cipher for spaceId=$spaceId, userId=$userId")
+                    Timber.e("Failed to get group cipher")
                     return@forEach
                 }
 
@@ -199,7 +196,7 @@ class ApiJourneyService @Inject constructor(
                     .set(encryptedJourney)
                     .await()
             } catch (e: Exception) {
-                Timber.e(e, "Error updating journey for spaceId=$spaceId, userId=$userId")
+                Timber.e(e, "Error updating journey")
             }
         }
     }
@@ -218,7 +215,6 @@ class ApiJourneyService @Inject constructor(
             ?.toObject<EncryptedLocationJourney>()
             ?: return null
 
-        // Fetch groupKeysDoc once
         val groupKeysDoc = getGroupKeyDoc(currentSpaceId) ?: return null
 
         // Decrypt
@@ -303,7 +299,7 @@ class ApiJourneyService @Inject constructor(
                 encrypted.toDecryptedLocationJourney(cipherAndMessage.second)
             }
         } catch (e: Exception) {
-            Timber.e(e, "Error while getting journey history for userId: $userId")
+            Timber.e(e, "Error while getting journey history")
             emptyList()
         }
     }
@@ -321,7 +317,7 @@ class ApiJourneyService @Inject constructor(
                 .await()
                 .toObject<EncryptedLocationJourney>()
         } catch (e: Exception) {
-            Timber.e(e, "Error while getting journey by ID: $journeyId")
+            Timber.e(e, "Error while getting journey")
             return null
         }
 

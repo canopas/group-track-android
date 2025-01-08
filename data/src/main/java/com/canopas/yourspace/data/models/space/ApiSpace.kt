@@ -57,7 +57,7 @@ data class GroupKeysDoc(
     val memberKeys: Map<String, MemberKeyData> = emptyMap()
 )
 
-/*
+/**
  * Data class that represents the entire "groupKeys/{senderUserId}" doc
  * in Firestore for a single sender's key distribution.
  */
@@ -78,7 +78,8 @@ data class EncryptedDistribution(
     val recipientId: String = "",
     val ephemeralPub: Blob = Blob.fromBytes(ByteArray(0)), // 32 bytes
     val iv: Blob = Blob.fromBytes(ByteArray(0)), // 12 bytes
-    val ciphertext: Blob = Blob.fromBytes(ByteArray(0)) // AES/GCM ciphertext
+    val ciphertext: Blob = Blob.fromBytes(ByteArray(0)), // AES/GCM ciphertext
+    val createdAt: Long = System.currentTimeMillis()
 ) {
     init {
         validateFieldSizes()

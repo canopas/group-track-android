@@ -187,7 +187,10 @@ class ApiSpaceService @Inject constructor(
             .whereEqualTo("user_id", userId).get().await().documents.forEach {
                 it.reference.delete().await()
             }
-        rotateSenderKey(spaceId)
+
+        // Update the "docUpdatedAt" so others see membership changed and remove sender key for the removed user
+        val docRef = spaceGroupKeysDoc(spaceId)
+        docRef.update("docUpdatedAt", System.currentTimeMillis()).await()
     }
 
     suspend fun updateSpace(space: ApiSpace) {
@@ -215,52 +218,5 @@ class ApiSpaceService @Inject constructor(
                 Timber.e(e, "Failed to distribute sender key for space $spaceId")
             }
         }
-    }
-
-    private suspend fun rotateSenderKey(spaceId: String) {
-        val user = authService.currentUser ?: return
-        val deviceId = UUID.randomUUID().mostSignificantBits.toInt()
-
-        val groupAddress = SignalProtocolAddress(spaceId, deviceId)
-        val sessionBuilder = GroupSessionBuilder(bufferedSenderKeyStore)
-        val newDistributionMessage = sessionBuilder.create(groupAddress, UUID.randomUUID())
-        val newDistributionBytes = newDistributionMessage.serialize()
-
-        val apiSpaceMembers = getSpaceMembers(spaceId)
-        val memberIds = apiSpaceMembers.map { it.user_id }.toSet()
-        val newDistributions = mutableListOf<EncryptedDistribution>()
-
-        for (member in apiSpaceMembers) {
-            val publicBlob = member.identity_key_public ?: continue
-            val publicKey = Curve.decodePoint(publicBlob.toBytes(), 0)
-
-            newDistributions.add(EphemeralECDHUtils.encrypt(member.user_id, newDistributionBytes, publicKey))
-        }
-
-        db.runTransaction { transaction ->
-            val docRef = spaceGroupKeysDoc(spaceId)
-            val snapshot = transaction.get(docRef)
-            val groupKeysDoc = snapshot.toObject(GroupKeysDoc::class.java) ?: GroupKeysDoc()
-
-            val oldKeyData = groupKeysDoc.memberKeys[user.id] ?: MemberKeyData()
-
-            // Filter out distributions for members who are no longer in the space
-            val filteredOldDistributions = oldKeyData.distributions.filter { it.recipientId in memberIds }
-
-            val rotatedKeyData = oldKeyData.copy(
-                memberDeviceId = deviceId,
-                distributions = newDistributions + filteredOldDistributions,
-                dataUpdatedAt = System.currentTimeMillis()
-            )
-
-            val updates = mapOf(
-                "memberKeys.${user.id}" to rotatedKeyData,
-                "docUpdatedAt" to System.currentTimeMillis()
-            )
-
-            transaction.update(docRef, updates)
-        }.await()
-
-        Timber.d("Key rotation completed for space: $spaceId")
     }
 }
