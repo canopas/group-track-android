@@ -328,5 +328,5 @@ data class SpaceProfileState(
     val isCodeLoading: Boolean = false,
     val locationEnabledChanges: Map<String, Boolean> = emptyMap(),
     val isLocationSettingChange: Boolean = false,
-    val userLocationUpdatingId: String? = null,
+    val userLocationUpdatingId: String? = null
 )
