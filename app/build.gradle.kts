@@ -1,3 +1,4 @@
+
 import org.jetbrains.kotlin.konan.properties.hasProperty
 import java.util.Properties
 
@@ -14,6 +15,7 @@ plugins {
 var versionMajor = 1
 var versionMinor = 0
 var versionBuild = 0
+val targetSdkVersion: Int = 34
 
 android {
     namespace = "com.canopas.yourspace"
@@ -30,7 +32,8 @@ android {
     defaultConfig {
         applicationId = "com.canopas.yourspace"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = targetSdkVersion
+
         versionCode = versionMajor * 1000000 + versionMinor * 10000 + versionBuild
         versionName = "$versionMajor.$versionMinor.$versionBuild"
         setProperty("archivesBaseName", "GroupTrack-$versionName-$versionCode")
@@ -60,7 +63,6 @@ android {
             buildConfigField("String", "PLACE_API_KEY", "\"${p.getProperty("PLACE_API_KEY")}\"")
         }
     }
-
     signingConfigs {
         if (System.getenv("APKSIGN_KEYSTORE") != null) {
             create("release") {
@@ -103,12 +105,12 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
         isCoreLibraryDesugaringEnabled = true
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
@@ -212,6 +214,10 @@ dependencies {
 
     // Gson
     implementation("com.google.code.gson:gson:2.10.1")
+
+    // Signal Protocol
+    implementation("org.signal:libsignal-client:0.64.1")
+    implementation("org.signal:libsignal-android:0.64.1")
 
     implementation(project(":data"))
 }
