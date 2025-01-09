@@ -214,12 +214,12 @@ class ApiLocationService @Inject constructor(
 
         val snapshot = spaceGroupKeysRef(spaceId).get().await()
         val groupKeysDoc = snapshot.toObject(GroupKeysDoc::class.java) ?: return null
-        val memberKeyData = groupKeysDoc.memberKeys[userId] ?: return null
+        val memberKeyData = groupKeysDoc.member_keys[userId] ?: return null
 
         val distribution = memberKeyData.distributions.sortedByDescending {
-            it.createdAt
+            it.created_at
         }.firstOrNull {
-            it.recipientId == currentUser.id
+            it.recipient_id == currentUser.id
         } ?: return null
 
         val currentUserPrivateKey = getCurrentUserPrivateKey(currentUser) ?: return null
@@ -231,14 +231,14 @@ class ApiLocationService @Inject constructor(
             }
 
         val distributionMessage = SenderKeyDistributionMessage(decryptedDistribution)
-        val groupAddress = SignalProtocolAddress(spaceId, memberKeyData.memberDeviceId)
+        val groupAddress = SignalProtocolAddress(spaceId, memberKeyData.member_device_id)
 
         bufferedSenderKeyStore.loadSenderKey(groupAddress, distributionMessage.distributionId)
 
         // If the sender key data is outdated, we need to distribute the sender key to the pending users
-        if (memberKeyData.dataUpdatedAt < groupKeysDoc.docUpdatedAt && canDistributeSenderKey) {
+        if (memberKeyData.data_updated_at < groupKeysDoc.doc_updated_at && canDistributeSenderKey) {
             // Here means the sender key data is outdated, so we need to distribute the sender key to the users.
-            rotateSenderKey(spaceId = spaceId, deviceId = memberKeyData.memberDeviceId)
+            rotateSenderKey(spaceId = spaceId, deviceId = memberKeyData.member_device_id)
         }
 
         return try {
@@ -306,21 +306,21 @@ class ApiLocationService @Inject constructor(
             val snapshot = transaction.get(docRef)
             val groupKeysDoc = snapshot.toObject(GroupKeysDoc::class.java) ?: GroupKeysDoc()
 
-            val oldKeyData = groupKeysDoc.memberKeys[user.id] ?: MemberKeyData()
+            val oldKeyData = groupKeysDoc.member_keys[user.id] ?: MemberKeyData()
 
             // Filter out distributions for members who are no longer in the space
             val filteredOldDistributions =
-                oldKeyData.distributions.filter { it.recipientId in memberIds }
+                oldKeyData.distributions.filter { it.recipient_id in memberIds }
 
             val rotatedKeyData = oldKeyData.copy(
-                memberDeviceId = deviceId,
+                member_device_id = deviceId,
                 distributions = newDistributions + filteredOldDistributions,
-                dataUpdatedAt = System.currentTimeMillis()
+                data_updated_at = System.currentTimeMillis()
             )
 
             val updates = mapOf(
-                "memberKeys.${user.id}" to rotatedKeyData,
-                "docUpdatedAt" to System.currentTimeMillis()
+                "member_keys.${user.id}" to rotatedKeyData,
+                "doc_updated_at" to System.currentTimeMillis()
             )
 
             transaction.update(docRef, updates)

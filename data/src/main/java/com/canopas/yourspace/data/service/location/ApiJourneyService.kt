@@ -2,8 +2,6 @@ package com.canopas.yourspace.data.service.location
 
 import com.canopas.yourspace.data.models.location.EncryptedLocationJourney
 import com.canopas.yourspace.data.models.location.LocationJourney
-import com.canopas.yourspace.data.models.location.toDecryptedLocationJourney
-import com.canopas.yourspace.data.models.location.toEncryptedLocationJourney
 import com.canopas.yourspace.data.models.space.GroupKeysDoc
 import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.storage.UserPreferences
@@ -70,20 +68,21 @@ class ApiJourneyService @Inject constructor(
         keyId: String? = null,
         groupKeysDoc: GroupKeysDoc
     ): Triple<SenderKeyDistributionMessage, GroupCipher, String>? {
-        val memberKeysData = groupKeysDoc.memberKeys[userId] ?: return null
+        val memberKeysData = groupKeysDoc.member_keys[userId] ?: return null
         val distribution = memberKeysData.distributions
-            .sortedByDescending { it.createdAt }
+            .sortedByDescending { it.created_at }
             .firstOrNull {
-                it.recipientId == userId && (keyId == null || it.id == keyId)
+                it.recipient_id == userId && (keyId == null || it.id == keyId)
             } ?: return null
 
-        val privateKey = getCurrentUserPrivateKey(userPreferences.currentUser!!) ?: return null
+        val currentUser = userPreferences.currentUser ?: return null
+        val privateKey = getCurrentUserPrivateKey(currentUser) ?: return null
 
         // Decrypt the distribution message
         val decryptedBytes = EphemeralECDHUtils.decrypt(distribution, privateKey) ?: return null
         val distributionMessage = SenderKeyDistributionMessage(decryptedBytes)
 
-        val groupAddress = SignalProtocolAddress(spaceId, memberKeysData.memberDeviceId)
+        val groupAddress = SignalProtocolAddress(spaceId, memberKeysData.member_device_id)
         // Ensures the distribution ID is loaded into the store
         bufferedSenderKeyStore.loadSenderKey(groupAddress, distributionMessage.distributionId)
 
@@ -105,9 +104,9 @@ class ApiJourneyService @Inject constructor(
         userId: String,
         groupKeysDoc: GroupKeysDoc,
         keyId: String? = null,
-        defaultValue: T,
+        defaultValue: T?,
         crossinline block: (cipher: GroupCipher) -> T?
-    ): T {
+    ): T? {
         val (_, groupCipher) = getGroupCipherByKeyId(spaceId, userId, keyId, groupKeysDoc)
             ?: return defaultValue
         return try {

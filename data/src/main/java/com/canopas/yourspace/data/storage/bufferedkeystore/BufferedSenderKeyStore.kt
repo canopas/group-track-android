@@ -10,6 +10,7 @@ import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_SPACE_MEMBER
 import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_USER_SENDER_KEY_RECORD
 import com.google.firebase.firestore.Blob
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -45,12 +46,11 @@ class BufferedSenderKeyStore @Inject constructor(
             .collection(FIRESTORE_COLLECTION_USER_SENDER_KEY_RECORD)
 
     private val inMemoryStore: MutableMap<StoreKey, SenderKeyRecord> = mutableMapOf()
-    private val sharedWithAddresses: MutableSet<SignalProtocolAddress> = mutableSetOf()
 
     private suspend fun saveSenderKeyToServer(senderKeyRecord: ApiSenderKeyRecord) {
         try {
             val currentUser = userPreferences.currentUser ?: return
-            val uniqueDocId = "${senderKeyRecord.deviceId}-${senderKeyRecord.distributionId}"
+            val uniqueDocId = "${senderKeyRecord.device_id}-${senderKeyRecord.distribution_id}"
             spaceSenderKeyRecordRef(senderKeyRecord.address, currentUser.id)
                 .document(uniqueDocId).set(senderKeyRecord).await()
         } catch (e: Exception) {
@@ -81,8 +81,8 @@ class BufferedSenderKeyStore @Inject constructor(
 
             val senderKeyRecord = ApiSenderKeyRecord(
                 address = sender.name,
-                deviceId = sender.deviceId,
-                distributionId = distributionId.toString(),
+                device_id = sender.deviceId,
+                distribution_id = distributionId.toString(),
                 record = Blob.fromBytes(record.serialize())
             )
             saveSenderKeyToServer(senderKeyRecord)
@@ -91,25 +91,42 @@ class BufferedSenderKeyStore @Inject constructor(
 
     override fun loadSenderKey(sender: SignalProtocolAddress, distributionId: UUID): SenderKeyRecord? {
         val key = StoreKey(sender, distributionId, sender.deviceId)
-        return inMemoryStore[key] ?: runBlocking {
-            senderKeyDao.getSenderKeyRecord(
-                address = sender.name,
-                deviceId = sender.deviceId,
-                distributionId = distributionId.toString()
-            )?.let {
-                inMemoryStore[key] = it
-                it
-            } ?: fetchSenderKeyFromServer(sender)?.also {
-                inMemoryStore[key] = it
+
+        return inMemoryStore[key] ?: kotlin.run {
+            val deferred = CompletableDeferred<SenderKeyRecord?>()
+            CoroutineScope(appDispatcher.IO).launch {
+                try {
+                    val senderKeyRecord = senderKeyDao.getSenderKeyRecord(
+                        address = sender.name,
+                        deviceId = sender.deviceId,
+                        distributionId = distributionId.toString()
+                    )?.also {
+                        inMemoryStore[key] = it
+                    } ?: fetchSenderKeyFromServer(sender, distributionId)?.also {
+                        inMemoryStore[key] = it
+                    }
+                    deferred.complete(senderKeyRecord)
+                } catch (e: Exception) {
+                    deferred.completeExceptionally(e)
+                }
+            }
+            runBlocking {
+                try {
+                    deferred.await()
+                } catch (e: Exception) {
+                    Timber.e(e, "Error loading sender key")
+                    null
+                }
             }
         }
     }
 
-    private suspend fun fetchSenderKeyFromServer(sender: SignalProtocolAddress): SenderKeyRecord? {
+    private suspend fun fetchSenderKeyFromServer(sender: SignalProtocolAddress, distributionId: UUID): SenderKeyRecord? {
         val currentUser = userPreferences.currentUser ?: return null
         return try {
             spaceSenderKeyRecordRef(sender.name.toString(), currentUser.id)
-                .whereEqualTo("deviceId", sender.deviceId)
+                .whereEqualTo("device_id", sender.deviceId)
+                .whereEqualTo("distribution_id", distributionId.toString())
                 .get()
                 .await()
                 .documents
@@ -126,23 +143,6 @@ class BufferedSenderKeyStore @Inject constructor(
         } catch (e: Exception) {
             Timber.e(e, "Failed to fetch sender key from server for sender: $sender")
             null
-        }
-    }
-
-    override fun getSenderKeySharedWith(distributionId: DistributionId?): MutableSet<SignalProtocolAddress> {
-        throw UnsupportedOperationException("Should not happen during the intended usage pattern of this class")
-    }
-
-    override fun markSenderKeySharedWith(
-        distributionId: DistributionId?,
-        addresses: Collection<SignalProtocolAddress?>?
-    ) {
-        throw UnsupportedOperationException("Should not happen during the intended usage pattern of this class")
-    }
-
-    override fun clearSenderKeySharedWith(addresses: Collection<SignalProtocolAddress?>?) {
-        addresses?.forEach { address ->
-            address?.let { sharedWithAddresses.remove(it) }
         }
     }
 

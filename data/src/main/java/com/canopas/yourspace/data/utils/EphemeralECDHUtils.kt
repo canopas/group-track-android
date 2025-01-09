@@ -49,8 +49,8 @@ object EphemeralECDHUtils {
         val cipherText = cipher.doFinal(plaintext)
 
         return EncryptedDistribution(
-            recipientId = receiverId,
-            ephemeralPub = Blob.fromBytes(ephemeralKeyPair.publicKey.serialize()),
+            recipient_id = receiverId,
+            ephemeral_pub = Blob.fromBytes(ephemeralKeyPair.publicKey.serialize()),
             iv = Blob.fromBytes(syntheticIv),
             ciphertext = Blob.fromBytes(cipherText)
         )
@@ -70,7 +70,7 @@ object EphemeralECDHUtils {
         return try {
             val syntheticIv = message.iv.toBytes()
             val cipherText = message.ciphertext.toBytes()
-            val ephemeralPublic = Curve.decodePoint(message.ephemeralPub.toBytes(), 0)
+            val ephemeralPublic = Curve.decodePoint(message.ephemeral_pub.toBytes(), 0)
             val masterSecret = Curve.calculateAgreement(ephemeralPublic, receiverPrivateKey)
 
             val mac = Mac.getInstance("HmacSHA256")
@@ -135,10 +135,10 @@ object EphemeralECDHUtils {
 
         val keyMac = Mac.getInstance("HmacSHA256")
         keyMac.init(SecretKeySpec(masterSecret, "HmacSHA256"))
-        val cipherKeyKey: ByteArray = keyMac.doFinal(input)
+        val cipherKey: ByteArray = keyMac.doFinal(input)
 
         val cipherMac = Mac.getInstance("HmacSHA256")
-        cipherMac.init(SecretKeySpec(cipherKeyKey, "HmacSHA256"))
+        cipherMac.init(SecretKeySpec(cipherKey, "HmacSHA256"))
         return cipherMac.doFinal(syntheticIv)
     }
 }
