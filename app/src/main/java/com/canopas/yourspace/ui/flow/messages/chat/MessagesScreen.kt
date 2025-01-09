@@ -143,6 +143,7 @@ fun MessagesContent(modifier: Modifier) {
                 state.newMessagesToAppend,
                 state.threadMembers,
                 state.currentUserId,
+                state.thread,
                 loadMore = { viewModel.loadMore() }
             )
 
