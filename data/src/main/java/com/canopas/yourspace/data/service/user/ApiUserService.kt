@@ -166,7 +166,7 @@ class ApiUserService @Inject constructor(
         return if (decryptedPrivateKey != null) {
             decryptedPrivateKey
         } else {
-            Timber.e("Failed to validate passkey for user ${user.id}")
+            Timber.e("Failed to validate passkey for user")
             null
         }
     }
