@@ -1,13 +1,13 @@
 package com.canopas.yourspace.data.utils
 
 import timber.log.Timber
+import java.security.SecureRandom
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.SecretKeySpec
-import kotlin.random.Random
 
 private const val AES_ALGORITHM = "AES/GCM/NoPadding"
 private const val KEY_DERIVATION_ALGORITHM = "PBKDF2WithHmacSHA256"
@@ -42,7 +42,7 @@ object PrivateKeyUtils {
     private fun encryptData(data: ByteArray, key: SecretKey): ByteArray {
         return try {
             val cipher = Cipher.getInstance(AES_ALGORITHM)
-            val iv = ByteArray(GCM_IV_SIZE).apply { Random.nextBytes(this) }
+            val iv = ByteArray(GCM_IV_SIZE).apply { SecureRandom().nextBytes(this) }
             val spec = GCMParameterSpec(GCM_TAG_SIZE, iv)
             cipher.init(Cipher.ENCRYPT_MODE, key, spec)
             val encrypted = cipher.doFinal(data)

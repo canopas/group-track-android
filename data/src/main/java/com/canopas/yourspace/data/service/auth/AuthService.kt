@@ -115,7 +115,7 @@ class AuthService @Inject constructor(
             locationManager.stopService()
             locationCache.clear()
         } catch (e: Exception) {
-            throw SecurityException("Failed to completely sign out. Some sensitive data might not be cleared.")
+            throw SecurityException("Failed to completely sign out. Some sensitive data might not be cleared.", e)
         }
     }
 

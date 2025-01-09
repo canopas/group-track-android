@@ -53,19 +53,19 @@ data class ApiSpaceInvitation(
  */
 @Keep
 data class GroupKeysDoc(
-    val docUpdatedAt: Long = System.currentTimeMillis(), // To be updated whenever users are added/removed
-    val memberKeys: Map<String, MemberKeyData> = emptyMap()
+    val doc_updated_at: Long = System.currentTimeMillis(), // To be updated whenever users are added/removed
+    val member_keys: Map<String, MemberKeyData> = emptyMap()
 )
 
-/*
+/**
  * Data class that represents the entire "groupKeys/{senderUserId}" doc
  * in Firestore for a single sender's key distribution.
  */
 @Keep
 data class MemberKeyData(
-    val memberDeviceId: Int = 0,
+    val member_device_id: Int = 0,
     val distributions: List<EncryptedDistribution> = emptyList(),
-    val dataUpdatedAt: Long = System.currentTimeMillis() // To be updated whenever a new distribution is added
+    val data_updated_at: Long = System.currentTimeMillis() // To be updated whenever a new distribution is added
 )
 
 /**
@@ -74,18 +74,20 @@ data class MemberKeyData(
  * encrypted with the recipient's public key.
  */
 data class EncryptedDistribution(
-    val recipientId: String = "",
-    val ephemeralPub: Blob = Blob.fromBytes(ByteArray(0)), // 32 bytes
-    val iv: Blob = Blob.fromBytes(ByteArray(0)), // 12 bytes
-    val ciphertext: Blob = Blob.fromBytes(ByteArray(0)) // AES/GCM ciphertext
+    val id: String = UUID.randomUUID().toString(),
+    val recipient_id: String = "",
+    val ephemeral_pub: Blob = Blob.fromBytes(ByteArray(0)), // 33 bytes (compressed distribution key)
+    val iv: Blob = Blob.fromBytes(ByteArray(0)), // 16 bytes
+    val ciphertext: Blob = Blob.fromBytes(ByteArray(0)), // AES/GCM ciphertext
+    val created_at: Long = System.currentTimeMillis()
 ) {
     init {
         validateFieldSizes()
     }
 
     private fun validateFieldSizes() {
-        require(ephemeralPub.toBytes().size == 33 || ephemeralPub.toBytes().isEmpty()) {
-            "Invalid size for ephemeralPub: expected 33 bytes, got ${ephemeralPub.toBytes().size} bytes."
+        require(ephemeral_pub.toBytes().size == 33 || ephemeral_pub.toBytes().isEmpty()) {
+            "Invalid size for ephemeralPub: expected 33 bytes, got ${ephemeral_pub.toBytes().size} bytes."
         }
         require(iv.toBytes().size == 16 || iv.toBytes().isEmpty()) {
             "Invalid size for iv: expected 16 bytes, got ${iv.toBytes().size} bytes."

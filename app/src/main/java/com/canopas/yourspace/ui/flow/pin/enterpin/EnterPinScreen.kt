@@ -18,16 +18,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
 import com.canopas.yourspace.ui.component.OtpInputField
 import com.canopas.yourspace.ui.component.PrimaryButton
-import com.canopas.yourspace.ui.flow.pin.setpin.PinErrorState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,7 +49,6 @@ fun EnterPinScreen() {
 private fun EnterPinContent(modifier: Modifier) {
     val viewModel = hiltViewModel<EnterPinViewModel>()
     val state by viewModel.state.collectAsState()
-    val context = LocalContext.current
 
     Column(
         modifier = modifier
@@ -81,21 +78,16 @@ private fun EnterPinContent(modifier: Modifier) {
         OtpInputField(
             pinText = state.pin,
             onPinTextChange = { viewModel.onPinChanged(it) },
-            digitCount = 4
+            digitCount = 4,
+            keyboardType = KeyboardType.Number
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        if (state.pinError != null) {
-            val pinErrorText = when (state.pinError) {
-                PinErrorState.LENGTH_ERROR -> context.getString(R.string.enter_pin_error_text_length)
-                PinErrorState.CHARACTERS_ERROR -> context.getString(R.string.enter_pin_error_characters_input)
-                PinErrorState.INVALID_PIN -> context.getString(R.string.enter_pin_invalid_pin_text)
-                else -> ""
-            }
+        if (state.isPinInvalid) {
             Text(
-                text = pinErrorText,
-                color = if (pinErrorText.isNotEmpty()) MaterialTheme.colorScheme.error else Color.Transparent,
+                text = stringResource(R.string.enter_pin_invalid_pin_text),
+                color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(top = 8.dp)
             )
@@ -108,7 +100,7 @@ private fun EnterPinContent(modifier: Modifier) {
             onClick = {
                 viewModel.processPin()
             },
-            enabled = state.pin != "" && state.pinError == null,
+            enabled = state.pin != "" && !state.isPinInvalid && state.pin.length == 4,
             modifier = Modifier.fillMaxWidth(),
             showLoader = state.showLoader
         )

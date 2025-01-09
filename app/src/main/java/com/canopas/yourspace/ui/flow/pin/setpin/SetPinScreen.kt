@@ -18,9 +18,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -51,7 +50,6 @@ fun SetPinScreen() {
 private fun SetPinContent(modifier: Modifier) {
     val viewModel = hiltViewModel<SetPinViewModel>()
     val state by viewModel.state.collectAsState()
-    val context = LocalContext.current
 
     Column(
         modifier = modifier
@@ -81,24 +79,11 @@ private fun SetPinContent(modifier: Modifier) {
         OtpInputField(
             pinText = state.pin,
             onPinTextChange = { viewModel.onPinChanged(it) },
-            digitCount = 4
+            digitCount = 4,
+            keyboardType = KeyboardType.Number
         )
 
         Spacer(modifier = Modifier.height(16.dp))
-
-        if (state.pinError != null) {
-            val pinErrorText = when (state.pinError) {
-                PinErrorState.LENGTH_ERROR -> context.getString(R.string.set_pin_error_text_length)
-                PinErrorState.CHARACTERS_ERROR -> context.getString(R.string.set_pin_error_characters_input)
-                else -> ""
-            }
-            Text(
-                text = pinErrorText,
-                color = if (pinErrorText.isNotEmpty()) MaterialTheme.colorScheme.error else Color.Transparent,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(top = 8.dp)
-            )
-        }
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -107,7 +92,7 @@ private fun SetPinContent(modifier: Modifier) {
             onClick = {
                 viewModel.processPin()
             },
-            enabled = state.pin != "" && state.pinError == null,
+            enabled = state.enableButton,
             modifier = Modifier.fillMaxWidth(),
             showLoader = state.showLoader
         )

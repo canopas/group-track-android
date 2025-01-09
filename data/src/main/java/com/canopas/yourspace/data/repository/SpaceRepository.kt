@@ -268,7 +268,6 @@ class SpaceRepository @Inject constructor(
             spaceService.generateAndDistributeSenderKeysForExistingSpaces(spaceIds)
         } catch (e: Exception) {
             Timber.e(e, "Failed to generate and distribute sender keys")
-            throw e
         }
     }
 }

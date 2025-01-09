@@ -4,13 +4,18 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "sender_keys")
+@Entity(
+    tableName = "sender_keys",
+    indices = [
+        androidx.room.Index(value = ["address", "device_id", "distribution_id"], unique = true)
+    ]
+)
 data class SenderKeyEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    @ColumnInfo(name = "address") val address: String,
+    @ColumnInfo(name = "address", collate = ColumnInfo.NOCASE) val address: String,
     @ColumnInfo(name = "device_id") val deviceId: Int,
-    @ColumnInfo(name = "distribution_id") val distributionId: String,
-    @ColumnInfo(name = "record") val record: ByteArray,
+    @ColumnInfo(name = "distribution_id", collate = ColumnInfo.NOCASE) val distributionId: String,
+    @ColumnInfo(name = "record", typeAffinity = ColumnInfo.BLOB) val record: ByteArray,
     @ColumnInfo(name = "created_at") val createdAt: Long = System.currentTimeMillis()
 ) {
     override fun equals(other: Any?): Boolean {

@@ -1,3 +1,4 @@
+
 import org.jetbrains.kotlin.konan.properties.hasProperty
 import java.util.Properties
 
@@ -14,6 +15,7 @@ plugins {
 var versionMajor = 1
 var versionMinor = 0
 var versionBuild = 0
+val targetSdkVersion: Int = 34
 
 android {
     namespace = "com.canopas.yourspace"
@@ -30,6 +32,8 @@ android {
     defaultConfig {
         applicationId = "com.canopas.yourspace"
         minSdk = 24
+        targetSdk = targetSdkVersion
+
         versionCode = versionMajor * 1000000 + versionMinor * 10000 + versionBuild
         versionName = "$versionMajor.$versionMinor.$versionBuild"
         setProperty("archivesBaseName", "GroupTrack-$versionName-$versionCode")
@@ -59,7 +63,6 @@ android {
             buildConfigField("String", "PLACE_API_KEY", "\"${p.getProperty("PLACE_API_KEY")}\"")
         }
     }
-
     signingConfigs {
         if (System.getenv("APKSIGN_KEYSTORE") != null) {
             create("release") {
