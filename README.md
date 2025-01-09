@@ -54,7 +54,7 @@ Grouptrack ensures the privacy and security of your data by implementing end-to-
 
 <table>
   <tr>
-    <th width="33%" >Create/Join Space</th>
+    <th width="33%" >Create/Join Group</th>
     <th  width="33%" >Share Location</th>
     <th  width="33%" >Location History</th>
   </tr>
