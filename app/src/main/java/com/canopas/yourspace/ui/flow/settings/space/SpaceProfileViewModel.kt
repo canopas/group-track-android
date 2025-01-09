@@ -100,17 +100,24 @@ class SpaceProfileViewModel @Inject constructor(
     fun updateMemberLocation(memberId: String, enableLocation: Boolean) {
         viewModelScope.launch(appDispatcher.IO) {
             try {
+                _state.emit(_state.value.copy(userLocationUpdatingId = memberId))
                 spaceRepository.enableLocation(spaceID, memberId, enableLocation)
                 val spaceInfo = spaceRepository.getSpaceInfo(spaceID)
                 _state.emit(
                     _state.value.copy(
                         spaceInfo = spaceInfo,
-                        locationEnabledChanges = mapOf(memberId to enableLocation)
+                        locationEnabledChanges = _state.value.locationEnabledChanges + (memberId to enableLocation),
+                        userLocationUpdatingId = null
                     )
                 )
             } catch (e: Exception) {
                 Timber.e(e, "Failed to update member location")
-                _state.emit(_state.value.copy(error = e))
+                _state.emit(
+                    _state.value.copy(
+                        error = e,
+                        userLocationUpdatingId = null
+                    )
+                )
             }
         }
     }
