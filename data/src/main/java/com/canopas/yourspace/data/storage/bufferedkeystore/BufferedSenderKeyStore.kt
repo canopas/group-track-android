@@ -17,6 +17,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import org.signal.libsignal.protocol.SignalProtocolAddress
 import org.signal.libsignal.protocol.groups.state.SenderKeyRecord
+import org.signal.libsignal.protocol.groups.state.SenderKeyStore
 import timber.log.Timber
 import java.util.UUID
 import javax.inject.Inject
@@ -32,7 +33,7 @@ class BufferedSenderKeyStore @Inject constructor(
     @Named("sender_key_dao") private val senderKeyDao: SenderKeyDao,
     private val userPreferences: UserPreferences,
     private val appDispatcher: AppDispatcher
-) : SignalServiceSenderKeyStore {
+) : SenderKeyStore {
 
     private val spaceRef = db.collection(FIRESTORE_COLLECTION_SPACES)
 
