@@ -1,9 +1,9 @@
-# GroupTrack Account Deletion
+# Grouptrack Account Deletion
 
-If you wish to delete your GroupTrack account, follow these steps:
+If you wish to delete your Grouptrack account, follow these steps:
 (Note : If you're an admin of any group, you must have to transfer admin rights to another user before proceeding.)
 
-1. Open the **GroupTrack** app on your device.
+1. Open the **Grouptrack** app on your device.
 
 2. Go to **Home** and tap on **Settings**.
 
