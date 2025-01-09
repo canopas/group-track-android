@@ -36,6 +36,7 @@
     <string name="common_background_access_permission_btn">Go to Settings</string>
     <string name="common_space_not_found">No Group Found!</string>
     <string name="common_space_not_found_message">The group you are looking for isn\'t available or you may have been removed.</string>
+    <string name="common_something_went_wrong_error">Something went wrong!</string>
 
     <string name="title_notification_channel_messages">In-App messaging</string>
     <string name="description_notification_channel_messages">It is used to show messages</string>
@@ -308,4 +309,16 @@
 
     <string name="account_deletion_change_admin_dialog_title">Reassign Admin Before Deletion</string>
     <string name="account_deletion_change_admin_dialog_subtitle">Please assign a new admin before proceeding with the account deletion to avoid data loss. \nYou are an admin of the following groups :\n%1$s</string>
+
+    <string name="set_pin_top_bar_title">Set Your PIN</string>
+    <string name="set_pin_header_text_part_one">Secure your account by setting a 4-digit PIN</string>
+    <string name="set_pin_header_text_part_two">Your PIN ensures that only you can access your account</string>
+    <string name="set_pin_button_text">Set Pin</string>
+
+    <string name="enter_pin_top_bar_title">Enter Your PIN</string>
+    <string name="enter_pin_header_text_part_one">Enter your 4-digit PIN to access your account</string>
+    <string name="enter_pin_header_text_part_two">Your PIN ensures that only you can access your account</string>
+    <string name="enter_pin_invalid_pin_text">Incorrect PIN. Please try again</string>
+    <string name="enter_pin_continue_button_text">Continue</string>
+
 </resources>

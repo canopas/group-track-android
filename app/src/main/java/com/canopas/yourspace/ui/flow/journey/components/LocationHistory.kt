@@ -113,7 +113,7 @@ fun JourneyLocationItem(
                 .padding(start = 16.dp)
                 .weight(1f)
         ) {
-            val time = getFormattedJourneyTime(location.created_at ?: 0, location.update_at ?: 0)
+            val time = getFormattedJourneyTime(location.created_at ?: 0, location.updated_at ?: 0)
             val distance = getDistanceString(location.route_distance ?: 0.0)
 
             PlaceInfo(title, "$time - $distance")
