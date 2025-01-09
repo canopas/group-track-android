@@ -164,7 +164,7 @@ class ApiJourneyService @Inject constructor(
             val encryptedJourney =
                 journey.toEncryptedLocationJourney(groupCipher, distributionMessage.distributionId)
 
-            docRef.set(encryptedJourney).await()
+            encryptedJourney?.let { docRef.set(it).await() }
         }
         return journey
     }
@@ -190,10 +190,12 @@ class ApiJourneyService @Inject constructor(
             val encryptedJourney =
                 journey.toEncryptedLocationJourney(groupCipher, distributionMessage.distributionId)
             try {
-                spaceMemberJourneyRef(spaceId, userId)
-                    .document(journey.id)
-                    .set(encryptedJourney)
-                    .await()
+                encryptedJourney?.let {
+                    spaceMemberJourneyRef(spaceId, userId)
+                        .document(journey.id)
+                        .set(it)
+                        .await()
+                }
             } catch (e: Exception) {
                 Timber.e(e, "Error updating journey")
             }

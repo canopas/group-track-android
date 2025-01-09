@@ -16,6 +16,7 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.Blob
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.functions.FirebaseFunctions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.map
@@ -48,14 +49,19 @@ class ApiUserService @Inject constructor(
 
     suspend fun getUser(userId: String): ApiUser? {
         return try {
-            userRef.document(userId).get().await().toObject(ApiUser::class.java)?.let { user ->
-                if (currentUser == null || user.id != currentUser.id) return user
-                val decryptedPrivateKey = decryptPrivateKey(user) ?: return@let user
-                userPreferences.storePrivateKey(decryptedPrivateKey)
-                user
+            val user = userRef.document(userId).get().await().toObject(ApiUser::class.java)
+            when {
+                user == null -> null
+                currentUser == null || user.id != currentUser.id -> user
+                else -> decryptPrivateKey(user)?.let { decryptedKey ->
+                    user.copy(identity_key_private = Blob.fromBytes(decryptedKey))
+                }
             }
-        } catch (e: Exception) {
+        } catch (e: FirebaseFirestoreException) {
             Timber.e(e, "Error while getting user")
+            null
+        } catch (e: SecurityException) {
+            Timber.e(e, "Error decrypting user data")
             null
         }
     }

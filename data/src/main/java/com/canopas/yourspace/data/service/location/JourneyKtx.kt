@@ -12,16 +12,16 @@ import java.util.UUID
 /**
  * Convert an [EncryptedLocationJourney] to a [LocationJourney] using the provided [GroupCipher]
  */
-fun EncryptedLocationJourney.toDecryptedLocationJourney(groupCipher: GroupCipher): LocationJourney {
-    val decryptedFromLat = groupCipher.decrypt(from_latitude)
-    val decryptedFromLong = groupCipher.decrypt(from_longitude)
+fun EncryptedLocationJourney.toDecryptedLocationJourney(groupCipher: GroupCipher): LocationJourney? {
+    val decryptedFromLat = groupCipher.decrypt(from_latitude) ?: return null
+    val decryptedFromLong = groupCipher.decrypt(from_longitude) ?: return null
     val decryptedToLat = to_latitude?.let { groupCipher.decrypt(it) }
     val decryptedToLong = to_longitude?.let { groupCipher.decrypt(it) }
 
     val decryptedRoutes = routes.map {
         JourneyRoute(
-            latitude = groupCipher.decrypt(it.latitude),
-            longitude = groupCipher.decrypt(it.longitude)
+            latitude = groupCipher.decrypt(it.latitude) ?: return null,
+            longitude = groupCipher.decrypt(it.longitude) ?: return null
         )
     }
 
@@ -48,16 +48,16 @@ fun EncryptedLocationJourney.toDecryptedLocationJourney(groupCipher: GroupCipher
 fun LocationJourney.toEncryptedLocationJourney(
     groupCipher: GroupCipher,
     distributionId: UUID
-): EncryptedLocationJourney {
-    val encryptedFromLat = groupCipher.encrypt(distributionId, from_latitude)
-    val encryptedFromLong = groupCipher.encrypt(distributionId, from_longitude)
+): EncryptedLocationJourney? {
+    val encryptedFromLat = groupCipher.encrypt(distributionId, from_latitude) ?: return null
+    val encryptedFromLong = groupCipher.encrypt(distributionId, from_longitude) ?: return null
     val encryptedToLat = to_latitude?.let { groupCipher.encrypt(distributionId, it) }
     val encryptedToLong = to_longitude?.let { groupCipher.encrypt(distributionId, it) }
 
     val encryptedRoutes = routes.map {
         EncryptedJourneyRoute(
-            latitude = groupCipher.encrypt(distributionId, it.latitude),
-            longitude = groupCipher.encrypt(distributionId, it.longitude)
+            latitude = groupCipher.encrypt(distributionId, it.latitude) ?: return null,
+            longitude = groupCipher.encrypt(distributionId, it.longitude) ?: return null
         )
     }
 
@@ -78,20 +78,20 @@ fun LocationJourney.toEncryptedLocationJourney(
     )
 }
 
-fun GroupCipher.decrypt(data: Blob): Double {
+fun GroupCipher.decrypt(data: Blob): Double? {
     return try {
         decrypt(data.toBytes()).toString(Charsets.UTF_8).toDouble()
     } catch (e: Exception) {
         Timber.e(e, "Failed to decrypt double")
-        0.0
+        null
     }
 }
 
-fun GroupCipher.encrypt(distributionId: UUID, data: Double): Blob {
+fun GroupCipher.encrypt(distributionId: UUID, data: Double): Blob? {
     return try {
         Blob.fromBytes(encrypt(distributionId, data.toString().toByteArray(Charsets.UTF_8)).serialize())
     } catch (e: Exception) {
         Timber.e(e, "Failed to encrypt double")
-        Blob.fromBytes(ByteArray(0))
+        null
     }
 }
