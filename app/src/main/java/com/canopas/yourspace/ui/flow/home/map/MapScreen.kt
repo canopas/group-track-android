@@ -85,7 +85,7 @@ private const val DEFAULT_CAMERA_ZOOM_FOR_SELECTED_USER = 17f
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun MapScreen() {
+fun MapScreen(dismissSpaceSelection: () -> Unit) {
     val viewModel = hiltViewModel<MapViewModel>()
     val state by viewModel.state.collectAsState()
     val scope = rememberCoroutineScope()
@@ -136,7 +136,7 @@ fun MapScreen() {
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        MapView(cameraPositionState)
+        MapView(cameraPositionState, dismissSpaceSelection)
 
         Column(
             modifier = Modifier
@@ -145,6 +145,7 @@ fun MapScreen() {
         ) {
             Column(modifier = Modifier.align(Alignment.End)) {
                 MapControlBtn(icon = R.drawable.ic_map_type) {
+                    dismissSpaceSelection()
                     viewModel.toggleStyleSheetVisibility(true)
                 }
 
@@ -153,6 +154,7 @@ fun MapScreen() {
                     show = relocate
                 ) {
                     scope.launch {
+                        dismissSpaceSelection()
                         if (state.isMapLoaded) {
                             cameraPositionState.animate(
                                 CameraUpdateFactory.newLatLngZoom(
@@ -169,6 +171,7 @@ fun MapScreen() {
                         containerColor = AppTheme.colorScheme.primary,
                         contentColor = AppTheme.colorScheme.textInversePrimary
                     ) {
+                        dismissSpaceSelection()
                         viewModel.navigateToPlaces()
                     }
                 }
@@ -212,6 +215,7 @@ fun MapScreen() {
                             }
                             items(state.members) {
                                 MapUserItem(it) {
+                                    dismissSpaceSelection()
                                     viewModel.showMemberDetail(it)
                                 }
                             }
@@ -330,7 +334,8 @@ fun PermissionFooter(onClick: () -> Unit) {
 
 @Composable
 private fun MapView(
-    cameraPositionState: CameraPositionState
+    cameraPositionState: CameraPositionState,
+    dismissSpaceSelection: () -> Unit
 ) {
     val viewModel = hiltViewModel<MapViewModel>()
     val state by viewModel.state.collectAsState()
@@ -368,6 +373,15 @@ private fun MapView(
         ),
         onMapLoaded = {
             viewModel.onMapLoaded()
+        },
+        onMapClick = {
+            dismissSpaceSelection()
+            if (state.showUserDetails) {
+                viewModel.dismissMemberDetail()
+            }
+            if (state.isStyleSheetVisible) {
+                viewModel.toggleStyleSheetVisibility(false)
+            }
         }
     ) {
         if (state.members.isNotEmpty()) {
@@ -377,6 +391,10 @@ private fun MapView(
                     location = it.location!!,
                     isSelected = it.user.id == state.selectedUser?.user?.id
                 ) {
+                    dismissSpaceSelection()
+                    if (state.isStyleSheetVisible) {
+                        viewModel.toggleStyleSheetVisibility(false)
+                    }
                     viewModel.showMemberDetail(it)
                 }
             }
@@ -388,7 +406,12 @@ private fun MapView(
                     user = currentUser,
                     location = location.toApiLocation(currentUser.id),
                     isSelected = currentUser.id == state.selectedUser?.user?.id
-                ) {}
+                ) {
+                    dismissSpaceSelection()
+                    if (state.isStyleSheetVisible) {
+                        viewModel.toggleStyleSheetVisibility(false)
+                    }
+                }
             }
         }
 
