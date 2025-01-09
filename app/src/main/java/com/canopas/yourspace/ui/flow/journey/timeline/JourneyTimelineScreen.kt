@@ -1,5 +1,6 @@
 package com.canopas.yourspace.ui.flow.journey.timeline
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -135,6 +136,17 @@ private fun TimelineContent(modifier: Modifier) {
                 color = AppTheme.colorScheme.textPrimary,
                 modifier = Modifier.weight(1f)
             )
+
+            if (!state.isToday) {
+                Text(
+                    stringResource(R.string.today),
+                    style = AppTheme.appTypography.header4,
+                    color = AppTheme.colorScheme.primary,
+                    modifier = Modifier.clickable {
+                        viewModel.resetToToday()
+                    }
+                )
+            }
         }
         key(state.selectedTimeTo) {
             HorizontalDatePicker(

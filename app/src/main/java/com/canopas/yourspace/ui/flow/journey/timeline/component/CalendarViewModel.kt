@@ -15,7 +15,7 @@ import javax.inject.Inject
 class CalendarViewModel @Inject constructor() : ViewModel() {
     private val _state = MutableStateFlow(
         CalendarViewState(
-            selectedDate = LocalDate.now().withDayOfMonth(1),
+            selectedDate = LocalDate.now().atStartOfDay().toLocalDate(),
             weekStartDate = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
         )
     )
@@ -35,7 +35,7 @@ class CalendarViewModel @Inject constructor() : ViewModel() {
 
     private fun setContainsToday() {
         val today = LocalDate.now()
-        val endOfWeek = state.value.weekStartDate.plusDays(6)
+        val endOfWeek = state.value.weekStartDate
         val containsToday = today.isAfter(state.value.weekStartDate) && today.isBefore(endOfWeek)
         _state.update { it.copy(containsToday = containsToday) }
     }

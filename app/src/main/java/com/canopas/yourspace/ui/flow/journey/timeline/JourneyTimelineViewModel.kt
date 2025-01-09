@@ -223,8 +223,6 @@ class JourneyTimelineViewModel @Inject constructor(
         val today = Calendar.getInstance()
         today.set(Calendar.HOUR_OF_DAY, 0)
         today.set(Calendar.MINUTE, 0)
-        today.set(Calendar.SECOND, 0)
-        today.set(Calendar.MILLISECOND, 0)
 
         return today.timeInMillis == calendar.timeInMillis
     }
@@ -261,6 +259,16 @@ class JourneyTimelineViewModel @Inject constructor(
             selectedTimeTo = timestampTo,
             groupedLocation = emptyMap(),
             isToday = isSelectedDateToday
+        )
+        loadLocations()
+    }
+
+    fun resetToToday() {
+        _state.value = _state.value.copy(
+            selectedTimeFrom = getTodayStartTimestamp(),
+            selectedTimeTo = getTodayEndTimestamp(),
+            groupedLocation = emptyMap(),
+            isToday = true
         )
         loadLocations()
     }
