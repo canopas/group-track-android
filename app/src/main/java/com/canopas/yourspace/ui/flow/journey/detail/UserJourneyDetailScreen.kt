@@ -8,12 +8,14 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -38,6 +40,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
@@ -139,43 +143,83 @@ private fun JourneyInfo(journey: LocationJourney) {
         val distance = getDistanceString(journey.route_distance ?: 0.0)
         val duration = getRouteDurationString(journey.route_duration ?: 0)
 
-        Text(
-            text = "$distance - $duration",
-            color = AppTheme.colorScheme.textPrimary,
-            style = AppTheme.appTypography.header2,
-            modifier = Modifier
-                .padding(top = 8.dp, bottom = 24.dp)
-                .padding(horizontal = 16.dp)
-        )
-
-        Row(
-            verticalAlignment = Alignment.Top,
-            modifier = Modifier
-                .height(90.dp)
-        ) {
-            DottedTimeline(isSteadyLocation = false, isLastItem = false, isJourneyDetail = true)
-            Column(
+        if (toAddress != null) {
+            Text(
+                text = "$distance - $duration",
+                color = AppTheme.colorScheme.textPrimary,
+                style = AppTheme.appTypography.header2,
                 modifier = Modifier
-                    .padding(start = 16.dp)
-                    .weight(1f)
+                    .padding(top = 8.dp, bottom = 24.dp)
+                    .padding(horizontal = 16.dp)
+            )
+
+            Row(
+                verticalAlignment = Alignment.Top,
+                modifier = Modifier
+                    .height(90.dp)
             ) {
-                PlaceInfo(fromAddressStr, getFormattedLocationTime(journey.created_at!!))
+                DottedTimeline(isSteadyLocation = false, isLastItem = false, isJourneyDetail = true)
+                Column(
+                    modifier = Modifier
+                        .padding(start = 16.dp)
+                        .weight(1f)
+                ) {
+                    PlaceInfo(fromAddressStr, getFormattedLocationTime(journey.created_at!!))
+                }
             }
-        }
 
-        Row(
-            verticalAlignment = Alignment.Top,
-            modifier = Modifier
-                .height(90.dp)
-        ) {
-            DottedTimeline(isSteadyLocation = true, isLastItem = true, isJourneyDetail = true)
-            Column(
+            Row(
+                verticalAlignment = Alignment.Top,
                 modifier = Modifier
-                    .padding(start = 16.dp)
-                    .weight(1f)
+                    .height(90.dp)
             ) {
-                journey.update_at?.let { getFormattedLocationTime(it) }
-                    ?.let { PlaceInfo(toAddressStr, it) }
+                DottedTimeline(isSteadyLocation = true, isLastItem = true, isJourneyDetail = true)
+                Column(
+                    modifier = Modifier
+                        .padding(start = 16.dp)
+                        .weight(1f)
+                ) {
+                    journey.update_at?.let { getFormattedLocationTime(it) }
+                        ?.let { PlaceInfo(toAddressStr, it) }
+                }
+            }
+        } else {
+            Row(
+                verticalAlignment = Alignment.Top,
+                modifier = Modifier.wrapContentHeight().padding(4.dp)
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_journey_destination),
+                    contentDescription = "",
+                    tint = AppTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .background(AppTheme.colorScheme.secondaryInverseVariant, CircleShape)
+                        .size(30.dp)
+                        .padding(4.dp)
+                )
+                Column(
+                    modifier = Modifier
+                        .padding(start = 16.dp)
+                        .weight(1f)
+                ) {
+                    Text(
+                        text = fromAddressStr,
+                        style = AppTheme.appTypography.body2.copy(
+                            color = AppTheme.colorScheme.textPrimary,
+                            fontWeight = FontWeight.Medium
+                        ),
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(end = 16.dp)
+                    )
+
+                    Spacer(modifier = Modifier.size(8.dp))
+
+                    Text(
+                        text = getFormattedLocationTime(journey.created_at!!),
+                        style = AppTheme.appTypography.caption.copy(color = AppTheme.colorScheme.textDisabled)
+                    )
+                }
             }
         }
     }

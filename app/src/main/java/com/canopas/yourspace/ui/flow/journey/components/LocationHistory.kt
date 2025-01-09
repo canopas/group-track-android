@@ -5,6 +5,7 @@ import android.location.Address
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -72,7 +73,7 @@ fun LocationHistoryItem(
     selectedMapStyle: String
 ) {
     if (location.isSteady()) {
-        SteadyLocationItem(location, isFirstItem, isLastItem, journeyList) {
+        SteadyLocationItem(location, isFirstItem, isLastItem, journeyList, showJourneyDetails) {
             addPlaceTap(location.from_latitude, location.from_longitude)
         }
     } else {
@@ -155,6 +156,7 @@ fun SteadyLocationItem(
     isFirstItem: Boolean,
     isLastItem: Boolean,
     journeyList: List<LocationJourney>,
+    onTap: () -> Unit,
     addPlace: () -> Unit
 ) {
     val context = LocalContext.current
@@ -209,6 +211,7 @@ fun SteadyLocationItem(
 
         Column(
             modifier = Modifier
+                .clickable { onTap() }
                 .padding(start = 16.dp)
                 .weight(1f)
         ) {
