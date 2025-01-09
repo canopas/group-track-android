@@ -126,7 +126,7 @@ class ApiJourneyService @Inject constructor(
         return try {
             Curve.decodePrivatePoint(privateKey)
         } catch (e: InvalidKeyException) {
-            Timber.e(e, "Error decoding private key for userId=${currentUser.id}")
+            Timber.e(e, "Error decoding private key")
             PrivateKeyUtils.decryptPrivateKey(
                 privateKey ?: return null,
                 currentUser.identity_key_salt?.toBytes() ?: return null,
