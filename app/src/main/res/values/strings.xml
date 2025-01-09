@@ -314,15 +314,11 @@
     <string name="set_pin_header_text_part_one">Secure your account by setting a 4-digit PIN</string>
     <string name="set_pin_header_text_part_two">Your PIN ensures that only you can access your account</string>
     <string name="set_pin_button_text">Set Pin</string>
-    <string name="set_pin_error_text_length">Pin must be at least 4 characters</string>
-    <string name="set_pin_error_characters_input">Please enter only numbers</string>
 
     <string name="enter_pin_top_bar_title">Enter Your PIN</string>
     <string name="enter_pin_header_text_part_one">Enter your 4-digit PIN to access your account</string>
     <string name="enter_pin_header_text_part_two">Your PIN ensures that only you can access your account</string>
     <string name="enter_pin_invalid_pin_text">Incorrect PIN. Please try again</string>
-    <string name="enter_pin_error_text_length">Pin must be at least 4 characters</string>
-    <string name="enter_pin_error_characters_input">Please enter only numbers</string>
     <string name="enter_pin_continue_button_text">Continue</string>
 
 </resources>

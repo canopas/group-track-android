@@ -17,12 +17,6 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-enum class PinErrorState {
-    LENGTH_ERROR,
-    CHARACTERS_ERROR,
-    INVALID_PIN
-}
-
 @HiltViewModel
 class SetPinViewModel @Inject constructor(
     private val navigator: AppNavigator,
@@ -40,21 +34,7 @@ class SetPinViewModel @Inject constructor(
     }
 
     fun onPinChanged(newPin: String) {
-        _state.value = _state.value.copy(pin = newPin)
-        if (newPin.length == 4) {
-            _state.value = _state.value.copy(pinError = null)
-        }
-    }
-
-    private fun validatePin() {
-        val pin = state.value.pin
-        if (pin.length < 4) {
-            _state.value = _state.value.copy(pinError = PinErrorState.LENGTH_ERROR, showLoader = false)
-        } else if (pin.length == 4 && !pin.all { it.isDigit() }) {
-            _state.value = _state.value.copy(pinError = PinErrorState.CHARACTERS_ERROR, showLoader = false)
-        } else {
-            _state.value = _state.value.copy(pinError = null)
-        }
+        _state.value = _state.value.copy(pin = newPin, enableButton = newPin.length == 4)
     }
 
     fun checkInternetConnection() {
@@ -72,49 +52,49 @@ class SetPinViewModel @Inject constructor(
     fun processPin() = viewModelScope.launch(appDispatcher.MAIN) {
         _state.value = _state.value.copy(showLoader = true)
         val pin = state.value.pin
-        validatePin()
-        if (state.value.pinError == null) {
-            try {
-                authService.generateAndSaveUserKeys(passKey = pin)
-                val userId = authService.getUser()?.id
 
-                if (userId == null) {
-                    _state.value = _state.value.copy(
-                        error = IllegalStateException("Failed to get user ID after key generation")
+        try {
+            authService.generateAndSaveUserKeys(passKey = pin)
+            val userId = authService.getUser()?.id
+
+            if (userId == null) {
+                _state.value = _state.value.copy(
+                    error = IllegalStateException("Failed to get user ID after key generation"),
+                    showLoader = false
+                )
+                return@launch
+            }
+
+            val userSpaces = spaceRepository.getUserSpaces(userId)
+
+            val userHasSpaces =
+                userSpaces.firstOrNull() != null && userSpaces.firstOrNull()?.isNotEmpty() == true
+            if (userHasSpaces) {
+                userPreferences.setOnboardShown(true)
+                try {
+                    spaceRepository.generateAndDistributeSenderKeysForExistingSpaces(
+                        spaceIds = userSpaces.firstOrNull()?.map { it.id } ?: emptyList()
                     )
+                } catch (e: Exception) {
+                    _state.value = _state.value.copy(error = e, showLoader = false)
                     return@launch
                 }
 
-                val userSpaces = spaceRepository.getUserSpaces(userId)
-
-                val userHasSpaces =
-                    userSpaces.firstOrNull() != null && userSpaces.firstOrNull()?.isNotEmpty() == true
-                if (userHasSpaces) {
-                    userPreferences.setOnboardShown(true)
-                    try {
-                        spaceRepository.generateAndDistributeSenderKeysForExistingSpaces(
-                            spaceIds = userSpaces.firstOrNull()?.map { it.id } ?: emptyList()
-                        )
-                    } catch (e: Exception) {
-                        _state.value = _state.value.copy(error = e)
-                        return@launch
-                    }
-
-                    navigator.navigateTo(
-                        AppDestinations.home.path,
-                        popUpToRoute = AppDestinations.signIn.path,
-                        inclusive = true
-                    )
-                } else {
-                    navigator.navigateTo(
-                        AppDestinations.onboard.path,
-                        popUpToRoute = AppDestinations.signIn.path,
-                        inclusive = true
-                    )
-                }
-            } catch (e: Exception) {
-                _state.value = _state.value.copy(error = e, showLoader = false)
+                navigator.navigateTo(
+                    AppDestinations.home.path,
+                    popUpToRoute = AppDestinations.signIn.path,
+                    inclusive = true
+                )
+            } else {
+                navigator.navigateTo(
+                    AppDestinations.onboard.path,
+                    popUpToRoute = AppDestinations.signIn.path,
+                    inclusive = true
+                )
             }
+            _state.value = _state.value.copy(showLoader = false)
+        } catch (e: Exception) {
+            _state.value = _state.value.copy(error = e, showLoader = false)
         }
     }
 }
@@ -122,7 +102,7 @@ class SetPinViewModel @Inject constructor(
 data class EnterPinScreenState(
     val showLoader: Boolean = false,
     val pin: String = "",
-    val pinError: PinErrorState? = null,
+    val enableButton: Boolean = false,
     val connectivityStatus: ConnectivityObserver.Status = ConnectivityObserver.Status.Available,
     val error: Throwable? = null
 )

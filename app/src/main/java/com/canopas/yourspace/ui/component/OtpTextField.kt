@@ -37,7 +37,8 @@ fun OtpInputField(
     pinText: String,
     onPinTextChange: (String) -> Unit,
     textStyle: TextStyle = AppTheme.appTypography.header2,
-    digitCount: Int = 6
+    digitCount: Int = 6,
+    keyboardType: KeyboardType = KeyboardType.Text
 ) {
     val focusRequester = remember { FocusRequester() }
     BoxWithConstraints(
@@ -55,7 +56,7 @@ fun OtpInputField(
                     onPinTextChange(it)
                 }
             },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             modifier = Modifier.focusRequester(focusRequester),
             decorationBox = {
                 Row(

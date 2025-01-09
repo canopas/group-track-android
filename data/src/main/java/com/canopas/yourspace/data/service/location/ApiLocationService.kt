@@ -3,6 +3,7 @@ package com.canopas.yourspace.data.service.location
 import com.canopas.yourspace.data.models.location.ApiLocation
 import com.canopas.yourspace.data.models.location.EncryptedApiLocation
 import com.canopas.yourspace.data.models.space.ApiSpaceMember
+import com.canopas.yourspace.data.models.space.EncryptedDistribution
 import com.canopas.yourspace.data.models.space.GroupKeysDoc
 import com.canopas.yourspace.data.models.space.MemberKeyData
 import com.canopas.yourspace.data.models.user.ApiUser
@@ -31,6 +32,7 @@ import org.signal.libsignal.protocol.groups.GroupSessionBuilder
 import org.signal.libsignal.protocol.groups.InvalidSenderKeySessionException
 import org.signal.libsignal.protocol.message.SenderKeyDistributionMessage
 import timber.log.Timber
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -181,10 +183,7 @@ class ApiLocationService @Inject constructor(
 
             val latitude = latitudeBytes.toString(Charsets.UTF_8).toDoubleOrNull()
             val longitude = longitudeBytes.toString(Charsets.UTF_8).toDoubleOrNull()
-            if (latitude == null || longitude == null) {
-                Timber.e("Failed to decrypt location for userId: $userId")
-                return null
-            }
+            if (latitude == null || longitude == null) return null
 
             ApiLocation(
                 id = encryptedLocation.id,
@@ -215,42 +214,31 @@ class ApiLocationService @Inject constructor(
 
         val snapshot = spaceGroupKeysRef(spaceId).get().await()
         val groupKeysDoc = snapshot.toObject(GroupKeysDoc::class.java) ?: return null
-        val memberKeyData = groupKeysDoc.memberKeys[userId] ?: return null
+        val memberKeyData = groupKeysDoc.member_keys[userId] ?: return null
 
-        val distribution = memberKeyData.distributions.firstOrNull {
-            it.recipientId == currentUser.id
+        val distribution = memberKeyData.distributions.sortedByDescending {
+            it.created_at
+        }.firstOrNull {
+            it.recipient_id == currentUser.id
         } ?: return null
 
         val currentUserPrivateKey = getCurrentUserPrivateKey(currentUser) ?: return null
 
         val decryptedDistribution = EphemeralECDHUtils.decrypt(distribution, currentUserPrivateKey)
             ?: run {
-                Timber.e("Failed to decrypt distribution for userId=$userId in spaceId=$spaceId")
+                Timber.e("Failed to decrypt distribution for userId=$userId")
                 return null
             }
 
         val distributionMessage = SenderKeyDistributionMessage(decryptedDistribution)
-        val groupAddress = SignalProtocolAddress(spaceId, memberKeyData.memberDeviceId)
+        val groupAddress = SignalProtocolAddress(spaceId, memberKeyData.member_device_id)
 
         bufferedSenderKeyStore.loadSenderKey(groupAddress, distributionMessage.distributionId)
 
         // If the sender key data is outdated, we need to distribute the sender key to the pending users
-        if (memberKeyData.dataUpdatedAt < groupKeysDoc.docUpdatedAt && canDistributeSenderKey) {
+        if (memberKeyData.data_updated_at < groupKeysDoc.doc_updated_at && canDistributeSenderKey) {
             // Here means the sender key data is outdated, so we need to distribute the sender key to the users.
-            val apiSpaceMembers = getSpaceMembers(spaceId)
-            val membersPendingForSenderKey = apiSpaceMembers.filter { member ->
-                memberKeyData.distributions.none { it.recipientId == member.user_id }
-            }
-
-            if (membersPendingForSenderKey.isNotEmpty()) {
-                distributeSenderKeyToNewSpaceMembers(
-                    spaceId = spaceId,
-                    senderUserId = userId,
-                    distributionMessage = distributionMessage,
-                    senderDeviceId = memberKeyData.memberDeviceId,
-                    apiSpaceMembers = membersPendingForSenderKey
-                )
-            }
+            rotateSenderKey(spaceId = spaceId, deviceId = memberKeyData.member_device_id)
         }
 
         return try {
@@ -258,7 +246,7 @@ class ApiLocationService @Inject constructor(
             val groupCipher = GroupCipher(bufferedSenderKeyStore, groupAddress)
             Pair(distributionMessage, groupCipher)
         } catch (e: Exception) {
-            Timber.e(e, "Error processing group session for spaceId=$spaceId, userId=$userId")
+            Timber.e(e, "Error processing group session for userId=$userId")
             null
         }
     }
@@ -270,65 +258,72 @@ class ApiLocationService @Inject constructor(
         val privateKey = try {
             userPreferences.getPrivateKey() ?: currentUser.identity_key_private?.toBytes()
         } catch (e: Exception) {
-            Timber.e(e, "Failed to retrieve private key for user ${currentUser.id}")
+            Timber.e(e, "Failed to retrieve private key")
             return null
         }
         return try {
             Curve.decodePrivatePoint(privateKey)
         } catch (e: InvalidKeyException) {
-            Timber.e(e, "Error decoding private key for userId=${currentUser.id}")
+            Timber.e(e, "Error decoding private key")
             PrivateKeyUtils.decryptPrivateKey(
-                privateKey ?: return null,
-                currentUser.identity_key_salt?.toBytes() ?: return null,
-                userPreferences.getPasskey() ?: return null
+                encryptedPrivateKey = privateKey ?: return null,
+                salt = currentUser.identity_key_salt?.toBytes() ?: return null,
+                passkey = userPreferences.getPasskey() ?: return null
             )?.let { Curve.decodePrivatePoint(it) }
         }
     }
 
     /**
-     * Create a sender key distribution for the new users, and encrypt the distribution key
-     * for each member using their public key(ECDH).
-     **/
-    private suspend fun distributeSenderKeyToNewSpaceMembers(
-        spaceId: String,
-        senderUserId: String,
-        distributionMessage: SenderKeyDistributionMessage,
-        senderDeviceId: Int,
-        apiSpaceMembers: List<ApiSpaceMember>
-    ) {
+     * Rotates the sender key for a given space.
+     */
+    private suspend fun rotateSenderKey(spaceId: String, deviceId: Int) {
+        val user = userPreferences.currentUser ?: return
+
+        val groupAddress = SignalProtocolAddress(spaceId, deviceId)
+        val sessionBuilder = GroupSessionBuilder(bufferedSenderKeyStore)
+        val newDistributionMessage = sessionBuilder.create(groupAddress, UUID.randomUUID())
+        val newDistributionBytes = newDistributionMessage.serialize()
+
+        val apiSpaceMembers = getSpaceMembers(spaceId)
+        val memberIds = apiSpaceMembers.map { it.user_id }.toSet()
+        val newDistributions = mutableListOf<EncryptedDistribution>()
+
+        for (member in apiSpaceMembers) {
+            val publicBlob = member.identity_key_public ?: continue
+            val publicKey = Curve.decodePoint(publicBlob.toBytes(), 0)
+
+            newDistributions.add(
+                EphemeralECDHUtils.encrypt(
+                    member.user_id,
+                    newDistributionBytes,
+                    publicKey
+                )
+            )
+        }
+
         db.runTransaction { transaction ->
             val docRef = spaceGroupKeysRef(spaceId)
-            val distributionBytes = distributionMessage.serialize()
             val snapshot = transaction.get(docRef)
             val groupKeysDoc = snapshot.toObject(GroupKeysDoc::class.java) ?: GroupKeysDoc()
-            val oldMemberKeyData = groupKeysDoc.memberKeys[senderUserId] ?: MemberKeyData()
-            val distributions = oldMemberKeyData.distributions.toMutableList()
 
-            for (member in apiSpaceMembers) {
-                val publicBlob = member.identity_key_public ?: continue
-                val publicKeyBytes = publicBlob.toBytes()
-                if (publicKeyBytes.size != 33) { // Expected size for compressed EC public key
-                    Timber.e("Invalid public key size for member ${member.user_id}")
-                    continue
-                }
-                val publicKey = Curve.decodePoint(publicBlob.toBytes(), 0)
+            val oldKeyData = groupKeysDoc.member_keys[user.id] ?: MemberKeyData()
 
-                // Encrypt distribution using member's public key
-                distributions.add(
-                    EphemeralECDHUtils.encrypt(
-                        member.user_id,
-                        distributionBytes,
-                        publicKey
-                    )
-                )
-            }
+            // Filter out distributions for members who are no longer in the space
+            val filteredOldDistributions =
+                oldKeyData.distributions.filter { it.recipient_id in memberIds }
 
-            val newMemberKeyData = oldMemberKeyData.copy(
-                memberDeviceId = senderDeviceId,
-                distributions = distributions,
-                dataUpdatedAt = System.currentTimeMillis()
+            val rotatedKeyData = oldKeyData.copy(
+                member_device_id = deviceId,
+                distributions = newDistributions + filteredOldDistributions,
+                data_updated_at = System.currentTimeMillis()
             )
-            transaction.update(docRef, mapOf("memberKeys.$senderUserId" to newMemberKeyData))
+
+            val updates = mapOf(
+                "member_keys.${user.id}" to rotatedKeyData,
+                "doc_updated_at" to System.currentTimeMillis()
+            )
+
+            transaction.update(docRef, updates)
         }.await()
     }
 }

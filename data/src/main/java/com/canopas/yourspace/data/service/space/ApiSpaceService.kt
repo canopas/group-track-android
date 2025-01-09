@@ -16,6 +16,7 @@ import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_SPACE_GROUP_
 import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_SPACE_MEMBERS
 import com.canopas.yourspace.data.utils.EphemeralECDHUtils
 import com.canopas.yourspace.data.utils.snapshotFlow
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import org.signal.libsignal.protocol.SignalProtocolAddress
@@ -25,6 +26,7 @@ import timber.log.Timber
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.jvm.Throws
 
 @Singleton
 class ApiSpaceService @Inject constructor(
@@ -68,8 +70,9 @@ class ApiSpaceService @Inject constructor(
         return spaceMemberRef(spaceId).get().await().toObjects(ApiSpaceMember::class.java)
     }
 
+    @Throws(IllegalStateException::class)
     suspend fun joinSpace(spaceId: String, role: Int = SPACE_MEMBER_ROLE_MEMBER) {
-        val user = authService.currentUser ?: return
+        val user = authService.currentUser ?: throw IllegalStateException("No authenticated user")
         spaceMemberRef(spaceId)
             .document(user.id).also {
                 val member = ApiSpaceMember(
@@ -86,7 +89,7 @@ class ApiSpaceService @Inject constructor(
 
         // Update the "docUpdatedAt" so others see membership changed
         val docRef = spaceGroupKeysDoc(spaceId)
-        docRef.update("docUpdatedAt", System.currentTimeMillis()).await()
+        docRef.update("doc_updated_at", System.currentTimeMillis()).await()
 
         // Distribute sender key to all members
         distributeSenderKeyToSpaceMembers(spaceId, user.id)
@@ -100,7 +103,7 @@ class ApiSpaceService @Inject constructor(
         val deviceId = UUID.randomUUID().mostSignificantBits and 0x7FFFFFFF
         val groupAddress = SignalProtocolAddress(spaceId, deviceId.toInt())
         val sessionBuilder = GroupSessionBuilder(bufferedSenderKeyStore)
-        val distributionMessage = sessionBuilder.create(groupAddress, UUID.fromString(spaceId))
+        val distributionMessage = sessionBuilder.create(groupAddress, UUID.randomUUID())
         val distributionBytes = distributionMessage.serialize()
 
         val apiSpaceMembers = getSpaceMembers(spaceId)
@@ -111,12 +114,12 @@ class ApiSpaceService @Inject constructor(
             val publicKey = try {
                 val publicKeyBytes = publicBlob.toBytes()
                 if (publicKeyBytes.size != 33) { // Expected size for compressed EC public key
-                    Timber.e("Invalid public key size for member ${member.user_id}")
+                    Timber.e("Invalid public key size for a space member")
                     continue
                 }
                 Curve.decodePoint(publicKeyBytes, 0)
             } catch (e: Exception) {
-                Timber.e(e, "Failed to decode public key for member ${member.user_id}")
+                Timber.e(e, "Failed to decode public key for a space member")
                 continue
             }
 
@@ -128,15 +131,15 @@ class ApiSpaceService @Inject constructor(
             val docRef = spaceGroupKeysDoc(spaceId)
             val snapshot = transaction.get(docRef)
             val groupKeysDoc = snapshot.toObject(GroupKeysDoc::class.java) ?: GroupKeysDoc()
-            val oldMemberKeyData = groupKeysDoc.memberKeys[senderUserId] ?: MemberKeyData()
+            val oldMemberKeyData = groupKeysDoc.member_keys[senderUserId] ?: MemberKeyData()
             val newMemberKeyData = oldMemberKeyData.copy(
-                memberDeviceId = deviceId.toInt(),
+                member_device_id = deviceId.toInt(),
                 distributions = distributions,
-                dataUpdatedAt = System.currentTimeMillis()
+                data_updated_at = System.currentTimeMillis()
             )
             val updates = mapOf(
-                "memberKeys.$senderUserId" to newMemberKeyData,
-                "docUpdatedAt" to System.currentTimeMillis()
+                "member_keys.$senderUserId" to newMemberKeyData,
+                "doc_updated_at" to System.currentTimeMillis()
             )
             transaction.update(docRef, updates)
         }.await()
@@ -187,6 +190,15 @@ class ApiSpaceService @Inject constructor(
             .whereEqualTo("user_id", userId).get().await().documents.forEach {
                 it.reference.delete().await()
             }
+
+        // Update the "docUpdatedAt" so others see membership changed and remove sender key for the removed user
+        val docRef = spaceGroupKeysDoc(spaceId)
+        docRef.update(
+            mapOf(
+                "doc_updated_at" to System.currentTimeMillis(),
+                "member_keys.$userId" to FieldValue.delete()
+            )
+        ).await()
     }
 
     suspend fun updateSpace(space: ApiSpace) {

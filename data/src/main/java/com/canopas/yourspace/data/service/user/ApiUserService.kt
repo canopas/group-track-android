@@ -9,7 +9,6 @@ import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.utils.Config
 import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_USERS
 import com.canopas.yourspace.data.utils.Device
-import com.canopas.yourspace.data.utils.EncryptionException
 import com.canopas.yourspace.data.utils.PrivateKeyUtils
 import com.canopas.yourspace.data.utils.snapshotFlow
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
@@ -17,6 +16,7 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.Blob
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.functions.FirebaseFunctions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.map
@@ -27,9 +27,9 @@ import org.signal.libsignal.protocol.IdentityKey
 import org.signal.libsignal.protocol.IdentityKeyPair
 import org.signal.libsignal.protocol.ecc.Curve
 import timber.log.Timber
+import java.security.SecureRandom
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.random.Random
 
 const val NETWORK_STATUS_CHECK_INTERVAL = 3 * 60 * 1000
 
@@ -49,13 +49,19 @@ class ApiUserService @Inject constructor(
 
     suspend fun getUser(userId: String): ApiUser? {
         return try {
-            userRef.document(userId).get().await().toObject(ApiUser::class.java)?.let { user ->
-                if (user.id != currentUser?.id) return user
-                val decryptedPrivateKey = decryptPrivateKey(user) ?: return@let user
-                user.copy(identity_key_private = Blob.fromBytes(decryptedPrivateKey))
+            val user = userRef.document(userId).get().await().toObject(ApiUser::class.java)
+            when {
+                user == null -> null
+                currentUser == null || user.id != currentUser.id -> user
+                else -> decryptPrivateKey(user)?.let { decryptedKey ->
+                    user.copy(identity_key_private = Blob.fromBytes(decryptedKey))
+                }
             }
-        } catch (e: Exception) {
+        } catch (e: FirebaseFirestoreException) {
             Timber.e(e, "Error while getting user")
+            null
+        } catch (e: SecurityException) {
+            Timber.e(e, "Error decrypting user data")
             null
         }
     }
@@ -121,7 +127,7 @@ class ApiUserService @Inject constructor(
 
     suspend fun generateAndSaveUserKeys(user: ApiUser, passKey: String): ApiUser {
         val identityKeyPair = generateIdentityKeyPair()
-        val salt = ByteArray(16).apply { Random.nextBytes(this) }
+        val salt = ByteArray(16).apply { SecureRandom().nextBytes(this) }
         val encryptedPrivateKey = PrivateKeyUtils.encryptPrivateKey(
             identityKeyPair.privateKey.serialize(),
             passkey = passKey,
@@ -132,12 +138,14 @@ class ApiUserService @Inject constructor(
 
         userRef.document(user.id).update(
             mapOf(
+                "updated_at" to System.currentTimeMillis(),
                 "identity_key_public" to Blob.fromBytes(identityKeyPair.publicKey.publicKey.serialize()),
                 "identity_key_private" to Blob.fromBytes(encryptedPrivateKey),
                 "identity_key_salt" to Blob.fromBytes(salt)
             )
         ).await()
         return user.copy(
+            updated_at = System.currentTimeMillis(),
             identity_key_public = Blob.fromBytes(identityKeyPair.publicKey.publicKey.serialize()),
             identity_key_private = Blob.fromBytes(identityKeyPair.privateKey.serialize()),
             identity_key_salt = Blob.fromBytes(salt)
@@ -158,7 +166,7 @@ class ApiUserService @Inject constructor(
         return if (decryptedPrivateKey != null) {
             decryptedPrivateKey
         } else {
-            Timber.e("Failed to validate passkey for user ${user.id}")
+            Timber.e("Failed to validate passkey for user")
             null
         }
     }
@@ -174,7 +182,7 @@ class ApiUserService @Inject constructor(
             val passkey = pin ?: userPreferences.getPasskey() ?: return null
             val decrypted = PrivateKeyUtils.decryptPrivateKey(encryptedPrivateKey, salt, passkey)
             decrypted
-        } catch (e: EncryptionException) {
+        } catch (e: Exception) {
             Timber.e(e, "Failed to decrypt private key for user ${user.id}")
             null
         }
