@@ -12,7 +12,7 @@ If you are reporting a bug, please help speed up problem diagnosis by providing 
 We actively welcome your pull requests. You can find instructions on building the project in [README.md](https://github.com/canopas/group-track-android).
 1. Fork the repo and create your branch from `master`.  
 2. If you've added code that should be tested, add tests  
-4. Make sure your code lints.  
+3. Make sure your code lints.  
 
 ## Labels
 Labels on issues are managed by contributors, you don't have to worry about them. Here's a list of what they mean:
@@ -29,4 +29,4 @@ Labels on issues are managed by contributors, you don't have to worry about them
  * **non-library**: issue is not in the core library code, but rather in documentation, samples, build process, releases
 
  ## License
- By contributing to GroupTrack, you agree that your contributions will be licensed under its Apache License, Version 2.0. See LICENSE file for details.
+ By contributing to Grouptrack, you agree that your contributions will be licensed under its Apache License, Version 2.0. See LICENSE file for details.

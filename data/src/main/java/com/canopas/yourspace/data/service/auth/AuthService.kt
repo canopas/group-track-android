@@ -75,7 +75,7 @@ class AuthService @Inject constructor(
             userPreferences.currentUser = newUser
         }
 
-    private var currentUserSession: ApiUserSession?
+    var currentUserSession: ApiUserSession?
         get() {
             return userPreferences.currentUserSession
         }
@@ -101,22 +101,48 @@ class AuthService @Inject constructor(
         currentUser = user
     }
 
-    fun signOut() {
-        locationManager.stopLocationTracking()
-        currentUser = null
-        currentUserSession = null
-        userPreferences.isFCMRegistered = false
-        userPreferences.setOnboardShown(false)
-        userPreferences.currentSpace = ""
-        firebaseAuth.signOut()
-        locationManager.stopService()
-        locationCache.clear()
+    suspend fun signOut() {
+        try {
+            locationManager.stopLocationTracking()
+            currentUser = null
+            currentUserSession = null
+            userPreferences.isFCMRegistered = false
+            userPreferences.setOnboardShown(false)
+            userPreferences.currentSpace = ""
+            userPreferences.clearPasskey()
+            userPreferences.clearPrivateKey()
+            firebaseAuth.signOut()
+            locationManager.stopService()
+            locationCache.clear()
+        } catch (e: Exception) {
+            throw SecurityException("Failed to completely sign out. Some sensitive data might not be cleared.", e)
+        }
     }
 
     suspend fun deleteAccount() {
         val currentUser = currentUser ?: return
         apiUserService.deleteUser(currentUser.id)
         signOut()
+    }
+
+    suspend fun generateAndSaveUserKeys(passKey: String) {
+        val user = currentUser ?: throw IllegalStateException("No user logged in")
+        try {
+            val updatedUser = apiUserService.generateAndSaveUserKeys(user, passKey)
+            currentUser = updatedUser
+        } catch (e: Exception) {
+            throw SecurityException("Failed to generate user keys", e)
+        }
+    }
+
+    suspend fun validatePasskey(passKey: String): Boolean {
+        val user = currentUser ?: return false
+        val validationResult = apiUserService.validatePasskey(user, passKey)
+        if (validationResult != null) {
+            userPreferences.storePasskey(passKey)
+            userPreferences.storePrivateKey(validationResult)
+        }
+        return validationResult != null
     }
 
     suspend fun getUser(): ApiUser? = apiUserService.getUser(currentUser?.id ?: "")
