@@ -275,17 +275,22 @@ private fun SpaceProfileContent() {
                     cursorBrush = SolidColor(AppTheme.colorScheme.primary)
                 )
                 if (state.allowSave) {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = "",
-                        tint = outlineColor,
-                        modifier = Modifier
-                            .padding(horizontal = 8.dp)
-                            .clickable {
-                                viewModel.saveSpace()
-                                focusManager.clearFocus()
-                            }
-                    )
+                    if (state.isNameChanging) {
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp))
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = "",
+                            tint = outlineColor,
+                            modifier = Modifier
+                                .padding(horizontal = 8.dp)
+                                .clickable {
+                                    ripple(true)
+                                    viewModel.saveSpace()
+                                    focusManager.clearFocus()
+                                }
+                        )
+                    }
                 }
             }
 
@@ -347,22 +352,23 @@ private fun SpaceProfileContent() {
 
             Header(title = stringResource(id = R.string.space_setting_title_your_location))
 
-            state.spaceInfo?.members?.firstOrNull { it.user.id == state.currentUserId }?.let { user ->
-                UserItem(
-                    userInfo = user,
-                    isChecked = state.locationEnabled,
-                    enable = true,
-                    isAdmin = state.isAdmin,
-                    currentUser = state.currentUserId!!,
-                    isAdminUser = state.spaceInfo?.space?.admin_id == user.user.id,
-                    onCheckedChange = { isChecked ->
-                        viewModel.onLocationEnabledChanged(isChecked)
-                    },
-                    onMemberRemove = {
-                        viewModel.showRemoveMemberConfirmationWithId(true, "")
-                    }
-                )
-            }
+            state.spaceInfo?.members?.firstOrNull { it.user.id == state.currentUserId }
+                ?.let { user ->
+                    UserItem(
+                        userInfo = user,
+                        isChecked = state.locationEnabled,
+                        enable = true,
+                        isAdmin = state.isAdmin,
+                        currentUser = state.currentUserId!!,
+                        isAdminUser = state.spaceInfo?.space?.admin_id == user.user.id,
+                        onCheckedChange = { isChecked ->
+                            viewModel.onLocationEnabledChanged(isChecked)
+                        },
+                        onMemberRemove = {
+                            viewModel.showRemoveMemberConfirmationWithId(true, "")
+                        }
+                    )
+                }
 
             HorizontalDivider(
                 modifier = Modifier

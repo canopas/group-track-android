@@ -100,24 +100,17 @@ class SpaceProfileViewModel @Inject constructor(
     fun updateMemberLocation(memberId: String, enableLocation: Boolean) {
         viewModelScope.launch(appDispatcher.IO) {
             try {
-                _state.emit(_state.value.copy(userLocationUpdatingId = memberId))
                 spaceRepository.enableLocation(spaceID, memberId, enableLocation)
                 val spaceInfo = spaceRepository.getSpaceInfo(spaceID)
                 _state.emit(
                     _state.value.copy(
                         spaceInfo = spaceInfo,
-                        locationEnabledChanges = _state.value.locationEnabledChanges + (memberId to enableLocation),
-                        userLocationUpdatingId = null
+                        locationEnabledChanges = _state.value.locationEnabledChanges + (memberId to enableLocation)
                     )
                 )
             } catch (e: Exception) {
                 Timber.e(e, "Failed to update member location")
-                _state.emit(
-                    _state.value.copy(
-                        error = e,
-                        userLocationUpdatingId = null
-                    )
-                )
+                _state.emit(_state.value.copy(error = e))
             }
         }
     }
@@ -185,6 +178,7 @@ class SpaceProfileViewModel @Inject constructor(
         try {
             _state.emit(_state.value.copy(saving = true))
             if (isNameUpdated) {
+                _state.emit(_state.value.copy(isNameChanging = true))
                 spaceRepository.updateSpace(
                     space.copy(name = _state.value.spaceName?.trim() ?: "")
                 )
@@ -197,10 +191,10 @@ class SpaceProfileViewModel @Inject constructor(
                 )
             }
             val spaceInfo = spaceRepository.getSpaceInfo(spaceID)
-            _state.emit(_state.value.copy(saving = false, allowSave = false, spaceInfo = spaceInfo))
+            _state.emit(_state.value.copy(saving = false, allowSave = false, spaceInfo = spaceInfo, isNameChanging = false))
         } catch (e: Exception) {
             Timber.e(e, "Failed to save space")
-            _state.emit(_state.value.copy(saving = false, error = e, allowSave = false))
+            _state.emit(_state.value.copy(saving = false, error = e, allowSave = false, isNameChanging = false))
         }
     }
 
@@ -344,5 +338,5 @@ data class SpaceProfileState(
     val isCodeLoading: Boolean = false,
     val locationEnabledChanges: Map<String, Boolean> = emptyMap(),
     val isLocationSettingChange: Boolean = false,
-    val userLocationUpdatingId: String? = null
+    val isNameChanging: Boolean = false
 )
