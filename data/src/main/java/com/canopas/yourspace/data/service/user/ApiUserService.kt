@@ -49,7 +49,8 @@ class ApiUserService @Inject constructor(
 
     suspend fun getUser(userId: String): ApiUser? {
         return try {
-            val user = userRef.document(userId).get().await().toObject(ApiUser::class.java)
+            val user = userRef.document(userId.takeIf { it.isNotBlank() } ?: "null").get().await()
+                .toObject(ApiUser::class.java)
             when {
                 user == null -> null
                 currentUser == null || user.id != currentUser.id -> user
@@ -107,7 +108,7 @@ class ApiUserService @Inject constructor(
                 last_name = account?.familyName ?: "",
                 provider_firebase_id_token = firebaseToken,
                 profile_image = account?.photoUrl?.toString() ?: firebaseUser?.photoUrl?.toString()
-                    ?: ""
+                ?: ""
             )
             userRef.document(uid).set(user).await()
             val sessionDocRef = sessionRef(user.id).document()
