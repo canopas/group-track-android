@@ -49,7 +49,8 @@ class ApiUserService @Inject constructor(
 
     suspend fun getUser(userId: String): ApiUser? {
         return try {
-            val user = userRef.document(userId).get().await().toObject(ApiUser::class.java)
+            val user = userRef.document(userId.takeIf { it.isNotBlank() } ?: "null").get().await()
+                .toObject(ApiUser::class.java)
             when {
                 user == null -> null
                 currentUser == null || user.id != currentUser.id -> user
