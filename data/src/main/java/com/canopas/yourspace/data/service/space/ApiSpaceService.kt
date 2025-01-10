@@ -37,14 +37,19 @@ class ApiSpaceService @Inject constructor(
     private val bufferedSenderKeyStore: BufferedSenderKeyStore
 ) {
     private val spaceRef = db.collection(FIRESTORE_COLLECTION_SPACES)
-    private fun spaceMemberRef(spaceId: String) =
-        spaceRef.document(spaceId.takeIf { it.isNotBlank() } ?: "null")
-            .collection(FIRESTORE_COLLECTION_SPACE_MEMBERS)
+    private fun spaceMemberRef(spaceId: String) = if (spaceId.isBlank()) {
+        throw IllegalArgumentException("Space ID cannot be empty")
+    } else {
+        spaceRef.document(spaceId).collection(FIRESTORE_COLLECTION_SPACE_MEMBERS)
+    }
 
-    private fun spaceGroupKeysDoc(spaceId: String) =
-        spaceRef.document(spaceId.takeIf { it.isNotBlank() } ?: "null")
+    private fun spaceGroupKeysDoc(spaceId: String) = if (spaceId.isBlank()) {
+        throw IllegalArgumentException("Space ID cannot be empty")
+    } else {
+        spaceRef.document(spaceId)
             .collection(FIRESTORE_COLLECTION_SPACE_GROUP_KEYS)
             .document(FIRESTORE_COLLECTION_SPACE_GROUP_KEYS)
+    }
 
     suspend fun createSpace(spaceName: String): String {
         val spaceId = UUID.randomUUID().toString()

@@ -37,18 +37,24 @@ class ApiJourneyService @Inject constructor(
     private val currentSpaceId: String
         get() = userPreferences.currentSpace ?: ""
 
-    private fun spaceMemberRef(spaceId: String) =
-        spaceRef.document(spaceId.takeIf { it.isNotBlank() } ?: "null")
-            .collection(FIRESTORE_COLLECTION_SPACE_MEMBERS)
+    private fun spaceMemberRef(spaceId: String) = if (spaceId.isBlank()) {
+        throw IllegalArgumentException("Space ID is empty")
+    } else {
+        spaceRef.document(spaceId).collection(FIRESTORE_COLLECTION_SPACE_MEMBERS)
+    }
 
-    private fun spaceMemberJourneyRef(spaceId: String, userId: String) =
-        spaceMemberRef(spaceId).document(userId.takeIf { it.isNotBlank() } ?: "null")
-            .collection(Config.FIRESTORE_COLLECTION_USER_JOURNEYS)
+    private fun spaceMemberJourneyRef(spaceId: String, userId: String) = if (userId.isBlank()) {
+        throw IllegalArgumentException("User ID is empty")
+    } else {
+        spaceMemberRef(spaceId).document(userId).collection(Config.FIRESTORE_COLLECTION_USER_JOURNEYS)
+    }
 
-    private fun spaceGroupKeysRef(spaceId: String) =
-        spaceRef.document(spaceId.takeIf { it.isNotBlank() } ?: "null")
-            .collection(FIRESTORE_COLLECTION_SPACE_GROUP_KEYS)
+    private fun spaceGroupKeysRef(spaceId: String) = if (spaceId.isBlank()) {
+        throw IllegalArgumentException("Space ID is empty")
+    } else {
+        spaceRef.document(spaceId).collection(FIRESTORE_COLLECTION_SPACE_GROUP_KEYS)
             .document(FIRESTORE_COLLECTION_SPACE_GROUP_KEYS)
+    }
 
     private suspend fun getGroupKeyDoc(spaceId: String): GroupKeysDoc? {
         return try {
