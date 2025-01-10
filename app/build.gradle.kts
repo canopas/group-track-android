@@ -19,7 +19,7 @@ val targetSdkVersion: Int = 34
 
 android {
     namespace = "com.canopas.yourspace"
-    compileSdk = 34
+    compileSdk = 35
 
     if (System.getenv("CI_RUN_NUMBER") != null) {
         versionBuild = System.getenv("CI_RUN_NUMBER").toInt()
@@ -131,33 +131,33 @@ android {
 
 dependencies {
 
-    implementation("androidx.core:core-ktx:1.13.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.6")
-    implementation("androidx.activity:activity-compose:1.9.2")
-    implementation(platform("androidx.compose:compose-bom:2024.09.03"))
+    implementation("androidx.core:core-ktx:1.15.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
+    implementation("androidx.activity:activity-compose:1.9.3")
+    implementation(platform("androidx.compose:compose-bom:2024.12.01"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
-    implementation("androidx.navigation:navigation-compose:2.8.2")
+    implementation("androidx.navigation:navigation-compose:2.8.5")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
-    implementation("androidx.compose.foundation:foundation:1.7.3")
+    implementation("androidx.compose.foundation:foundation:1.7.6")
 
-    implementation(platform("com.google.firebase:firebase-bom:33.4.0"))
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-messaging-ktx")
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-storage")
     implementation("com.google.firebase:firebase-crashlytics")
 
-    implementation("com.google.android.gms:play-services-auth:21.2.0")
-    implementation("androidx.lifecycle:lifecycle-process:2.8.6")
+    implementation("com.google.android.gms:play-services-auth:21.3.0")
+    implementation("androidx.lifecycle:lifecycle-process:2.8.7")
     // Test
     testImplementation("junit:junit:4.13.2")
-    testImplementation("androidx.arch.core:core-testing:2.1.0")
+    testImplementation("androidx.arch.core:core-testing:2.2.0")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
-    androidTestImplementation(platform("androidx.compose:compose-bom:2024.09.03"))
+    androidTestImplementation(platform("androidx.compose:compose-bom:2024.12.01"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
@@ -167,14 +167,14 @@ dependencies {
     testImplementation("org.mockito:mockito-core:5.7.0")
 
     // Hilt
-    val hilt = "2.50"
+    val hilt = "2.51.1"
     implementation("com.google.dagger:hilt-android:$hilt")
     ksp("com.google.dagger:hilt-compiler:$hilt")
 
     // Work manager
     implementation("androidx.hilt:hilt-work:1.2.0")
     ksp("androidx.hilt:hilt-compiler:1.2.0")
-    implementation("androidx.work:work-runtime-ktx:2.9.1")
+    implementation("androidx.work:work-runtime-ktx:2.10.0")
 
     // DataStore
     implementation("androidx.datastore:datastore-preferences:1.1.1")
@@ -193,13 +193,13 @@ dependencies {
 
     // Map
     implementation("com.google.maps.android:maps-compose:4.3.0")
-    implementation("com.google.maps.android:android-maps-utils:0.4.4")
+    implementation("com.google.maps.android:android-maps-utils:3.6.0")
 
     // Image cropper
     implementation("com.vanniktech:android-image-cropper:4.5.0")
 
     // Place
-    implementation("com.google.android.libraries.places:places:4.0.0")
+    implementation("com.google.android.libraries.places:places:4.1.0")
 
     // Room-DB
     implementation("androidx.room:room-runtime:2.6.1")
