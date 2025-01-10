@@ -51,25 +51,18 @@ class ApiLocationService @Inject constructor(
 
     private val spaceRef by lazy { db.collection(FIRESTORE_COLLECTION_SPACES) }
 
-    private fun spaceMemberRef(spaceId: String) = if (spaceId.isBlank()) {
-        throw IllegalArgumentException("Space ID cannot be blank")
-    } else {
-        spaceRef.document(spaceId).collection(FIRESTORE_COLLECTION_SPACE_MEMBERS)
-    }
+    private fun spaceMemberRef(spaceId: String) =
+        spaceRef.document(spaceId.takeIf { it.isNotBlank() } ?: "null")
+            .collection(FIRESTORE_COLLECTION_SPACE_MEMBERS)
 
-    private fun spaceMemberLocationRef(spaceId: String, userId: String) = if (spaceId.isBlank()) {
-        throw IllegalArgumentException("Space ID cannot be blank")
-    } else {
-        spaceMemberRef(spaceId).document(userId)
+    private fun spaceMemberLocationRef(spaceId: String, userId: String) =
+        spaceMemberRef(spaceId.takeIf { it.isNotBlank() } ?: "null").document(userId)
             .collection(Config.FIRESTORE_COLLECTION_USER_LOCATIONS)
-    }
 
-    private fun spaceGroupKeysRef(spaceId: String) = if (spaceId.isBlank()) {
-        throw IllegalArgumentException("Space ID cannot be blank")
-    } else {
-        spaceRef.document(spaceId).collection(FIRESTORE_COLLECTION_SPACE_GROUP_KEYS)
+    private fun spaceGroupKeysRef(spaceId: String) =
+        spaceRef.document(spaceId.takeIf { it.isNotBlank() } ?: "null")
+            .collection(FIRESTORE_COLLECTION_SPACE_GROUP_KEYS)
             .document(FIRESTORE_COLLECTION_SPACE_GROUP_KEYS)
-    }
 
     suspend fun saveLastKnownLocation(userId: String) {
         val lastLocation = locationManager.getLastLocation() ?: return

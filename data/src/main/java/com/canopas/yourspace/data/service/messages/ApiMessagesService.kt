@@ -28,11 +28,12 @@ class ApiMessagesService @Inject constructor(
 
     private val threadRef = db.collection(FIRESTORE_COLLECTION_SPACE_THREADS)
 
-    private fun threadMessagesRef(threadId: String) = if (threadId.isBlank()) {
-        throw IllegalArgumentException("Thread ID cannot be empty")
-    } else {
-        threadRef.document(threadId).collection(Config.FIRESTORE_COLLECTION_THREAD_MESSAGES)
-    }
+    private fun threadMessagesRef(threadId: String) =
+        threadRef.document(
+            threadId.takeIf {
+                it.isNotBlank()
+            } ?: "null"
+        ).collection(Config.FIRESTORE_COLLECTION_THREAD_MESSAGES)
 
     suspend fun createThread(spaceId: String, adminId: String): String {
         val docRef = threadRef.document()

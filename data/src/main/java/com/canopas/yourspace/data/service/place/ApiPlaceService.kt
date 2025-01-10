@@ -21,21 +21,14 @@ class ApiPlaceService @Inject constructor(
 
     private val spaceRef = db.collection(Config.FIRESTORE_COLLECTION_SPACES)
 
-    private fun spacePlacesRef(spaceId: String) = if (spaceId.isEmpty()) {
-        throw IllegalStateException("Space ID is empty")
-    } else {
-        spaceRef.document(spaceId).collection(Config.FIRESTORE_COLLECTION_SPACE_PLACES)
-    }
+    private fun spacePlacesRef(spaceId: String) =
+        spaceRef.document(spaceId.takeIf { it.isNotBlank() } ?: "null").collection(Config.FIRESTORE_COLLECTION_SPACE_PLACES)
 
     private fun spacePlacesSettingsRef(spaceId: String, placeId: String) =
-        if (spaceId.isEmpty() || placeId.isEmpty()) {
-            throw IllegalStateException("Space ID or Place ID is empty")
-        } else {
-            spaceRef.document(spaceId).collection(Config.FIRESTORE_COLLECTION_SPACE_PLACES)
-                .document(placeId).collection(
-                    Config.FIRESTORE_COLLECTION_SPACE_PLACES_MEMBER_SETTINGS
-                )
-        }
+        spaceRef.document(spaceId.takeIf { it.isNotBlank() } ?: "null").collection(Config.FIRESTORE_COLLECTION_SPACE_PLACES)
+            .document(placeId.takeIf { it.isNotBlank() } ?: "null").collection(
+                Config.FIRESTORE_COLLECTION_SPACE_PLACES_MEMBER_SETTINGS
+            )
 
     suspend fun addPlace(
         spaceId: String,
