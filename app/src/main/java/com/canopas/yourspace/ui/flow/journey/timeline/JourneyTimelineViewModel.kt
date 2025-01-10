@@ -18,6 +18,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.Calendar
@@ -43,7 +44,8 @@ class JourneyTimelineViewModel @Inject constructor(
     private val _state = MutableStateFlow(
         JourneyTimelineState(
             selectedTimeFrom = getTodayStartTimestamp(),
-            selectedTimeTo = getTodayEndTimestamp()
+            selectedTimeTo = getTodayEndTimestamp(),
+            weekStartDate = getStartOfWeekTimestamp()
         )
     )
     var state = _state.asStateFlow()
@@ -217,14 +219,12 @@ class JourneyTimelineViewModel @Inject constructor(
         return calendar.timeInMillis
     }
 
-    private fun isToday(timestamp: Long): Boolean {
+    private fun getStartOfWeekTimestamp(): Long {
         val calendar = Calendar.getInstance()
-        calendar.timeInMillis = timestamp
-        val today = Calendar.getInstance()
-        today.set(Calendar.HOUR_OF_DAY, 0)
-        today.set(Calendar.MINUTE, 0)
-
-        return today.timeInMillis == calendar.timeInMillis
+        calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        return calendar.timeInMillis
     }
 
     fun navigateBack() {
@@ -239,10 +239,27 @@ class JourneyTimelineViewModel @Inject constructor(
         _state.value = _state.value.copy(showDatePicker = true)
     }
 
+    fun setSelectedDate(date: Long?, isPickerDate: Boolean = false) {
+        _state.update { it.copy(selectedTimeTo = date ?: getTodayStartTimestamp()) }
+        if (isPickerDate && date != null) {
+            onSelectDateFromDatePicker(date)
+        }
+    }
+
+    private fun onSelectDateFromDatePicker(date: Long) {
+        _state.update { it.copy(weekStartDate = date) }
+        setContainsToday()
+    }
+
+    private fun setContainsToday() {
+        val today = System.currentTimeMillis()
+        val endOfWeek = state.value.weekStartDate
+        val containsToday = today in state.value.weekStartDate..endOfWeek
+        _state.update { it.copy(containsToday = containsToday) }
+    }
+
     fun onFilterByDate(selectedTimeStamp: Long) {
         dismissDatePicker()
-
-        val isSelectedDateToday = isToday(selectedTimeStamp)
         val calendar = Calendar.getInstance().apply {
             timeInMillis = selectedTimeStamp
         }
@@ -257,18 +274,7 @@ class JourneyTimelineViewModel @Inject constructor(
         _state.value = _state.value.copy(
             selectedTimeFrom = timestampFrom,
             selectedTimeTo = timestampTo,
-            groupedLocation = emptyMap(),
-            isToday = isSelectedDateToday
-        )
-        loadLocations()
-    }
-
-    fun resetToToday() {
-        _state.value = _state.value.copy(
-            selectedTimeFrom = getTodayStartTimestamp(),
-            selectedTimeTo = getTodayEndTimestamp(),
-            groupedLocation = emptyMap(),
-            isToday = true
+            groupedLocation = emptyMap()
         )
         loadLocations()
     }
@@ -295,6 +301,8 @@ data class JourneyTimelineState(
     val selectedUser: ApiUser? = null,
     val selectedTimeFrom: Long = System.currentTimeMillis(),
     val selectedTimeTo: Long = System.currentTimeMillis(),
+    val weekStartDate: Long = System.currentTimeMillis(),
+    val containsToday: Boolean = true,
     val isLoading: Boolean = false,
     val appending: Boolean = false,
     val groupedLocation: Map<Long, List<LocationJourney>> = emptyMap(),
@@ -303,6 +311,5 @@ data class JourneyTimelineState(
     val connectivityStatus: ConnectivityObserver.Status = ConnectivityObserver.Status.Available,
     val error: String? = null,
     val isLoadingMore: Boolean = true,
-    val selectedMapStyle: String = "",
-    val isToday: Boolean = true
+    val selectedMapStyle: String = ""
 )

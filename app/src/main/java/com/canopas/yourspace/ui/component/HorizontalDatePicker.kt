@@ -26,7 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.canopas.yourspace.ui.flow.journey.timeline.component.CalendarViewModel
+import com.canopas.yourspace.ui.flow.journey.timeline.JourneyTimelineViewModel
 import com.canopas.yourspace.ui.theme.AppTheme
 import java.time.LocalDate
 import java.time.format.TextStyle
@@ -35,23 +35,23 @@ import java.util.Locale
 @Composable
 fun HorizontalDatePicker(
     modifier: Modifier = Modifier,
-    selectedTimestamp: Long? = null,
-    onDateClick: (Long) -> Unit
+    selectedTimestamp: Long
 ) {
-    val today = LocalDate.now()
-    val viewModel = hiltViewModel<CalendarViewModel>()
-    val calendarState by viewModel.state.collectAsState()
+    val viewModel = hiltViewModel<JourneyTimelineViewModel>()
+    val state by viewModel.state.collectAsState()
 
-    val initialSelectedDate = selectedTimestamp?.let {
+    val initialSelectedDate = selectedTimestamp.let {
         LocalDate.ofEpochDay(it / (24 * 60 * 60 * 1000))
-    } ?: calendarState.selectedDate
+    }
 
     var currentList by remember {
         mutableStateOf(
             getDatesBetween(
-                calendarState.weekStartDate.minusDays(initialSelectedDate.toEpochDay()),
-                calendarState.weekStartDate.plusDays(initialSelectedDate.toEpochDay())
-            ).filter { it <= today }
+                LocalDate.ofEpochDay(state.weekStartDate / (24 * 60 * 60 * 1000))
+                    .minusDays(initialSelectedDate.toEpochDay()),
+                LocalDate.ofEpochDay(state.weekStartDate / (24 * 60 * 60 * 1000))
+                    .plusDays(initialSelectedDate.toEpochDay())
+            ).filter { it <= LocalDate.now() }
         )
     }
 
@@ -80,7 +80,7 @@ fun HorizontalDatePicker(
     LaunchedEffect(pagerState.currentPage) {
         when (pagerState.currentPage) {
             0 -> {
-                currentList = (currentList).distinct().filter { it <= today }
+                currentList = (currentList).distinct().filter { it <= LocalDate.now() }
             }
 
             currentList.size - 1 -> {
@@ -109,8 +109,9 @@ fun HorizontalDatePicker(
                         isSelected = isSelected,
                         onClick = {
                             selectedDate = date
-                            viewModel.setSelectedDate(date)
-                            onDateClick(date.toEpochDay() * 24 * 60 * 60 * 1000)
+                            val timestamp = date.toEpochDay() * 24 * 60 * 60 * 1000
+                            viewModel.setSelectedDate(timestamp)
+                            viewModel.onFilterByDate(timestamp)
                         }
                     )
                 }

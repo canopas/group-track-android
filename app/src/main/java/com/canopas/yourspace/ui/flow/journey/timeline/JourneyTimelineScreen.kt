@@ -1,12 +1,12 @@
 package com.canopas.yourspace.ui.flow.journey.timeline
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -32,6 +32,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.canopas.yourspace.R
@@ -67,8 +69,6 @@ fun TimelineTopBar() {
     val title =
         if (state.selectedUser == null) {
             stringResource(id = R.string.journey_timeline_title)
-        } else if (state.isCurrentUserTimeline) {
-            stringResource(id = R.string.journey_timeline_title_your_timeline)
         } else {
             stringResource(
                 id = R.string.journey_timeline_title_other_user,
@@ -80,10 +80,32 @@ fun TimelineTopBar() {
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(containerColor = AppTheme.colorScheme.surface),
         title = {
-            Text(
-                text = title,
-                style = AppTheme.appTypography.subTitle1
-            )
+            Column {
+                if (state.isCurrentUserTimeline) {
+                    Text(
+                        text = state.selectedTimeFrom.formattedMessageDateHeader(LocalContext.current),
+                        style = AppTheme.appTypography.subTitle1.copy(fontWeight = FontWeight.Bold),
+                        color = AppTheme.colorScheme.textPrimary,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                } else {
+                    Text(
+                        text = title,
+                        style = AppTheme.appTypography.subTitle1,
+                        color = AppTheme.colorScheme.textPrimary,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Text(
+                        text = state.selectedTimeFrom.formattedMessageDateHeader(LocalContext.current),
+                        style = AppTheme.appTypography.body2.copy(fontWeight = FontWeight.Bold),
+                        color = AppTheme.colorScheme.textPrimary,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
         },
         navigationIcon = {
             IconButton(onClick = viewModel::navigateBack) {
@@ -126,35 +148,13 @@ private fun TimelineContent(modifier: Modifier) {
     }
 
     Column(modifier = modifier.fillMaxSize()) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-        ) {
-            Text(
-                text = state.selectedTimeFrom.formattedMessageDateHeader(LocalContext.current),
-                style = AppTheme.appTypography.header4,
-                color = AppTheme.colorScheme.textPrimary,
-                modifier = Modifier.weight(1f)
-            )
-
-            if (!state.isToday) {
-                Text(
-                    stringResource(R.string.today),
-                    style = AppTheme.appTypography.header4,
-                    color = AppTheme.colorScheme.primary,
-                    modifier = Modifier.clickable {
-                        viewModel.resetToToday()
-                    }
-                )
-            }
-        }
         key(state.selectedTimeTo) {
             HorizontalDatePicker(
                 modifier = Modifier.fillMaxWidth(),
-                selectedTimestamp = state.selectedTimeTo,
-                onDateClick = viewModel::onFilterByDate
+                selectedTimestamp = state.selectedTimeTo
             )
         }
+        Spacer(modifier = Modifier.height(8.dp))
         HorizontalDivider()
 
         if (state.connectivityStatus == ConnectivityObserver.Status.Available) {
@@ -226,7 +226,10 @@ private fun JourneyList(
 
         if (appending) {
             item {
-                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
                     AppProgressIndicator()
                 }
             }
