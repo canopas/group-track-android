@@ -120,15 +120,15 @@ class AuthService @Inject constructor(
     }
 
     suspend fun deleteAccount() {
-        val currentUser = currentUser ?: return
-        apiUserService.deleteUser(currentUser.id)
+        val currentUser = currentUser
+        currentUser?.let { apiUserService.deleteUser(it.id) }
         signOut()
     }
 
     suspend fun generateAndSaveUserKeys(passKey: String) {
-        val user = currentUser ?: throw IllegalStateException("No user logged in")
+        val user = currentUser
         try {
-            val updatedUser = apiUserService.generateAndSaveUserKeys(user, passKey)
+            val updatedUser = user?.let { apiUserService.generateAndSaveUserKeys(it, passKey) }
             currentUser = updatedUser
         } catch (e: Exception) {
             throw SecurityException("Failed to generate user keys", e)
@@ -136,8 +136,8 @@ class AuthService @Inject constructor(
     }
 
     suspend fun validatePasskey(passKey: String): Boolean {
-        val user = currentUser ?: return false
-        val validationResult = apiUserService.validatePasskey(user, passKey)
+        val user = currentUser
+        val validationResult = user?.let { apiUserService.validatePasskey(it, passKey) }
         if (validationResult != null) {
             userPreferences.storePasskey(passKey)
             userPreferences.storePrivateKey(validationResult)
@@ -145,8 +145,8 @@ class AuthService @Inject constructor(
         return validationResult != null
     }
 
-    suspend fun getUser(): ApiUser? = apiUserService.getUser(currentUser?.id ?: "")
-    suspend fun getUserFlow() = apiUserService.getUserFlow(currentUser?.id ?: "")
+    suspend fun getUser(): ApiUser? = currentUser?.id?.let { apiUserService.getUser(it) }
+    suspend fun getUserFlow() = currentUser?.id?.let { apiUserService.getUserFlow(it) }
 
     suspend fun updateBatteryStatus(batteryPercentage: Float) {
         val user = currentUser ?: return
@@ -157,8 +157,10 @@ class AuthService @Inject constructor(
     }
 
     suspend fun updateUserSessionState(state: Int) {
-        val currentUser = currentUser ?: return
-        apiUserService.updateSessionState(currentUser.id, state)
+        val currentUser = currentUser
+        if (currentUser != null) {
+            apiUserService.updateSessionState(currentUser.id, state)
+        }
     }
 }
 
