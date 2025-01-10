@@ -108,7 +108,7 @@ class ApiUserService @Inject constructor(
                 last_name = account?.familyName ?: "",
                 provider_firebase_id_token = firebaseToken,
                 profile_image = account?.photoUrl?.toString() ?: firebaseUser?.photoUrl?.toString()
-                ?: ""
+                    ?: ""
             )
             userRef.document(uid).set(user).await()
             val sessionDocRef = sessionRef(user.id).document()
