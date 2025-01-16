@@ -194,10 +194,22 @@ class SpaceRepository @Inject constructor(
             deleteSpace(space.id)
         }
 
-        joinedSpace.forEach { space ->
-            if (userId != null) {
+        if (userId != null) {
+            joinedSpace.forEach { space ->
                 spaceService.removeUserFromSpace(space.id, userId)
             }
+        }
+    }
+
+    private suspend fun updateUserSpaceId(userId: String, spaceId: String) {
+        val user = userService.getUser(userId) ?: return
+
+        val updatedSpaceIds = user.space_ids?.toMutableList()?.apply {
+            remove(spaceId)
+        } ?: return
+
+        user.copy(space_ids = updatedSpaceIds).let {
+            userService.updateUser(it)
         }
     }
 
@@ -209,13 +221,8 @@ class SpaceRepository @Inject constructor(
             userId?.let { getUserSpaces(it).firstOrNull()?.sortedBy { it.created_at }?.firstOrNull()?.id }
                 ?: ""
 
-        val user = userId?.let { userService.getUser(it) }
-        val updatedSpaceIds = user?.space_ids?.toMutableList()?.apply {
-            remove(spaceId)
-        } ?: return
-
-        user.copy(space_ids = updatedSpaceIds).let {
-            userService.updateUser(it)
+        if (userId != null) {
+            updateUserSpaceId(userId, spaceId)
         }
     }
 
@@ -224,13 +231,8 @@ class SpaceRepository @Inject constructor(
         if (userId != null) {
             spaceService.removeUserFromSpace(spaceId, userId)
         }
-        val user = userId?.let { userService.getUser(it) }
-        val updatedSpaceIds = user?.space_ids?.toMutableList()?.apply {
-            remove(spaceId)
-        } ?: return
-
-        user.copy(space_ids = updatedSpaceIds).let {
-            userService.updateUser(it)
+        if (userId != null) {
+            updateUserSpaceId(userId, spaceId)
         }
     }
 
