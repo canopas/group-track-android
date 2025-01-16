@@ -91,13 +91,18 @@ fun JourneyMap(
                 val boundsBuilder = LatLngBounds.builder()
                     .apply {
                         include(fromLatLang)
-                        include(toLatLang)
+                        if (location?.to_latitude != null && location.to_longitude != null) {
+                            include(toLatLang)
+                        }
                         routePoints.forEach { latLng ->
                             this.include(latLng)
                         }
                     }.build()
                 val update = CameraUpdateFactory.newLatLngBounds(boundsBuilder, 50)
                 cameraPositionState.move(update)
+                if (location?.to_latitude == null && location?.to_longitude == null) {
+                    cameraPositionState.move(CameraUpdateFactory.newLatLngZoom(fromLatLang, 18f))
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -135,8 +140,9 @@ fun JourneyMap(
     ) {
         location?.let {
             LocationMarker(fromLatLang, anchor, fromMarkerContent)
-
-            LocationMarker(toLatLang, anchor, toMarkerContent)
+            if (location.to_latitude != null && location.to_longitude != null) {
+                LocationMarker(toLatLang, anchor, toMarkerContent)
+            }
 
             Polyline(
                 points = if (shouldAnimate) animatedPoints else routePoints,
