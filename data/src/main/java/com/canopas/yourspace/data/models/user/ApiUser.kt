@@ -10,6 +10,9 @@ const val LOGIN_TYPE_GOOGLE = 1
 const val LOGIN_TYPE_APPLE = 2
 const val LOGIN_DEVICE_TYPE_ANDROID = 1
 
+const val FREE_USER = 0
+const val PREMIUM_USER = 1
+
 @Keep
 data class ApiUser(
     val id: String = UUID.randomUUID().toString(),
@@ -24,6 +27,7 @@ data class ApiUser(
     val fcm_token: String? = "",
     val state: Int = USER_STATE_UNKNOWN,
     val battery_pct: Float? = 0f,
+    val user_type: Int = FREE_USER,
     val created_at: Long? = System.currentTimeMillis(),
     val updated_at: Long? = System.currentTimeMillis(),
     val identity_key_public: Blob? = Blob.fromBytes(ByteArray(0)),

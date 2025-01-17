@@ -22,6 +22,9 @@ import com.canopas.yourspace.domain.fcm.YOURSPACE_CHANNEL_PLACES
 import com.canopas.yourspace.domain.receiver.BatteryBroadcastReceiver
 import com.google.android.libraries.places.api.Places
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.revenuecat.purchases.LogLevel
+import com.revenuecat.purchases.Purchases
+import com.revenuecat.purchases.PurchasesConfiguration
 import dagger.hilt.android.HiltAndroidApp
 import timber.log.Timber
 import javax.inject.Inject
@@ -57,6 +60,9 @@ class YourSpaceApplication :
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
         authService.addListener(this)
         setNotificationChannel()
+
+        Purchases.logLevel = LogLevel.DEBUG
+        Purchases.configure(PurchasesConfiguration.Builder(this, BuildConfig.REVENUECAT_API_KEY).build())
 
         registerBatteryBroadcastReceiver()
 

@@ -24,7 +24,7 @@
         <activity
             android:name=".ui.MainActivity"
             android:exported="true"
-            android:launchMode="singleTask"
+            android:launchMode="standard"
             android:theme="@style/Theme.SplashScreen.GroupTrack"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>

@@ -71,15 +71,6 @@ class SetPinViewModel @Inject constructor(
                 userSpaces.firstOrNull() != null && userSpaces.firstOrNull()?.isNotEmpty() == true
             if (userHasSpaces) {
                 userPreferences.setOnboardShown(true)
-                try {
-                    spaceRepository.generateAndDistributeSenderKeysForExistingSpaces(
-                        spaceIds = userSpaces.firstOrNull()?.map { it.id } ?: emptyList()
-                    )
-                } catch (e: Exception) {
-                    _state.value = _state.value.copy(error = e, showLoader = false)
-                    return@launch
-                }
-
                 navigator.navigateTo(
                     AppDestinations.home.path,
                     popUpToRoute = AppDestinations.signIn.path,

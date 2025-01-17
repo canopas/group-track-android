@@ -7,6 +7,9 @@ import com.canopas.yourspace.data.models.space.GroupKeysDoc
 import com.canopas.yourspace.data.models.space.MemberKeyData
 import com.canopas.yourspace.data.models.space.SPACE_MEMBER_ROLE_ADMIN
 import com.canopas.yourspace.data.models.space.SPACE_MEMBER_ROLE_MEMBER
+import com.canopas.yourspace.data.models.user.ApiUser
+import com.canopas.yourspace.data.models.user.FREE_USER
+import com.canopas.yourspace.data.models.user.PREMIUM_USER
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.place.ApiPlaceService
 import com.canopas.yourspace.data.service.user.ApiUserService
@@ -46,15 +49,20 @@ class ApiSpaceService @Inject constructor(
             .collection(FIRESTORE_COLLECTION_SPACE_GROUP_KEYS)
             .document(FIRESTORE_COLLECTION_SPACE_GROUP_KEYS)
 
-    suspend fun createSpace(spaceName: String): String {
+    suspend fun createSpace(spaceName: String, enableEncryption: Boolean = false): String {
         val spaceId = UUID.randomUUID().toString()
         val docRef = spaceRef.document(spaceId)
-        val userId = authService.currentUser?.id ?: ""
+        val currentUser = authService.currentUser ?: throw IllegalStateException("No authenticated user")
+
+        if (enableEncryption && currentUser.user_type == FREE_USER) {
+            // Redirect to subscription page
+            throw IllegalStateException("User must be a premium user to enable encryption")
+        }
 
         val space = ApiSpace(
             id = spaceId,
             name = spaceName,
-            admin_id = userId
+            admin_id = currentUser.id
         )
         docRef.set(space).await()
 
@@ -62,7 +70,7 @@ class ApiSpaceService @Inject constructor(
         val emptyGroupKeys = GroupKeysDoc()
         spaceGroupKeysDoc(spaceId).set(emptyGroupKeys).await()
 
-        joinSpace(spaceId, SPACE_MEMBER_ROLE_ADMIN)
+        joinSpace(spaceId, SPACE_MEMBER_ROLE_ADMIN, enableEncryption = enableEncryption)
         return spaceId
     }
 
@@ -71,28 +79,66 @@ class ApiSpaceService @Inject constructor(
     }
 
     @Throws(IllegalStateException::class)
-    suspend fun joinSpace(spaceId: String, role: Int = SPACE_MEMBER_ROLE_MEMBER) {
+    suspend fun joinSpace(spaceId: String, role: Int = SPACE_MEMBER_ROLE_MEMBER, enableEncryption: Boolean? = null) {
         val user = authService.currentUser ?: throw IllegalStateException("No authenticated user")
-        spaceMemberRef(spaceId)
-            .document(user.id).also {
-                val member = ApiSpaceMember(
-                    space_id = spaceId,
-                    user_id = user.id,
-                    role = role,
-                    identity_key_public = user.identity_key_public,
-                    location_enabled = true
-                )
-                it.set(member).await()
+        val isEncryptionEnabled = enableEncryption ?: kotlin.run {
+            getSpace(spaceId)?.is_encryption_enabled ?: throw IllegalStateException("Space not found")
+        }
+
+        when {
+            isEncryptionEnabled && user.user_type == FREE_USER -> {
+                // Redirect to subscription page
+                throw IllegalStateException("User must be a premium user to join an encrypted space")
             }
+            !isEncryptionEnabled && user.user_type == PREMIUM_USER -> {
+                // Notify/Alert the user that they are joining an unencrypted space
+                // and their locations will be shared unencrypted
+                // On click of continue button, proceed to join the space and if user wants to leave any unencrypted space
+                // then they can do so from the settings page or help them navigate to the settings page
+                // Join the space and without distributing sender key
 
-        apiUserService.addSpaceId(user.id, spaceId)
+                joinSpace(spaceId, user, role)
+            }
+            isEncryptionEnabled && user.user_type == PREMIUM_USER -> {
+                // Join the space and distribute sender key
+                joinSpace(spaceId, user, role)
 
-        // Update the "docUpdatedAt" so others see membership changed
-        val docRef = spaceGroupKeysDoc(spaceId)
-        docRef.update("doc_updated_at", System.currentTimeMillis()).await()
+                // Update the "docUpdatedAt" so others see membership changed
+                val docRef = spaceGroupKeysDoc(spaceId)
+                docRef.update("doc_updated_at", System.currentTimeMillis()).await()
 
-        // Distribute sender key to all members
-        distributeSenderKeyToSpaceMembers(spaceId, user.id)
+                // Distribute sender key to all members
+                distributeSenderKeyToSpaceMembers(spaceId, user.id)
+            }
+            else -> {
+                // Join the space and without distributing sender key
+                joinSpace(spaceId, user, role)
+            }
+        }
+    }
+
+    private suspend fun joinSpace(
+        spaceId: String,
+        user: ApiUser,
+        role: Int
+    ) {
+        try {
+            spaceMemberRef(spaceId)
+                .document(user.id).also {
+                    val member = ApiSpaceMember(
+                        space_id = spaceId,
+                        user_id = user.id,
+                        role = role,
+                        identity_key_public = user.identity_key_public,
+                        location_enabled = true
+                    )
+                    it.set(member).await()
+                }
+            apiUserService.addSpaceId(user.id, spaceId)
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to join space $spaceId")
+            throw e
+        }
     }
 
     /**
@@ -212,19 +258,6 @@ class ApiSpaceService @Inject constructor(
         } catch (e: Exception) {
             Timber.e(e, "Failed to change admin")
             throw e
-        }
-    }
-
-    suspend fun generateAndDistributeSenderKeysForExistingSpaces(spaceIds: List<String>) {
-        val userId = authService.currentUser?.id ?: return
-        spaceIds.forEach { spaceId ->
-            try {
-                val emptyGroupKeys = GroupKeysDoc()
-                spaceGroupKeysDoc(spaceId).set(emptyGroupKeys).await()
-                distributeSenderKeyToSpaceMembers(spaceId, userId)
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to distribute sender key for space $spaceId")
-            }
         }
     }
 }

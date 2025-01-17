@@ -62,6 +62,18 @@ android {
             p.load(project.rootProject.file("local.properties").reader())
             buildConfigField("String", "PLACE_API_KEY", "\"${p.getProperty("PLACE_API_KEY")}\"")
         }
+
+        if (System.getenv("REVENUECAT_API_KEY") != null) {
+            buildConfigField("String", "REVENUECAT_API_KEY", "\"${System.getenv("REVENUECAT_API_KEY")}\"")
+        } else {
+            val p = Properties()
+            p.load(project.rootProject.file("local.properties").reader())
+            buildConfigField(
+                "String",
+                "REVENUECAT_API_KEY",
+                "\"${p.getProperty("REVENUECAT_API_KEY")}\""
+            )
+        }
     }
     signingConfigs {
         if (System.getenv("APKSIGN_KEYSTORE") != null) {
@@ -218,6 +230,9 @@ dependencies {
     // Signal Protocol
     implementation("org.signal:libsignal-client:0.65.0")
     implementation("org.signal:libsignal-android:0.65.0")
+
+    // RevenueCat
+    implementation("com.revenuecat.purchases:purchases:7.0.0")
 
     implementation(project(":data"))
 }

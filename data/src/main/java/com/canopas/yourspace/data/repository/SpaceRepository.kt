@@ -68,9 +68,8 @@ class SpaceRepository @Inject constructor(
     suspend fun getAllSpaceInfo(): Flow<List<SpaceInfo>> {
         val userId = authService.currentUser?.id ?: ""
         return getUserSpaces(userId).flatMapLatest { spaces ->
-            val filterSpaces = spaces.filterNotNull()
-            if (filterSpaces.isEmpty()) return@flatMapLatest flowOf(emptyList())
-            val flows = filterSpaces.map { space ->
+            if (spaces.isEmpty()) return@flatMapLatest flowOf(emptyList())
+            val flows = spaces.map { space ->
                 spaceService.getMemberBySpaceId(space.id)
                     .map { members ->
                         members.mapNotNull { member ->
@@ -260,14 +259,6 @@ class SpaceRepository @Inject constructor(
         } catch (e: Exception) {
             Timber.e(e, "Failed to change space admin")
             throw e
-        }
-    }
-
-    suspend fun generateAndDistributeSenderKeysForExistingSpaces(spaceIds: List<String>) {
-        try {
-            spaceService.generateAndDistributeSenderKeysForExistingSpaces(spaceIds)
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to generate and distribute sender keys")
         }
     }
 }
