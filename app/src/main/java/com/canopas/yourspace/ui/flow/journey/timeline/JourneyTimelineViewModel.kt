@@ -7,6 +7,7 @@ import com.canopas.yourspace.data.models.location.LocationJourney
 import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.location.ApiJourneyService
+import com.canopas.yourspace.data.service.space.ApiSpaceService
 import com.canopas.yourspace.data.service.user.ApiUserService
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.utils.AppDispatcher
@@ -32,14 +33,19 @@ class JourneyTimelineViewModel @Inject constructor(
     private val authService: AuthService,
     private val appDispatcher: AppDispatcher,
     private val connectivityObserver: ConnectivityObserver,
-    userPreferences: UserPreferences
+    userPreferences: UserPreferences,
+    private val spaceRepository: ApiSpaceService
 ) : ViewModel() {
 
     private var userId: String =
         savedStateHandle.get<String>(AppDestinations.JourneyTimeline.KEY_SELECTED_USER_ID)
             ?: throw IllegalArgumentException("User id is required")
 
-    private val _state = MutableStateFlow(
+    private val spaceId: String =
+        savedStateHandle.get<String>(AppDestinations.JourneyTimeline.KEY_SELECTED_SPACE_ID)
+            ?: throw IllegalArgumentException("Space id is required")
+
+    val _state = MutableStateFlow(
         JourneyTimelineState(
             selectedTimeFrom = getTodayStartTimestamp(),
             selectedTimeTo = getTodayEndTimestamp(),
@@ -53,6 +59,7 @@ class JourneyTimelineViewModel @Inject constructor(
 
     init {
         checkInternetConnection()
+        getSpaceInfo()
         fetchUser()
         setSelectedTimeRange()
         loadLocations()
@@ -128,6 +135,18 @@ class JourneyTimelineViewModel @Inject constructor(
                     isLoading = false,
                     appending = false
                 )
+        }
+    }
+
+    private fun getSpaceInfo() = viewModelScope.launch(appDispatcher.IO) {
+        try {
+            val spaceInfo = spaceRepository.getSpace(spaceId)
+            if (spaceInfo != null) {
+                _state.value = spaceInfo.created_at?.let { _state.value.copy(groupCreationDate = it) }!!
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to fetch space info")
+            _state.value = _state.value.copy(error = e.localizedMessage)
         }
     }
 
@@ -221,6 +240,12 @@ class JourneyTimelineViewModel @Inject constructor(
     }
 
     fun setSelectedDate(date: Long?, isPickerDate: Boolean = false) {
+        val groupCreationDate = state.value.groupCreationDate
+        if (date != null && date < groupCreationDate) {
+            _state.update { it.copy(selectedTimeTo = groupCreationDate) }
+            return
+        }
+
         _state.update { it.copy(selectedTimeTo = date ?: getTodayStartTimestamp()) }
         if (isPickerDate && date != null) {
             onSelectDateFromDatePicker(date)
@@ -292,5 +317,6 @@ data class JourneyTimelineState(
     val connectivityStatus: ConnectivityObserver.Status = ConnectivityObserver.Status.Available,
     val error: String? = null,
     val isLoadingMore: Boolean = true,
-    val selectedMapStyle: String = ""
+    val selectedMapStyle: String = "",
+    val groupCreationDate: Long = System.currentTimeMillis()
 )

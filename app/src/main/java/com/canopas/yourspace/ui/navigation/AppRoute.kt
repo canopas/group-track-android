@@ -258,19 +258,22 @@ object AppDestinations {
 
     object JourneyTimeline {
         const val KEY_SELECTED_USER_ID = "selected_user_id"
+        const val KEY_SELECTED_SPACE_ID = "selected_space_id"
 
         private const val PATH = "user-journey-timeline"
-        const val path = "$PATH/{$KEY_SELECTED_USER_ID}"
+        const val path = "$PATH/{$KEY_SELECTED_USER_ID}/{$KEY_SELECTED_SPACE_ID}"
 
         fun args(
-            selectedUserId: String
+            selectedUserId: String,
+            currentSpaceId: String
         ) = object : AppRoute {
 
             override val arguments = listOf(
-                navArgument(KEY_SELECTED_USER_ID) { type = NavType.StringType }
+                navArgument(KEY_SELECTED_USER_ID) { type = NavType.StringType },
+                navArgument(KEY_SELECTED_SPACE_ID) { type = NavType.StringType }
             )
 
-            override val path = "$PATH/$selectedUserId"
+            override val path = "$PATH/$selectedUserId/$currentSpaceId"
         }
     }
 }

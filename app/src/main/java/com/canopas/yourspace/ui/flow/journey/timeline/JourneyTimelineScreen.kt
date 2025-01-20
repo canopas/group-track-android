@@ -42,11 +42,11 @@ import com.canopas.yourspace.domain.utils.ConnectivityObserver
 import com.canopas.yourspace.domain.utils.formattedMessageDateHeader
 import com.canopas.yourspace.ui.component.AppBanner
 import com.canopas.yourspace.ui.component.AppProgressIndicator
-import com.canopas.yourspace.ui.component.HorizontalDatePicker
 import com.canopas.yourspace.ui.component.NoInternetScreen
 import com.canopas.yourspace.ui.component.ShowDatePicker
 import com.canopas.yourspace.ui.component.reachedBottom
 import com.canopas.yourspace.ui.flow.journey.components.EmptyHistory
+import com.canopas.yourspace.ui.flow.journey.components.HorizontalDatePicker
 import com.canopas.yourspace.ui.flow.journey.components.LocationHistoryItem
 import com.canopas.yourspace.ui.theme.AppTheme
 import java.util.Locale
@@ -143,15 +143,18 @@ private fun TimelineContent(modifier: Modifier) {
         ShowDatePicker(
             selectedTimestamp = state.selectedTimeTo,
             confirmButtonClick = viewModel::onFilterByDate,
-            dismissButtonClick = viewModel::dismissDatePicker
+            dismissButtonClick = viewModel::dismissDatePicker,
+            groupCreationDate = state.groupCreationDate
         )
     }
 
     Column(modifier = modifier.fillMaxSize()) {
-        key(state.selectedTimeTo) {
+        key(listOf(state.selectedTimeTo, state.groupCreationDate)) {
             HorizontalDatePicker(
                 modifier = Modifier.fillMaxWidth(),
-                selectedTimestamp = state.selectedTimeTo
+                selectedTimestamp = state.selectedTimeTo,
+                weekStartDate = state.weekStartDate,
+                groupCreationDate = state.groupCreationDate
             )
         }
         Spacer(modifier = Modifier.height(8.dp))

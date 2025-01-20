@@ -188,7 +188,8 @@ class MapViewModel @Inject constructor(
     fun showJourneyTimeline() {
         navigator.navigateTo(
             AppDestinations.JourneyTimeline.args(
-                state.value.selectedUser?.user?.id ?: ""
+                state.value.selectedUser?.user?.id ?: "",
+                spaceRepository.currentSpaceId
             ).path
         )
     }

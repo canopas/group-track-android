@@ -6,6 +6,7 @@ import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -107,7 +108,7 @@ fun SelectedUserDetail(
 
 @Composable
 private fun MemberProfileView(profileUrl: String?, name: String, user: ApiUser?) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
         Box(
             modifier = Modifier
                 .size(40.dp)
@@ -141,7 +142,7 @@ private fun MemberProfileView(profileUrl: String?, name: String, user: ApiUser?)
             }
         }
         if (user != null) {
-            Spacer(modifier = Modifier.padding(top = 2.dp))
+            Spacer(modifier = Modifier.padding(top = 16.dp))
             UserBatteryStatus(user = user)
         }
     }
@@ -192,7 +193,7 @@ private fun MemberInfoView(
             Column {
                 Text(
                     text = user.fullName,
-                    style = AppTheme.appTypography.subTitle1.copy(color = AppTheme.colorScheme.textPrimary),
+                    style = AppTheme.appTypography.subTitle2.copy(color = AppTheme.colorScheme.textPrimary),
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
                 Text(
@@ -232,10 +233,10 @@ private fun MemberInfoView(
         }
         Text(
             text = address,
-            style = AppTheme.appTypography.body2.copy(color = AppTheme.colorScheme.textPrimary),
+            style = AppTheme.appTypography.label1.copy(color = AppTheme.colorScheme.textPrimary),
             overflow = TextOverflow.Ellipsis,
             maxLines = 2,
-            modifier = Modifier.padding(top = 12.dp)
+            modifier = Modifier.padding(top = 8.dp)
         )
 
         if (time.isNotEmpty()) {

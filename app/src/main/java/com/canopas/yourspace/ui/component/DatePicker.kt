@@ -15,11 +15,32 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.canopas.yourspace.R
+import java.time.LocalDate
+import java.time.ZoneId
+import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
 object PastOrPresentSelectableDates : SelectableDates {
+    private var groupCreationDate: Long? = null
+
+    fun setGroupCreationDate(date: Long?) {
+        groupCreationDate = date
+    }
+
     override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-        return utcTimeMillis <= System.currentTimeMillis()
+        val currentTimeMillis = System.currentTimeMillis()
+
+        groupCreationDate?.let {
+            val groupCreationLocalDate = LocalDate.ofInstant(
+                Date(it).toInstant(),
+                ZoneId.systemDefault()
+            ).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            if (utcTimeMillis < groupCreationLocalDate) {
+                return false
+            }
+        }
+
+        return utcTimeMillis <= currentTimeMillis
     }
 }
 
@@ -28,8 +49,11 @@ object PastOrPresentSelectableDates : SelectableDates {
 fun ShowDatePicker(
     selectedTimestamp: Long? = System.currentTimeMillis(),
     confirmButtonClick: (Long) -> Unit,
-    dismissButtonClick: () -> Unit
+    dismissButtonClick: () -> Unit,
+    groupCreationDate: Long? = System.currentTimeMillis()
 ) {
+    PastOrPresentSelectableDates.setGroupCreationDate(groupCreationDate)
+
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = selectedTimestamp ?: System.currentTimeMillis(),
         selectableDates = PastOrPresentSelectableDates
