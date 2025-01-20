@@ -153,7 +153,7 @@ class SpaceRepository @Inject constructor(
                         val session = userService.getUserSession(member.user_id)
                         user?.let {
                             locationService.getCurrentLocation(user.id)
-                                ?.map {
+                                .map {
                                     UserInfo(
                                         user,
                                         it.firstOrNull(),
@@ -220,12 +220,14 @@ class SpaceRepository @Inject constructor(
     suspend fun leaveSpace(spaceId: String) {
         val userId = authService.currentUser?.id ?: ""
         spaceService.removeUserFromSpace(spaceId, userId)
-        val spaces = getUserSpaces(userId)
-        currentSpaceId = spaces.firstOrNull()?.sortedBy { it.created_at }?.firstOrNull()?.id
-            ?: ""
-        val idList = spaces.firstOrNull()?.map { it.id } ?: emptyList()
-        val newUser = authService.currentUser?.copy(space_ids = idList)
-        newUser?.let { authService.updateUser(it) }
+        val user = userService.getUser(userId)
+        val updatedSpaceIds = user?.space_ids?.toMutableList()?.apply {
+            remove(spaceId)
+        } ?: return
+
+        user.copy(space_ids = updatedSpaceIds).let {
+            userService.updateUser(it)
+        }
     }
 
     suspend fun updateSpace(newSpace: ApiSpace) {
@@ -258,6 +260,14 @@ class SpaceRepository @Inject constructor(
         } catch (e: Exception) {
             Timber.e(e, "Failed to change space admin")
             throw e
+        }
+    }
+
+    suspend fun generateAndDistributeSenderKeysForExistingSpaces(spaceIds: List<String>) {
+        try {
+            spaceService.generateAndDistributeSenderKeysForExistingSpaces(spaceIds)
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to generate and distribute sender keys")
         }
     }
 }

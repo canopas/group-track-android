@@ -92,8 +92,7 @@ class ApiMessagesService @Inject constructor(
             id = docRef.id,
             thread_id = threadId,
             sender_id = senderId,
-            message = message,
-            seen_by = listOf(senderId)
+            message = message
         )
         docRef.set(threadMessage).await()
     }
@@ -105,8 +104,7 @@ class ApiMessagesService @Inject constructor(
             id = docRef.id,
             thread_id = threadId,
             sender_id = senderId,
-            message = message,
-            seen_by = listOf(senderId)
+            message = message
         )
     }
 
@@ -115,16 +113,8 @@ class ApiMessagesService @Inject constructor(
         docRef.set(message).await()
     }
 
-    suspend fun markMessagesAsSeen(threadId: String, messageIds: List<String>, userId: String) {
-        db.runBatch { batch ->
-            messageIds.forEach { id ->
-                batch.update(
-                    threadMessagesRef(threadId).document(id),
-                    "seen_by",
-                    FieldValue.arrayUnion(userId)
-                )
-            }
-        }.await()
+    suspend fun markMessagesAsSeen(threadId: String, userId: String) {
+        threadRef.document(threadId).update("seen_by_ids", FieldValue.arrayUnion(userId)).await()
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)

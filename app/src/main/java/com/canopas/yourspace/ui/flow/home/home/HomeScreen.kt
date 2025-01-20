@@ -81,7 +81,7 @@ fun HomeScreen(verifyingSpace: Boolean) {
                     modifier = Modifier
                         .padding(it)
                 ) {
-                    HomeScreenContent(navController)
+                    HomeScreenContent(navController, viewModel::dismissSpaceSelection)
 
                     HomeTopBar(verifyingSpace)
                 }
@@ -207,13 +207,13 @@ private fun MapControl(
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun HomeScreenContent(navController: NavHostController) {
+fun HomeScreenContent(navController: NavHostController, dismissSpaceSelection: () -> Unit) {
     NavHost(
         navController = navController,
         startDestination = AppDestinations.map.path
     ) {
         tabComposable(AppDestinations.map.path) {
-            MapScreen()
+            MapScreen(dismissSpaceSelection)
         }
 
         tabComposable(AppDestinations.places.path) {
