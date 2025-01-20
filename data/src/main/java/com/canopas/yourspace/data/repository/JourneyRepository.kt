@@ -4,6 +4,7 @@ import android.location.Location
 import com.canopas.yourspace.data.models.location.LocationJourney
 import com.canopas.yourspace.data.service.location.ApiJourneyService
 import com.canopas.yourspace.data.storage.LocationCache
+import com.canopas.yourspace.data.storage.UserPreferences
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -15,34 +16,40 @@ class JourneyRepository @Inject constructor(
 ) {
     suspend fun saveLocationJourney(
         extractedLocation: Location,
-        userId: String
+        userId: String,
+        userPreferences: UserPreferences
     ) {
         try {
             cacheLocations(extractedLocation, userId)
 
             val lastKnownJourney = getLastKnownLocation(userId)
 
-            val result = getJourney(
-                userId = userId,
-                newLocation = extractedLocation,
-                lastKnownJourney = lastKnownJourney,
-                lastLocations = locationCache.getLastFiveLocations(userId) ?: emptyList()
-            )
-
-            result?.updatedJourney?.let { journey ->
-                locationCache.putLastJourney(journey, userId)
-                journeyService.updateJourney(
+            val spaceIds = userPreferences.currentUser?.space_ids ?: emptyList()
+            spaceIds.forEach { spaceId ->
+                val result = getJourney(
                     userId = userId,
-                    journey = journey
+                    newLocation = extractedLocation,
+                    lastKnownJourney = lastKnownJourney,
+                    lastLocations = locationCache.getLastFiveLocations(userId) ?: emptyList()
                 )
-            }
 
-            result?.newJourney?.let { journey ->
-                val currentJourney = journeyService.addJourney(
-                    userId = userId,
-                    newJourney = journey
-                )
-                locationCache.putLastJourney(currentJourney, userId)
+                result?.updatedJourney?.let { journey ->
+                    locationCache.putLastJourney(journey, userId)
+                    journeyService.updateJourney(
+                        userId = userId,
+                        journey = journey,
+                        spaceId = spaceId
+                    )
+                }
+
+                result?.newJourney?.let { journey ->
+                    val currentJourney = journeyService.addJourney(
+                        userId = userId,
+                        newJourney = journey,
+                        spaceId = spaceId
+                    )
+                    locationCache.putLastJourney(currentJourney, userId)
+                }
             }
         } catch (e: Exception) {
             Timber.e(e, "Error while saving location journey")

@@ -8,6 +8,7 @@ import com.canopas.yourspace.data.models.location.isSteady
 import com.canopas.yourspace.data.models.location.toLocationFromMovingJourney
 import com.canopas.yourspace.data.models.location.toLocationFromSteadyJourney
 import com.canopas.yourspace.data.models.location.toRoute
+import timber.log.Timber
 import java.util.Calendar
 import kotlin.math.sqrt
 
@@ -33,6 +34,7 @@ fun getJourney(
 ): JourneyResult? {
     // 1. If there is no previous journey, create a new STEADY journey
     if (lastKnownJourney == null) {
+        Timber.tag("XXX").e("No previous journey")
         val newSteadyJourney = LocationJourney(
             user_id = userId,
             from_latitude = newLocation.latitude,
@@ -54,12 +56,14 @@ fun getJourney(
     // 3. Determine how far the newLocation is from our reference point
     val distance = if (lastKnownJourney.isSteady()) {
         // Compare newLocation with "from" location
+        Timber.tag("xxx").e("LastKnownJourney = isSteady")
         distanceBetween(
             geometricMedian ?: newLocation,
             lastKnownJourney.toLocationFromSteadyJourney()
         )
     } else {
         // Compare newLocation with "to" location
+        Timber.tag("xxx").e("LastKnownJourney = isMoving")
         distanceBetween(
             geometricMedian ?: newLocation,
             lastKnownJourney.toLocationFromMovingJourney()
@@ -102,6 +106,7 @@ fun getJourney(
         // If distance > MIN_DISTANCE => user started moving
         if (distance > MIN_DISTANCE) {
             // 1. Update last STEADY journey with new "from" lat/lng
+            Timber.tag("xxx").e("lastKnownJourney = isSteady && Distance > MIN_DISTANCE")
             val updatedJourney = lastKnownJourney.copy(
                 from_latitude = newLocation.latitude,
                 from_longitude = newLocation.longitude,
@@ -139,6 +144,7 @@ fun getJourney(
         // If the user likely stopped moving => (timeDifference > MIN_TIME_DIFFERENCE)
         if (timeDifference > MIN_TIME_DIFFERENCE) {
             // 1. Update last moving journey
+            Timber.tag("xxx").e("timeDifference > MIN_TIME_DIFFERENCE")
             val updatedJourney = lastKnownJourney.copy(
                 to_latitude = newLocation.latitude,
                 to_longitude = newLocation.longitude,
@@ -157,10 +163,12 @@ fun getJourney(
                 updated_at = System.currentTimeMillis(),
                 type = JourneyType.STEADY
             )
+            Timber.e("XXX newSteadyJourney = $newSteadyJourney")
             return JourneyResult(updatedJourney, newSteadyJourney)
         }
         // If user is still moving => distance > MIN_DISTANCE_FOR_MOVING, timeDifference > MIN_UPDATE_INTERVAL_MINUTE => update route
         else if (distance > MIN_DISTANCE_FOR_MOVING && timeDifference > MIN_UPDATE_INTERVAL_MINUTE) {
+            Timber.e("XXX distance > MIN_DISTANCE_FOR_MOVING && timeDifference > MIN_UPDATE_INTERVAL_MINUTE")
             val updatedJourney = lastKnownJourney.copy(
                 to_latitude = newLocation.latitude,
                 to_longitude = newLocation.longitude,

@@ -8,6 +8,7 @@ import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.location.ApiJourneyService
 import com.canopas.yourspace.data.service.location.ApiLocationService
 import com.canopas.yourspace.data.service.location.LocationManager
+import com.canopas.yourspace.data.storage.UserPreferences
 import com.google.android.gms.location.LocationResult
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -37,6 +38,9 @@ class LocationUpdateReceiver : BroadcastReceiver() {
     @Inject
     lateinit var journeyRepository: JourneyRepository
 
+    @Inject
+    lateinit var userPreferences: UserPreferences
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -52,7 +56,7 @@ class LocationUpdateReceiver : BroadcastReceiver() {
                             extractedLocation.longitude,
                             System.currentTimeMillis()
                         )
-                        journeyRepository.saveLocationJourney(extractedLocation, userId)
+                        journeyRepository.saveLocationJourney(extractedLocation, userId, userPreferences)
                     }
                 } catch (e: Exception) {
                     Timber.e(e, "Error while saving location")
