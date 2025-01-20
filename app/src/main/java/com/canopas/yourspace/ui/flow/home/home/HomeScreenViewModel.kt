@@ -119,6 +119,10 @@ class HomeScreenViewModel @Inject constructor(
             _state.value.copy(showSpaceSelectionPopup = !state.value.showSpaceSelectionPopup)
     }
 
+    fun dismissSpaceSelection() {
+        _state.value = _state.value.copy(showSpaceSelectionPopup = false)
+    }
+
     fun navigateToCreateSpace() {
         navigator.navigateTo(AppDestinations.createSpace.path)
     }

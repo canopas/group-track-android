@@ -182,7 +182,7 @@ class MapViewModel @Inject constructor(
     }
 
     fun toggleStyleSheetVisibility(isVisible: Boolean) {
-        _state.value = _state.value.copy(isStyleSheetVisible = isVisible)
+        _state.value = _state.value.copy(isStyleSheetVisible = isVisible, showUserDetails = false)
     }
 
     fun showJourneyTimeline() {

@@ -16,6 +16,7 @@ import com.canopas.yourspace.ui.navigation.AppDestinations.ThreadMessages.KEY_TH
 import com.canopas.yourspace.ui.navigation.AppNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
@@ -86,26 +87,23 @@ class MessagesViewModel @Inject constructor(
                                 newMessagesToAppend = appendedMessages,
                                 messagesByDate = newMessages.groupMessagesByDate()
                             )
-                        markMessagesAsSeen(filter)
+                        markMessagesAsSeen()
                     }
                 }
         }
     }
 
-    private fun markMessagesAsSeen(messages: List<ApiThreadMessage>) =
+    private fun markMessagesAsSeen() =
         viewModelScope.launch(appDispatcher.IO) {
+            delay(2000)
             try {
-                val unreadMessages = messages.distinct()
-                    .filter { !it.seen_by.contains(state.value.currentUserId) }
-                    .map { it.id }
-
-                if (unreadMessages.isNotEmpty()) {
-                    messagesRepository.markMessagesAsSeen(
-                        threadId,
-                        unreadMessages,
-                        state.value.currentUserId
-                    )
+                val thread = state.value.thread ?: return@launch
+                val userId = state.value.currentUserId
+                if (thread.seen_by_ids.contains(userId)) {
+                    return@launch
                 }
+
+                messagesRepository.markMessagesAsSeen(threadId, userId)
             } catch (e: Exception) {
                 Timber.e(e, "Error marking messages as seen")
             }
@@ -140,7 +138,6 @@ class MessagesViewModel @Inject constructor(
                     error = null
                 )
             )
-            markMessagesAsSeen(newMessages)
             loadingData = false
         } catch (e: Exception) {
             Timber.e(e, "Error loading messages")
@@ -312,7 +309,10 @@ class MessagesViewModel @Inject constructor(
             val newMessage = messagesRepository.generateMessage(message, userId, threadId)
             val newMessages = state.value.newMessagesToAppend.toMutableList()
             newMessages.add(newMessage)
-            _state.emit(_state.value.copy(newMessagesToAppend = newMessages))
+
+            val thread = state.value.thread?.copy(seen_by_ids = emptyList())
+            _state.emit(_state.value.copy(newMessagesToAppend = newMessages, thread = thread))
+
             messagesRepository.sendMessage(newMessage)
         } catch (e: Exception) {
             Timber.e(e, "Failed to send message")

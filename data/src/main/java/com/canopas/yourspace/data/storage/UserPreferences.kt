@@ -1,17 +1,23 @@
 package com.canopas.yourspace.data.storage
 
+import android.util.Base64
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.byteArrayPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.models.user.ApiUserSession
 import com.canopas.yourspace.data.storage.UserPreferences.PreferencesKey.KEY_USER_CURRENT_SPACE
 import com.canopas.yourspace.data.storage.UserPreferences.PreferencesKey.KEY_USER_JSON
+import com.canopas.yourspace.data.storage.UserPreferences.PreferencesKey.KEY_USER_PASSKEY
 import com.canopas.yourspace.data.storage.UserPreferences.PreferencesKey.KEY_USER_SESSION_JSON
+import com.google.firebase.firestore.Blob
+import com.squareup.moshi.FromJson
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
+import com.squareup.moshi.ToJson
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -26,9 +32,9 @@ const val PREF_USER_PREFERENCES = "your_space_user_preferences"
 class UserPreferences @Inject constructor(
     @Named(PREF_USER_PREFERENCES) private val preferencesDataStore: DataStore<Preferences>
 ) {
-
     private val userJsonAdapter: JsonAdapter<ApiUser> =
-        Moshi.Builder().addLast(KotlinJsonAdapterFactory()).build().adapter(ApiUser::class.java)
+        Moshi.Builder().add(BlobTypeAdapter()).addLast(KotlinJsonAdapterFactory()).build()
+            .adapter(ApiUser::class.java)
     private val userSessionJsonAdapter: JsonAdapter<ApiUserSession> =
         Moshi.Builder().addLast(KotlinJsonAdapterFactory()).build()
             .adapter(ApiUserSession::class.java)
@@ -45,6 +51,9 @@ class UserPreferences @Inject constructor(
         val LAST_BATTERY_DIALOG_DATE = stringPreferencesKey("last_battery_dialog_date")
 
         val KEY_USER_MAP_STYLE = stringPreferencesKey("user_map_style")
+
+        val KEY_USER_PASSKEY = stringPreferencesKey("user_passkey")
+        val KEY_USER_PRIVATE_KEY = byteArrayPreferencesKey("user_private_key")
     }
 
     suspend fun isIntroShown(): Boolean {
@@ -165,4 +174,51 @@ class UserPreferences @Inject constructor(
                 }
             }
         }
+
+    suspend fun storePasskey(passkey: String) {
+        preferencesDataStore.edit { preferences ->
+            preferences[KEY_USER_PASSKEY] = passkey
+        }
+    }
+
+    suspend fun getPasskey(): String? {
+        return preferencesDataStore.data.first()[KEY_USER_PASSKEY]
+    }
+
+    suspend fun clearPasskey() {
+        preferencesDataStore.edit {
+            it.remove(KEY_USER_PASSKEY)
+        }
+    }
+
+    suspend fun storePrivateKey(privateKey: ByteArray) {
+        preferencesDataStore.edit { preferences ->
+            preferences[PreferencesKey.KEY_USER_PRIVATE_KEY] = privateKey
+        }
+    }
+
+    suspend fun getPrivateKey(): ByteArray? {
+        return preferencesDataStore.data.first()[PreferencesKey.KEY_USER_PRIVATE_KEY]
+    }
+
+    suspend fun clearPrivateKey() {
+        preferencesDataStore.edit {
+            it.remove(PreferencesKey.KEY_USER_PRIVATE_KEY)
+        }
+    }
+}
+
+class BlobTypeAdapter {
+    @ToJson
+    fun toJson(blob: Blob?): String? {
+        return blob?.let { Base64.encodeToString(it.toBytes(), Base64.DEFAULT) }
+    }
+
+    @FromJson
+    fun fromJson(base64: String?): Blob? {
+        return base64?.let {
+            val bytes = Base64.decode(it, Base64.DEFAULT)
+            Blob.fromBytes(bytes)
+        }
+    }
 }

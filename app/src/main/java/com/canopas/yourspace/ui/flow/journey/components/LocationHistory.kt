@@ -5,6 +5,7 @@ import android.location.Address
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,8 +46,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.canopas.yourspace.R
-import com.canopas.yourspace.data.models.location.JourneyType
 import com.canopas.yourspace.data.models.location.LocationJourney
+import com.canopas.yourspace.data.models.location.isSteady
 import com.canopas.yourspace.domain.utils.getAddress
 import com.canopas.yourspace.domain.utils.getPlaceAddress
 import com.canopas.yourspace.domain.utils.isToday
@@ -71,8 +72,8 @@ fun LocationHistoryItem(
     showJourneyDetails: () -> Unit,
     selectedMapStyle: String
 ) {
-    if (location.type == JourneyType.STEADY) {
-        SteadyLocationItem(location, isFirstItem, isLastItem, journeyList) {
+    if (location.isSteady()) {
+        SteadyLocationItem(location, isFirstItem, isLastItem, journeyList, showJourneyDetails) {
             addPlaceTap(location.from_latitude, location.from_longitude)
         }
     } else {
@@ -101,7 +102,7 @@ fun JourneyLocationItem(
         }
     }
 
-    val title = fromAddress?.formattedTitle(toAddress) ?: ""
+    val title = formattedAddress(fromAddress, toAddress)
 
     Row(
         verticalAlignment = Alignment.Top,
@@ -113,7 +114,7 @@ fun JourneyLocationItem(
                 .padding(start = 16.dp)
                 .weight(1f)
         ) {
-            val time = getFormattedJourneyTime(location.created_at ?: 0, location.update_at ?: 0)
+            val time = getFormattedJourneyTime(location.created_at ?: 0, location.updated_at ?: 0)
             val distance = getDistanceString(location.route_distance ?: 0.0)
 
             PlaceInfo(title, "$time - $distance")
@@ -155,6 +156,7 @@ fun SteadyLocationItem(
     isFirstItem: Boolean,
     isLastItem: Boolean,
     journeyList: List<LocationJourney>,
+    onTap: () -> Unit,
     addPlace: () -> Unit
 ) {
     val context = LocalContext.current
@@ -175,7 +177,7 @@ fun SteadyLocationItem(
 
         val nextJourney = sortedList
             .subList(currentIndex + 1, sortedList.size)
-            .firstOrNull { it.type != JourneyType.STEADY }
+            .firstOrNull { !it.isSteady() }
 
         val createdAt = location.created_at ?: System.currentTimeMillis()
 
@@ -209,6 +211,7 @@ fun SteadyLocationItem(
 
         Column(
             modifier = Modifier
+                .clickable { onTap() }
                 .padding(start = 16.dp)
                 .weight(1f)
         ) {
@@ -469,34 +472,39 @@ internal fun getFormattedLocationTimeForFirstItem(createdAt: Long): String {
 }
 
 fun Address.formattedTitle(toAddress: Address?): String {
-    val fromName = extractLocationName(this)
-    val toName = toAddress?.let { extractLocationName(it) } ?: "Unknown Road"
+    return formattedAddress(this, toAddress)
+}
 
-    return if (toAddress == null) {
-        fromName
-    } else {
-        "$fromName -> $toName"
+fun formattedAddress(fromPlace: Address?, toPlace: Address?): String {
+    val fromCity = fromPlace?.locality ?: ""
+    val toCity = toPlace?.locality ?: ""
+
+    val fromArea = fromPlace?.subLocality ?: ""
+    val toArea = toPlace?.subLocality ?: ""
+
+    val fromState = fromPlace?.adminArea ?: ""
+    val toState = toPlace?.adminArea ?: ""
+
+    return when {
+        toPlace == null -> formatAddress(listOf(fromArea, fromCity))
+        fromArea == toArea -> formatAddress(listOf(fromArea, fromCity))
+        fromCity == toCity -> formatTwoPlaceAddress(listOf(fromArea), listOf(toArea, fromCity))
+        fromState == toState -> formatTwoPlaceAddress(listOf(fromArea, fromCity), listOf(toArea, toCity))
+        else -> formatTwoPlaceAddress(listOf(fromCity, fromState), listOf(toCity, toState))
     }
 }
 
-private fun extractLocationName(address: Address): String {
-    val featureName = address.featureName?.trim()
-    val thoroughfare = address.thoroughfare?.trim()
+fun formatTwoPlaceAddress(fromPlace: List<String>, toPlace: List<String>): String {
+    val isFromPlaceEmpty = fromPlace.all { it.isEmpty() }
+    val isToPlaceEmpty = toPlace.all { it.isEmpty() }
 
-    val potentialNames = listOf(
-        featureName,
-        thoroughfare
-    ).filterNot { it.isNullOrEmpty() }
-
-    val cleanedNames = potentialNames.map { it?.replace(Regex("^[A-Za-z0-9]+\\+.*"), "")?.trim() }
-    val name = cleanedNames.firstOrNull { it?.isNotEmpty() == true } ?: "Unknown Road"
-
-    val resultName = if (name.matches(Regex("^[0-9].*"))) {
-        val streetName = cleanedNames.getOrNull(1) ?: ""
-        "$name $streetName".trim()
-    } else {
-        name
+    return when {
+        !isFromPlaceEmpty && !isToPlaceEmpty -> "${formatAddress(fromPlace)} -> ${formatAddress(toPlace)}"
+        !isFromPlaceEmpty && isToPlaceEmpty -> formatAddress(fromPlace)
+        else -> formatAddress(toPlace)
     }
+}
 
-    return resultName
+fun formatAddress(parts: List<String>): String {
+    return parts.joinToString(", ") { it.ifEmpty { "Unknown" } }
 }

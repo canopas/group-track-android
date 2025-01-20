@@ -3,6 +3,7 @@ package com.canopas.yourspace.data.models.location
 import android.location.Location
 import androidx.annotation.Keep
 import com.google.android.gms.maps.model.LatLng
+import com.google.firebase.firestore.Blob
 import com.squareup.moshi.JsonClass
 import java.util.UUID
 
@@ -18,13 +19,47 @@ data class LocationJourney(
     val route_distance: Double? = null,
     val route_duration: Long? = null,
     val routes: List<JourneyRoute> = emptyList(),
-    val created_at: Long? = System.currentTimeMillis(),
-    val update_at: Long? = System.currentTimeMillis(),
-    val type: JourneyType? = null
+    val created_at: Long = System.currentTimeMillis(),
+    val updated_at: Long = System.currentTimeMillis(),
+    val type: JourneyType = if (to_latitude != null && to_longitude != null) JourneyType.MOVING else JourneyType.STEADY,
+    val key_id: String = ""
+)
+
+@Keep
+@JsonClass(generateAdapter = true)
+data class EncryptedLocationJourney(
+    val id: String = UUID.randomUUID().toString(),
+    val user_id: String = "",
+    val from_latitude: Blob = Blob.fromBytes(ByteArray(0)), // Encrypted latitude - from
+    val from_longitude: Blob = Blob.fromBytes(ByteArray(0)), // Encrypted longitude - from
+    val to_latitude: Blob? = null, // Encrypted latitude - to
+    val to_longitude: Blob? = null, // Encrypted longitude - to
+    val route_distance: Double? = null,
+    val route_duration: Long? = null,
+    val routes: List<EncryptedJourneyRoute> = emptyList(), // Encrypted journey routes
+    val created_at: Long = System.currentTimeMillis(),
+    val updated_at: Long = System.currentTimeMillis(),
+    val type: JourneyType = if (to_latitude != null && to_longitude != null) JourneyType.MOVING else JourneyType.STEADY,
+    val key_id: String = ""
 )
 
 @Keep
 data class JourneyRoute(val latitude: Double = 0.0, val longitude: Double = 0.0)
+
+@Keep
+@JsonClass(generateAdapter = true)
+data class EncryptedJourneyRoute(
+    val latitude: Blob = Blob.fromBytes(ByteArray(0)), // Encrypted latitude
+    val longitude: Blob = Blob.fromBytes(ByteArray(0)) // Encrypted longitude
+)
+
+/**
+ * Data class to hold the result of the journey generation.
+ */
+data class JourneyResult(
+    val updatedJourney: LocationJourney?,
+    val newJourney: LocationJourney?
+)
 
 fun Location.toRoute(): JourneyRoute {
     return JourneyRoute(latitude, longitude)
@@ -32,9 +67,9 @@ fun Location.toRoute(): JourneyRoute {
 
 fun JourneyRoute.toLatLng() = LatLng(latitude, longitude)
 fun LocationJourney.toRoute(): List<LatLng> {
-    if (isSteadyJourney()) {
+    if (isSteady()) {
         return emptyList()
-    } else if (isMovingJourney()) {
+    } else if (isMoving()) {
         val result = listOf(
             LatLng(
                 from_latitude,
@@ -49,19 +84,9 @@ fun LocationJourney.toRoute(): List<LatLng> {
     }
 }
 
-fun LocationJourney.isSteadyJourney(): Boolean {
-    if (type != null) {
-        return type == JourneyType.STEADY
-    }
-    return to_latitude == null || to_longitude == null
-}
+fun LocationJourney.isSteady() = type == JourneyType.STEADY
 
-fun LocationJourney.isMovingJourney(): Boolean {
-    if (type != null) {
-        return type == JourneyType.MOVING
-    }
-    return to_latitude != null && to_longitude != null
-}
+fun LocationJourney.isMoving() = type == JourneyType.MOVING
 
 fun LocationJourney.toLocationFromSteadyJourney() = Location("").apply {
     latitude = this@toLocationFromSteadyJourney.from_latitude
@@ -72,13 +97,6 @@ fun LocationJourney.toLocationFromMovingJourney() = Location("").apply {
     latitude = this@toLocationFromMovingJourney.to_latitude ?: 0.0
     longitude = this@toLocationFromMovingJourney.to_longitude ?: 0.0
 }
-
-fun Location.toLocationJourney(userId: String, journeyId: String) = LocationJourney(
-    id = journeyId,
-    user_id = userId,
-    from_latitude = latitude,
-    from_longitude = longitude
-)
 
 enum class JourneyType {
     MOVING,
