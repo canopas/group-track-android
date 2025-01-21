@@ -12,43 +12,41 @@ import javax.inject.Singleton
 @Singleton
 class JourneyRepository @Inject constructor(
     private val journeyService: ApiJourneyService,
-    private val locationCache: LocationCache
+    private val locationCache: LocationCache,
+    private val userPreferences: UserPreferences
 ) {
     suspend fun saveLocationJourney(
         extractedLocation: Location,
-        userId: String,
-        userPreferences: UserPreferences
+        userId: String
     ) {
         try {
-            cacheLocations(extractedLocation, userId)
+            val userPreferences = userPreferences.currentUser?.space_ids ?: emptyList()
+            userPreferences.forEach { spaceId ->
+                cacheLocations(extractedLocation, userId)
+                val lastKnownJourney = getLastKnownLocation(userId, spaceId)
 
-            val lastKnownJourney = getLastKnownLocation(userId)
-
-            val spaceIds = userPreferences.currentUser?.space_ids ?: emptyList()
-            spaceIds.forEach { spaceId ->
                 val result = getJourney(
                     userId = userId,
                     newLocation = extractedLocation,
                     lastKnownJourney = lastKnownJourney,
-                    lastLocations = locationCache.getLastFiveLocations(userId) ?: emptyList()
+                    lastLocations = locationCache.getLastFiveLocations(userId, spaceId)
+                        ?: emptyList()
                 )
 
                 result?.updatedJourney?.let { journey ->
-                    locationCache.putLastJourney(journey, userId)
+                    locationCache.putLastJourney(journey, userId, spaceId)
                     journeyService.updateJourney(
                         userId = userId,
-                        journey = journey,
-                        spaceId = spaceId
+                        journey = journey
                     )
                 }
 
                 result?.newJourney?.let { journey ->
                     val currentJourney = journeyService.addJourney(
                         userId = userId,
-                        newJourney = journey,
-                        spaceId = spaceId
+                        newJourney = journey
                     )
-                    locationCache.putLastJourney(currentJourney, userId)
+                    locationCache.putLastJourney(currentJourney, userId, spaceId)
                 }
             }
         } catch (e: Exception) {
@@ -63,26 +61,34 @@ class JourneyRepository @Inject constructor(
      * with steady state in cache as well as remote database
      * */
     private suspend fun getLastKnownLocation(
-        userid: String
+        userid: String,
+        spaceId: String
     ): LocationJourney? {
         // Return last location journey if available from cache
-        return locationCache.getLastJourney(userid) ?: run {
+        return locationCache.getLastJourney(userid, spaceId) ?: run {
             // Here, means no location journey available in cache
             // Fetch last location journey from remote database and save it to cache
-            val lastJourney = journeyService.getLastJourneyLocation(userid)
+            val lastJourney = journeyService.getLastJourneyLocation(userid, spaceId)
+            if (lastJourney != null) {
+                Timber.tag("XXX").e("lastJourney for $spaceId is ${lastJourney.id} ")
+            }
             return lastJourney?.let {
-                locationCache.putLastJourney(it, userid)
+                locationCache.putLastJourney(it, userid, spaceId)
                 lastJourney
             }
         }
     }
 
     private fun cacheLocations(extractedLocation: Location, userId: String) {
-        val lastFiveLocations = (locationCache.getLastFiveLocations(userId) ?: emptyList()).toMutableList()
-        if (lastFiveLocations.size >= 5) {
-            lastFiveLocations.removeAt(0)
+        userPreferences.currentUser?.space_ids?.forEach { spaceId ->
+            val lastFiveLocations =
+                (locationCache.getLastFiveLocations(userId, spaceId) ?: emptyList()).toMutableList()
+            Timber.tag("xxx").e("LastFiveLocations :- $lastFiveLocations for spaceId $spaceId")
+            if (lastFiveLocations.size >= 5) {
+                lastFiveLocations.removeAt(0)
+            }
+            lastFiveLocations.add(extractedLocation)
+            locationCache.putLastFiveLocations(lastFiveLocations, userId, spaceId)
         }
-        lastFiveLocations.add(extractedLocation)
-        locationCache.putLastFiveLocations(lastFiveLocations, userId)
     }
 }

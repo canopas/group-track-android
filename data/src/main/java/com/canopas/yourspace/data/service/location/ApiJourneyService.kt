@@ -144,98 +144,79 @@ class ApiJourneyService @Inject constructor(
      */
     suspend fun addJourney(
         userId: String,
-        newJourney: LocationJourney,
-        spaceId: String
+        newJourney: LocationJourney
     ): LocationJourney {
         var journey: LocationJourney = newJourney
+        userPreferences.currentUser?.space_ids?.forEach { spaceId ->
+            Timber.tag("xxx").d("started adding journey for space :- $spaceId")
+            val groupKeysDoc = getGroupKeyDoc(spaceId) ?: return@forEach
 
-        // Iterate through all spaces the user belongs to
-        userPreferences.currentUser?.space_ids?.forEach { _ ->
-            val groupKeysDoc = getGroupKeyDoc(spaceId) ?: run {
-                Timber.e("xxx Failed to get group keys for space $spaceId")
-                return@forEach
-            }
-
-            groupKeysDoc.member_keys.forEach { memberId ->
-                // Fetch group cipher for the group and the user
-                val (distributionMessage, groupCipher, keyId) = getGroupCipherByKeyId(
-                    spaceId,
-                    userId,
-                    null,
-                    groupKeysDoc
-                ) ?: run {
-                    Timber.e("xxx Failed to get group cipher for group $memberId")
+            val (distributionMessage, groupCipher, keyId) = getGroupCipherByKeyId(
+                spaceId,
+                userId,
+                null,
+                groupKeysDoc
+            )
+                ?: run {
+                    Timber.e("Failed to get group cipher")
                     return@forEach
                 }
 
-                val docRef = spaceMemberJourneyRef(spaceId, userId).document(newJourney.id)
+            val docRef = spaceMemberJourneyRef(spaceId, userId).document(newJourney.id)
 
-                // Update the journey ID and key ID for the new space and member
-                journey = newJourney.copy(id = docRef.id, key_id = keyId)
+            journey = newJourney.copy(id = docRef.id, key_id = keyId)
 
-                // Encrypt the journey
-                val encryptedJourney = journey.toEncryptedLocationJourney(
-                    groupCipher,
-                    distributionMessage.distributionId
-                )
+            val encryptedJourney =
+                journey.toEncryptedLocationJourney(groupCipher, distributionMessage.distributionId)
 
-                // Save the encrypted journey to the document
-                encryptedJourney?.let { docRef.set(it).await() }
-                Timber.d("xxx Added journey to group $memberId in space $spaceId")
-            }
+            encryptedJourney?.let { docRef.set(it).await() }
+            Timber.tag("xxx").d("successfully added journey for space :- $spaceId")
         }
-
-        // After the iteration, return the updated journey (could be updated multiple times for different spaces)
         return journey
     }
 
     /**
      * Updates the last [LocationJourney] for [userId].
      */
-    suspend fun updateJourney(userId: String, journey: LocationJourney, spaceId: String) {
-        userPreferences.currentUser?.space_ids?.forEach { _ ->
-            val groupKeysDoc = getGroupKeyDoc(spaceId) ?: return
+    suspend fun updateJourney(userId: String, journey: LocationJourney) {
+        userPreferences.currentUser?.space_ids?.forEach { spaceId ->
+            Timber.tag("XXX").e("started updating journey for space $spaceId")
 
-            // Iterate through all the member groups in the space
-            val memberIds = groupKeysDoc.member_keys.keys
-            memberIds.forEach { groupId ->
-                // Fetch the group cipher and other necessary details using the groupId and journey.key_id
-                val (distributionMessage, groupCipher) = getGroupCipherByKeyId(
-                    spaceId,
-                    userId,
-                    journey.key_id,
-                    groupKeysDoc
-                ) ?: run {
-                    Timber.e("Failed to get group cipher for group $groupId in space $spaceId")
+            val groupKeysDoc = getGroupKeyDoc(spaceId) ?: return@forEach
+
+            val (distributionMessage, groupCipher) = getGroupCipherByKeyId(
+                spaceId,
+                userId,
+                journey.key_id,
+                groupKeysDoc
+            )
+                ?: run {
+                    Timber.e("Failed to get group cipher")
                     return@forEach
                 }
 
-                val encryptedJourney =
-                    journey.toEncryptedLocationJourney(
-                        groupCipher,
-                        distributionMessage.distributionId
-                    )
-                try {
-                    // Update the encrypted journey for each group in the space
-                    if (encryptedJourney != null) {
-                        spaceMemberJourneyRef(spaceId, userId)
-                            .document(journey.id)
-                            .set(encryptedJourney)
-                            .await()
-                    }
-                    Timber.d("Updated journey for group $groupId in space $spaceId")
-                } catch (e: Exception) {
-                    Timber.e(e, "Error updating journey for group $groupId in space $spaceId")
+            val encryptedJourney =
+                journey.toEncryptedLocationJourney(groupCipher, distributionMessage.distributionId)
+            try {
+                encryptedJourney?.let {
+                    spaceMemberJourneyRef(spaceId, userId)
+                        .document(journey.id)
+                        .set(it)
+                        .await()
                 }
+                Timber.tag("XXX").e("successfully updated journey for space $spaceId")
+            } catch (e: Exception) {
+                Timber.e(e, "Error updating journey")
             }
         }
     }
 
+
     /**
      * Fetches the most recent [LocationJourney] for [userId] in the current space.
      */
-    suspend fun getLastJourneyLocation(userId: String): LocationJourney? {
-        val encryptedJourney = spaceMemberJourneyRef(currentSpaceId, userId)
+    suspend fun getLastJourneyLocation(userId: String, spaceId: String): LocationJourney? {
+        val encryptedJourney = spaceMemberJourneyRef(spaceId, userId)
             .orderBy("created_at", Query.Direction.DESCENDING)
             .limit(1)
             .get()
@@ -245,11 +226,11 @@ class ApiJourneyService @Inject constructor(
             ?.toObject<EncryptedLocationJourney>()
             ?: return null
 
-        val groupKeysDoc = getGroupKeyDoc(currentSpaceId) ?: return null
+        val groupKeysDoc = getGroupKeyDoc(spaceId) ?: return null
 
         // Decrypt
         return runWithGroupCipher(
-            spaceId = currentSpaceId,
+            spaceId = spaceId,
             userId = userId,
             groupKeysDoc = groupKeysDoc,
             keyId = encryptedJourney.key_id,

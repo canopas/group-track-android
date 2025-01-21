@@ -12,20 +12,20 @@ class LocationCache @Inject constructor() {
     private val lastFiveLocationsCache = LruCache<String, List<Location>>(25)
     private val lastJourneyUpdatedTime = LruCache<String, Long>(25)
 
-    fun putLastJourney(journey: LocationJourney, userId: String) {
-        lastJourneyCache.put(userId, journey)
+    fun putLastJourney(journey: LocationJourney, userId: String, spaceId: String) {
+        lastJourneyCache.put("${userId}_${spaceId}", journey)
     }
 
-    fun getLastJourney(userId: String): LocationJourney? {
-        return lastJourneyCache.get(userId) ?: null
+    fun getLastJourney(userId: String, spaceId: String): LocationJourney? {
+        return lastJourneyCache.get("${userId}_${spaceId}") ?: null
     }
 
-    fun putLastFiveLocations(locations: List<Location>, userId: String) {
-        lastFiveLocationsCache.put(userId, locations)
+    fun putLastFiveLocations(locations: List<Location>, userId: String, spaceId: String) {
+        lastFiveLocationsCache.put("${userId}_${spaceId}", locations)
     }
 
-    fun getLastFiveLocations(userId: String): List<Location>? {
-        return lastFiveLocationsCache.get(userId) ?: null
+    fun getLastFiveLocations(userId: String, spaceId: String): List<Location>? {
+        return lastFiveLocationsCache.get("${userId}_${spaceId}") ?: null
     }
 
     fun putLastJourneyUpdatedTime(time: Long, userId: String) {

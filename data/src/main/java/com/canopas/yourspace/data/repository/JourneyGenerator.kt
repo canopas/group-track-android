@@ -108,8 +108,6 @@ fun getJourney(
             // 1. Update last STEADY journey with new "from" lat/lng
             Timber.tag("xxx").e("lastKnownJourney = isSteady && Distance > MIN_DISTANCE")
             val updatedJourney = lastKnownJourney.copy(
-                from_latitude = newLocation.latitude,
-                from_longitude = newLocation.longitude,
                 updated_at = System.currentTimeMillis()
             )
 
