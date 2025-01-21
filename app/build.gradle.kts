@@ -232,7 +232,8 @@ dependencies {
     implementation("org.signal:libsignal-android:0.65.0")
 
     // RevenueCat
-    implementation("com.revenuecat.purchases:purchases:7.0.0")
+    implementation("com.revenuecat.purchases:purchases:8.11.0")
+    implementation("com.revenuecat.purchases:purchases-ui:8.11.0")
 
     implementation(project(":data"))
 }

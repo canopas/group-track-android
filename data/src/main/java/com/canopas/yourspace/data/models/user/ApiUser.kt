@@ -1,7 +1,6 @@
 package com.canopas.yourspace.data.models.user
 
 import androidx.annotation.Keep
-import com.google.firebase.firestore.Blob
 import com.google.firebase.firestore.Exclude
 import com.squareup.moshi.JsonClass
 import java.util.UUID
@@ -27,12 +26,12 @@ data class ApiUser(
     val fcm_token: String? = "",
     val state: Int = USER_STATE_UNKNOWN,
     val battery_pct: Float? = 0f,
-    val user_type: Int = FREE_USER,
     val created_at: Long? = System.currentTimeMillis(),
     val updated_at: Long? = System.currentTimeMillis(),
-    val identity_key_public: Blob? = Blob.fromBytes(ByteArray(0)),
-    val identity_key_private: Blob? = Blob.fromBytes(ByteArray(0)),
-    val identity_key_salt: Blob? = Blob.fromBytes(ByteArray(0)) // Salt for key derivation
+    val user_type: Int = PREMIUM_USER,
+    val identity_key_public: String? = null,
+    val identity_key_private: String? = null,
+    val identity_key_salt: String? = null // Salt for key derivation
 ) {
     @get:Exclude
     val fullName: String get() = "$first_name $last_name"
@@ -45,6 +44,12 @@ data class ApiUser(
 
     @get:Exclude
     val locationPermissionDenied: Boolean get() = state == USER_STATE_LOCATION_PERMISSION_DENIED
+
+    @get:Exclude
+    val isFreeUser: Boolean get() = user_type == FREE_USER
+
+    @get:Exclude
+    val isPremiumUser: Boolean get() = user_type == PREMIUM_USER
 }
 
 @Keep

@@ -3,7 +3,6 @@ package com.canopas.yourspace.data.models.location
 import android.location.Location
 import androidx.annotation.Keep
 import com.google.android.gms.maps.model.LatLng
-import com.google.firebase.firestore.Blob
 import com.squareup.moshi.JsonClass
 import java.util.UUID
 
@@ -30,10 +29,10 @@ data class LocationJourney(
 data class EncryptedLocationJourney(
     val id: String = UUID.randomUUID().toString(),
     val user_id: String = "",
-    val from_latitude: Blob = Blob.fromBytes(ByteArray(0)), // Encrypted latitude - from
-    val from_longitude: Blob = Blob.fromBytes(ByteArray(0)), // Encrypted longitude - from
-    val to_latitude: Blob? = null, // Encrypted latitude - to
-    val to_longitude: Blob? = null, // Encrypted longitude - to
+    val from_latitude: String = "", // Encrypted latitude - from
+    val from_longitude: String = "", // Encrypted longitude - from
+    val to_latitude: String? = null, // Encrypted latitude - to
+    val to_longitude: String? = null, // Encrypted longitude - to
     val route_distance: Double? = null,
     val route_duration: Long? = null,
     val routes: List<EncryptedJourneyRoute> = emptyList(), // Encrypted journey routes
@@ -49,8 +48,8 @@ data class JourneyRoute(val latitude: Double = 0.0, val longitude: Double = 0.0)
 @Keep
 @JsonClass(generateAdapter = true)
 data class EncryptedJourneyRoute(
-    val latitude: Blob = Blob.fromBytes(ByteArray(0)), // Encrypted latitude
-    val longitude: Blob = Blob.fromBytes(ByteArray(0)) // Encrypted longitude
+    val latitude: String = "", // Encrypted latitude
+    val longitude: String = "" // Encrypted longitude
 )
 
 /**

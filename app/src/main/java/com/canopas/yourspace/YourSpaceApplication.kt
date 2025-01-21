@@ -56,12 +56,14 @@ class YourSpaceApplication :
 
         super<Application>.onCreate()
         Timber.plant(Timber.DebugTree())
-        FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled = !BuildConfig.DEBUG
+        FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled = false
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
         authService.addListener(this)
         setNotificationChannel()
 
-        Purchases.logLevel = LogLevel.DEBUG
+        if (BuildConfig.DEBUG) {
+            Purchases.logLevel = LogLevel.DEBUG
+        }
         Purchases.configure(PurchasesConfiguration.Builder(this, BuildConfig.REVENUECAT_API_KEY).build())
 
         registerBatteryBroadcastReceiver()

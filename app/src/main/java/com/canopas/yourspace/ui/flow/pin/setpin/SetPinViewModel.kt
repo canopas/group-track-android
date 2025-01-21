@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -86,6 +87,7 @@ class SetPinViewModel @Inject constructor(
             _state.value = _state.value.copy(showLoader = false)
         } catch (e: Exception) {
             _state.value = _state.value.copy(error = e, showLoader = false)
+            Timber.e(e, "Failed to generate and save user keys")
         }
     }
 }

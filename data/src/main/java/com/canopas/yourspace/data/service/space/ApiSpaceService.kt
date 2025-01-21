@@ -11,6 +11,7 @@ import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.models.user.FREE_USER
 import com.canopas.yourspace.data.models.user.PREMIUM_USER
 import com.canopas.yourspace.data.service.auth.AuthService
+import com.canopas.yourspace.data.service.location.toBytes
 import com.canopas.yourspace.data.service.place.ApiPlaceService
 import com.canopas.yourspace.data.service.user.ApiUserService
 import com.canopas.yourspace.data.storage.bufferedkeystore.BufferedSenderKeyStore
@@ -29,7 +30,6 @@ import timber.log.Timber
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.jvm.Throws
 
 @Singleton
 class ApiSpaceService @Inject constructor(
@@ -78,7 +78,6 @@ class ApiSpaceService @Inject constructor(
         return spaceMemberRef(spaceId).get().await().toObjects(ApiSpaceMember::class.java)
     }
 
-    @Throws(IllegalStateException::class)
     suspend fun joinSpace(spaceId: String, role: Int = SPACE_MEMBER_ROLE_MEMBER, enableEncryption: Boolean? = null) {
         val user = authService.currentUser ?: throw IllegalStateException("No authenticated user")
         val isEncryptionEnabled = enableEncryption ?: kotlin.run {
@@ -88,7 +87,7 @@ class ApiSpaceService @Inject constructor(
         when {
             isEncryptionEnabled && user.user_type == FREE_USER -> {
                 // Redirect to subscription page
-                throw IllegalStateException("User must be a premium user to join an encrypted space")
+                throw SubscriptionRequiredException("User must be a premium user to join an encrypted space")
             }
             !isEncryptionEnabled && user.user_type == PREMIUM_USER -> {
                 // Notify/Alert the user that they are joining an unencrypted space
@@ -261,3 +260,8 @@ class ApiSpaceService @Inject constructor(
         }
     }
 }
+
+/**
+ * Exception thrown when a user tries to perform an action that requires a subscription.
+ */
+class SubscriptionRequiredException(message: String) : Exception(message)

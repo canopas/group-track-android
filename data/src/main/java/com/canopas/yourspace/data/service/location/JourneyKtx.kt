@@ -4,24 +4,32 @@ import com.canopas.yourspace.data.models.location.EncryptedJourneyRoute
 import com.canopas.yourspace.data.models.location.EncryptedLocationJourney
 import com.canopas.yourspace.data.models.location.JourneyRoute
 import com.canopas.yourspace.data.models.location.LocationJourney
-import com.google.firebase.firestore.Blob
 import org.signal.libsignal.protocol.groups.GroupCipher
 import timber.log.Timber
+import java.util.Base64
 import java.util.UUID
+
+fun String.toBytes(): ByteArray {
+    return Base64.getDecoder().decode(this)
+}
+
+fun ByteArray.encodeToString(): String {
+    return Base64.getEncoder().encodeToString(this)
+}
 
 /**
  * Convert an [EncryptedLocationJourney] to a [LocationJourney] using the provided [GroupCipher]
  */
 fun EncryptedLocationJourney.toDecryptedLocationJourney(groupCipher: GroupCipher): LocationJourney? {
-    val decryptedFromLat = groupCipher.decrypt(from_latitude) ?: return null
-    val decryptedFromLong = groupCipher.decrypt(from_longitude) ?: return null
-    val decryptedToLat = to_latitude?.let { groupCipher.decrypt(it) }
-    val decryptedToLong = to_longitude?.let { groupCipher.decrypt(it) }
+    val decryptedFromLat = groupCipher.decryptPoint(from_latitude.toBytes()) ?: return null
+    val decryptedFromLong = groupCipher.decryptPoint(from_longitude.toBytes()) ?: return null
+    val decryptedToLat = to_latitude?.let { groupCipher.decryptPoint(it.toBytes()) }
+    val decryptedToLong = to_longitude?.let { groupCipher.decryptPoint(it.toBytes()) }
 
     val decryptedRoutes = routes.map {
         JourneyRoute(
-            latitude = groupCipher.decrypt(it.latitude) ?: return null,
-            longitude = groupCipher.decrypt(it.longitude) ?: return null
+            latitude = groupCipher.decryptPoint(it.latitude.toBytes()) ?: return null,
+            longitude = groupCipher.decryptPoint(it.longitude.toBytes()) ?: return null
         )
     }
 
@@ -49,15 +57,15 @@ fun LocationJourney.toEncryptedLocationJourney(
     groupCipher: GroupCipher,
     distributionId: UUID
 ): EncryptedLocationJourney? {
-    val encryptedFromLat = groupCipher.encrypt(distributionId, from_latitude) ?: return null
-    val encryptedFromLong = groupCipher.encrypt(distributionId, from_longitude) ?: return null
-    val encryptedToLat = to_latitude?.let { groupCipher.encrypt(distributionId, it) }
-    val encryptedToLong = to_longitude?.let { groupCipher.encrypt(distributionId, it) }
+    val encryptedFromLat = groupCipher.encryptPoint(distributionId, from_latitude) ?: return null
+    val encryptedFromLong = groupCipher.encryptPoint(distributionId, from_longitude) ?: return null
+    val encryptedToLat = to_latitude?.let { groupCipher.encryptPoint(distributionId, it) }
+    val encryptedToLong = to_longitude?.let { groupCipher.encryptPoint(distributionId, it) }
 
     val encryptedRoutes = routes.map {
         EncryptedJourneyRoute(
-            latitude = groupCipher.encrypt(distributionId, it.latitude) ?: return null,
-            longitude = groupCipher.encrypt(distributionId, it.longitude) ?: return null
+            latitude = groupCipher.encryptPoint(distributionId, it.latitude) ?: return null,
+            longitude = groupCipher.encryptPoint(distributionId, it.longitude) ?: return null
         )
     }
 
@@ -78,18 +86,18 @@ fun LocationJourney.toEncryptedLocationJourney(
     )
 }
 
-fun GroupCipher.decrypt(data: Blob): Double? {
+fun GroupCipher.decryptPoint(data: ByteArray): Double? {
     return try {
-        decrypt(data.toBytes()).toString(Charsets.UTF_8).toDouble()
+        decrypt(data).encodeToString().toDouble()
     } catch (e: Exception) {
         Timber.e(e, "Failed to decrypt double")
         null
     }
 }
 
-fun GroupCipher.encrypt(distributionId: UUID, data: Double): Blob? {
+fun GroupCipher.encryptPoint(distributionId: UUID, data: Double): String? {
     return try {
-        Blob.fromBytes(encrypt(distributionId, data.toString().toByteArray(Charsets.UTF_8)).serialize())
+        (encrypt(distributionId, data.toString().toBytes()).serialize()).encodeToString()
     } catch (e: Exception) {
         Timber.e(e, "Failed to encrypt double")
         null

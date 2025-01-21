@@ -11,7 +11,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        minSdk = 23
+        minSdk = 24
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         javaCompileOptions {
@@ -91,6 +91,10 @@ dependencies {
 
     // Place
     implementation("com.google.android.libraries.places:places:4.1.0")
+
+    // RevenueCat
+    implementation("com.revenuecat.purchases:purchases:8.11.0")
+    implementation("com.revenuecat.purchases:purchases-ui:8.11.0")
 
     // Signal Protocol
     implementation("org.signal:libsignal-client:0.65.0")
