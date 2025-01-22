@@ -3,7 +3,6 @@ package com.canopas.yourspace.data.service.messages
 import com.canopas.yourspace.data.models.messages.ApiThread
 import com.canopas.yourspace.data.models.messages.ApiThreadMessage
 import com.canopas.yourspace.data.models.messages.ThreadInfo
-import com.canopas.yourspace.data.service.user.ApiUserService
 import com.canopas.yourspace.data.utils.Config
 import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_SPACE_THREADS
 import com.canopas.yourspace.data.utils.snapshotFlow
