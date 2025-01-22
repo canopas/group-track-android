@@ -39,25 +39,27 @@ class ApiSpaceService @Inject constructor(
 ) {
     private val spaceRef = db.collection(FIRESTORE_COLLECTION_SPACES)
     private fun spaceMemberRef(spaceId: String) =
-        spaceRef.document(spaceId.takeIf { it.isNotBlank() } ?: "null")
-            .collection(FIRESTORE_COLLECTION_SPACE_MEMBERS)
+        spaceRef.document(spaceId).collection(FIRESTORE_COLLECTION_SPACE_MEMBERS)
 
     private fun spaceGroupKeysDoc(spaceId: String) =
-        spaceRef.document(spaceId.takeIf { it.isNotBlank() } ?: "null")
-            .collection(FIRESTORE_COLLECTION_SPACE_GROUP_KEYS)
+        spaceRef.document(spaceId).collection(FIRESTORE_COLLECTION_SPACE_GROUP_KEYS)
             .document(FIRESTORE_COLLECTION_SPACE_GROUP_KEYS)
 
     suspend fun createSpace(spaceName: String): String {
         val spaceId = UUID.randomUUID().toString()
         val docRef = spaceRef.document(spaceId)
-        val userId = authService.currentUser?.id ?: ""
+        val userId = authService.currentUser?.id
 
-        val space = ApiSpace(
-            id = spaceId,
-            name = spaceName,
-            admin_id = userId
-        )
-        docRef.set(space).await()
+        val space = userId?.let {
+            ApiSpace(
+                id = spaceId,
+                name = spaceName,
+                admin_id = it
+            )
+        }
+        if (space != null) {
+            docRef.set(space).await()
+        }
 
         // Initialize the single group_keys doc to a default structure:
         val emptyGroupKeys = GroupKeysDoc()

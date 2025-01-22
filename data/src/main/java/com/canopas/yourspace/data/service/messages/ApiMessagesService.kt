@@ -22,18 +22,13 @@ import java.util.Date
 import javax.inject.Inject
 
 class ApiMessagesService @Inject constructor(
-    private val db: FirebaseFirestore,
-    private val userService: ApiUserService
+    private val db: FirebaseFirestore
 ) {
 
     private val threadRef = db.collection(FIRESTORE_COLLECTION_SPACE_THREADS)
 
     private fun threadMessagesRef(threadId: String) =
-        threadRef.document(
-            threadId.takeIf {
-                it.isNotBlank()
-            } ?: "null"
-        ).collection(Config.FIRESTORE_COLLECTION_THREAD_MESSAGES)
+        threadRef.document(threadId).collection(Config.FIRESTORE_COLLECTION_THREAD_MESSAGES)
 
     suspend fun createThread(spaceId: String, adminId: String): String {
         val docRef = threadRef.document()
