@@ -38,16 +38,13 @@ class ApiJourneyService @Inject constructor(
         get() = userPreferences.currentSpace ?: ""
 
     private fun spaceMemberRef(spaceId: String) =
-        spaceRef.document(spaceId.takeIf { it.isNotBlank() } ?: "null")
-            .collection(FIRESTORE_COLLECTION_SPACE_MEMBERS)
+        spaceRef.document(spaceId).collection(FIRESTORE_COLLECTION_SPACE_MEMBERS)
 
     private fun spaceMemberJourneyRef(spaceId: String, userId: String) =
-        spaceMemberRef(spaceId).document(userId.takeIf { it.isNotBlank() } ?: "null")
-            .collection(Config.FIRESTORE_COLLECTION_USER_JOURNEYS)
+        spaceMemberRef(spaceId).document(userId).collection(Config.FIRESTORE_COLLECTION_USER_JOURNEYS)
 
     private fun spaceGroupKeysRef(spaceId: String) =
-        spaceRef.document(spaceId.takeIf { it.isNotBlank() } ?: "null")
-            .collection(FIRESTORE_COLLECTION_SPACE_GROUP_KEYS)
+        spaceRef.document(spaceId).collection(FIRESTORE_COLLECTION_SPACE_GROUP_KEYS)
             .document(FIRESTORE_COLLECTION_SPACE_GROUP_KEYS)
 
     private suspend fun getGroupKeyDoc(spaceId: String): GroupKeysDoc? {

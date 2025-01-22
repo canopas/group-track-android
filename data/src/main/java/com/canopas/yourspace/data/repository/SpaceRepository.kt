@@ -114,8 +114,8 @@ class SpaceRepository @Inject constructor(
         val spaceId = currentSpaceId
 
         if (spaceId.isEmpty()) {
-            val userId = authService.currentUser?.id ?: ""
-            return getUserSpaces(userId).firstOrNull()?.sortedBy { it.created_at }?.firstOrNull()
+            val userId = authService.currentUser?.id
+            return userId?.let { getUserSpaces(it).firstOrNull()?.sortedBy { it.created_at }?.firstOrNull() }
         }
         return getSpace(spaceId)
     }
@@ -184,8 +184,8 @@ class SpaceRepository @Inject constructor(
     }
 
     suspend fun deleteUserSpaces() {
-        val userId = authService.currentUser?.id ?: ""
-        val allSpace = getUserSpaces(userId).firstOrNull() ?: emptyList()
+        val userId = authService.currentUser?.id
+        val allSpace = userId?.let { getUserSpaces(it).firstOrNull() } ?: emptyList()
         val ownSpace = allSpace.filter { it.admin_id == userId }
         val joinedSpace = allSpace.filter { it.admin_id != userId }
 
@@ -193,39 +193,44 @@ class SpaceRepository @Inject constructor(
             deleteSpace(space.id)
         }
 
-        joinedSpace.forEach { space ->
-            spaceService.removeUserFromSpace(space.id, userId)
+        if (userId != null) {
+            joinedSpace.forEach { space ->
+                spaceService.removeUserFromSpace(space.id, userId)
+            }
+        }
+    }
+
+    private suspend fun updateUserSpaceId(userId: String, spaceId: String) {
+        val user = userService.getUser(userId) ?: return
+
+        val updatedSpaceIds = user.space_ids?.toMutableList()?.apply {
+            remove(spaceId)
+        } ?: return
+
+        user.copy(space_ids = updatedSpaceIds).let {
+            userService.updateUser(it)
         }
     }
 
     suspend fun deleteSpace(spaceId: String) {
         invitationService.deleteInvitations(spaceId)
         spaceService.deleteSpace(spaceId)
-        val userId = authService.currentUser?.id ?: ""
+        val userId = authService.currentUser?.id
         currentSpaceId =
-            getUserSpaces(userId).firstOrNull()?.sortedBy { it.created_at }?.firstOrNull()?.id
+            userId?.let { getUserSpaces(it).firstOrNull()?.sortedBy { it.created_at }?.firstOrNull()?.id }
                 ?: ""
 
-        val user = userService.getUser(userId)
-        val updatedSpaceIds = user?.space_ids?.toMutableList()?.apply {
-            remove(spaceId)
-        } ?: return
-
-        user.copy(space_ids = updatedSpaceIds).let {
-            userService.updateUser(it)
+        if (userId != null) {
+            updateUserSpaceId(userId, spaceId)
         }
     }
 
     suspend fun leaveSpace(spaceId: String) {
-        val userId = authService.currentUser?.id ?: ""
-        spaceService.removeUserFromSpace(spaceId, userId)
-        val user = userService.getUser(userId)
-        val updatedSpaceIds = user?.space_ids?.toMutableList()?.apply {
-            remove(spaceId)
-        } ?: return
+        val userId = authService.currentUser?.id
 
-        user.copy(space_ids = updatedSpaceIds).let {
-            userService.updateUser(it)
+        userId?.let { uid ->
+            spaceService.removeUserFromSpace(spaceId, uid)
+            updateUserSpaceId(uid, spaceId)
         }
     }
 
