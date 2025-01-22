@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.auth.FirebaseAuthService
+import com.canopas.yourspace.data.service.location.toBytes
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.utils.AppDispatcher
 import com.canopas.yourspace.domain.utils.ConnectivityObserver
