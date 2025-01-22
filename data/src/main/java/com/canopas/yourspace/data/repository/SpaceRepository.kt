@@ -228,11 +228,10 @@ class SpaceRepository @Inject constructor(
 
     suspend fun leaveSpace(spaceId: String) {
         val userId = authService.currentUser?.id
-        if (userId != null) {
-            spaceService.removeUserFromSpace(spaceId, userId)
-        }
-        if (userId != null) {
-            updateUserSpaceId(userId, spaceId)
+
+        userId?.let { uid ->
+            spaceService.removeUserFromSpace(spaceId, uid)
+            updateUserSpaceId(uid, spaceId)
         }
     }
 
