@@ -1,7 +1,6 @@
 package com.canopas.yourspace.data.models.location
 
 import androidx.annotation.Keep
-import com.google.firebase.firestore.Blob
 import com.squareup.moshi.JsonClass
 import java.util.UUID
 
@@ -20,8 +19,8 @@ data class ApiLocation(
 data class EncryptedApiLocation(
     val id: String = UUID.randomUUID().toString(),
     val user_id: String = "",
-    val latitude: Blob = Blob.fromBytes(ByteArray(0)), // Base64 encoded encrypted latitude
-    val longitude: Blob = Blob.fromBytes(ByteArray(0)), // Base64 encoded encrypted longitude
+    val latitude: String = "", // Base64 encoded encrypted latitude
+    val longitude: String = "", // Base64 encoded encrypted longitude
     val created_at: Long = System.currentTimeMillis()
 )
 

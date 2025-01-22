@@ -4,34 +4,50 @@ import com.canopas.yourspace.data.models.location.EncryptedJourneyRoute
 import com.canopas.yourspace.data.models.location.EncryptedLocationJourney
 import com.canopas.yourspace.data.models.location.JourneyRoute
 import com.canopas.yourspace.data.models.location.LocationJourney
-import com.google.firebase.firestore.Blob
 import org.signal.libsignal.protocol.groups.GroupCipher
 import timber.log.Timber
+import java.util.Base64
 import java.util.UUID
 
-/**
- * Convert an [EncryptedLocationJourney] to a [LocationJourney] using the provided [GroupCipher]
- */
-fun EncryptedLocationJourney.toDecryptedLocationJourney(groupCipher: GroupCipher): LocationJourney? {
-    val decryptedFromLat = groupCipher.decrypt(from_latitude) ?: return null
-    val decryptedFromLong = groupCipher.decrypt(from_longitude) ?: return null
-    val decryptedToLat = to_latitude?.let { groupCipher.decrypt(it) }
-    val decryptedToLong = to_longitude?.let { groupCipher.decrypt(it) }
+fun String.toBytes(): ByteArray = try {
+    Base64.getDecoder().decode(this)
+} catch (e: Exception) {
+    Timber.e(e, "Failed to decode base64 string")
+    ByteArray(0)
+}
 
-    val decryptedRoutes = routes.map {
-        JourneyRoute(
-            latitude = groupCipher.decrypt(it.latitude) ?: return null,
-            longitude = groupCipher.decrypt(it.longitude) ?: return null
-        )
+fun ByteArray.encodeToString(): String = Base64.getEncoder().encodeToString(this)
+
+/**
+ * Converts [EncryptedLocationJourney] to [LocationJourney] using [groupCipher].
+ * Returns null if *any* required decryption step fails.
+ */
+fun EncryptedLocationJourney.toDecryptedLocationJourney(
+    groupCipher: GroupCipher
+): LocationJourney? {
+    // Decrypt required points
+    val fromLat = groupCipher.decryptPoint(from_latitude.toBytes()) ?: return null
+    val fromLong = groupCipher.decryptPoint(from_longitude.toBytes()) ?: return null
+
+    // Decrypt optional points
+    val toLat = to_latitude?.toBytes()?.let { groupCipher.decryptPoint(it) }
+    val toLong = to_longitude?.toBytes()?.let { groupCipher.decryptPoint(it) }
+
+    // Decrypt route list; short-circuit if any route fails
+    val decryptedRoutes = routes.map { route ->
+        val lat = groupCipher.decryptPoint(route.latitude.toBytes()) ?: return null
+        val long = groupCipher.decryptPoint(route.longitude.toBytes()) ?: return null
+        JourneyRoute(lat, long)
     }
 
+    // Construct the decrypted journey
     return LocationJourney(
         id = id,
         user_id = user_id,
-        from_latitude = decryptedFromLat,
-        from_longitude = decryptedFromLong,
-        to_latitude = decryptedToLat,
-        to_longitude = decryptedToLong,
+        from_latitude = fromLat,
+        from_longitude = fromLong,
+        to_latitude = toLat,
+        to_longitude = toLong,
         route_distance = route_distance,
         route_duration = route_duration,
         routes = decryptedRoutes,
@@ -43,31 +59,36 @@ fun EncryptedLocationJourney.toDecryptedLocationJourney(groupCipher: GroupCipher
 }
 
 /**
- * Convert a [LocationJourney] to an [EncryptedLocationJourney] using the provided [GroupCipher]
+ * Converts [LocationJourney] to [EncryptedLocationJourney] using [groupCipher].
+ * Returns null if *any* required encryption step fails.
  */
 fun LocationJourney.toEncryptedLocationJourney(
     groupCipher: GroupCipher,
     distributionId: UUID
 ): EncryptedLocationJourney? {
-    val encryptedFromLat = groupCipher.encrypt(distributionId, from_latitude) ?: return null
-    val encryptedFromLong = groupCipher.encrypt(distributionId, from_longitude) ?: return null
-    val encryptedToLat = to_latitude?.let { groupCipher.encrypt(distributionId, it) }
-    val encryptedToLong = to_longitude?.let { groupCipher.encrypt(distributionId, it) }
+    // Encrypt required points
+    val fromLat = groupCipher.encryptPoint(distributionId, from_latitude) ?: return null
+    val fromLong = groupCipher.encryptPoint(distributionId, from_longitude) ?: return null
 
-    val encryptedRoutes = routes.map {
-        EncryptedJourneyRoute(
-            latitude = groupCipher.encrypt(distributionId, it.latitude) ?: return null,
-            longitude = groupCipher.encrypt(distributionId, it.longitude) ?: return null
-        )
+    // Encrypt optional points
+    val toLat = to_latitude?.let { groupCipher.encryptPoint(distributionId, it) }
+    val toLong = to_longitude?.let { groupCipher.encryptPoint(distributionId, it) }
+
+    // Encrypt route list; short-circuit if any route fails
+    val encryptedRoutes = routes.map { route ->
+        val lat = groupCipher.encryptPoint(distributionId, route.latitude) ?: return null
+        val long = groupCipher.encryptPoint(distributionId, route.longitude) ?: return null
+        EncryptedJourneyRoute(lat, long)
     }
 
+    // Construct the encrypted journey
     return EncryptedLocationJourney(
         id = id,
         user_id = user_id,
-        from_latitude = encryptedFromLat,
-        from_longitude = encryptedFromLong,
-        to_latitude = encryptedToLat,
-        to_longitude = encryptedToLong,
+        from_latitude = fromLat,
+        from_longitude = fromLong,
+        to_latitude = toLat,
+        to_longitude = toLong,
         route_distance = route_distance,
         route_duration = route_duration,
         routes = encryptedRoutes,
@@ -78,18 +99,20 @@ fun LocationJourney.toEncryptedLocationJourney(
     )
 }
 
-fun GroupCipher.decrypt(data: Blob): Double? {
+fun GroupCipher.decryptPoint(data: ByteArray): Double? {
     return try {
-        decrypt(data.toBytes()).toString(Charsets.UTF_8).toDouble()
+        decrypt(data).toString(Charsets.UTF_8).toDoubleOrNull()
     } catch (e: Exception) {
         Timber.e(e, "Failed to decrypt double")
         null
     }
 }
 
-fun GroupCipher.encrypt(distributionId: UUID, data: Double): Blob? {
+fun GroupCipher.encryptPoint(distributionId: UUID, data: Double): String? {
     return try {
-        Blob.fromBytes(encrypt(distributionId, data.toString().toByteArray(Charsets.UTF_8)).serialize())
+        encrypt(distributionId, data.toString().toByteArray(Charsets.UTF_8))
+            .serialize()
+            .encodeToString()
     } catch (e: Exception) {
         Timber.e(e, "Failed to encrypt double")
         null

@@ -8,6 +8,7 @@ import com.canopas.yourspace.data.models.space.MemberKeyData
 import com.canopas.yourspace.data.models.space.SPACE_MEMBER_ROLE_ADMIN
 import com.canopas.yourspace.data.models.space.SPACE_MEMBER_ROLE_MEMBER
 import com.canopas.yourspace.data.service.auth.AuthService
+import com.canopas.yourspace.data.service.location.toBytes
 import com.canopas.yourspace.data.service.place.ApiPlaceService
 import com.canopas.yourspace.data.service.user.ApiUserService
 import com.canopas.yourspace.data.storage.bufferedkeystore.BufferedSenderKeyStore

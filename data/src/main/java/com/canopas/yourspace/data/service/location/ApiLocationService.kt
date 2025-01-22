@@ -16,7 +16,6 @@ import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_SPACE_MEMBER
 import com.canopas.yourspace.data.utils.EphemeralECDHUtils
 import com.canopas.yourspace.data.utils.PrivateKeyUtils
 import com.canopas.yourspace.data.utils.snapshotFlow
-import com.google.firebase.firestore.Blob
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.flow.Flow
@@ -127,8 +126,8 @@ class ApiLocationService @Inject constructor(
 
             val location = EncryptedApiLocation(
                 user_id = userId,
-                latitude = Blob.fromBytes(encryptedLatitude.serialize()),
-                longitude = Blob.fromBytes(encryptedLongitude.serialize()),
+                latitude = encryptedLatitude.serialize().encodeToString(),
+                longitude = encryptedLongitude.serialize().encodeToString(),
                 created_at = recordedAt
             )
 
