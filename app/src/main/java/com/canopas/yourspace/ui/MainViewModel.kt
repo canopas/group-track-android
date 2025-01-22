@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.canopas.yourspace.data.models.user.ApiUserSession
 import com.canopas.yourspace.data.repository.SpaceRepository
 import com.canopas.yourspace.data.service.auth.AuthService
+import com.canopas.yourspace.data.service.location.toBytes
 import com.canopas.yourspace.data.service.user.ApiUserService
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.utils.AppDispatcher

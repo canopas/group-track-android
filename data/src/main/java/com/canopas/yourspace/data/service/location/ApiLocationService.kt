@@ -16,7 +16,6 @@ import com.canopas.yourspace.data.utils.Config.FIRESTORE_COLLECTION_SPACE_MEMBER
 import com.canopas.yourspace.data.utils.EphemeralECDHUtils
 import com.canopas.yourspace.data.utils.PrivateKeyUtils
 import com.canopas.yourspace.data.utils.snapshotFlow
-import com.google.firebase.firestore.Blob
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.flow.Flow
@@ -52,16 +51,14 @@ class ApiLocationService @Inject constructor(
     private val spaceRef by lazy { db.collection(FIRESTORE_COLLECTION_SPACES) }
 
     private fun spaceMemberRef(spaceId: String) =
-        spaceRef.document(spaceId.takeIf { it.isNotBlank() } ?: "null")
-            .collection(FIRESTORE_COLLECTION_SPACE_MEMBERS)
+        spaceRef.document(spaceId).collection(FIRESTORE_COLLECTION_SPACE_MEMBERS)
 
     private fun spaceMemberLocationRef(spaceId: String, userId: String) =
-        spaceMemberRef(spaceId.takeIf { it.isNotBlank() } ?: "null").document(userId)
+        spaceMemberRef(spaceId).document(userId)
             .collection(Config.FIRESTORE_COLLECTION_USER_LOCATIONS)
 
     private fun spaceGroupKeysRef(spaceId: String) =
-        spaceRef.document(spaceId.takeIf { it.isNotBlank() } ?: "null")
-            .collection(FIRESTORE_COLLECTION_SPACE_GROUP_KEYS)
+        spaceRef.document(spaceId).collection(FIRESTORE_COLLECTION_SPACE_GROUP_KEYS)
             .document(FIRESTORE_COLLECTION_SPACE_GROUP_KEYS)
 
     suspend fun saveLastKnownLocation(userId: String) {
@@ -129,8 +126,8 @@ class ApiLocationService @Inject constructor(
 
             val location = EncryptedApiLocation(
                 user_id = userId,
-                latitude = Blob.fromBytes(encryptedLatitude.serialize()),
-                longitude = Blob.fromBytes(encryptedLongitude.serialize()),
+                latitude = encryptedLatitude.serialize().encodeToString(),
+                longitude = encryptedLongitude.serialize().encodeToString(),
                 created_at = recordedAt
             )
 

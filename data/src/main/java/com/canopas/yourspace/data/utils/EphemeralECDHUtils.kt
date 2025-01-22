@@ -1,7 +1,8 @@
 package com.canopas.yourspace.data.utils
 
 import com.canopas.yourspace.data.models.space.EncryptedDistribution
-import com.google.firebase.firestore.Blob
+import com.canopas.yourspace.data.service.location.encodeToString
+import com.canopas.yourspace.data.service.location.toBytes
 import org.signal.libsignal.protocol.InvalidKeyException
 import org.signal.libsignal.protocol.ecc.Curve
 import org.signal.libsignal.protocol.ecc.ECKeyPair
@@ -50,9 +51,9 @@ object EphemeralECDHUtils {
 
         return EncryptedDistribution(
             recipient_id = receiverId,
-            ephemeral_pub = Blob.fromBytes(ephemeralKeyPair.publicKey.serialize()),
-            iv = Blob.fromBytes(syntheticIv),
-            ciphertext = Blob.fromBytes(cipherText)
+            ephemeral_pub = ephemeralKeyPair.publicKey.serialize().encodeToString(),
+            iv = syntheticIv.encodeToString(),
+            ciphertext = cipherText.encodeToString()
         )
     }
 

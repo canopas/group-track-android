@@ -118,12 +118,7 @@ service cloud.firestore {
       allow read: if isAuthorized() && isSpaceMember(spaceId);
       allow delete: if isAuthorized() && request.auth.uid == resource.data.admin_id;
       allow update: if isAuthorized() && request.auth.uid == resource.data.admin_id;
-      allow create: if isAuthorized() &&
-        request.resource.data.keys().hasAll(["id", "admin_id", "name", "created_at"]) &&
-        request.resource.data.id is string &&
-        request.resource.data.admin_id is string &&
-        request.resource.data.name is string &&
-        request.resource.data.created_at is int;
+      allow create: if isAuthorized();
     }
 
     match /{path=**}/space_places/{place} {
@@ -145,7 +140,7 @@ service cloud.firestore {
       allow update: if isAuthorized() &&
         (request.auth.uid == resource.data.created_by ||
           (request.resource.data.diff(resource.data).affectedKeys().hasOnly(["space_member_ids"]) &&
-            request.resource.data.space_member_ids.hasAny([request.auth.uid])));
+            resource.data.space_member_ids.hasAny([request.auth.uid]) || request.resource.data.space_member_ids.hasAny([request.auth.uid])));
       allow create: if isAuthorized() &&
         (isSpaceAdmin(request.resource.data.space_id) || request.auth.uid == request.resource.data.created_by) &&
         request.resource.data.keys().hasAll(["id", "space_id", "created_by", "latitude", "longitude", "radius", "name", "created_at"]) &&
@@ -218,12 +213,7 @@ service cloud.firestore {
         allow delete: if isAuthorized() && request.auth.uid == resource.data.user_id;
         allow create: if isAuthorized() &&
           request.auth.uid == request.resource.data.user_id &&
-          request.resource.data.keys().hasAll(["id", "user_id", "latitude", "longitude", "created_at"]) &&
-          request.resource.data.id is string &&
-          request.resource.data.user_id is string &&
-          request.resource.data.latitude is bytes &&
-          request.resource.data.longitude is bytes &&
-          request.resource.data.created_at is int;
+          request.resource.data.keys().hasAll(["id", "user_id", "latitude", "longitude", "created_at"]);
       }
 
       match /user_journeys/{docId} {
@@ -236,8 +226,8 @@ service cloud.firestore {
           request.resource.data.keys().hasAll(["id", "user_id", "from_latitude", "from_longitude", "created_at"]) &&
           request.resource.data.id is string &&
           request.resource.data.user_id is string &&
-          request.resource.data.from_latitude is bytes &&
-          request.resource.data.from_longitude is bytes &&
+          request.resource.data.from_latitude is string &&
+          request.resource.data.from_longitude is string &&
           request.resource.data.created_at is int;
       }
 
@@ -252,7 +242,7 @@ service cloud.firestore {
           request.resource.data.address is string &&
           request.resource.data.deviceId is int &&
           request.resource.data.distributionId is string &&
-          request.resource.data.record is bytes;
+          request.resource.data.record is string;
       }
     }
 

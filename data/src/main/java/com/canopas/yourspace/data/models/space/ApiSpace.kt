@@ -1,7 +1,7 @@
 package com.canopas.yourspace.data.models.space
 
 import androidx.annotation.Keep
-import com.google.firebase.firestore.Blob
+import com.canopas.yourspace.data.service.location.toBytes
 import com.google.firebase.firestore.Exclude
 import java.util.UUID
 import java.util.concurrent.TimeUnit
@@ -24,7 +24,7 @@ data class ApiSpaceMember(
     val user_id: String = "",
     val role: Int = SPACE_MEMBER_ROLE_MEMBER,
     val location_enabled: Boolean = true,
-    val identity_key_public: Blob? = Blob.fromBytes(ByteArray(0)),
+    val identity_key_public: String? = null,
     val created_at: Long? = System.currentTimeMillis()
 )
 
@@ -76,9 +76,9 @@ data class MemberKeyData(
 data class EncryptedDistribution(
     val id: String = UUID.randomUUID().toString(),
     val recipient_id: String = "",
-    val ephemeral_pub: Blob = Blob.fromBytes(ByteArray(0)), // 33 bytes (compressed distribution key)
-    val iv: Blob = Blob.fromBytes(ByteArray(0)), // 16 bytes
-    val ciphertext: Blob = Blob.fromBytes(ByteArray(0)), // AES/GCM ciphertext
+    val ephemeral_pub: String = "", // 33 bytes (compressed distribution key)
+    val iv: String = "", // 16 bytes
+    val ciphertext: String = "", // AES/GCM ciphertext
     val created_at: Long = System.currentTimeMillis()
 ) {
     init {

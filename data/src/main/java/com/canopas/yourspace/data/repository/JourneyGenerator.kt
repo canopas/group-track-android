@@ -146,7 +146,7 @@ fun getJourney(
             val updatedJourney = lastKnownJourney.copy(
                 to_latitude = newLocation.latitude,
                 to_longitude = newLocation.longitude,
-                route_distance = distance,
+                route_distance = (lastKnownJourney.route_distance ?: 0.0) + distance,
                 route_duration = lastKnownJourney.updated_at -
                     lastKnownJourney.created_at,
                 routes = lastKnownJourney.routes + newLocation.toRoute()

@@ -5,6 +5,7 @@ import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -18,13 +19,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -47,8 +52,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -63,7 +70,6 @@ import com.canopas.yourspace.ui.component.AppProgressIndicator
 import com.canopas.yourspace.ui.component.NoInternetScreen
 import com.canopas.yourspace.ui.component.PrimaryTextButton
 import com.canopas.yourspace.ui.component.UserProfile
-import com.canopas.yourspace.ui.flow.settings.profile.UserTextField
 import com.canopas.yourspace.ui.theme.AppTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -194,21 +200,6 @@ private fun SpaceProfileToolbar() {
             }
         },
         actions = {
-            Text(
-                text = stringResource(id = R.string.edit_profile_toolbar_save_text),
-                color = if (state.allowSave) AppTheme.colorScheme.primary else AppTheme.colorScheme.textDisabled,
-                style = AppTheme.appTypography.button,
-                modifier = Modifier
-                    .padding(end = 8.dp)
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = ripple(bounded = false),
-                        enabled = state.allowSave,
-                        onClick = {
-                            viewModel.saveSpace()
-                        }
-                    )
-            )
             if (state.isAdmin && state.spaceMemberCount > 1) {
                 IconButton(
                     onClick = { viewModel.onAdminMenuExpanded(true) }
@@ -243,6 +234,12 @@ private fun SpaceProfileContent() {
     val scrollState = rememberScrollState()
     val context = LocalContext.current
 
+    val focusManager = LocalFocusManager.current
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
+    val outlineColor =
+        if (isFocused) AppTheme.colorScheme.primary else AppTheme.colorScheme.outline
+
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             Modifier
@@ -250,81 +247,133 @@ private fun SpaceProfileContent() {
                 .verticalScroll(scrollState)
                 .padding(bottom = 80.dp)
         ) {
-            UserTextField(
-                label = stringResource(R.string.space_setting_hint_space_name),
-                text = state.spaceName ?: "",
-                enabled = state.isAdmin,
-                onValueChange = {
-                    viewModel.onNameChanged(it.trimStart())
+            Text(
+                text = stringResource(id = R.string.space_setting_hint_space_name),
+                color = if (isFocused) AppTheme.colorScheme.primary else AppTheme.colorScheme.textDisabled,
+                style = AppTheme.appTypography.caption,
+                modifier = Modifier.padding(start = 16.dp)
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            ) {
+                BasicTextField(
+                    value = state.spaceName ?: "",
+                    onValueChange = { viewModel.onNameChanged(it.trimStart()) },
+                    enabled = state.isAdmin,
+                    maxLines = 1,
+                    interactionSource = interactionSource,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(top = 8.dp),
+                    singleLine = true,
+                    textStyle = AppTheme.appTypography.subTitle2.copy(color = AppTheme.colorScheme.textPrimary),
+                    keyboardActions = KeyboardActions(onDone = {
+                        focusManager.clearFocus()
+                    }),
+                    cursorBrush = SolidColor(AppTheme.colorScheme.primary)
+                )
+                if (state.allowSave) {
+                    if (state.isNameChanging) {
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp))
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = "",
+                            tint = outlineColor,
+                            modifier = Modifier
+                                .padding(horizontal = 8.dp)
+                                .clickable {
+                                    ripple(true)
+                                    viewModel.saveSpace()
+                                    focusManager.clearFocus()
+                                }
+                        )
+                    }
                 }
+            }
+
+            HorizontalDivider(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                color = outlineColor
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             Text(
                 text = stringResource(R.string.space_invite_code_title),
                 style = AppTheme.appTypography.body2,
                 color = AppTheme.colorScheme.textDisabled,
-                modifier = Modifier.padding(start = 8.dp)
+                modifier = Modifier.padding(start = 16.dp)
             )
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(horizontal = 8.dp)
+                modifier = Modifier.padding(horizontal = 16.dp)
             ) {
                 Text(
                     text = state.inviteCode,
                     modifier = Modifier.weight(1f),
                     style = AppTheme.appTypography.header4
                 )
+
+                if (state.isAdmin) {
+                    if (state.isCodeLoading) {
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                    } else {
+                        IconButton(onClick = { viewModel.regenerateInviteCode() }) {
+                            Icon(Icons.Default.Refresh, contentDescription = "")
+                        }
+                    }
+                }
+
                 IconButton(
                     onClick = { shareInvitationCode(context = context, code = state.inviteCode) }
                 ) {
                     Icon(Icons.Default.Share, contentDescription = "")
-                }
-                if (state.isAdmin) {
-                    IconButton(onClick = { viewModel.regenerateInviteCode() }) {
-                        Icon(Icons.Default.Refresh, contentDescription = "")
-                    }
                 }
             }
             Text(
                 text = stringResource(R.string.space_invite_code_expire_text, state.codeExpireTime),
                 style = AppTheme.appTypography.body2,
                 color = AppTheme.colorScheme.textDisabled,
-                modifier = Modifier.padding(start = 8.dp)
+                modifier = Modifier.padding(start = 16.dp)
             )
 
             HorizontalDivider(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 24.dp),
+                    .padding(vertical = 12.dp, horizontal = 16.dp),
                 color = AppTheme.colorScheme.outline
             )
 
             Header(title = stringResource(id = R.string.space_setting_title_your_location))
 
-            state.spaceInfo?.members?.firstOrNull { it.user.id == state.currentUserId }?.let {
-                UserItem(
-                    userInfo = it,
-                    isChecked = state.locationEnabled,
-                    enable = true,
-                    isAdmin = state.isAdmin,
-                    currentUser = state.currentUserId!!,
-                    isAdminUser = state.spaceInfo?.space?.admin_id == it.user.id,
-                    onCheckedChange = {
-                        viewModel.onLocationEnabledChanged(it)
-                    },
-                    onMemberRemove = {
-                        viewModel.showRemoveMemberConfirmationWithId(true, "")
-                    }
-                )
-            }
+            state.spaceInfo?.members?.firstOrNull { it.user.id == state.currentUserId }
+                ?.let { user ->
+                    UserItem(
+                        userInfo = user,
+                        isChecked = state.locationEnabled,
+                        enable = true,
+                        isAdmin = state.isAdmin,
+                        currentUser = state.currentUserId!!,
+                        isAdminUser = state.spaceInfo?.space?.admin_id == user.user.id,
+                        onCheckedChange = { isChecked ->
+                            viewModel.onLocationEnabledChanged(isChecked)
+                        },
+                        onMemberRemove = {
+                            viewModel.showRemoveMemberConfirmationWithId(true, "")
+                        }
+                    )
+                }
 
             HorizontalDivider(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 24.dp),
+                    .padding(vertical = 16.dp),
                 color = AppTheme.colorScheme.outline
             )
 
@@ -335,18 +384,19 @@ private fun SpaceProfileContent() {
                     ?: emptyList()
 
             if (others.isNotEmpty()) {
-                others.forEach {
+                others.forEach { user ->
                     UserItem(
-                        userInfo = it,
-                        isChecked = it.isLocationEnable,
-                        enable = false,
+                        userInfo = user,
+                        isChecked = user.isLocationEnable,
+                        enable = state.isAdmin,
                         isAdmin = state.isAdmin,
                         currentUser = state.currentUserId!!,
-                        isAdminUser = state.spaceInfo?.space?.admin_id == it.user.id,
-                        onCheckedChange = {
+                        isAdminUser = state.spaceInfo?.space?.admin_id == user.user.id,
+                        onCheckedChange = { isChecked ->
+                            viewModel.updateMemberLocation(user.user.id, isChecked)
                         },
                         onMemberRemove = {
-                            viewModel.showRemoveMemberConfirmationWithId(true, it.user.id)
+                            viewModel.showRemoveMemberConfirmationWithId(true, user.user.id)
                         }
                     )
                 }
@@ -502,8 +552,8 @@ private fun UserItem(
                 uncheckedTrackColor = AppTheme.colorScheme.containerHigh,
                 disabledCheckedTrackColor = AppTheme.colorScheme.containerHigh
             ),
-            onCheckedChange = {
-                onCheckedChange(it)
+            onCheckedChange = { isChecked ->
+                onCheckedChange(isChecked)
             },
             modifier = Modifier.padding(end = 8.dp)
         )
