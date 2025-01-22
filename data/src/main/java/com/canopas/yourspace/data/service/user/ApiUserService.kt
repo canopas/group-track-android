@@ -48,6 +48,11 @@ class ApiUserService @Inject constructor(
         userRef.document(userId).collection(Config.FIRESTORE_COLLECTION_USER_SESSIONS)
 
     suspend fun getUser(userId: String): ApiUser? {
+        if (userId.isBlank()) {
+            Timber.w("Attempted to get user with blank ID")
+            return null
+        }
+
         return try {
             val user = userRef.document(userId).get().await()
                 .toObject(ApiUser::class.java)
