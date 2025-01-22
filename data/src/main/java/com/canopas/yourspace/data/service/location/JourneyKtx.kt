@@ -9,11 +9,11 @@ import timber.log.Timber
 import java.util.Base64
 import java.util.UUID
 
-fun String.toBytes(): ByteArray? = try {
+fun String.toBytes(): ByteArray = try {
     Base64.getDecoder().decode(this)
 } catch (e: Exception) {
     Timber.e(e, "Failed to decode base64 string")
-    null
+    ByteArray(0)
 }
 
 fun ByteArray.encodeToString(): String = Base64.getEncoder().encodeToString(this)
@@ -99,9 +99,9 @@ fun LocationJourney.toEncryptedLocationJourney(
     )
 }
 
-fun GroupCipher.decryptPoint(data: ByteArray?): Double? {
+fun GroupCipher.decryptPoint(data: ByteArray): Double? {
     return try {
-        data?.let { decrypt(it).toString(Charsets.UTF_8).toDoubleOrNull() }
+        decrypt(data).toString(Charsets.UTF_8).toDoubleOrNull()
     } catch (e: Exception) {
         Timber.e(e, "Failed to decrypt double")
         null
