@@ -9,8 +9,8 @@ const val LOGIN_TYPE_GOOGLE = 1
 const val LOGIN_TYPE_APPLE = 2
 const val LOGIN_DEVICE_TYPE_ANDROID = 1
 
-const val FREE_USER = 0
-const val PREMIUM_USER = 1
+private const val FREE_USER = 0
+private const val PREMIUM_USER = 1
 
 @Keep
 data class ApiUser(
@@ -28,7 +28,7 @@ data class ApiUser(
     val battery_pct: Float? = 0f,
     val created_at: Long? = System.currentTimeMillis(),
     val updated_at: Long? = System.currentTimeMillis(),
-    val user_type: Int = PREMIUM_USER,
+    val user_type: Int = FREE_USER,
     val identity_key_public: String? = null,
     val identity_key_private: String? = null,
     val identity_key_salt: String? = null // Salt for key derivation

@@ -43,13 +43,12 @@ class SignInMethodViewModel @Inject constructor(
             _state.emit(_state.value.copy(showGoogleLoading = true))
             try {
                 val firebaseToken = firebaseAuth.signInWithGoogleAuthCredential(account.idToken)
-                Timber.e("XXXXXX: Current User UID: ${firebaseAuth.currentUserUid}")
-                authService.verifiedGoogleLogin(
+                val isNewUser = authService.verifiedGoogleLogin(
                     firebaseAuth.currentUserUid,
                     firebaseToken,
                     account
                 )
-                onSignUp()
+                onSignUp(isNewUser)
                 _state.emit(_state.value.copy(showGoogleLoading = false))
             } catch (e: Exception) {
                 Timber.e(e, "Failed to sign in with google")
@@ -67,7 +66,7 @@ class SignInMethodViewModel @Inject constructor(
             _state.emit(_state.value.copy(showAppleLoading = true))
             try {
                 val firebaseToken = authResult.user?.getIdToken(true)?.await()
-                authService.verifiedAppleLogin(
+                val isNewUser = authService.verifiedAppleLogin(
                     firebaseAuth.currentUserUid,
                     firebaseToken?.token ?: "",
                     authResult.user ?: run {
@@ -80,7 +79,7 @@ class SignInMethodViewModel @Inject constructor(
                         return@launch
                     }
                 )
-                onSignUp()
+                onSignUp(isNewUser)
                 _state.emit(_state.value.copy(showAppleLoading = false))
             } catch (e: Exception) {
                 Timber.e(e, "Failed to sign in with Apple")
@@ -97,22 +96,35 @@ class SignInMethodViewModel @Inject constructor(
         _state.value = _state.value.copy(error = null)
     }
 
-    private fun onSignUp() = viewModelScope.launch(appDispatcher.MAIN) {
+    private fun onSignUp(isNewUSer: Boolean) = viewModelScope.launch(appDispatcher.MAIN) {
         val currentUser = authService.currentUser ?: return@launch
         val showSetPinScreen = currentUser.identity_key_public?.toBytes()
             .contentEquals(currentUser.identity_key_private?.toBytes())
         val showEnterPinScreen = !showSetPinScreen && userPreferences.getPasskey()
             .isNullOrEmpty()
 
-        if (showSetPinScreen) {
+        if (showSetPinScreen && currentUser.isPremiumUser) {
             navigator.navigateTo(
                 AppDestinations.setPin.path,
                 popUpToRoute = AppDestinations.signIn.path,
                 inclusive = true
             )
-        } else if (showEnterPinScreen) {
+        } else if (showEnterPinScreen && currentUser.isPremiumUser) {
             navigator.navigateTo(
                 AppDestinations.enterPin.path,
+                popUpToRoute = AppDestinations.signIn.path,
+                inclusive = true
+            )
+        } else if (isNewUSer) {
+            navigator.navigateTo(
+                AppDestinations.onboard.path,
+                popUpToRoute = AppDestinations.signIn.path,
+                inclusive = true
+            )
+        } else {
+            userPreferences.setOnboardShown(true)
+            navigator.navigateTo(
+                AppDestinations.home.path,
                 popUpToRoute = AppDestinations.signIn.path,
                 inclusive = true
             )

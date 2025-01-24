@@ -8,8 +8,6 @@ import com.canopas.yourspace.data.models.space.MemberKeyData
 import com.canopas.yourspace.data.models.space.SPACE_MEMBER_ROLE_ADMIN
 import com.canopas.yourspace.data.models.space.SPACE_MEMBER_ROLE_MEMBER
 import com.canopas.yourspace.data.models.user.ApiUser
-import com.canopas.yourspace.data.models.user.FREE_USER
-import com.canopas.yourspace.data.models.user.PREMIUM_USER
 import com.canopas.yourspace.data.service.auth.AuthService
 import com.canopas.yourspace.data.service.location.toBytes
 import com.canopas.yourspace.data.service.place.ApiPlaceService
@@ -54,7 +52,7 @@ class ApiSpaceService @Inject constructor(
         val docRef = spaceRef.document(spaceId)
         val currentUser = authService.currentUser ?: throw IllegalStateException("No authenticated user")
 
-        if (enableEncryption && currentUser.user_type == FREE_USER) {
+        if (enableEncryption && currentUser.isFreeUser) {
             // Redirect to subscription page
             throw IllegalStateException("User must be a premium user to enable encryption")
         }
@@ -66,9 +64,11 @@ class ApiSpaceService @Inject constructor(
         )
         docRef.set(space).await()
 
-        // Initialize the single group_keys doc to a default structure:
-        val emptyGroupKeys = GroupKeysDoc()
-        spaceGroupKeysDoc(spaceId).set(emptyGroupKeys).await()
+        if (enableEncryption && currentUser.isPremiumUser) {
+            // Initialize the single group_keys doc to a default structure:
+            val emptyGroupKeys = GroupKeysDoc()
+            spaceGroupKeysDoc(spaceId).set(emptyGroupKeys).await()
+        }
 
         joinSpace(spaceId, SPACE_MEMBER_ROLE_ADMIN, enableEncryption = enableEncryption)
         return spaceId
@@ -85,11 +85,11 @@ class ApiSpaceService @Inject constructor(
         }
 
         when {
-            isEncryptionEnabled && user.user_type == FREE_USER -> {
+            isEncryptionEnabled && user.isFreeUser -> {
                 // Redirect to subscription page
                 throw SubscriptionRequiredException("User must be a premium user to join an encrypted space")
             }
-            !isEncryptionEnabled && user.user_type == PREMIUM_USER -> {
+            !isEncryptionEnabled && user.isPremiumUser -> {
                 // Notify/Alert the user that they are joining an unencrypted space
                 // and their locations will be shared unencrypted
                 // On click of continue button, proceed to join the space and if user wants to leave any unencrypted space
@@ -98,7 +98,7 @@ class ApiSpaceService @Inject constructor(
 
                 joinSpace(spaceId, user, role)
             }
-            isEncryptionEnabled && user.user_type == PREMIUM_USER -> {
+            isEncryptionEnabled && user.isPremiumUser -> {
                 // Join the space and distribute sender key
                 joinSpace(spaceId, user, role)
 

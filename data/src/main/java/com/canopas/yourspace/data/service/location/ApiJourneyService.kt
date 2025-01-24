@@ -4,6 +4,7 @@ import com.canopas.yourspace.data.models.location.EncryptedLocationJourney
 import com.canopas.yourspace.data.models.location.LocationJourney
 import com.canopas.yourspace.data.models.space.GroupKeysDoc
 import com.canopas.yourspace.data.models.user.ApiUser
+import com.canopas.yourspace.data.service.user.ApiUserService
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.storage.bufferedkeystore.BufferedSenderKeyStore
 import com.canopas.yourspace.data.utils.Config
@@ -30,35 +31,31 @@ import javax.inject.Singleton
 @Singleton
 class ApiJourneyService @Inject constructor(
     db: FirebaseFirestore,
+    val apiUserService: ApiUserService,
     private val userPreferences: UserPreferences,
     private val bufferedSenderKeyStore: BufferedSenderKeyStore
 ) {
     private val spaceRef = db.collection(FIRESTORE_COLLECTION_SPACES)
-    private val currentSpaceId: String
-        get() = userPreferences.currentSpace ?: ""
+    private val currentSpaceId get() = userPreferences.currentSpace ?: ""
 
     private fun spaceMemberRef(spaceId: String) =
         spaceRef.document(spaceId).collection(FIRESTORE_COLLECTION_SPACE_MEMBERS)
 
     private fun spaceMemberJourneyRef(spaceId: String, userId: String) =
-        spaceMemberRef(spaceId).document(userId).collection(Config.FIRESTORE_COLLECTION_USER_JOURNEYS)
+        spaceMemberRef(spaceId).document(userId)
+            .collection(Config.FIRESTORE_COLLECTION_USER_JOURNEYS)
 
     private fun spaceGroupKeysRef(spaceId: String) =
         spaceRef.document(spaceId).collection(FIRESTORE_COLLECTION_SPACE_GROUP_KEYS)
             .document(FIRESTORE_COLLECTION_SPACE_GROUP_KEYS)
 
-    private suspend fun getGroupKeyDoc(spaceId: String): GroupKeysDoc? {
-        return try {
-            spaceGroupKeysRef(spaceId).get().await().toObject<GroupKeysDoc>()
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to fetch GroupKeysDoc")
-            null
-        }
+    private suspend fun getGroupKeyDoc(spaceId: String) = try {
+        spaceGroupKeysRef(spaceId).get().await().toObject<GroupKeysDoc>()
+    } catch (e: Exception) {
+        Timber.e(e, "Failed to fetch GroupKeysDoc")
+        null
     }
 
-    /**
-     * Loads the group cipher for the given [spaceId], [userId], [keyId], and already-loaded [groupKeysDoc].
-     */
     private suspend fun getGroupCipherByKeyId(
         spaceId: String,
         userId: String,
@@ -68,34 +65,31 @@ class ApiJourneyService @Inject constructor(
         val memberKeysData = groupKeysDoc.member_keys[userId] ?: return null
         val distribution = memberKeysData.distributions
             .sortedByDescending { it.created_at }
-            .firstOrNull {
-                it.recipient_id == userId && (keyId == null || it.id == keyId)
-            } ?: return null
+            .firstOrNull { it.recipient_id == userId && (keyId == null || it.id == keyId) }
+            ?: return null
 
         val currentUser = userPreferences.currentUser ?: return null
         val privateKey = getCurrentUserPrivateKey(currentUser) ?: return null
 
-        // Decrypt the distribution message
         val decryptedBytes = EphemeralECDHUtils.decrypt(distribution, privateKey) ?: return null
         val distributionMessage = SenderKeyDistributionMessage(decryptedBytes)
 
         val groupAddress = SignalProtocolAddress(spaceId, memberKeysData.member_device_id)
-        // Ensures the distribution ID is loaded into the store
         bufferedSenderKeyStore.loadSenderKey(groupAddress, distributionMessage.distributionId)
 
         return try {
             GroupSessionBuilder(bufferedSenderKeyStore).process(groupAddress, distributionMessage)
-            Triple(distributionMessage, GroupCipher(bufferedSenderKeyStore, groupAddress), distribution.id)
+            Triple(
+                distributionMessage,
+                GroupCipher(bufferedSenderKeyStore, groupAddress),
+                distribution.id
+            )
         } catch (e: Exception) {
             Timber.e(e, "Error processing group session")
             null
         }
     }
 
-    /**
-     * Helper to run some block of code that needs a [GroupCipher], using an already-loaded [GroupKeysDoc].
-     * Returns `defaultValue` if we fail to load the cipher or if the block returns null.
-     */
     private suspend inline fun <T> runWithGroupCipher(
         spaceId: String,
         userId: String,
@@ -103,95 +97,79 @@ class ApiJourneyService @Inject constructor(
         keyId: String? = null,
         defaultValue: T?,
         crossinline block: (cipher: GroupCipher) -> T?
-    ): T? {
-        val (_, groupCipher) = getGroupCipherByKeyId(spaceId, userId, keyId, groupKeysDoc)
-            ?: return defaultValue
-        return try {
+    ) = try {
+        getGroupCipherByKeyId(spaceId, userId, keyId, groupKeysDoc)?.let { (_, groupCipher) ->
             block(groupCipher) ?: defaultValue
-        } catch (e: Exception) {
-            Timber.e(e, "Error executing run operation")
-            defaultValue
-        }
+        } ?: defaultValue
+    } catch (e: Exception) {
+        Timber.e(e, "Error executing run operation")
+        defaultValue
     }
 
-    /**
-     * Decrypts and retrieves the current user's private key.
-     */
     private suspend fun getCurrentUserPrivateKey(currentUser: ApiUser): ECPrivateKey? {
-        val privateKey =
-            userPreferences.getPrivateKey() ?: currentUser.identity_key_private?.toBytes()
+        val privateKey = userPreferences.getPrivateKey() ?: currentUser.identity_key_private?.toBytes()
         return try {
             Curve.decodePrivatePoint(privateKey)
         } catch (e: InvalidKeyException) {
             Timber.e(e, "Error decoding private key")
-            PrivateKeyUtils.decryptPrivateKey(
-                privateKey ?: return null,
-                currentUser.identity_key_salt?.toBytes() ?: return null,
-                userPreferences.getPasskey() ?: return null
-            )?.let { Curve.decodePrivatePoint(it) }
+            privateKey?.let { key ->
+                currentUser.identity_key_salt?.toBytes()?.let { salt ->
+                    userPreferences.getPasskey()?.let { passkey ->
+                        PrivateKeyUtils.decryptPrivateKey(key, salt, passkey)?.let {
+                            Curve.decodePrivatePoint(it)
+                        }
+                    }
+                }
+            }
         }
     }
 
-    /**
-     * Saves a new [LocationJourney] in all of the current user's spaces.
-     */
-    suspend fun addJourney(
-        userId: String,
-        newJourney: LocationJourney
-    ): LocationJourney {
-        var journey: LocationJourney = newJourney
-        userPreferences.currentUser?.space_ids?.forEach { spaceId ->
-            val groupKeysDoc = getGroupKeyDoc(spaceId) ?: return@forEach
+    suspend fun addJourney(userId: String, newJourney: LocationJourney): LocationJourney {
+        var journey = newJourney
+        val currentUser = userPreferences.currentUser ?: return journey
 
-            val (distributionMessage, groupCipher, keyId) = getGroupCipherByKeyId(
-                spaceId,
-                userId,
-                null,
-                groupKeysDoc
-            )
-                ?: run {
+        currentUser.space_ids?.forEach { spaceId ->
+            if (currentUser.isPremiumUser) {
+                val groupKeysDoc = getGroupKeyDoc(spaceId) ?: return@forEach
+                val cipherResult = getGroupCipherByKeyId(spaceId, userId, null, groupKeysDoc) ?: run {
                     Timber.e("Failed to get group cipher")
                     return@forEach
                 }
 
-            val docRef = spaceMemberJourneyRef(spaceId, userId).document(newJourney.id)
+                val docRef = spaceMemberJourneyRef(spaceId, userId).document(newJourney.id)
+                journey = newJourney.copy(id = docRef.id, key_id = cipherResult.third)
 
-            journey = newJourney.copy(id = docRef.id, key_id = keyId)
-
-            val encryptedJourney =
-                journey.toEncryptedLocationJourney(groupCipher, distributionMessage.distributionId)
-
-            encryptedJourney?.let { docRef.set(it).await() }
+                journey.toEncryptedLocationJourney(cipherResult.second, cipherResult.first.distributionId)
+                    ?.let { docRef.set(it).await() }
+            } else {
+                val docRef = spaceMemberJourneyRef(spaceId, userId).document()
+                journey = newJourney.copy(id = docRef.id)
+                docRef.set(journey).await()
+            }
         }
         return journey
     }
 
-    /**
-     * Updates the last [LocationJourney] for [userId].
-     */
     suspend fun updateJourney(userId: String, journey: LocationJourney) {
-        userPreferences.currentUser?.space_ids?.forEach { spaceId ->
-            val groupKeysDoc = getGroupKeyDoc(spaceId) ?: return@forEach
-
-            val (distributionMessage, groupCipher) = getGroupCipherByKeyId(
-                spaceId,
-                userId,
-                journey.key_id,
-                groupKeysDoc
-            )
-                ?: run {
-                    Timber.e("Failed to get group cipher")
-                    return@forEach
-                }
-
-            val encryptedJourney =
-                journey.toEncryptedLocationJourney(groupCipher, distributionMessage.distributionId)
+        val currentUser = userPreferences.currentUser ?: return
+        currentUser.space_ids?.forEach { spaceId ->
             try {
-                encryptedJourney?.let {
-                    spaceMemberJourneyRef(spaceId, userId)
-                        .document(journey.id)
-                        .set(it)
-                        .await()
+                if (currentUser.isPremiumUser) {
+                    val groupKeysDoc = getGroupKeyDoc(spaceId) ?: return@forEach
+                    val (distributionMessage, groupCipher) = getGroupCipherByKeyId(
+                        spaceId,
+                        userId,
+                        journey.key_id,
+                        groupKeysDoc
+                    ) ?: run {
+                        Timber.e("Failed to get group cipher")
+                        return@forEach
+                    }
+
+                    journey.toEncryptedLocationJourney(groupCipher, distributionMessage.distributionId)
+                        ?.let { spaceMemberJourneyRef(spaceId, userId).document(journey.id).set(it).await() }
+                } else {
+                    spaceMemberJourneyRef(spaceId, userId).document(journey.id).set(journey).await()
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Error updating journey")
@@ -199,75 +177,77 @@ class ApiJourneyService @Inject constructor(
         }
     }
 
-    /**
-     * Fetches the most recent [LocationJourney] for [userId] in the current space.
-     */
     suspend fun getLastJourneyLocation(userId: String): LocationJourney? {
-        val encryptedJourney = spaceMemberJourneyRef(currentSpaceId, userId)
-            .orderBy("created_at", Query.Direction.DESCENDING)
-            .limit(1)
-            .get()
-            .await()
-            .documents
-            .firstOrNull()
-            ?.toObject<EncryptedLocationJourney>()
-            ?: return null
-
-        val groupKeysDoc = getGroupKeyDoc(currentSpaceId) ?: return null
-
-        // Decrypt
-        return runWithGroupCipher(
-            spaceId = currentSpaceId,
-            userId = userId,
-            groupKeysDoc = groupKeysDoc,
-            keyId = encryptedJourney.key_id,
-            defaultValue = null
-        ) { cipher ->
-            encryptedJourney.toDecryptedLocationJourney(cipher)
-        }
-    }
-
-    /**
-     * Fetch more journey history, older than [from], in pages of up to 20.
-     * Loads GroupKeysDoc once, then decrypts each journey.
-     */
-    suspend fun getMoreJourneyHistory(userId: String, from: Long?): List<LocationJourney> {
-        val groupKeysDoc = getGroupKeyDoc(currentSpaceId) ?: return emptyList()
-
-        val query = if (from == null) {
-            spaceMemberJourneyRef(currentSpaceId, userId)
-                .whereEqualTo("user_id", userId)
+        val user = apiUserService.getUser(userId) ?: return null
+        return if (user.isPremiumUser) {
+            val encryptedJourney = spaceMemberJourneyRef(currentSpaceId, userId)
                 .orderBy("created_at", Query.Direction.DESCENDING)
-                .limit(20)
+                .limit(1)
+                .get()
+                .await()
+                .documents
+                .firstOrNull()
+                ?.toObject<EncryptedLocationJourney>()
+                ?: return null
+
+            val groupKeysDoc = getGroupKeyDoc(currentSpaceId) ?: return null
+
+            runWithGroupCipher(
+                currentSpaceId,
+                userId,
+                groupKeysDoc,
+                encryptedJourney.key_id,
+                null
+            ) { it.let { cipher -> encryptedJourney.toDecryptedLocationJourney(cipher) } }
         } else {
             spaceMemberJourneyRef(currentSpaceId, userId)
                 .whereEqualTo("user_id", userId)
                 .orderBy("created_at", Query.Direction.DESCENDING)
-                .whereLessThan("created_at", from)
-                .limit(20)
-        }
-
-        val encryptedJourneys = query.get().await().documents.mapNotNull {
-            it.toObject<EncryptedLocationJourney>()
-        }
-
-        return encryptedJourneys.mapNotNull { encrypted ->
-            val cipherAndMessage =
-                getGroupCipherByKeyId(currentSpaceId, userId, encrypted.key_id, groupKeysDoc)
-                    ?: return@mapNotNull null
-            encrypted.toDecryptedLocationJourney(cipherAndMessage.second)
+                .limit(1)
+                .get()
+                .await()
+                .documents
+                .firstOrNull()
+                ?.toObject<LocationJourney>()
         }
     }
 
-    /**
-     * Fetch journey history between [from] and [to].
-     * Loads GroupKeysDoc once, then decrypts each journey.
-     */
+    suspend fun getMoreJourneyHistory(userId: String, from: Long?): List<LocationJourney> {
+        val user = apiUserService.getUser(userId) ?: return emptyList()
+        val groupKeysDoc = if (user.isPremiumUser) getGroupKeyDoc(currentSpaceId) ?: return emptyList() else null
+
+        val query = spaceMemberJourneyRef(currentSpaceId, userId)
+            .whereEqualTo("user_id", userId)
+            .orderBy("created_at", Query.Direction.DESCENDING)
+            .apply { from?.let { whereLessThan("created_at", it) } }
+            .limit(20)
+
+        val journeys = query.get().await().documents.mapNotNull {
+            if (user.isPremiumUser) it.toObject<EncryptedLocationJourney>() else it.toObject<LocationJourney>()
+        }
+
+        return if (user.isPremiumUser) {
+            journeys.mapNotNull { encrypted ->
+                getGroupCipherByKeyId(
+                    currentSpaceId,
+                    userId,
+                    (encrypted as EncryptedLocationJourney).key_id,
+                    groupKeysDoc!!
+                )?.let { (_, cipher) ->
+                    encrypted.toDecryptedLocationJourney(cipher)
+                }
+            }
+        } else {
+            journeys as List<LocationJourney>
+        }
+    }
+
     suspend fun getJourneyHistory(userId: String, from: Long, to: Long): List<LocationJourney> {
         return try {
-            val groupKeysDoc = getGroupKeyDoc(currentSpaceId) ?: return emptyList()
+            val user = apiUserService.getUser(userId) ?: return emptyList()
+            val groupKeysDoc = if (user.isPremiumUser) getGroupKeyDoc(currentSpaceId) ?: return emptyList() else null
 
-            val previousDayEncrypted = spaceMemberJourneyRef(currentSpaceId, userId)
+            val previousDay = spaceMemberJourneyRef(currentSpaceId, userId)
                 .whereEqualTo("user_id", userId)
                 .whereLessThan("created_at", from)
                 .whereGreaterThanOrEqualTo("updated_at", from)
@@ -275,9 +255,8 @@ class ApiJourneyService @Inject constructor(
                 .get()
                 .await()
                 .documents
-                .mapNotNull { it.toObject<EncryptedLocationJourney>() }
 
-            val currentDayEncrypted = spaceMemberJourneyRef(currentSpaceId, userId)
+            val currentDay = spaceMemberJourneyRef(currentSpaceId, userId)
                 .whereEqualTo("user_id", userId)
                 .whereGreaterThanOrEqualTo("created_at", from)
                 .whereLessThanOrEqualTo("created_at", to)
@@ -286,49 +265,60 @@ class ApiJourneyService @Inject constructor(
                 .get()
                 .await()
                 .documents
-                .mapNotNull { it.toObject<EncryptedLocationJourney>() }
 
-            val allEncrypted = previousDayEncrypted + currentDayEncrypted
+            val allJourneys = (previousDay + currentDay).mapNotNull {
+                if (user.isPremiumUser) it.toObject<EncryptedLocationJourney>() else it.toObject<LocationJourney>()
+            }
 
-            allEncrypted.mapNotNull { encrypted ->
-                val cipherAndMessage =
-                    getGroupCipherByKeyId(currentSpaceId, userId, encrypted.key_id, groupKeysDoc)
-                        ?: return@mapNotNull null
-                encrypted.toDecryptedLocationJourney(cipherAndMessage.second)
+            if (user.isPremiumUser) {
+                allJourneys.mapNotNull { encrypted ->
+                    getGroupCipherByKeyId(
+                        currentSpaceId,
+                        userId,
+                        (encrypted as EncryptedLocationJourney).key_id,
+                        groupKeysDoc!!
+                    )?.let { (_, cipher) ->
+                        encrypted.toDecryptedLocationJourney(cipher)
+                    }
+                }
+            } else {
+                allJourneys as List<LocationJourney>
             }
         } catch (e: Exception) {
             Timber.e(e, "Error while getting journey history")
             emptyList()
         }
     }
-
-    /**
-     * Retrieves a specific [LocationJourney] by its [journeyId].
-     */
     suspend fun getLocationJourneyFromId(journeyId: String): LocationJourney? {
         val currentUser = userPreferences.currentUser ?: return null
 
-        val encryptedJourney = try {
-            spaceMemberJourneyRef(currentSpaceId, currentUser.id)
-                .document(journeyId)
-                .get()
-                .await()
-                .toObject<EncryptedLocationJourney>()
+        return try {
+            if (currentUser.isPremiumUser) {
+                val encryptedJourney = spaceMemberJourneyRef(currentSpaceId, currentUser.id)
+                    .document(journeyId)
+                    .get()
+                    .await()
+                    .toObject<EncryptedLocationJourney>() ?: return null
+
+                val groupKeysDoc = getGroupKeyDoc(currentSpaceId) ?: return null
+
+                runWithGroupCipher(
+                    currentSpaceId,
+                    currentUser.id,
+                    groupKeysDoc,
+                    encryptedJourney.key_id,
+                    null
+                ) { cipher -> encryptedJourney.toDecryptedLocationJourney(cipher) }
+            } else {
+                spaceMemberJourneyRef(currentSpaceId, currentUser.id)
+                    .document(journeyId)
+                    .get()
+                    .await()
+                    .toObject()
+            }
         } catch (e: Exception) {
             Timber.e(e, "Error while getting journey")
-            return null
-        }
-
-        val groupKeysDoc = getGroupKeyDoc(currentSpaceId) ?: return null
-
-        return runWithGroupCipher(
-            spaceId = currentSpaceId,
-            userId = currentUser.id,
-            groupKeysDoc = groupKeysDoc,
-            keyId = encryptedJourney?.key_id,
-            defaultValue = null
-        ) { cipher ->
-            encryptedJourney?.toDecryptedLocationJourney(cipher)
+            null
         }
     }
 }

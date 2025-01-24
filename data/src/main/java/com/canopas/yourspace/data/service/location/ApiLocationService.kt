@@ -7,6 +7,7 @@ import com.canopas.yourspace.data.models.space.EncryptedDistribution
 import com.canopas.yourspace.data.models.space.GroupKeysDoc
 import com.canopas.yourspace.data.models.space.MemberKeyData
 import com.canopas.yourspace.data.models.user.ApiUser
+import com.canopas.yourspace.data.service.user.ApiUserService
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.storage.bufferedkeystore.BufferedSenderKeyStore
 import com.canopas.yourspace.data.utils.Config
@@ -19,6 +20,7 @@ import com.canopas.yourspace.data.utils.snapshotFlow
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 import org.signal.libsignal.protocol.InvalidKeyException
@@ -38,6 +40,7 @@ import javax.inject.Singleton
 @Singleton
 class ApiLocationService @Inject constructor(
     private val db: FirebaseFirestore,
+    val apiUserService: ApiUserService,
     private val locationManager: LocationManager,
     private val userPreferences: UserPreferences,
     private val bufferedSenderKeyStore: BufferedSenderKeyStore
@@ -63,19 +66,12 @@ class ApiLocationService @Inject constructor(
 
     suspend fun saveLastKnownLocation(userId: String) {
         val lastLocation = locationManager.getLastLocation() ?: return
-        val currentUser = userPreferences.currentUser ?: return
-
-        currentUser.space_ids?.forEach { spaceId ->
-            if (spaceId.isBlank()) return@forEach
-
-            saveEncryptedLocation(
-                spaceId = spaceId,
-                userId = userId,
-                latitude = lastLocation.latitude,
-                longitude = lastLocation.longitude,
-                recordedAt = System.currentTimeMillis()
-            )
-        }
+        saveCurrentLocation(
+            userId = userId,
+            latitude = lastLocation.latitude,
+            longitude = lastLocation.longitude,
+            recordedAt = System.currentTimeMillis()
+        )
     }
 
     suspend fun saveCurrentLocation(
@@ -85,20 +81,22 @@ class ApiLocationService @Inject constructor(
         recordedAt: Long
     ) {
         val currentUser = userPreferences.currentUser ?: return
-
         currentUser.space_ids?.forEach { spaceId ->
             if (spaceId.isBlank()) return@forEach
 
-            saveEncryptedLocation(
-                spaceId = spaceId,
-                userId = userId,
-                latitude = latitude,
-                longitude = longitude,
-                recordedAt = recordedAt
-            )
+            // Check if user is premium before encrypting location
+            // In future, need to check if encryption is enabled for the space
+            if (currentUser.isPremiumUser) {
+                saveEncryptedLocation(spaceId, userId, latitude, longitude, recordedAt)
+            } else {
+                savePlainLocation(spaceId, userId, latitude, longitude, recordedAt)
+            }
         }
     }
 
+    /**
+     * Saves the location of the current user in end-to-end encrypted form.
+     */
     private suspend fun saveEncryptedLocation(
         spaceId: String,
         userId: String,
@@ -115,56 +113,66 @@ class ApiLocationService @Inject constructor(
 
             val (distributionMessage, groupCipher) = cipherAndDistribution
 
-            val encryptedLatitude = groupCipher.encrypt(
-                distributionMessage.distributionId,
-                latitude.toString().toByteArray(Charsets.UTF_8)
-            )
-            val encryptedLongitude = groupCipher.encrypt(
-                distributionMessage.distributionId,
-                longitude.toString().toByteArray(Charsets.UTF_8)
-            )
-
-            val location = EncryptedApiLocation(
+            val encryptedLocation = EncryptedApiLocation(
                 user_id = userId,
-                latitude = encryptedLatitude.serialize().encodeToString(),
-                longitude = encryptedLongitude.serialize().encodeToString(),
+                latitude = groupCipher.encrypt(
+                    distributionMessage.distributionId,
+                    latitude.toString().toByteArray()
+                ).serialize().encodeToString(),
+                longitude = groupCipher.encrypt(
+                    distributionMessage.distributionId,
+                    longitude.toString().toByteArray()
+                ).serialize().encodeToString(),
                 created_at = recordedAt
             )
 
-            spaceMemberLocationRef(spaceId, userId).document(location.id).set(location).await()
+            spaceMemberLocationRef(spaceId, userId).document(encryptedLocation.id)
+                .set(encryptedLocation).await()
+        } catch (e: NoSessionException) {
+            Timber.e("No session found. Skipping save.")
+        } catch (e: InvalidSenderKeySessionException) {
+            Timber.e("Invalid sender key session. Skipping save.")
         } catch (e: Exception) {
-            when (e) {
-                is NoSessionException -> {
-                    Timber.e("No session found. Skipping save.")
-                }
-
-                is InvalidSenderKeySessionException -> {
-                    Timber.e("Invalid sender key session. Skipping save.")
-                }
-
-                else -> {
-                    Timber.e(e, "Failed to save encrypted location")
-                }
-            }
+            Timber.e(e, "Failed to save encrypted location")
         }
     }
 
-    fun getCurrentLocation(userId: String): Flow<List<ApiLocation?>> =
-        spaceMemberLocationRef(currentSpaceId, userId)
+    /**
+     * Saves the location of the current user in plain text.
+     */
+    private suspend fun savePlainLocation(
+        spaceId: String,
+        userId: String,
+        latitude: Double,
+        longitude: Double,
+        recordedAt: Long
+    ) {
+        val location = ApiLocation(
+            id = spaceMemberLocationRef(spaceId, userId).document().id,
+            user_id = userId,
+            latitude = latitude,
+            longitude = longitude,
+            created_at = recordedAt
+        )
+        spaceMemberLocationRef(spaceId, userId).document(location.id).set(location).await()
+    }
+
+    suspend fun getCurrentLocation(userId: String): Flow<List<ApiLocation?>> {
+        val user = apiUserService.getUser(userId) ?: return emptyFlow()
+        val locationRef = spaceMemberLocationRef(currentSpaceId, userId)
             .whereEqualTo("user_id", userId)
             .orderBy("created_at", Query.Direction.DESCENDING)
             .limit(1)
-            .snapshotFlow(EncryptedApiLocation::class.java)
-            .map { encryptedLocations ->
-                encryptedLocations.mapNotNull { encryptedLocation ->
-                    try {
-                        decryptLocation(encryptedLocation, userId)
-                    } catch (e: Exception) {
-                        Timber.e(e, "Failed to decrypt location for userId: $userId")
-                        null
-                    }
+
+        return if (user.isPremiumUser) {
+            locationRef.snapshotFlow(EncryptedApiLocation::class.java)
+                .map { encryptedLocations ->
+                    encryptedLocations.mapNotNull { decryptLocation(it, userId) }
                 }
-            }
+        } else {
+            locationRef.snapshotFlow(ApiLocation::class.java)
+        }
+    }
 
     private suspend fun decryptLocation(
         encryptedLocation: EncryptedApiLocation,
@@ -174,21 +182,24 @@ class ApiLocationService @Inject constructor(
             getGroupCipherAndDistributionMessage(currentSpaceId, userId)?.second ?: return null
 
         return try {
-            val latitudeBytes = groupCipher.decrypt(encryptedLocation.latitude.toBytes())
-            val longitudeBytes =
-                groupCipher.decrypt(encryptedLocation.longitude.toBytes())
+            val latitude =
+                groupCipher.decrypt(encryptedLocation.latitude.toBytes()).toString(Charsets.UTF_8)
+                    .toDoubleOrNull()
+            val longitude =
+                groupCipher.decrypt(encryptedLocation.longitude.toBytes()).toString(Charsets.UTF_8)
+                    .toDoubleOrNull()
 
-            val latitude = latitudeBytes.toString(Charsets.UTF_8).toDoubleOrNull()
-            val longitude = longitudeBytes.toString(Charsets.UTF_8).toDoubleOrNull()
-            if (latitude == null || longitude == null) return null
-
-            ApiLocation(
-                id = encryptedLocation.id,
-                user_id = userId,
-                latitude = latitude,
-                longitude = longitude,
-                created_at = encryptedLocation.created_at
-            )
+            if (latitude != null && longitude != null) {
+                ApiLocation(
+                    id = encryptedLocation.id,
+                    user_id = userId,
+                    latitude = latitude,
+                    longitude = longitude,
+                    created_at = encryptedLocation.created_at
+                )
+            } else {
+                null
+            }
         } catch (e: Exception) {
             Timber.e(e, "Failed to decrypt location for userId: $userId")
             null

@@ -64,6 +64,10 @@ class BufferedSenderKeyStore @Inject constructor(
         distributionId: UUID,
         record: SenderKeyRecord
     ) {
+        val currentUser = userPreferences.currentUser ?: return
+        if (currentUser.isFreeUser) {
+            return
+        }
         val key = StoreKey(sender, distributionId, sender.deviceId)
         if (inMemoryStore.containsKey(key)) {
             return
@@ -91,6 +95,10 @@ class BufferedSenderKeyStore @Inject constructor(
     }
 
     override fun loadSenderKey(sender: SignalProtocolAddress, distributionId: UUID): SenderKeyRecord? {
+        val currentUser = userPreferences.currentUser ?: return null
+        if (currentUser.isFreeUser) {
+            return null
+        }
         val key = StoreKey(sender, distributionId, sender.deviceId)
 
         return inMemoryStore[key] ?: kotlin.run {
