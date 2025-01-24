@@ -10,7 +10,7 @@ data class ApiSpace(
     val id: String = UUID.randomUUID().toString(),
     val admin_id: String = "",
     val name: String = "",
-    val is_encryption_enabled: Boolean = true,
+    val is_encryption_enabled: Boolean = false,
     val created_at: Long? = System.currentTimeMillis()
 )
 
