@@ -7,7 +7,6 @@ import com.canopas.yourspace.data.models.space.EncryptedDistribution
 import com.canopas.yourspace.data.models.space.GroupKeysDoc
 import com.canopas.yourspace.data.models.space.MemberKeyData
 import com.canopas.yourspace.data.models.user.ApiUser
-import com.canopas.yourspace.data.service.user.ApiUserService
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.storage.bufferedkeystore.BufferedSenderKeyStore
 import com.canopas.yourspace.data.utils.Config
@@ -20,7 +19,6 @@ import com.canopas.yourspace.data.utils.snapshotFlow
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 import org.signal.libsignal.protocol.InvalidKeyException
@@ -40,7 +38,6 @@ import javax.inject.Singleton
 @Singleton
 class ApiLocationService @Inject constructor(
     private val db: FirebaseFirestore,
-    val apiUserService: ApiUserService,
     private val locationManager: LocationManager,
     private val userPreferences: UserPreferences,
     private val bufferedSenderKeyStore: BufferedSenderKeyStore
@@ -64,10 +61,10 @@ class ApiLocationService @Inject constructor(
         spaceRef.document(spaceId).collection(FIRESTORE_COLLECTION_SPACE_GROUP_KEYS)
             .document(FIRESTORE_COLLECTION_SPACE_GROUP_KEYS)
 
-    suspend fun saveLastKnownLocation(userId: String) {
+    suspend fun saveLastKnownLocation(user: ApiUser) {
         val lastLocation = locationManager.getLastLocation() ?: return
         saveCurrentLocation(
-            userId = userId,
+            user = user,
             latitude = lastLocation.latitude,
             longitude = lastLocation.longitude,
             recordedAt = System.currentTimeMillis()
@@ -75,18 +72,18 @@ class ApiLocationService @Inject constructor(
     }
 
     suspend fun saveCurrentLocation(
-        userId: String,
+        user: ApiUser,
         latitude: Double,
         longitude: Double,
         recordedAt: Long
     ) {
-        val currentUser = userPreferences.currentUser ?: return
-        currentUser.space_ids?.forEach { spaceId ->
+        user.space_ids?.forEach { spaceId ->
+            val userId = user.id
             if (spaceId.isBlank()) return@forEach
 
             // Check if user is premium before encrypting location
             // In future, need to check if encryption is enabled for the space
-            if (currentUser.isPremiumUser) {
+            if (user.isPremiumUser) {
                 saveEncryptedLocation(spaceId, userId, latitude, longitude, recordedAt)
             } else {
                 savePlainLocation(spaceId, userId, latitude, longitude, recordedAt)
@@ -157,8 +154,8 @@ class ApiLocationService @Inject constructor(
         spaceMemberLocationRef(spaceId, userId).document(location.id).set(location).await()
     }
 
-    suspend fun getCurrentLocation(userId: String): Flow<List<ApiLocation?>> {
-        val user = apiUserService.getUser(userId) ?: return emptyFlow()
+    suspend fun getCurrentLocation(user: ApiUser): Flow<List<ApiLocation?>> {
+        val userId = user.id
         val locationRef = spaceMemberLocationRef(currentSpaceId, userId)
             .whereEqualTo("user_id", userId)
             .orderBy("created_at", Query.Direction.DESCENDING)

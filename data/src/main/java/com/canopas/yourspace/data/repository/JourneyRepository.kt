@@ -2,6 +2,7 @@ package com.canopas.yourspace.data.repository
 
 import android.location.Location
 import com.canopas.yourspace.data.models.location.LocationJourney
+import com.canopas.yourspace.data.models.user.ApiUser
 import com.canopas.yourspace.data.service.location.ApiJourneyService
 import com.canopas.yourspace.data.storage.LocationCache
 import timber.log.Timber
@@ -15,12 +16,13 @@ class JourneyRepository @Inject constructor(
 ) {
     suspend fun saveLocationJourney(
         extractedLocation: Location,
-        userId: String
+        user: ApiUser
     ) {
         try {
+            val userId = user.id
             cacheLocations(extractedLocation, userId)
 
-            val lastKnownJourney = getLastKnownLocation(userId)
+            val lastKnownJourney = getLastKnownLocation(user)
 
             val result = getJourney(
                 userId = userId,
@@ -56,15 +58,15 @@ class JourneyRepository @Inject constructor(
      * with steady state in cache as well as remote database
      * */
     private suspend fun getLastKnownLocation(
-        userid: String
+        user: ApiUser
     ): LocationJourney? {
         // Return last location journey if available from cache
-        return locationCache.getLastJourney(userid) ?: run {
+        return locationCache.getLastJourney(user.id) ?: run {
             // Here, means no location journey available in cache
             // Fetch last location journey from remote database and save it to cache
-            val lastJourney = journeyService.getLastJourneyLocation(userid)
+            val lastJourney = journeyService.getLastJourneyLocation(user)
             return lastJourney?.let {
-                locationCache.putLastJourney(it, userid)
+                locationCache.putLastJourney(it, user.id)
                 lastJourney
             }
         }

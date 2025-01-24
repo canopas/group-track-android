@@ -122,7 +122,7 @@ class ApiUserService @Inject constructor(
                 app_version = device.versionCode
             )
             sessionDocRef.set(session).await()
-            locationService.saveLastKnownLocation(user.id)
+            locationService.saveLastKnownLocation(user)
             return Triple(true, user, session)
         }
     }

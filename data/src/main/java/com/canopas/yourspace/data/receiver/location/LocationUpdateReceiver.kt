@@ -43,16 +43,16 @@ class LocationUpdateReceiver : BroadcastReceiver() {
         LocationResult.extractResult(intent)?.let { locationResult ->
             scope.launch {
                 try {
-                    val userId = authService.currentUser?.id ?: return@launch
+                    val user = authService.currentUser ?: return@launch
                     Timber.e("Location update received: ${locationResult.locations.size}")
                     locationResult.locations.forEach { extractedLocation ->
                         locationService.saveCurrentLocation(
-                            userId,
+                            user,
                             extractedLocation.latitude,
                             extractedLocation.longitude,
                             System.currentTimeMillis()
                         )
-                        journeyRepository.saveLocationJourney(extractedLocation, userId)
+                        journeyRepository.saveLocationJourney(extractedLocation, user)
                     }
                 } catch (e: Exception) {
                     Timber.e(e, "Error while saving location")

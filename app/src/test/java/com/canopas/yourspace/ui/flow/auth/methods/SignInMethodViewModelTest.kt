@@ -96,7 +96,7 @@ class SignInMethodViewModelTest {
         whenever(authService.verifiedGoogleLogin("uid", "firebaseToken", account))
             .thenReturn(true)
         viewModel.proceedGoogleSignIn(account)
-        verify(navigator).navigateTo("set-pin", "sign-in", true)
+        verify(navigator).navigateTo("onboard", "sign-in", true)
     }
 
     @Test

@@ -4,7 +4,6 @@ import com.canopas.yourspace.data.models.location.EncryptedLocationJourney
 import com.canopas.yourspace.data.models.location.LocationJourney
 import com.canopas.yourspace.data.models.space.GroupKeysDoc
 import com.canopas.yourspace.data.models.user.ApiUser
-import com.canopas.yourspace.data.service.user.ApiUserService
 import com.canopas.yourspace.data.storage.UserPreferences
 import com.canopas.yourspace.data.storage.bufferedkeystore.BufferedSenderKeyStore
 import com.canopas.yourspace.data.utils.Config
@@ -31,7 +30,6 @@ import javax.inject.Singleton
 @Singleton
 class ApiJourneyService @Inject constructor(
     db: FirebaseFirestore,
-    val apiUserService: ApiUserService,
     private val userPreferences: UserPreferences,
     private val bufferedSenderKeyStore: BufferedSenderKeyStore
 ) {
@@ -177,10 +175,9 @@ class ApiJourneyService @Inject constructor(
         }
     }
 
-    suspend fun getLastJourneyLocation(userId: String): LocationJourney? {
-        val user = apiUserService.getUser(userId) ?: return null
+    suspend fun getLastJourneyLocation(user: ApiUser): LocationJourney? {
         return if (user.isPremiumUser) {
-            val encryptedJourney = spaceMemberJourneyRef(currentSpaceId, userId)
+            val encryptedJourney = spaceMemberJourneyRef(currentSpaceId, user.id)
                 .orderBy("created_at", Query.Direction.DESCENDING)
                 .limit(1)
                 .get()
@@ -194,14 +191,14 @@ class ApiJourneyService @Inject constructor(
 
             runWithGroupCipher(
                 currentSpaceId,
-                userId,
+                user.id,
                 groupKeysDoc,
                 encryptedJourney.key_id,
                 null
             ) { it.let { cipher -> encryptedJourney.toDecryptedLocationJourney(cipher) } }
         } else {
-            spaceMemberJourneyRef(currentSpaceId, userId)
-                .whereEqualTo("user_id", userId)
+            spaceMemberJourneyRef(currentSpaceId, user.id)
+                .whereEqualTo("user_id", user.id)
                 .orderBy("created_at", Query.Direction.DESCENDING)
                 .limit(1)
                 .get()
@@ -212,12 +209,11 @@ class ApiJourneyService @Inject constructor(
         }
     }
 
-    suspend fun getMoreJourneyHistory(userId: String, from: Long?): List<LocationJourney> {
-        val user = apiUserService.getUser(userId) ?: return emptyList()
+    suspend fun getMoreJourneyHistory(user: ApiUser, from: Long?): List<LocationJourney> {
         val groupKeysDoc = if (user.isPremiumUser) getGroupKeyDoc(currentSpaceId) ?: return emptyList() else null
 
-        val query = spaceMemberJourneyRef(currentSpaceId, userId)
-            .whereEqualTo("user_id", userId)
+        val query = spaceMemberJourneyRef(currentSpaceId, user.id)
+            .whereEqualTo("user_id", user.id)
             .orderBy("created_at", Query.Direction.DESCENDING)
             .apply { from?.let { whereLessThan("created_at", it) } }
             .limit(20)
@@ -230,7 +226,7 @@ class ApiJourneyService @Inject constructor(
             journeys.mapNotNull { encrypted ->
                 getGroupCipherByKeyId(
                     currentSpaceId,
-                    userId,
+                    user.id,
                     (encrypted as EncryptedLocationJourney).key_id,
                     groupKeysDoc!!
                 )?.let { (_, cipher) ->
@@ -242,13 +238,12 @@ class ApiJourneyService @Inject constructor(
         }
     }
 
-    suspend fun getJourneyHistory(userId: String, from: Long, to: Long): List<LocationJourney> {
+    suspend fun getJourneyHistory(user: ApiUser, from: Long, to: Long): List<LocationJourney> {
         return try {
-            val user = apiUserService.getUser(userId) ?: return emptyList()
             val groupKeysDoc = if (user.isPremiumUser) getGroupKeyDoc(currentSpaceId) ?: return emptyList() else null
 
-            val previousDay = spaceMemberJourneyRef(currentSpaceId, userId)
-                .whereEqualTo("user_id", userId)
+            val previousDay = spaceMemberJourneyRef(currentSpaceId, user.id)
+                .whereEqualTo("user_id", user.id)
                 .whereLessThan("created_at", from)
                 .whereGreaterThanOrEqualTo("updated_at", from)
                 .limit(1)
@@ -256,8 +251,8 @@ class ApiJourneyService @Inject constructor(
                 .await()
                 .documents
 
-            val currentDay = spaceMemberJourneyRef(currentSpaceId, userId)
-                .whereEqualTo("user_id", userId)
+            val currentDay = spaceMemberJourneyRef(currentSpaceId, user.id)
+                .whereEqualTo("user_id", user.id)
                 .whereGreaterThanOrEqualTo("created_at", from)
                 .whereLessThanOrEqualTo("created_at", to)
                 .orderBy("created_at", Query.Direction.DESCENDING)
@@ -274,7 +269,7 @@ class ApiJourneyService @Inject constructor(
                 allJourneys.mapNotNull { encrypted ->
                     getGroupCipherByKeyId(
                         currentSpaceId,
-                        userId,
+                        user.id,
                         (encrypted as EncryptedLocationJourney).key_id,
                         groupKeysDoc!!
                     )?.let { (_, cipher) ->

@@ -99,10 +99,10 @@ class JourneyTimelineViewModel @Inject constructor(
             val lastJourneyTime = allJourneys.minOfOrNull { it.updated_at }
 
             val locations = if (loadMore) {
-                journeyService.getMoreJourneyHistory(userId, lastJourneyTime)
+                state.value.selectedUser?.let { journeyService.getMoreJourneyHistory(it, lastJourneyTime) }
             } else {
-                journeyService.getJourneyHistory(userId, from, to)
-            }
+                state.value.selectedUser?.let { journeyService.getJourneyHistory(it, from, to) }
+            } ?: emptyList()
 
             val filteredLocations = locations.filter {
                 it.created_at in from..to ||
