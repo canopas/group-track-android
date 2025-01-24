@@ -46,6 +46,53 @@ exports.deleteuser = onDocumentDeleted({
     }
 });
 
+exports.deleteSpace = onDocumentDeleted({
+    document: "spaces/{spaceId}",
+    region: "asia-south1"
+}, async event => {
+    const snap = event.data;
+    var spaceId = snap.data().id;
+
+    try {
+        await firebase_tools.firestore
+            .delete(`spaces/${spaceId}/space_members`, {
+                project: process.env.GCLOUD_PROJECT,
+                recursive: true,
+                yes: true,
+                force: true
+            });
+
+        await firebase_tools.firestore
+            .delete(`spaces/${spaceId}/group_keys`, {
+                project: process.env.GCLOUD_PROJECT,
+                recursive: true,
+                yes: true,
+                force: true
+            });
+
+        await firebase_tools.firestore
+            .delete(`spaces/${spaceId}/space_places`, {
+                project: process.env.GCLOUD_PROJECT,
+                recursive: true,
+                yes: true,
+                force: true
+            });
+
+        const invitationDoc = await admin.firestore().collection('space_invitations')
+            .where('space_id', '==', spaceId).get();
+
+        invitationDoc.forEach(async doc => {
+            await doc.ref.delete();
+        });
+
+        console.log('Group data deleted successfully.', spaceId);
+    } catch (error) {
+        console.error('Error deleting Group messages:', error);
+        throw new Error(`Failed to delete Group data for space: ${spaceId}`);
+    }
+});
+
+
 exports.deleteMessages = onDocumentDeleted({
     document: "space_thread/{threadId}",
     region: "asia-south1"
