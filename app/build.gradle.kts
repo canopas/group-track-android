@@ -219,5 +219,8 @@ dependencies {
     implementation("org.signal:libsignal-client:0.65.0")
     implementation("org.signal:libsignal-android:0.65.0")
 
+    // Billing
+    implementation("com.android.billingclient:billing:7.1.1")
+
     implementation(project(":data"))
 }
