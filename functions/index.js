@@ -87,11 +87,49 @@ exports.deleteSpace = onDocumentDeleted({
 
         console.log('Group data deleted successfully.', spaceId);
     } catch (error) {
-        console.error('Error deleting Group messages:', error);
+        console.error('Error deleting Group data:', error);
         throw new Error(`Failed to delete Group data for space: ${spaceId}`);
     }
 });
 
+
+exports.deleteSpaceMember = onDocumentDeleted({
+    document: "spaces/{spaceId}/space_members/{memberId}",
+    region: "asia-south1"
+}, async event => {
+    var spaceId =  event.params.spaceId;
+    var memberId =  event.params.memberId;
+
+    try {
+        await firebase_tools.firestore
+            .delete(`spaces/${spaceId}/space_members/${memberId}/sender_key_record`, {
+                project: process.env.GCLOUD_PROJECT,
+                recursive: true,
+                yes: true,
+                force: true
+            });
+
+        await firebase_tools.firestore
+             .delete(`spaces/${spaceId}/space_members/${memberId}/user_journeys`, {
+                                   project: process.env.GCLOUD_PROJECT,
+                                   recursive: true,
+                                   yes: true,
+                                   force: true
+                               });
+        await firebase_tools.firestore
+                    .delete(`spaces/${spaceId}/space_members/${memberId}/user_locations`, {
+                                          project: process.env.GCLOUD_PROJECT,
+                                          recursive: true,
+                                          yes: true,
+                                          force: true
+                                      });
+
+        console.log('Group member data deleted successfully.', memberId);
+    } catch (error) {
+        console.error('Error deleting Group member:', error);
+        throw new Error(`Failed to delete Group member for space: ${spaceId} member: ${memberId}`);
+    }
+});
 
 exports.deleteMessages = onDocumentDeleted({
     document: "space_thread/{threadId}",
