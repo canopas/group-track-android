@@ -37,7 +37,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     private fun getUser() = viewModelScope.launch(appDispatcher.IO) {
-        authService.getUserFlow().collectLatest { user ->
+        authService.getUserFlow()?.collectLatest { user ->
             _state.emit(_state.value.copy(user = user))
         }
     }

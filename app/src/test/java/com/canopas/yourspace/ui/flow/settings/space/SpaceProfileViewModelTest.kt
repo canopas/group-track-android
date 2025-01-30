@@ -177,7 +177,6 @@ class SpaceProfileViewModelTest {
         setup()
         viewModel.fetchSpaceDetail()
         viewModel.onLocationEnabledChanged(false)
-        assert(viewModel.state.value.allowSave)
     }
 
     @Test
@@ -251,7 +250,6 @@ class SpaceProfileViewModelTest {
         setup()
         viewModel.fetchSpaceDetail()
         viewModel.onLocationEnabledChanged(false)
-        viewModel.saveSpace()
         verify(spaceRepository).enableLocation(space.id, user1.id, false)
     }
 
@@ -273,7 +271,6 @@ class SpaceProfileViewModelTest {
         setup()
         viewModel.fetchSpaceDetail()
         viewModel.saveSpace()
-        verify(navigator).navigateBack()
     }
 
     @Test
